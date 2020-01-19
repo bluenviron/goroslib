@@ -37,8 +37,7 @@ import (
 * [publisher_custom_msg](example/publisher_custom_msg.go)
 * [serviceclient](example/serviceclient.go)
 * [serviceprovider](example/serviceprovider.go)
-* [param_get](example/param_get.go)
-* [param_set](example/param_set.go)
+* [param_set_get](example/param_set_get.go)
 * [cluster_info](example/cluster_info.go)
 
 ## Documentation
