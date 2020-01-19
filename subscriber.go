@@ -1,0 +1,155 @@
+package goroslib
+
+import (
+	"fmt"
+	"reflect"
+
+	"github.com/aler9/goroslib/msg"
+)
+
+type subscriberEvent interface {
+}
+
+type subscriberEventClose struct {
+}
+
+type subscriberEventPublisherUpdate struct {
+	urls []string
+}
+
+type subscriberEventMessage struct {
+	msg interface{}
+}
+
+type SubscriberConf struct {
+	Node     *Node
+	Topic    string
+	Callback interface{}
+}
+
+type Subscriber struct {
+	conf    SubscriberConf
+	msgType reflect.Type
+	msgMd5  string
+
+	chanEvents chan subscriberEvent
+	chanDone   chan struct{}
+
+	publishers map[string]*subscriberPublisher
+}
+
+func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
+	if conf.Node == nil {
+		return nil, fmt.Errorf("Node is empty")
+	}
+
+	if len(conf.Topic) < 1 || conf.Topic[0] != '/' {
+		return nil, fmt.Errorf("Topic must begin with /")
+	}
+
+	cbt := reflect.TypeOf(conf.Callback)
+	if cbt.Kind() != reflect.Func {
+		return nil, fmt.Errorf("Callback is not a function")
+	}
+	if cbt.NumIn() != 1 {
+		return nil, fmt.Errorf("Callback must accept a single argument")
+	}
+	if cbt.NumOut() != 0 {
+		return nil, fmt.Errorf("Callback must not return any value")
+	}
+
+	msgType := cbt.In(0)
+	if msgType.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Message must be a pointer")
+	}
+	if msgType.Elem().Kind() != reflect.Struct {
+		return nil, fmt.Errorf("Message must be a pointer to a struct")
+	}
+
+	msgMd5, err := msg.MessageMd5(reflect.New(msgType.Elem()).Interface())
+	if err != nil {
+		return nil, err
+	}
+
+	s := &Subscriber{
+		conf:       conf,
+		msgType:    msgType.Elem(),
+		msgMd5:     msgMd5,
+		chanEvents: make(chan subscriberEvent),
+		chanDone:   make(chan struct{}),
+		publishers: make(map[string]*subscriberPublisher),
+	}
+
+	chanErr := make(chan error)
+	conf.Node.chanEvents <- nodeEventSubscriberNew{
+		sub:     s,
+		chanErr: chanErr,
+	}
+	err = <-chanErr
+	if err != nil {
+		return nil, err
+	}
+
+	go s.run()
+
+	return s, nil
+}
+
+func (s *Subscriber) Close() error {
+	s.chanEvents <- subscriberEventClose{}
+	<-s.chanDone
+	return nil
+}
+
+func (s *Subscriber) run() {
+	defer func() { s.chanDone <- struct{}{} }()
+
+	cbv := reflect.ValueOf(s.conf.Callback)
+
+outer:
+	for {
+		rawEvt := <-s.chanEvents
+		switch evt := rawEvt.(type) {
+		case subscriberEventClose:
+			break outer
+
+		case subscriberEventPublisherUpdate:
+			validPublishers := make(map[string]struct{})
+
+			// add new publishers
+			for _, url := range evt.urls {
+				if _, ok := s.publishers[url]; !ok {
+					validPublishers[url] = struct{}{}
+					s.publishers[url] = newSubscriberPublisher(s, url)
+				}
+			}
+
+			// remove outdated publishers
+			for url, pub := range s.publishers {
+				if _, ok := validPublishers[url]; !ok {
+					pub.close()
+					delete(s.publishers, url)
+				}
+			}
+
+		// messages are received through events
+		// in order to avoid mutexes in the user side
+		case subscriberEventMessage:
+			cbv.Call([]reflect.Value{reflect.ValueOf(evt.msg)})
+		}
+	}
+
+	// consume queue
+	go func() {
+		for range s.chanEvents {
+		}
+	}()
+
+	for _, pub := range s.publishers {
+		pub.close()
+	}
+
+	s.conf.Node.chanEvents <- nodeEventSubscriberClose{s}
+
+	close(s.chanEvents)
+}
