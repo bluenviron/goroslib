@@ -5,11 +5,11 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
 [![Build Status](https://travis-ci.org/aler9/goroslib.svg?branch=master)](https://travis-ci.org/aler9/goroslib)
 
-goroslib is a pure Go library that allows to write clients for the Robot Operating System (ROS). A ROS node connects to an existing master node and interacts with other nodes, exchanging structured data through topics, services and parameters.
+goroslib is a library in pure Go for writing clients (nodes) for the Robot Operating System (ROS).
 
-The Robot Operating System (ROS) is a framework that defines a communication protocol between different programs, allowing them to exchange structured data, encoded in binary form. It was built for linking sensors, algorithms and actuators in unmanned ground vehicles and robots, but it is not bounded to the robot world and can be used anywhere there's need of building data streams, for instance in video processing.
+The Robot Operating System (ROS) is a project that defines a communication protocol that allows different programs to communicate with each others over time, exchanging structured data through topics, services and parameters. It was built for linking sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building data streams (for example in video processing).
 
-The official project provides software for writing nodes in C++ and Python, but it requires the download of over 1GB of data and works only through a cmake-based buildchain, that is heavy and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any additional runtime library and have the size of some megabytes.
+The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and works only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes.
 
 Features:
 * Subscribe and publish to topics
@@ -48,7 +48,7 @@ https://godoc.org/github.com/aler9/goroslib
 ## Links
 
 Protocol documentation (v1)
-* https://wiki.ros.orhttps://godoc.org/github.com/akio/rosgo/rosg/ROS/Technical%20Overview
+* https://wiki.ros.org/ROS/Technical%20Overview
 * https://wiki.ros.org/Implementing%20Client%20Libraries
 * https://wiki.ros.org/ROS/Master_API
 * https://wiki.ros.org/ROS/Parameter%20Server%20API
