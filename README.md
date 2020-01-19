@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
 [![Build Status](https://travis-ci.org/aler9/goroslib.svg?branch=master)](https://travis-ci.org/aler9/goroslib)
 
-goroslib is a pure Go library for writing clients for the Robot Operating System (ROS). A ROS node connects to an existing master node and interacts with other nodes, exchanging structured data through topics, services and parameters.
+goroslib is a pure Go library that allows to write clients for the Robot Operating System (ROS). A ROS node connects to an existing master node and interacts with other nodes, exchanging structured data through topics, services and parameters.
 
 The Robot Operating System (ROS) is a framework that defines a communication protocol between different programs, allowing them to exchange structured data, encoded in binary form. It was built for linking sensors, algorithms and actuators in unmanned ground vehicles and robots, but it is not bounded to the robot world and can be used anywhere there's need of building data streams, for instance in video processing.
 
