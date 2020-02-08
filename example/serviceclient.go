@@ -42,7 +42,7 @@ func main() {
 	}
 	defer sc.Close()
 
-	// sent a request and wait for a response
+	// send a request and wait for a response
 	req := TestServiceReq{
 		A: 123,
 		B: "456",
