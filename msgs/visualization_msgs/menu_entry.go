@@ -2,13 +2,13 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type MenuEntry struct {
-	Id          msg.Uint32
-	ParentId    msg.Uint32
-	Title       msg.String
-	Command     msg.String
-	CommandType msg.Uint8
+	Id          msgs.Uint32
+	ParentId    msgs.Uint32
+	Title       msgs.String
+	Command     msgs.String
+	CommandType msgs.Uint8
 }

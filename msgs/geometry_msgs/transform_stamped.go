@@ -2,12 +2,12 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type TransformStamped struct {
 	Header       std_msgs.Header
-	ChildFrameId msg.String
+	ChildFrameId msgs.String
 	Transform    Transform
 }

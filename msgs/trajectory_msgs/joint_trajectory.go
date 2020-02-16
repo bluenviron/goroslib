@@ -2,12 +2,12 @@
 package trajectory_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type JointTrajectory struct {
 	Header     std_msgs.Header
-	JointNames []msg.String
+	JointNames []msgs.String
 	Points     []JointTrajectoryPoint
 }

@@ -2,14 +2,14 @@
 package nav_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type Odometry struct {
 	Header       std_msgs.Header
-	ChildFrameId msg.String
+	ChildFrameId msgs.String
 	Pose         geometry_msgs.PoseWithCovariance
 	Twist        geometry_msgs.TwistWithCovariance
 }

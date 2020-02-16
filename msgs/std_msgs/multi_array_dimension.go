@@ -2,11 +2,11 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type MultiArrayDimension struct {
-	Label  msg.String
-	Size   msg.Uint32
-	Stride msg.Uint32
+	Label  msgs.String
+	Size   msgs.Uint32
+	Stride msgs.Uint32
 }

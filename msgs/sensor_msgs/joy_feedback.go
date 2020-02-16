@@ -2,11 +2,11 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type JoyFeedback struct {
-	Type      msg.Uint8
-	Id        msg.Uint8
-	Intensity msg.Float32
+	Type      msgs.Uint8
+	Id        msgs.Uint8
+	Intensity msgs.Float32
 }

@@ -2,12 +2,12 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type Temperature struct {
 	Header      std_msgs.Header
-	Temperature msg.Float64
-	Variance    msg.Float64
+	Temperature msgs.Float64
+	Variance    msgs.Float64
 }

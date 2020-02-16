@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msg-utils"
 	"github.com/aler9/goroslib/tcpros"
 )
 
@@ -82,7 +82,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Response must be a pointer to a struct")
 	}
 
-	srvMd5, err := msg.ServiceMd5(
+	srvMd5, err := msg_utils.ServiceMd5(
 		reflect.New(reqType.Elem()).Interface(),
 		reflect.New(resType.Elem()).Interface())
 	if err != nil {

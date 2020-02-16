@@ -1,4 +1,4 @@
-package msg
+package msg_utils
 
 import (
 	"crypto/md5"
@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strconv"
 	"unicode"
+
+	"github.com/aler9/goroslib/msgs"
 )
 
 func camelToSnake(in string) string {
@@ -46,52 +48,52 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 	}
 
 	switch rt {
-	case reflect.TypeOf(Bool(false)):
+	case reflect.TypeOf(msgs.Bool(false)):
 		return "bool", false, nil
 
-	case reflect.TypeOf(Byte(0)):
+	case reflect.TypeOf(msgs.Byte(0)):
 		return "byte", false, nil
 
-	case reflect.TypeOf(Char(0)):
+	case reflect.TypeOf(msgs.Char(0)):
 		return "char", false, nil
 
-	case reflect.TypeOf(Int8(0)):
+	case reflect.TypeOf(msgs.Int8(0)):
 		return "int8", false, nil
 
-	case reflect.TypeOf(Uint8(0)):
+	case reflect.TypeOf(msgs.Uint8(0)):
 		return "uint8", false, nil
 
-	case reflect.TypeOf(Int16(0)):
+	case reflect.TypeOf(msgs.Int16(0)):
 		return "int16", false, nil
 
-	case reflect.TypeOf(Uint16(0)):
+	case reflect.TypeOf(msgs.Uint16(0)):
 		return "uint16", false, nil
 
-	case reflect.TypeOf(Int32(0)):
+	case reflect.TypeOf(msgs.Int32(0)):
 		return "int32", false, nil
 
-	case reflect.TypeOf(Uint32(0)):
+	case reflect.TypeOf(msgs.Uint32(0)):
 		return "uint32", false, nil
 
-	case reflect.TypeOf(Int64(0)):
+	case reflect.TypeOf(msgs.Int64(0)):
 		return "int64", false, nil
 
-	case reflect.TypeOf(Uint64(0)):
+	case reflect.TypeOf(msgs.Uint64(0)):
 		return "uint64", false, nil
 
-	case reflect.TypeOf(Float32(0)):
+	case reflect.TypeOf(msgs.Float32(0)):
 		return "float32", false, nil
 
-	case reflect.TypeOf(Float64(0)):
+	case reflect.TypeOf(msgs.Float64(0)):
 		return "float64", false, nil
 
-	case reflect.TypeOf(String(0)):
+	case reflect.TypeOf(msgs.String(0)):
 		return "string", false, nil
 
-	case reflect.TypeOf(Time{}):
+	case reflect.TypeOf(msgs.Time{}):
 		return "time", false, nil
 
-	case reflect.TypeOf(Duration(0)):
+	case reflect.TypeOf(msgs.Duration(0)):
 		return "duration", false, nil
 	}
 

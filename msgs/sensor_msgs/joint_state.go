@@ -2,14 +2,14 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type JointState struct {
 	Header   std_msgs.Header
-	Name     []msg.String
-	Position []msg.Float64
-	Velocity []msg.Float64
-	Effort   []msg.Float64
+	Name     []msgs.String
+	Position []msgs.Float64
+	Velocity []msgs.Float64
+	Effort   []msgs.Float64
 }

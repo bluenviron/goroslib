@@ -2,10 +2,10 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type ChannelFloat32 struct {
-	Name   msg.String
-	Values []msg.Float32
+	Name   msgs.String
+	Values []msgs.Float32
 }

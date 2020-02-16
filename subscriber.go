@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msg-utils"
 )
 
 type subscriberEvent interface {
@@ -66,7 +66,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Message must be a pointer to a struct")
 	}
 
-	msgMd5, err := msg.MessageMd5(reflect.New(msgType.Elem()).Interface())
+	msgMd5, err := msg_utils.MessageMd5(reflect.New(msgType.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}

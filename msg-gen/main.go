@@ -150,7 +150,7 @@ func processCommonMsgs() error {
 }
 
 func main() {
-	err := shellCommand("rm -rf msgs/*")
+	err := shellCommand("find msgs -type d -mindepth 1 -maxdepth 1 | xargs rm -rf")
 	if err != nil {
 		panic(err)
 	}

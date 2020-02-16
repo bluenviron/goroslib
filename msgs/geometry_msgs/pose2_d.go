@@ -2,11 +2,11 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Pose2D struct {
-	X     msg.Float64
-	Y     msg.Float64
-	Theta msg.Float64
+	X     msgs.Float64
+	Y     msgs.Float64
+	Theta msgs.Float64
 }

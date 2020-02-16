@@ -2,10 +2,10 @@
 package diagnostic_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type KeyValue struct {
-	Key   msg.String
-	Value msg.String
+	Key   msgs.String
+	Value msgs.String
 }

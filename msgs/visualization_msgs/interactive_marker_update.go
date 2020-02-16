@@ -2,14 +2,14 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type InteractiveMarkerUpdate struct {
-	ServerId msg.String
-	SeqNum   msg.Uint64
-	Type     msg.Uint8
+	ServerId msgs.String
+	SeqNum   msgs.Uint64
+	Type     msgs.Uint8
 	Markers  []InteractiveMarker
 	Poses    []InteractiveMarkerPose
-	Erases   []msg.String
+	Erases   []msgs.String
 }

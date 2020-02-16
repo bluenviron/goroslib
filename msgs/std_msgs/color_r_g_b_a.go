@@ -2,12 +2,12 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type ColorRGBA struct {
-	R msg.Float32
-	G msg.Float32
-	B msg.Float32
-	A msg.Float32
+	R msgs.Float32
+	G msgs.Float32
+	B msgs.Float32
+	A msgs.Float32
 }

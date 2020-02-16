@@ -2,17 +2,17 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 )
 
 type InteractiveMarkerControl struct {
-	Name                         msg.String
+	Name                         msgs.String
 	Orientation                  geometry_msgs.Quaternion
-	OrientationMode              msg.Uint8
-	InteractionMode              msg.Uint8
-	AlwaysVisible                msg.Bool
+	OrientationMode              msgs.Uint8
+	InteractionMode              msgs.Uint8
+	AlwaysVisible                msgs.Bool
 	Markers                      []Marker
-	IndependentMarkerOrientation msg.Bool
-	Description                  msg.String
+	IndependentMarkerOrientation msgs.Bool
+	Description                  msgs.String
 }

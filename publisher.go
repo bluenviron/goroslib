@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msg-utils"
 	"github.com/aler9/goroslib/tcpros"
 )
 
@@ -60,7 +60,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg must be a pointer to a struct")
 	}
 
-	msgMd5, err := msg.MessageMd5(conf.Msg)
+	msgMd5, err := msg_utils.MessageMd5(conf.Msg)
 	if err != nil {
 		return nil, err
 	}

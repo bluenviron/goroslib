@@ -6,23 +6,23 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type TestParent struct {
-	A msg.String
-	B msg.Time
-	C msg.Bool
-	D msg.Byte
-	E msg.Char
-	F msg.Duration
+	A msgs.String
+	B msgs.Time
+	C msgs.Bool
+	D msgs.Byte
+	E msgs.Char
+	F msgs.Duration
 }
 
 type TestMessage struct {
-	A msg.Uint8
+	A msgs.Uint8
 	B []TestParent
 	C [2]TestParent
-	D [2]msg.Uint32
+	D [2]msgs.Uint32
 }
 
 func TestSubscriberRegister(t *testing.T) {
@@ -123,7 +123,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 				A: "BB",
 			},
 		},
-		D: [2]msg.Uint32{222, 333},
+		D: [2]msgs.Uint32{222, 333},
 	}
 	require.Equal(t, &expected, recv)
 }
@@ -178,7 +178,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 				A: "BB",
 			},
 		},
-		D: [2]msg.Uint32{222, 333},
+		D: [2]msgs.Uint32{222, 333},
 	}
 	require.Equal(t, &expected, recv)
 }

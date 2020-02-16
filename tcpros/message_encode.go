@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 func messageEncode(w io.Writer, msg interface{}) error {
@@ -46,7 +46,7 @@ func messageEncode(w io.Writer, msg interface{}) error {
 
 func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 	switch cv := val.Elem().Interface().(type) {
-	case msg.Bool:
+	case msgs.Bool:
 		b := uint8(0x00)
 		if cv {
 			b = 0x01
@@ -54,63 +54,63 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		_, err := w.Write([]byte{b})
 		return err
 
-	case msg.Byte:
+	case msgs.Byte:
 		_, err := w.Write([]byte{uint8(cv)})
 		return err
 
-	case msg.Char:
+	case msgs.Char:
 		_, err := w.Write([]byte{uint8(cv)})
 		return err
 
-	case msg.Int8:
+	case msgs.Int8:
 		_, err := w.Write([]byte{uint8(cv)})
 		return err
 
-	case msg.Uint8:
+	case msgs.Uint8:
 		_, err := w.Write([]byte{uint8(cv)})
 		return err
 
-	case msg.Int16:
+	case msgs.Int16:
 		binary.LittleEndian.PutUint16(buf, uint16(cv))
 		_, err := w.Write(buf[:2])
 		return err
 
-	case msg.Uint16:
+	case msgs.Uint16:
 		binary.LittleEndian.PutUint16(buf, uint16(cv))
 		_, err := w.Write(buf[:2])
 		return err
 
-	case msg.Int32:
+	case msgs.Int32:
 		binary.LittleEndian.PutUint32(buf, uint32(cv))
 		_, err := w.Write(buf[:4])
 		return err
 
-	case msg.Uint32:
+	case msgs.Uint32:
 		binary.LittleEndian.PutUint32(buf, uint32(cv))
 		_, err := w.Write(buf[:4])
 		return err
 
-	case msg.Int64:
+	case msgs.Int64:
 		binary.LittleEndian.PutUint64(buf, uint64(cv))
 		_, err := w.Write(buf[:8])
 		return err
 
-	case msg.Uint64:
+	case msgs.Uint64:
 		binary.LittleEndian.PutUint64(buf, uint64(cv))
 		_, err := w.Write(buf[:8])
 		return err
 
-	case msg.Float32:
+	case msgs.Float32:
 		binary.LittleEndian.PutUint32(buf, math.Float32bits(float32(cv)))
 		_, err := w.Write(buf[:4])
 		return err
 
-	case msg.Float64:
+	case msgs.Float64:
 		binary.LittleEndian.PutUint64(buf, math.Float64bits(float64(cv)))
 		_, err := w.Write(buf[:8])
 		return err
 
-	case msg.String:
+	case msgs.String:
 		bstr := []byte(cv)
 
 		// string length
@@ -124,7 +124,7 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		_, err = w.Write(bstr)
 		return err
 
-	case msg.Time:
+	case msgs.Time:
 		// special case: zero means year zero, not 1970
 		// so time.Time{} can be encoded / decoded
 		var nano int64
@@ -145,7 +145,7 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		_, err = w.Write(buf[:4])
 		return err
 
-	case msg.Duration:
+	case msgs.Duration:
 		nano := cv.Nanoseconds()
 
 		binary.LittleEndian.PutUint32(buf, uint32(nano/1000000000))

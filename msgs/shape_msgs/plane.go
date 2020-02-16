@@ -2,9 +2,9 @@
 package shape_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Plane struct {
-	Coef [4]msg.Float64
+	Coef [4]msgs.Float64
 }

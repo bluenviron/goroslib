@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 // define a custom service.
@@ -15,12 +15,12 @@ import (
 // and the other for the response.
 
 type TestServiceReq struct {
-	A msg.Float64
-	B msg.String
+	A msgs.Float64
+	B msgs.String
 }
 
 type TestServiceRes struct {
-	C msg.Float64
+	C msgs.Float64
 }
 
 func main() {

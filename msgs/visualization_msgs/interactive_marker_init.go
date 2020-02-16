@@ -2,11 +2,11 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type InteractiveMarkerInit struct {
-	ServerId msg.String
-	SeqNum   msg.Uint64
+	ServerId msgs.String
+	SeqNum   msgs.Uint64
 	Markers  []InteractiveMarker
 }

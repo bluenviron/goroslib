@@ -2,13 +2,13 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type RegionOfInterest struct {
-	XOffset   msg.Uint32
-	YOffset   msg.Uint32
-	Height    msg.Uint32
-	Width     msg.Uint32
-	DoRectify msg.Bool
+	XOffset   msgs.Uint32
+	YOffset   msgs.Uint32
+	Height    msgs.Uint32
+	Width     msgs.Uint32
+	DoRectify msgs.Bool
 }

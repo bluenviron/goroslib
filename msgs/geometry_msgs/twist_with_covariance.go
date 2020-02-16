@@ -2,10 +2,10 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type TwistWithCovariance struct {
 	Twist      Twist
-	Covariance [36]msg.Float64
+	Covariance [36]msgs.Float64
 }

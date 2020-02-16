@@ -2,7 +2,7 @@
 package stereo_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/sensor_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
@@ -10,10 +10,10 @@ import (
 type DisparityImage struct {
 	Header       std_msgs.Header
 	Image        sensor_msgs.Image
-	F            msg.Float32
-	T            msg.Float32
+	F            msgs.Float32
+	T            msgs.Float32
 	ValidWindow  sensor_msgs.RegionOfInterest
-	MinDisparity msg.Float32
-	MaxDisparity msg.Float32
-	DeltaD       msg.Float32
+	MinDisparity msgs.Float32
+	MaxDisparity msgs.Float32
+	DeltaD       msgs.Float32
 }

@@ -2,18 +2,18 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type PointCloud2 struct {
 	Header      std_msgs.Header
-	Height      msg.Uint32
-	Width       msg.Uint32
+	Height      msgs.Uint32
+	Width       msgs.Uint32
 	Fields      []PointField
-	IsBigendian msg.Bool
-	PointStep   msg.Uint32
-	RowStep     msg.Uint32
-	Data        []msg.Uint8
-	IsDense     msg.Bool
+	IsBigendian msgs.Bool
+	PointStep   msgs.Uint32
+	RowStep     msgs.Uint32
+	Data        []msgs.Uint8
+	IsDense     msgs.Bool
 }

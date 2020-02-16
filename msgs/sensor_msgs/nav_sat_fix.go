@@ -2,16 +2,16 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type NavSatFix struct {
 	Header                 std_msgs.Header
 	Status                 NavSatStatus
-	Latitude               msg.Float64
-	Longitude              msg.Float64
-	Altitude               msg.Float64
-	PositionCovariance     [9]msg.Float64
-	PositionCovarianceType msg.Uint8
+	Latitude               msgs.Float64
+	Longitude              msgs.Float64
+	Altitude               msgs.Float64
+	PositionCovariance     [9]msgs.Float64
+	PositionCovarianceType msgs.Uint8
 }

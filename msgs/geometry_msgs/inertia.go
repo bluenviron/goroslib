@@ -2,16 +2,16 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Inertia struct {
-	M   msg.Float64
+	M   msgs.Float64
 	Com Vector3
-	Ixx msg.Float64
-	Ixy msg.Float64
-	Ixz msg.Float64
-	Iyy msg.Float64
-	Iyz msg.Float64
-	Izz msg.Float64
+	Ixx msgs.Float64
+	Ixy msgs.Float64
+	Ixz msgs.Float64
+	Iyy msgs.Float64
+	Iyz msgs.Float64
+	Izz msgs.Float64
 }

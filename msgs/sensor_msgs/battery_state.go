@@ -2,23 +2,23 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type BatteryState struct {
 	Header                std_msgs.Header
-	Voltage               msg.Float32
-	Current               msg.Float32
-	Charge                msg.Float32
-	Capacity              msg.Float32
-	DesignCapacity        msg.Float32
-	Percentage            msg.Float32
-	PowerSupplyStatus     msg.Uint8
-	PowerSupplyHealth     msg.Uint8
-	PowerSupplyTechnology msg.Uint8
-	Present               msg.Bool
-	CellVoltage           []msg.Float32
-	Location              msg.String
-	SerialNumber          msg.String
+	Voltage               msgs.Float32
+	Current               msgs.Float32
+	Charge                msgs.Float32
+	Capacity              msgs.Float32
+	DesignCapacity        msgs.Float32
+	Percentage            msgs.Float32
+	PowerSupplyStatus     msgs.Uint8
+	PowerSupplyHealth     msgs.Uint8
+	PowerSupplyTechnology msgs.Uint8
+	Present               msgs.Bool
+	CellVoltage           []msgs.Float32
+	Location              msgs.String
+	SerialNumber          msgs.String
 }

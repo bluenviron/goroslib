@@ -2,10 +2,10 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type NavSatStatus struct {
-	Status  msg.Int8
-	Service msg.Uint16
+	Status  msgs.Int8
+	Service msgs.Uint16
 }

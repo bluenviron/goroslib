@@ -2,11 +2,11 @@
 package actionlib_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type GoalStatus struct {
 	GoalId GoalID
-	Status msg.Uint8
-	Text   msg.String
+	Status msgs.Uint8
+	Text   msgs.String
 }

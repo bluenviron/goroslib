@@ -50,11 +50,11 @@ IMAGES = $(shell echo test-images/*/ | xargs -n1 basename)
 test-nodocker:
 	$(foreach IMG,$(IMAGES),docker build -q test-images/$(IMG) -t goroslib-test-$(IMG)$(NL))
 	$(eval export CGO_ENABLED = 0)
-	go test -v ./msg
-	go test -v ./msgs/...
+	go test -v ./msg-utils
 	go test -v ./tcpros
 	go test -v ./xmlrpc
 	go test -v .
+	go test -v ./msgs/...
 	$(foreach f,$(shell ls example/*),go build -o /dev/null $(f)$(NL))
 
 define DOCKERFILE_MSGS
@@ -74,5 +74,5 @@ msgs:
 	make msgs-nodocker
 
 msgs-nodocker:
-	cd /s && go run ./msgs-gen/main.go
+	cd /s && go run ./msg-gen/main.go
 	cd /s && find ./msgs -type f -name '*.go' | xargs gofmt -l -w -s

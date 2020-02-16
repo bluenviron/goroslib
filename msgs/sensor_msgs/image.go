@@ -2,16 +2,16 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type Image struct {
 	Header      std_msgs.Header
-	Height      msg.Uint32
-	Width       msg.Uint32
-	Encoding    msg.String
-	IsBigendian msg.Uint8
-	Step        msg.Uint32
-	Data        []msg.Uint8
+	Height      msgs.Uint32
+	Width       msgs.Uint32
+	Encoding    msgs.String
+	IsBigendian msgs.Uint8
+	Step        msgs.Uint32
+	Data        []msgs.Uint8
 }

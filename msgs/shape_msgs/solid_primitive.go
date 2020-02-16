@@ -2,10 +2,10 @@
 package shape_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type SolidPrimitive struct {
-	Type       msg.Uint8
-	Dimensions []msg.Float64
+	Type       msgs.Uint8
+	Dimensions []msgs.Float64
 }

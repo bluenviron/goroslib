@@ -2,9 +2,9 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type UInt16 struct {
-	Data msg.Uint16
+	Data msgs.Uint16
 }

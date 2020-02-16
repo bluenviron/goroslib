@@ -2,15 +2,15 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type Range struct {
 	Header        std_msgs.Header
-	RadiationType msg.Uint8
-	FieldOfView   msg.Float32
-	MinRange      msg.Float32
-	MaxRange      msg.Float32
-	Range         msg.Float32
+	RadiationType msgs.Uint8
+	FieldOfView   msgs.Float32
+	MinRange      msgs.Float32
+	MaxRange      msgs.Float32
+	Range         msgs.Float32
 }

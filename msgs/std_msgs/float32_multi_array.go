@@ -2,10 +2,10 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Float32MultiArray struct {
 	Layout MultiArrayLayout
-	Data   []msg.Float32
+	Data   []msgs.Float32
 }

@@ -2,12 +2,12 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type PointField struct {
-	Name     msg.String
-	Offset   msg.Uint32
-	Datatype msg.Uint8
-	Count    msg.Uint32
+	Name     msgs.String
+	Offset   msgs.Uint32
+	Datatype msgs.Uint8
+	Count    msgs.Uint32
 }

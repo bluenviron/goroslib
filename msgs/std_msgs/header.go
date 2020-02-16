@@ -2,11 +2,11 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Header struct {
-	Seq     msg.Uint32
-	Stamp   msg.Time
-	FrameId msg.String
+	Seq     msgs.Uint32
+	Stamp   msgs.Time
+	FrameId msgs.String
 }

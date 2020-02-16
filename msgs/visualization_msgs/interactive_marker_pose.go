@@ -2,7 +2,7 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
@@ -10,5 +10,5 @@ import (
 type InteractiveMarkerPose struct {
 	Header std_msgs.Header
 	Pose   geometry_msgs.Pose
-	Name   msg.String
+	Name   msgs.String
 }

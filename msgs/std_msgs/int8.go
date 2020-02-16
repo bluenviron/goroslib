@@ -2,9 +2,9 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Int8 struct {
-	Data msg.Int8
+	Data msgs.Int8
 }

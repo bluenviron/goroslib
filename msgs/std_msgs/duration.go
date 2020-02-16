@@ -2,9 +2,9 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Duration struct {
-	Data msg.Duration
+	Data msgs.Duration
 }

@@ -2,14 +2,14 @@
 package nav_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 )
 
 type MapMetaData struct {
-	MapLoadTime msg.Time
-	Resolution  msg.Float32
-	Width       msg.Uint32
-	Height      msg.Uint32
+	MapLoadTime msgs.Time
+	Resolution  msgs.Float32
+	Width       msgs.Uint32
+	Height      msgs.Uint32
 	Origin      geometry_msgs.Pose
 }

@@ -2,19 +2,19 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type LaserScan struct {
 	Header         std_msgs.Header
-	AngleMin       msg.Float32
-	AngleMax       msg.Float32
-	AngleIncrement msg.Float32
-	TimeIncrement  msg.Float32
-	ScanTime       msg.Float32
-	RangeMin       msg.Float32
-	RangeMax       msg.Float32
-	Ranges         []msg.Float32
-	Intensities    []msg.Float32
+	AngleMin       msgs.Float32
+	AngleMax       msgs.Float32
+	AngleIncrement msgs.Float32
+	TimeIncrement  msgs.Float32
+	ScanTime       msgs.Float32
+	RangeMin       msgs.Float32
+	RangeMax       msgs.Float32
+	Ranges         []msgs.Float32
+	Intensities    []msgs.Float32
 }

@@ -6,15 +6,15 @@ import (
 	"fmt"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 // define a custom message.
 // unlike the standard library, a .msg file is not needed.
 // a structure definition is enough.
 type TestMessage struct {
-	FirstField  msg.Uint32
-	SecondField msg.String
+	FirstField  msgs.Uint32
+	SecondField msgs.String
 }
 
 func onMessage(msg *TestMessage) {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 func TestServiceProvider(t *testing.T) {
@@ -24,7 +24,7 @@ func TestServiceProvider(t *testing.T) {
 		Node:    nsp,
 		Service: "/test_srv",
 		Callback: func(req *TestServiceReq) *TestServiceRes {
-			c := msg.Float64(0)
+			c := msgs.Float64(0)
 			if req.A == 123 && req.B == "456" {
 				c = 123
 			}

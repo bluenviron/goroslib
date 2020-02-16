@@ -183,8 +183,8 @@ func do(pkgName string, def string) error {
 				"int32", "uint32", "int64", "uint64",
 				"float32", "float64", "string",
 				"time", "duration":
-				imports["github.com/aler9/goroslib/msg"] = struct{}{}
-				return "msg." + strings.Title(f.Type)
+				imports["github.com/aler9/goroslib/msgs"] = struct{}{}
+				return "msgs." + strings.Title(f.Type)
 			}
 			return f.Type
 		}()

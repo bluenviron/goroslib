@@ -2,12 +2,12 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type TimeReference struct {
 	Header  std_msgs.Header
-	TimeRef msg.Time
-	Source  msg.String
+	TimeRef msgs.Time
+	Source  msgs.String
 }

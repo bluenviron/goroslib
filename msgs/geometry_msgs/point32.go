@@ -2,11 +2,11 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Point32 struct {
-	X msg.Float32
-	Y msg.Float32
-	Z msg.Float32
+	X msgs.Float32
+	Y msgs.Float32
+	Z msgs.Float32
 }

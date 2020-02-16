@@ -1,13 +1,15 @@
-package msg
+package msg_utils
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Parent struct {
-	A String
+	A msgs.String
 }
 
 var casesMessage = []struct {
@@ -18,45 +20,45 @@ var casesMessage = []struct {
 	{
 		"base types",
 		&struct {
-			A Bool
-			B Byte
-			C Char
-			D Int8
-			E Uint8
-			F Int16
-			G Uint16
-			H Int32
-			I Uint32
-			J Int64
-			K Uint64
-			L Float32
-			M Float64
-			N String
-			O Time
-			P Duration
+			A msgs.Bool
+			B msgs.Byte
+			C msgs.Char
+			D msgs.Int8
+			E msgs.Uint8
+			F msgs.Int16
+			G msgs.Uint16
+			H msgs.Int32
+			I msgs.Uint32
+			J msgs.Int64
+			K msgs.Uint64
+			L msgs.Float32
+			M msgs.Float64
+			N msgs.String
+			O msgs.Time
+			P msgs.Duration
 		}{},
 		"384497568d692fe745850d4b0751295d",
 	},
 	{
 		"variable array",
 		&struct {
-			A Uint8
-			B []Uint32
+			A msgs.Uint8
+			B []msgs.Uint32
 		}{},
 		"fdee5bb88110a832e32fedabd50c71fc",
 	},
 	{
 		"fixed array",
 		&struct {
-			A Uint8
-			B [2]Uint32
+			A msgs.Uint8
+			B [2]msgs.Uint32
 		}{},
 		"fd38051c1051a88ecf1ce1924053076c",
 	},
 	{
 		"parent without pointer",
 		&struct {
-			A Uint8
+			A msgs.Uint8
 			B Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -64,7 +66,7 @@ var casesMessage = []struct {
 	{
 		"parent with pointer",
 		&struct {
-			A Uint8
+			A msgs.Uint8
 			B *Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -72,7 +74,7 @@ var casesMessage = []struct {
 	{
 		"array of parent without pointer",
 		&struct {
-			A Uint8
+			A msgs.Uint8
 			B []Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -80,7 +82,7 @@ var casesMessage = []struct {
 	{
 		"array of parent with pointer",
 		&struct {
-			A Uint8
+			A msgs.Uint8
 			B []*Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -88,7 +90,7 @@ var casesMessage = []struct {
 	{
 		"fixed array of parent",
 		&struct {
-			A Uint8
+			A msgs.Uint8
 			B [2]Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -114,11 +116,11 @@ var casesService = []struct {
 	{
 		"base types",
 		&struct {
-			A Float64
-			B String
+			A msgs.Float64
+			B msgs.String
 		}{},
 		&struct {
-			C Float64
+			C msgs.Float64
 		}{},
 		"4fa8f09823d7ad898c6295d42385de20",
 	},

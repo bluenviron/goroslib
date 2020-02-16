@@ -2,14 +2,14 @@
 package nav_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type GridCells struct {
 	Header     std_msgs.Header
-	CellWidth  msg.Float32
-	CellHeight msg.Float32
+	CellWidth  msgs.Float32
+	CellHeight msgs.Float32
 	Cells      []geometry_msgs.Point
 }

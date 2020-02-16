@@ -2,7 +2,7 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
@@ -10,9 +10,9 @@ import (
 type Imu struct {
 	Header                       std_msgs.Header
 	Orientation                  geometry_msgs.Quaternion
-	OrientationCovariance        [9]msg.Float64
+	OrientationCovariance        [9]msgs.Float64
 	AngularVelocity              geometry_msgs.Vector3
-	AngularVelocityCovariance    [9]msg.Float64
+	AngularVelocityCovariance    [9]msgs.Float64
 	LinearAcceleration           geometry_msgs.Vector3
-	LinearAccelerationCovariance [9]msg.Float64
+	LinearAccelerationCovariance [9]msgs.Float64
 }

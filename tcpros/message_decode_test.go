@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 type Parent struct {
-	A msg.String
+	A msgs.String
 }
 
 var casesMessage = []struct {
@@ -28,22 +28,22 @@ var casesMessage = []struct {
 	{
 		"base types",
 		&struct {
-			A msg.Bool
-			B msg.Byte
-			C msg.Char
-			D msg.Int8
-			E msg.Uint8
-			F msg.Int16
-			G msg.Uint16
-			H msg.Int32
-			I msg.Uint32
-			J msg.Int64
-			K msg.Uint64
-			L msg.Float32
-			M msg.Float64
-			N msg.String
-			O msg.Time
-			P msg.Duration
+			A msgs.Bool
+			B msgs.Byte
+			C msgs.Char
+			D msgs.Int8
+			E msgs.Uint8
+			F msgs.Int16
+			G msgs.Uint16
+			H msgs.Int32
+			I msgs.Uint32
+			J msgs.Int64
+			K msgs.Uint64
+			L msgs.Float32
+			M msgs.Float64
+			N msgs.String
+			O msgs.Time
+			P msgs.Duration
 		}{
 			true, 15, 'a', -1, 2, -3, 4, -5, 6, -7, 8, 9, 10, "abc",
 			time.Date(2010, 11, 12, 13, 14, 15, 16, time.UTC),
@@ -64,7 +64,7 @@ var casesMessage = []struct {
 	{
 		"empty string",
 		&struct {
-			A msg.String
+			A msgs.String
 		}{
 			"",
 		},
@@ -75,9 +75,9 @@ var casesMessage = []struct {
 	{
 		"empty time",
 		&struct {
-			A msg.Time
+			A msgs.Time
 		}{
-			msg.Time{},
+			msgs.Time{},
 		},
 		[]byte{
 			0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -87,9 +87,9 @@ var casesMessage = []struct {
 	{
 		"empty duration",
 		&struct {
-			A msg.Duration
+			A msgs.Duration
 		}{
-			msg.Duration(0),
+			msgs.Duration(0),
 		},
 		[]byte{
 			0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -99,10 +99,10 @@ var casesMessage = []struct {
 	{
 		"variable array",
 		&struct {
-			A msg.Uint8
-			B []msg.Uint32
+			A msgs.Uint8
+			B []msgs.Uint32
 		}{
-			1, []msg.Uint32{2, 3},
+			1, []msgs.Uint32{2, 3},
 		},
 		[]byte{
 			0x0d, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,
@@ -113,10 +113,10 @@ var casesMessage = []struct {
 	{
 		"fixed array",
 		&struct {
-			A msg.Uint8
-			B [2]msg.Uint32
+			A msgs.Uint8
+			B [2]msgs.Uint32
 		}{
-			1, [2]msg.Uint32{2, 3},
+			1, [2]msgs.Uint32{2, 3},
 		},
 		[]byte{
 			0x09, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,
@@ -126,7 +126,7 @@ var casesMessage = []struct {
 	{
 		"variable array of parent",
 		&struct {
-			A msg.Uint8
+			A msgs.Uint8
 			B []Parent
 		}{
 			1, []Parent{{"abc"}, {"def"}},
@@ -140,7 +140,7 @@ var casesMessage = []struct {
 	{
 		"fixed array of parent",
 		&struct {
-			A msg.Uint8
+			A msgs.Uint8
 			B [2]Parent
 		}{
 			1, [2]Parent{{"abc"}, {"def"}},

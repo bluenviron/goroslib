@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/msgs"
 )
 
 func messageDecode(r io.Reader, msg interface{}) error {
@@ -46,128 +46,128 @@ func messageDecode(r io.Reader, msg interface{}) error {
 
 func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte) error {
 	switch cv := val.Interface().(type) {
-	case *msg.Bool:
+	case *msgs.Bool:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		b := msg.Bool(false)
+		b := msgs.Bool(false)
 		if buf[0] == 0x01 {
 			b = true
 		}
 		*cv = b
 		return nil
 
-	case *msg.Byte:
+	case *msgs.Byte:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		*cv = msg.Byte(buf[0])
+		*cv = msgs.Byte(buf[0])
 		return nil
 
-	case *msg.Char:
+	case *msgs.Char:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		*cv = msg.Char(buf[0])
+		*cv = msgs.Char(buf[0])
 		return nil
 
-	case *msg.Int8:
+	case *msgs.Int8:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		*cv = msg.Int8(buf[0])
+		*cv = msgs.Int8(buf[0])
 		return nil
 
-	case *msg.Uint8:
+	case *msgs.Uint8:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		*cv = msg.Uint8(buf[0])
+		*cv = msgs.Uint8(buf[0])
 		return nil
 
-	case *msg.Int16:
+	case *msgs.Int16:
 		_, err := io.ReadFull(r, buf[:2])
 		if err != nil {
 			return err
 		}
 		*mlen -= 2
-		*cv = msg.Int16(binary.LittleEndian.Uint16(buf))
+		*cv = msgs.Int16(binary.LittleEndian.Uint16(buf))
 		return nil
 
-	case *msg.Uint16:
+	case *msgs.Uint16:
 		_, err := io.ReadFull(r, buf[:2])
 		if err != nil {
 			return err
 		}
 		*mlen -= 2
-		*cv = msg.Uint16(binary.LittleEndian.Uint16(buf))
+		*cv = msgs.Uint16(binary.LittleEndian.Uint16(buf))
 		return nil
 
-	case *msg.Int32:
+	case *msgs.Int32:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
 		}
 		*mlen -= 4
-		*cv = msg.Int32(binary.LittleEndian.Uint32(buf))
+		*cv = msgs.Int32(binary.LittleEndian.Uint32(buf))
 		return nil
 
-	case *msg.Uint32:
+	case *msgs.Uint32:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
 		}
 		*mlen -= 4
-		*cv = msg.Uint32(binary.LittleEndian.Uint32(buf))
+		*cv = msgs.Uint32(binary.LittleEndian.Uint32(buf))
 		return nil
 
-	case *msg.Int64:
+	case *msgs.Int64:
 		_, err := io.ReadFull(r, buf[:8])
 		if err != nil {
 			return err
 		}
 		*mlen -= 8
-		*cv = msg.Int64(binary.LittleEndian.Uint64(buf))
+		*cv = msgs.Int64(binary.LittleEndian.Uint64(buf))
 		return nil
 
-	case *msg.Uint64:
+	case *msgs.Uint64:
 		_, err := io.ReadFull(r, buf[:8])
 		if err != nil {
 			return err
 		}
 		*mlen -= 8
-		*cv = msg.Uint64(binary.LittleEndian.Uint64(buf))
+		*cv = msgs.Uint64(binary.LittleEndian.Uint64(buf))
 		return nil
 
-	case *msg.Float32:
+	case *msgs.Float32:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
 		}
 		*mlen -= 4
-		*cv = msg.Float32(math.Float32frombits(binary.LittleEndian.Uint32(buf)))
+		*cv = msgs.Float32(math.Float32frombits(binary.LittleEndian.Uint32(buf)))
 		return nil
 
-	case *msg.Float64:
+	case *msgs.Float64:
 		_, err := io.ReadFull(r, buf[:8])
 		if err != nil {
 			return err
 		}
 		*mlen -= 8
-		*cv = msg.Float64(math.Float64frombits(binary.LittleEndian.Uint64(buf)))
+		*cv = msgs.Float64(math.Float64frombits(binary.LittleEndian.Uint64(buf)))
 		return nil
 
-	case *msg.String:
+	case *msgs.String:
 		// string length
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
@@ -187,13 +187,13 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 				return err
 			}
 			*mlen -= le
-			*cv = msg.String(bstr)
+			*cv = msgs.String(bstr)
 		} else {
 			*cv = ""
 		}
 		return nil
 
-	case *msg.Time:
+	case *msgs.Time:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
@@ -217,7 +217,7 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		return nil
 
-	case *msg.Duration:
+	case *msgs.Duration:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
