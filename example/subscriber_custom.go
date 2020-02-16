@@ -10,8 +10,8 @@ import (
 )
 
 // define a custom message.
-// unlike the standard library, a structure a definition is all the script needs.
-// parsing a .msg file is not needed.
+// unlike the standard library, a .msg file is not needed.
+// a structure definition is enough.
 type TestMessage struct {
 	FirstField  msg.Uint32
 	SecondField msg.String

@@ -32,9 +32,9 @@ import (
 ## Examples
 
 * [subscriber](example/subscriber.go)
-* [subscriber_custom_msg](example/subscriber_custom_msg.go)
+* [subscriber_custom](example/subscriber_custom.go)
 * [publisher](example/publisher.go)
-* [publisher_custom_msg](example/publisher_custom_msg.go)
+* [publisher_custom](example/publisher_custom.go)
 * [serviceclient](example/serviceclient.go)
 * [serviceprovider](example/serviceprovider.go)
 * [param_set_get](example/param_set_get.go)

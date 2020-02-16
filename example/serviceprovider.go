@@ -9,6 +9,11 @@ import (
 	"github.com/aler9/goroslib/msg"
 )
 
+// define a custom service.
+// unlike the standard library, a .srv file is not needed.
+// two structure definitions are enough, one for the request
+// and the other for the response.
+
 type TestServiceReq struct {
 	A msg.Float64
 	B msg.String
