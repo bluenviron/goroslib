@@ -46,6 +46,27 @@ import (
 
 https://godoc.org/github.com/aler9/goroslib
 
+## Message definitions
+
+Unlike the standard library, it is not necessary to write and compile `.msg` files to define custom messages, it is enough to write structures in this format:
+```go
+import (
+    "github.com/aler9/goroslib/msgs"
+)
+
+type MessageName struct {
+    Field1 msgs.Bool
+    Field2 msgs.Int32
+    ...
+}
+```
+
+An existing message definition, saved in a `.msg` file, can be converted into its equivalent structure by running:
+```
+go get github.com/aler9/goroslib/msg-import
+msg-import mymessage.msg
+```
+
 ## Links
 
 Protocol documentation (v1)
