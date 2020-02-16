@@ -48,7 +48,7 @@ https://godoc.org/github.com/aler9/goroslib
 
 ## Message definitions
 
-Unlike the standard library, it is not necessary to write and compile `.msg` files to define custom messages, it is enough to write structures in this format:
+Unlike the standard library, to define custom messages it is not necessary to write and compile `.msg` files, but it is enough to write structures in this format:
 ```go
 import (
     "github.com/aler9/goroslib/msgs"
