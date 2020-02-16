@@ -18,7 +18,7 @@ Features:
 * Get infos about other nodes, topics, services
 * Compilation of `.msg` files is not necessary, message definitions are deducted from code
 * Standard messages are precompiled and available in folder `msgs/`
-* Comprehensive test suite
+* Examples provided for every feature, documentation, comprehensive test suite
 
 The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS) and APIs (Master API, Parameter Server API, Slave API).
 
