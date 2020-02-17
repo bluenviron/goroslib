@@ -60,22 +60,17 @@ func downloadBytes(addr string) ([]byte, error) {
 	return ioutil.ReadAll(res.Body)
 }
 
-func main() {
+func run() error {
 	kingpin.CommandLine.Help = "Convert ROS messages into Go structs."
 
-	pkgName := kingpin.Flag("package", "package name").Required().String()
-	def := kingpin.Arg("def", "a path or url pointing to a ROS message").Required().String()
+	argPkgName := kingpin.Flag("package", "package name").Default("main").String()
+	argDef := kingpin.Arg("def", "a path or url pointing to a ROS message").Required().String()
 
 	kingpin.Parse()
 
-	err := do(*pkgName, *def)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERR: %s\n", err)
-		os.Exit(1)
-	}
-}
+	pkgName := *argPkgName
+	def := *argDef
 
-func do(pkgName string, def string) error {
 	isRemote := func() bool {
 		_, err := url.ParseRequestURI(def)
 		return err == nil
@@ -202,4 +197,12 @@ func do(pkgName string, def string) error {
 		"Name":    name,
 		"Fields":  fields,
 	})
+}
+
+func main() {
+	err := run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERR: %s\n", err)
+		os.Exit(1)
+	}
 }
