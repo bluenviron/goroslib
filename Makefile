@@ -55,6 +55,8 @@ test-nodocker:
 	go test -v ./xmlrpc
 	go test -v .
 	go test -v ./msgs/...
+	go build -o /dev/null ./msg-gen
+	go build -o /dev/null ./msg-import
 	$(foreach f,$(shell ls example/*),go build -o /dev/null $(f)$(NL))
 
 define DOCKERFILE_MSGS
