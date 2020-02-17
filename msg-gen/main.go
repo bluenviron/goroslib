@@ -1,5 +1,3 @@
-// +build ignore
-
 package main
 
 import (
@@ -149,19 +147,29 @@ func processCommonMsgs() error {
 	return nil
 }
 
-func main() {
+func run() error {
 	err := shellCommand("find msgs -type d -mindepth 1 -maxdepth 1 | xargs rm -rf")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = processPackage("std_msgs", "https://api.github.com/repos/ros/std_msgs/contents/msg")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = processCommonMsgs()
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	return nil
+}
+
+func main() {
+	err := run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERR: %s\n", err)
+		os.Exit(1)
 	}
 }
