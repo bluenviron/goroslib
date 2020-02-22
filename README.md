@@ -24,7 +24,7 @@ The library provides its features by implementing in pure Go all the ROS protoco
 
 ## Installation
 
-Go &ge; 1.12 is required, and modules must be enabled (i.e. there must be a file called `go.mod` in your project folder). To install the library, it is enough to write its name in the import section of the source files that will use it. Go will take care of downloading the needed files:
+Go &ge; 1.12 is required, and modules must be enabled (there must be a `go.mod` file in your project folder, that can be created with the command `go mod init main`). To install the library, it is enough to write its name in the import section of the source files that will use it. Go will take care of downloading the needed files:
 ```go
 import (
     "github.com/aler9/goroslib"
