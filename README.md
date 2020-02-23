@@ -42,10 +42,6 @@ import (
 * [param_set_get](examples/param_set_get.go)
 * [cluster_info](examples/cluster_info.go)
 
-## Documentation
-
-https://godoc.org/github.com/aler9/goroslib
-
 ## Message definitions
 
 Unlike the standard library, to define custom messages it is not necessary to write and compile `.msg` files, but it is enough to write structures in this format:
@@ -57,14 +53,27 @@ import (
 type MessageName struct {
     Field1 msgs.Bool
     Field2 msgs.Int32
-    ...
 }
 ```
+
+Available messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
 
 An existing message definition, saved in a `.msg` file, can be converted into its equivalent structure by running:
 ```
 go get github.com/aler9/goroslib/msg-import
 msg-import mymessage.msg
+```
+
+## Documentation
+
+https://godoc.org/github.com/aler9/goroslib
+
+## Testing
+
+If you want to hack the library and test the results, unit tests can be launched with:
+
+```
+make test
 ```
 
 ## Links
