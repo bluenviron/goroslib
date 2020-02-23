@@ -33,14 +33,14 @@ import (
 
 ## Examples
 
-* [subscriber](example/subscriber.go)
-* [subscriber_custom](example/subscriber_custom.go)
-* [publisher](example/publisher.go)
-* [publisher_custom](example/publisher_custom.go)
-* [serviceclient](example/serviceclient.go)
-* [serviceprovider](example/serviceprovider.go)
-* [param_set_get](example/param_set_get.go)
-* [cluster_info](example/cluster_info.go)
+* [subscriber](examples/subscriber.go)
+* [subscriber_custom](examples/subscriber_custom.go)
+* [publisher](examples/publisher.go)
+* [publisher_custom](examples/publisher_custom.go)
+* [serviceclient](examples/serviceclient.go)
+* [serviceprovider](examples/serviceprovider.go)
+* [param_set_get](examples/param_set_get.go)
+* [cluster_info](examples/cluster_info.go)
 
 ## Documentation
 

@@ -57,7 +57,7 @@ test-nodocker:
 	go test -v ./msgs/...
 	go build -o /dev/null ./msg-gen
 	go build -o /dev/null ./msg-import
-	$(foreach f,$(shell ls example/*),go build -o /dev/null $(f)$(NL))
+	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
 
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)
