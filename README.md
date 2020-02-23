@@ -56,11 +56,11 @@ type MessageName struct {
 }
 ```
 
-Available messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
+Primitive field types (bool, int, etc) and standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
 
-An existing message definition, saved in a `.msg` file, can be converted into its equivalent structure by running:
+An existing `.msg` file can be converted into its equivalent Go structure by running:
 ```
-go get github.com/aler9/goroslib/msg-import
+go get github.com/aler9/goroslib/commands/msg-import
 msg-import mymessage.msg
 ```
 

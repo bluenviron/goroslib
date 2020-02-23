@@ -11,7 +11,7 @@ help:
 	@echo "  mod-tidy      run go mod tidy"
 	@echo "  format        format source files"
 	@echo "  test          run available tests"
-	@echo "  msgs          generate messages"
+	@echo "  msg-gen       generate messages"
 	@echo ""
 
 blank :=
@@ -55,8 +55,7 @@ test-nodocker:
 	go test -v ./xmlrpc
 	go test -v .
 	go test -v ./msgs/...
-	go build -o /dev/null ./msg-gen
-	go build -o /dev/null ./msg-import
+	go build -o /dev/null ./commands/...
 	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
 
 define DOCKERFILE_MSGS
@@ -68,13 +67,13 @@ RUN go mod download
 endef
 export DOCKERFILE_MSGS
 
-msgs:
+msg-gen:
 	echo "$$DOCKERFILE_TEST" | docker build -q . -f - -t temp
 	docker run --rm -it \
 	-v $(PWD):/s \
 	temp \
-	make msgs-nodocker
+	sh -c "cd /s && make msg-gen-nodocker"
 
-msgs-nodocker:
-	cd /s && go run ./msg-gen/main.go
-	cd /s && find ./msgs -type f -name '*.go' | xargs gofmt -l -w -s
+msg-gen-nodocker:
+	go run ./commands/msg-gen
+	find ./msgs -type f -name '*.go' | xargs gofmt -l -w -s
