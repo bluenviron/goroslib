@@ -44,7 +44,13 @@ import (
 
 ## Message definitions
 
-Unlike the standard library, to define custom messages it is not necessary to write and compile `.msg` files, but it is enough to write structures in this format:
+To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
+```
+bool field1
+int32 field2
+```
+
+This library doesn't require any `.msg` file, instead it is enough to write messages as Go structures, in this format:
 ```go
 import (
     "github.com/aler9/goroslib/msgs"
