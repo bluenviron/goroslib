@@ -1,11 +1,12 @@
 package tcpros
 
 type HeaderSubscriber struct {
-	Callerid   string
-	Md5sum     string
-	Topic      string
-	Type       string
-	TcpNodelay int
+	Callerid          string
+	Md5sum            string
+	Topic             string
+	Type              string
+	TcpNodelay        int
+	MessageDefinition string
 }
 
 type HeaderPublisher struct {
