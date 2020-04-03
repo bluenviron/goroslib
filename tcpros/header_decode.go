@@ -81,7 +81,8 @@ func headerDecode(raw HeaderRaw, header interface{}) error {
 		rf := rv.Elem().FieldByName(key)
 		zero := reflect.Value{}
 		if rf == zero {
-			return fmt.Errorf("unhandled field: %s", key)
+			// skip unhandled fields
+			continue
 		}
 
 		switch rf.Kind() {
