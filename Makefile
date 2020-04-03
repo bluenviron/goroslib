@@ -11,7 +11,7 @@ help:
 	@echo "  mod-tidy      run go mod tidy"
 	@echo "  format        format source files"
 	@echo "  test          run available tests"
-	@echo "  msg-gen       generate messages"
+	@echo "  msg-gen       generate standard messages"
 	@echo ""
 
 blank :=
