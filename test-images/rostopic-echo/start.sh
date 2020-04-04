@@ -3,6 +3,6 @@
 export ROS_MASTER_URI=http://$MASTER_IP:11311/
 export ROS_IP=$(hostname -i)
 
-source /catkin_ws/install/setup.bash
+source /opt/ros/melodic/setup.bash
 
-rosrun nodegen nodegen
+rostopic echo -n 1 /test_pub
