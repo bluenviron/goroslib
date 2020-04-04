@@ -36,8 +36,10 @@ type ServiceProviderConf struct {
 
 type ServiceProvider struct {
 	conf    ServiceProviderConf
-	reqType reflect.Type
-	resType reflect.Type
+	reqMsg  reflect.Type
+	resMsg  reflect.Type
+	reqType string
+	resType string
 	srvMd5  string
 
 	chanEvents chan serviceProviderEvent
@@ -66,33 +68,45 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Callback must return a single argument")
 	}
 
-	reqType := cbt.In(0)
-	if reqType.Kind() != reflect.Ptr {
+	reqMsg := cbt.In(0)
+	if reqMsg.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("Request must be a pointer")
 	}
-	if reqType.Elem().Kind() != reflect.Struct {
+	if reqMsg.Elem().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("Request must be a pointer to a struct")
 	}
 
-	resType := cbt.Out(0)
-	if resType.Kind() != reflect.Ptr {
+	resMsg := cbt.Out(0)
+	if resMsg.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("Response must be a pointer")
 	}
-	if resType.Elem().Kind() != reflect.Struct {
+	if resMsg.Elem().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("Response must be a pointer to a struct")
 	}
 
+	reqType, err := msg_utils.MessageType(reflect.New(reqMsg.Elem()).Interface())
+	if err != nil {
+		return nil, err
+	}
+
+	resType, err := msg_utils.MessageType(reflect.New(resMsg.Elem()).Interface())
+	if err != nil {
+		return nil, err
+	}
+
 	srvMd5, err := msg_utils.ServiceMd5(
-		reflect.New(reqType.Elem()).Interface(),
-		reflect.New(resType.Elem()).Interface())
+		reflect.New(reqMsg.Elem()).Interface(),
+		reflect.New(resMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
 	sp := &ServiceProvider{
 		conf:       conf,
-		reqType:    reqType.Elem(),
-		resType:    resType.Elem(),
+		reqMsg:     reqMsg.Elem(),
+		resMsg:     resMsg.Elem(),
+		reqType:    reqType,
+		resType:    resType,
 		srvMd5:     srvMd5,
 		chanEvents: make(chan serviceProviderEvent),
 		chanDone:   make(chan struct{}),
@@ -147,9 +161,9 @@ outer:
 			err := evt.client.WriteHeader(&tcpros.HeaderServiceProvider{
 				Callerid:     ptrString(sp.conf.Node.conf.Name),
 				Md5sum:       ptrString(sp.srvMd5),
-				RequestType:  ptrString("goroslib/Msg"),
-				ResponseType: ptrString("goroslib/Msg"),
-				Type:         ptrString("goroslib/Msg"),
+				RequestType:  ptrString(sp.reqType),
+				ResponseType: ptrString(sp.resType),
+				Type:         ptrString("goroslib/Service"),
 			})
 			if err != nil {
 				evt.client.Close()

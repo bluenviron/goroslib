@@ -121,10 +121,10 @@ func (sp *subscriberPublisher) run() {
 
 			err = conn.WriteHeader(&tcpros.HeaderSubscriber{
 				Callerid:   sp.s.conf.Node.conf.Name,
-				Md5sum:     sp.s.msgMd5,
-				TcpNodelay: 0,
 				Topic:      sp.s.conf.Topic,
-				Type:       "goroslib/Msg",
+				Md5sum:     sp.s.msgMd5,
+				Type:       sp.s.msgType,
+				TcpNodelay: 0,
 			})
 			if err != nil {
 				return
@@ -157,7 +157,7 @@ func (sp *subscriberPublisher) run() {
 			}
 
 			for {
-				msg := reflect.New(sp.s.msgType).Interface()
+				msg := reflect.New(sp.s.msgMsg).Interface()
 				err := conn.ReadMessage(msg)
 				if err != nil {
 					return

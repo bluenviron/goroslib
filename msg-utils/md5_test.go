@@ -20,22 +20,23 @@ var casesMessageMd5 = []struct {
 	{
 		"base types",
 		&struct {
-			A msgs.Bool
-			B msgs.Byte
-			C msgs.Char
-			D msgs.Int8
-			E msgs.Uint8
-			F msgs.Int16
-			G msgs.Uint16
-			H msgs.Int32
-			I msgs.Uint32
-			J msgs.Int64
-			K msgs.Uint64
-			L msgs.Float32
-			M msgs.Float64
-			N msgs.String
-			O msgs.Time
-			P msgs.Duration
+			msgs.Package `ros:"testing"`
+			A            msgs.Bool
+			B            msgs.Byte
+			C            msgs.Char
+			D            msgs.Int8
+			E            msgs.Uint8
+			F            msgs.Int16
+			G            msgs.Uint16
+			H            msgs.Int32
+			I            msgs.Uint32
+			J            msgs.Int64
+			K            msgs.Uint64
+			L            msgs.Float32
+			M            msgs.Float64
+			N            msgs.String
+			O            msgs.Time
+			P            msgs.Duration
 		}{},
 		"384497568d692fe745850d4b0751295d",
 	},

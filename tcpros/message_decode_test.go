@@ -28,24 +28,25 @@ var casesMessage = []struct {
 	{
 		"base types",
 		&struct {
-			A msgs.Bool
-			B msgs.Byte
-			C msgs.Char
-			D msgs.Int8
-			E msgs.Uint8
-			F msgs.Int16
-			G msgs.Uint16
-			H msgs.Int32
-			I msgs.Uint32
-			J msgs.Int64
-			K msgs.Uint64
-			L msgs.Float32
-			M msgs.Float64
-			N msgs.String
-			O msgs.Time
-			P msgs.Duration
+			msgs.Package `ros:"testing"`
+			A            msgs.Bool
+			B            msgs.Byte
+			C            msgs.Char
+			D            msgs.Int8
+			E            msgs.Uint8
+			F            msgs.Int16
+			G            msgs.Uint16
+			H            msgs.Int32
+			I            msgs.Uint32
+			J            msgs.Int64
+			K            msgs.Uint64
+			L            msgs.Float32
+			M            msgs.Float64
+			N            msgs.String
+			O            msgs.Time
+			P            msgs.Duration
 		}{
-			true, 15, 'a', -1, 2, -3, 4, -5, 6, -7, 8, 9, 10, "abc",
+			0, true, 15, 'a', -1, 2, -3, 4, -5, 6, -7, 8, 9, 10, "abc",
 			time.Date(2010, 11, 12, 13, 14, 15, 16, time.UTC),
 			time.Duration(5 * time.Second),
 		},

@@ -29,7 +29,8 @@ type SubscriberConf struct {
 
 type Subscriber struct {
 	conf    SubscriberConf
-	msgType reflect.Type
+	msgMsg  reflect.Type
+	msgType string
 	msgMd5  string
 
 	chanEvents chan subscriberEvent
@@ -58,22 +59,28 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Callback must not return any value")
 	}
 
-	msgType := cbt.In(0)
-	if msgType.Kind() != reflect.Ptr {
+	msgMsg := cbt.In(0)
+	if msgMsg.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("Message must be a pointer")
 	}
-	if msgType.Elem().Kind() != reflect.Struct {
+	if msgMsg.Elem().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("Message must be a pointer to a struct")
 	}
 
-	msgMd5, err := msg_utils.MessageMd5(reflect.New(msgType.Elem()).Interface())
+	msgType, err := msg_utils.MessageType(reflect.New(msgMsg.Elem()).Interface())
+	if err != nil {
+		return nil, err
+	}
+
+	msgMd5, err := msg_utils.MessageMd5(reflect.New(msgMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
 	s := &Subscriber{
 		conf:       conf,
-		msgType:    msgType.Elem(),
+		msgMsg:     msgMsg.Elem(),
+		msgType:    msgType,
 		msgMd5:     msgMd5,
 		chanEvents: make(chan subscriberEvent),
 		chanDone:   make(chan struct{}),

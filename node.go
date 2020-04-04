@@ -353,7 +353,7 @@ outer:
 			}
 
 			publisherUrls, err := n.masterClient.RegisterSubscriber(evt.sub.conf.Topic[1:],
-				"goroslib/Msg", n.slaveServer.GetUrl())
+				evt.sub.msgType, n.slaveServer.GetUrl())
 			if err != nil {
 				evt.chanErr <- err
 				continue
@@ -379,7 +379,7 @@ outer:
 			}
 
 			_, err := n.masterClient.RegisterPublisher(evt.pub.conf.Topic[1:],
-				"goroslib/Msg", n.slaveServer.GetUrl())
+				evt.pub.msgType, n.slaveServer.GetUrl())
 			if err != nil {
 				evt.chanErr <- err
 				continue

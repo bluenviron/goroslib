@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+type Package int
 type Bool bool
 type Byte uint8
 type Char uint8

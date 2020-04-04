@@ -213,15 +213,20 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		// struct fields
 		nf := val.Elem().NumField()
 		for i := 0; i < nf; i++ {
-			el := val.Elem().Field(i)
+			f := val.Elem().Field(i)
+			ft := val.Elem().Type().Field(i)
 
-			if el.Kind() == reflect.Ptr {
-				err := messageEncodeValue(w, el, buf)
+			if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+				continue
+			}
+
+			if f.Kind() == reflect.Ptr {
+				err := messageEncodeValue(w, f, buf)
 				if err != nil {
 					return err
 				}
 			} else {
-				err := messageEncodeValue(w, el.Addr(), buf)
+				err := messageEncodeValue(w, f.Addr(), buf)
 				if err != nil {
 					return err
 				}

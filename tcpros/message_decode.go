@@ -307,21 +307,26 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		// struct fields
 		nf := val.Elem().NumField()
 		for i := 0; i < nf; i++ {
-			el := val.Elem().Field(i)
+			f := val.Elem().Field(i)
+			ft := val.Elem().Type().Field(i)
 
-			if el.Kind() == reflect.Ptr {
+			if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+				continue
+			}
+
+			if f.Kind() == reflect.Ptr {
 				// allocate if is pointer and null
-				if el.IsNil() {
-					el.Set(reflect.New(el.Type().Elem()))
+				if f.IsNil() {
+					f.Set(reflect.New(f.Type().Elem()))
 				}
 
-				err := messageDecodeValue(r, el, mlen, buf)
+				err := messageDecodeValue(r, f, mlen, buf)
 				if err != nil {
 					return err
 				}
 
 			} else {
-				err := messageDecodeValue(r, el.Addr(), mlen, buf)
+				err := messageDecodeValue(r, f.Addr(), mlen, buf)
 				if err != nil {
 					return err
 				}

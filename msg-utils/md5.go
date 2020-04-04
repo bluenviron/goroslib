@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"unicode"
 
 	"github.com/aler9/goroslib/msgs"
@@ -123,12 +124,18 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 		return text + "[" + strconv.FormatInt(int64(rt.Len()), 10) + "]", false, nil
 
 	case reflect.Struct:
-		ret := ""
+		var tmp []string
 		nf := rt.NumField()
 		for i := 0; i < nf; i++ {
-			name := camelToSnake(rt.Field(i).Name)
+			ft := rt.Field(i)
 
-			text, isstruct, err := md5Text(rt.Field(i).Type)
+			if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+				continue
+			}
+
+			name := camelToSnake(ft.Name)
+
+			text, isstruct, err := md5Text(ft.Type)
 			if err != nil {
 				return "", false, err
 			}
@@ -137,14 +144,9 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 				text = md5Sum(text)
 			}
 
-			ret += text
-			ret += " "
-			ret += name
-			if (i + 1) != nf {
-				ret += "\n"
-			}
+			tmp = append(tmp, text+" "+name)
 		}
-		return ret, true, nil
+		return strings.Join(tmp, "\n"), true, nil
 	}
 
 	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())

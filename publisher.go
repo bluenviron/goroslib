@@ -34,8 +34,9 @@ type PublisherConf struct {
 }
 
 type Publisher struct {
-	conf   PublisherConf
-	msgMd5 string
+	conf    PublisherConf
+	msgType string
+	msgMd5  string
 
 	chanEvents chan publisherEvent
 	chanDone   chan struct{}
@@ -60,6 +61,11 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg must be a pointer to a struct")
 	}
 
+	msgType, err := msg_utils.MessageType(conf.Msg)
+	if err != nil {
+		return nil, err
+	}
+
 	msgMd5, err := msg_utils.MessageMd5(conf.Msg)
 	if err != nil {
 		return nil, err
@@ -67,6 +73,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 
 	p := &Publisher{
 		conf:        conf,
+		msgType:     msgType,
 		msgMd5:      msgMd5,
 		chanEvents:  make(chan publisherEvent),
 		chanDone:    make(chan struct{}),
@@ -128,7 +135,7 @@ outer:
 				Callerid: ptrString(p.conf.Node.conf.Name),
 				Md5sum:   ptrString(p.msgMd5),
 				Topic:    ptrString(p.conf.Topic),
-				Type:     ptrString("goroslib/Msg"),
+				Type:     ptrString(p.msgType),
 				Latching: ptrInt(0),
 			})
 			if err != nil {
