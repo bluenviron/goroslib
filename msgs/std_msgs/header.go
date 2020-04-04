@@ -6,7 +6,8 @@ import (
 )
 
 type Header struct {
-	Seq     msgs.Uint32
-	Stamp   msgs.Time
-	FrameId msgs.String
+	msgs.Package `ros:"std_msgs"`
+	Seq          msgs.Uint32
+	Stamp        msgs.Time
+	FrameId      msgs.String
 }

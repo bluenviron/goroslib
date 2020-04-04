@@ -6,5 +6,6 @@ import (
 )
 
 type UInt16 struct {
-	Data msgs.Uint16
+	msgs.Package `ros:"std_msgs"`
+	Data         msgs.Uint16
 }

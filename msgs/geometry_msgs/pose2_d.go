@@ -6,7 +6,8 @@ import (
 )
 
 type Pose2D struct {
-	X     msgs.Float64
-	Y     msgs.Float64
-	Theta msgs.Float64
+	msgs.Package `ros:"geometry_msgs"`
+	X            msgs.Float64
+	Y            msgs.Float64
+	Theta        msgs.Float64
 }

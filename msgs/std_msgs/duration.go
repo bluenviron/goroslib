@@ -6,5 +6,6 @@ import (
 )
 
 type Duration struct {
-	Data msgs.Duration
+	msgs.Package `ros:"std_msgs"`
+	Data         msgs.Duration
 }

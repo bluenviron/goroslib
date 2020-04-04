@@ -6,8 +6,9 @@ import (
 )
 
 type Quaternion struct {
-	X msgs.Float64
-	Y msgs.Float64
-	Z msgs.Float64
-	W msgs.Float64
+	msgs.Package `ros:"geometry_msgs"`
+	X            msgs.Float64
+	Y            msgs.Float64
+	Z            msgs.Float64
+	W            msgs.Float64
 }

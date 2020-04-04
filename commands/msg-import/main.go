@@ -99,7 +99,7 @@ func run() error {
 
 	str := string(byts)
 	imports := map[string]struct{}{
-		"github.com/aler9/goroslib/msgs": struct{}{},
+		"github.com/aler9/goroslib/msgs": {},
 	}
 
 	type field struct {

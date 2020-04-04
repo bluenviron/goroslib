@@ -8,6 +8,7 @@ import (
 )
 
 type Odometry struct {
+	msgs.Package `ros:"nav_msgs"`
 	Header       std_msgs.Header
 	ChildFrameId msgs.String
 	Pose         geometry_msgs.PoseWithCovariance

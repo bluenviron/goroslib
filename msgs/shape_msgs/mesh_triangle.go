@@ -6,5 +6,6 @@ import (
 )
 
 type MeshTriangle struct {
+	msgs.Package  `ros:"shape_msgs"`
 	VertexIndices [3]msgs.Uint32
 }

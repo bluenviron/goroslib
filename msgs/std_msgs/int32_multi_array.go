@@ -6,6 +6,7 @@ import (
 )
 
 type Int32MultiArray struct {
-	Layout MultiArrayLayout
-	Data   []msgs.Int32
+	msgs.Package `ros:"std_msgs"`
+	Layout       MultiArrayLayout
+	Data         []msgs.Int32
 }

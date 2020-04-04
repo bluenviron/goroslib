@@ -7,7 +7,8 @@ import (
 )
 
 type OccupancyGrid struct {
-	Header std_msgs.Header
-	Info   MapMetaData
-	Data   []msgs.Int8
+	msgs.Package `ros:"nav_msgs"`
+	Header       std_msgs.Header
+	Info         MapMetaData
+	Data         []msgs.Int8
 }

@@ -6,6 +6,7 @@ import (
 )
 
 type MultiArrayLayout struct {
-	Dim        []MultiArrayDimension
-	DataOffset msgs.Uint32
+	msgs.Package `ros:"std_msgs"`
+	Dim          []MultiArrayDimension
+	DataOffset   msgs.Uint32
 }

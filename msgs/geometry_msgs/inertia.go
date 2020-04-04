@@ -6,12 +6,13 @@ import (
 )
 
 type Inertia struct {
-	M   msgs.Float64
-	Com Vector3
-	Ixx msgs.Float64
-	Ixy msgs.Float64
-	Ixz msgs.Float64
-	Iyy msgs.Float64
-	Iyz msgs.Float64
-	Izz msgs.Float64
+	msgs.Package `ros:"geometry_msgs"`
+	M            msgs.Float64
+	Com          Vector3
+	Ixx          msgs.Float64
+	Ixy          msgs.Float64
+	Ixz          msgs.Float64
+	Iyy          msgs.Float64
+	Iyz          msgs.Float64
+	Izz          msgs.Float64
 }

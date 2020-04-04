@@ -6,10 +6,11 @@ import (
 )
 
 type InteractiveMarkerUpdate struct {
-	ServerId msgs.String
-	SeqNum   msgs.Uint64
-	Type     msgs.Uint8
-	Markers  []InteractiveMarker
-	Poses    []InteractiveMarkerPose
-	Erases   []msgs.String
+	msgs.Package `ros:"visualization_msgs"`
+	ServerId     msgs.String
+	SeqNum       msgs.Uint64
+	Type         msgs.Uint8
+	Markers      []InteractiveMarker
+	Poses        []InteractiveMarkerPose
+	Erases       []msgs.String
 }

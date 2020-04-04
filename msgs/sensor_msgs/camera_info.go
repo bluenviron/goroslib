@@ -7,6 +7,7 @@ import (
 )
 
 type CameraInfo struct {
+	msgs.Package    `ros:"sensor_msgs"`
 	Header          std_msgs.Header
 	Height          msgs.Uint32
 	Width           msgs.Uint32

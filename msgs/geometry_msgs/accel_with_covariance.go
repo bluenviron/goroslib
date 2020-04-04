@@ -6,6 +6,7 @@ import (
 )
 
 type AccelWithCovariance struct {
-	Accel      Accel
-	Covariance [36]msgs.Float64
+	msgs.Package `ros:"geometry_msgs"`
+	Accel        Accel
+	Covariance   [36]msgs.Float64
 }

@@ -7,7 +7,8 @@ import (
 )
 
 type CompressedImage struct {
-	Header std_msgs.Header
-	Format msgs.String
-	Data   []msgs.Uint8
+	msgs.Package `ros:"sensor_msgs"`
+	Header       std_msgs.Header
+	Format       msgs.String
+	Data         []msgs.Uint8
 }

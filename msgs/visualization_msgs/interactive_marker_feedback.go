@@ -8,6 +8,7 @@ import (
 )
 
 type InteractiveMarkerFeedback struct {
+	msgs.Package    `ros:"visualization_msgs"`
 	Header          std_msgs.Header
 	ClientId        msgs.String
 	MarkerName      msgs.String

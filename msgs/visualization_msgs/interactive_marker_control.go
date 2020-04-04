@@ -7,6 +7,7 @@ import (
 )
 
 type InteractiveMarkerControl struct {
+	msgs.Package                 `ros:"visualization_msgs"`
 	Name                         msgs.String
 	Orientation                  geometry_msgs.Quaternion
 	OrientationMode              msgs.Uint8

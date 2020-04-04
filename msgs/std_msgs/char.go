@@ -6,5 +6,6 @@ import (
 )
 
 type Char struct {
-	Data msgs.Char
+	msgs.Package `ros:"std_msgs"`
+	Data         msgs.Char
 }

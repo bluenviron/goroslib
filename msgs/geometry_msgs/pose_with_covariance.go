@@ -6,6 +6,7 @@ import (
 )
 
 type PoseWithCovariance struct {
-	Pose       Pose
-	Covariance [36]msgs.Float64
+	msgs.Package `ros:"geometry_msgs"`
+	Pose         Pose
+	Covariance   [36]msgs.Float64
 }

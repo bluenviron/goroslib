@@ -7,7 +7,8 @@ import (
 )
 
 type TimeReference struct {
-	Header  std_msgs.Header
-	TimeRef msgs.Time
-	Source  msgs.String
+	msgs.Package `ros:"sensor_msgs"`
+	Header       std_msgs.Header
+	TimeRef      msgs.Time
+	Source       msgs.String
 }

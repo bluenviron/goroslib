@@ -7,7 +7,8 @@ import (
 )
 
 type Temperature struct {
-	Header      std_msgs.Header
-	Temperature msgs.Float64
-	Variance    msgs.Float64
+	msgs.Package `ros:"sensor_msgs"`
+	Header       std_msgs.Header
+	Temperature  msgs.Float64
+	Variance     msgs.Float64
 }

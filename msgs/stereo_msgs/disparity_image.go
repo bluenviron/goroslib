@@ -8,6 +8,7 @@ import (
 )
 
 type DisparityImage struct {
+	msgs.Package `ros:"stereo_msgs"`
 	Header       std_msgs.Header
 	Image        sensor_msgs.Image
 	F            msgs.Float32

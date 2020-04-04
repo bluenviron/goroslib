@@ -8,8 +8,9 @@ import (
 )
 
 type GridCells struct {
-	Header     std_msgs.Header
-	CellWidth  msgs.Float32
-	CellHeight msgs.Float32
-	Cells      []geometry_msgs.Point
+	msgs.Package `ros:"nav_msgs"`
+	Header       std_msgs.Header
+	CellWidth    msgs.Float32
+	CellHeight   msgs.Float32
+	Cells        []geometry_msgs.Point
 }

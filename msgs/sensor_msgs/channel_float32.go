@@ -6,6 +6,7 @@ import (
 )
 
 type ChannelFloat32 struct {
-	Name   msgs.String
-	Values []msgs.Float32
+	msgs.Package `ros:"sensor_msgs"`
+	Name         msgs.String
+	Values       []msgs.Float32
 }

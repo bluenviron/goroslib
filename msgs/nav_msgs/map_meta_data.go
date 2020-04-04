@@ -7,9 +7,10 @@ import (
 )
 
 type MapMetaData struct {
-	MapLoadTime msgs.Time
-	Resolution  msgs.Float32
-	Width       msgs.Uint32
-	Height      msgs.Uint32
-	Origin      geometry_msgs.Pose
+	msgs.Package `ros:"nav_msgs"`
+	MapLoadTime  msgs.Time
+	Resolution   msgs.Float32
+	Width        msgs.Uint32
+	Height       msgs.Uint32
+	Origin       geometry_msgs.Pose
 }

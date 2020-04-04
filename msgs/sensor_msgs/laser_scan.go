@@ -7,6 +7,7 @@ import (
 )
 
 type LaserScan struct {
+	msgs.Package   `ros:"sensor_msgs"`
 	Header         std_msgs.Header
 	AngleMin       msgs.Float32
 	AngleMax       msgs.Float32

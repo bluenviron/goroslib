@@ -6,5 +6,6 @@ import (
 )
 
 type Byte struct {
-	Data msgs.Byte
+	msgs.Package `ros:"std_msgs"`
+	Data         msgs.Byte
 }

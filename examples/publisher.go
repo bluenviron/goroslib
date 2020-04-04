@@ -39,9 +39,9 @@ func main() {
 	for range ticker.C {
 		msg := &sensor_msgs.Imu{
 			AngularVelocity: geometry_msgs.Vector3{
-				23.5,
-				22.1,
-				-7.5,
+				X: 23.5,
+				Y: 22.1,
+				Z: -7.5,
 			},
 		}
 		fmt.Printf("Outgoing: %+v\n", msg)

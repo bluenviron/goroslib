@@ -8,6 +8,7 @@ import (
 )
 
 type Imu struct {
+	msgs.Package                 `ros:"sensor_msgs"`
 	Header                       std_msgs.Header
 	Orientation                  geometry_msgs.Quaternion
 	OrientationCovariance        [9]msgs.Float64

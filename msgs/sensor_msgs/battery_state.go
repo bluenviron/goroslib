@@ -7,6 +7,7 @@ import (
 )
 
 type BatteryState struct {
+	msgs.Package          `ros:"sensor_msgs"`
 	Header                std_msgs.Header
 	Voltage               msgs.Float32
 	Temperature           msgs.Float32

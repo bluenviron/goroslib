@@ -7,6 +7,7 @@ import (
 )
 
 type MultiDOFJointTrajectoryPoint struct {
+	msgs.Package  `ros:"trajectory_msgs"`
 	Transforms    []geometry_msgs.Transform
 	Velocities    []geometry_msgs.Twist
 	Accelerations []geometry_msgs.Twist

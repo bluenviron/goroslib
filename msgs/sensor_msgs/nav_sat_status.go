@@ -6,6 +6,7 @@ import (
 )
 
 type NavSatStatus struct {
-	Status  msgs.Int8
-	Service msgs.Uint16
+	msgs.Package `ros:"sensor_msgs"`
+	Status       msgs.Int8
+	Service      msgs.Uint16
 }

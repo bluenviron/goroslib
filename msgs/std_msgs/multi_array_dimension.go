@@ -6,7 +6,8 @@ import (
 )
 
 type MultiArrayDimension struct {
-	Label  msgs.String
-	Size   msgs.Uint32
-	Stride msgs.Uint32
+	msgs.Package `ros:"std_msgs"`
+	Label        msgs.String
+	Size         msgs.Uint32
+	Stride       msgs.Uint32
 }

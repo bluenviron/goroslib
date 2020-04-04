@@ -6,5 +6,6 @@ import (
 )
 
 type Plane struct {
-	Coef [4]msgs.Float64
+	msgs.Package `ros:"shape_msgs"`
+	Coef         [4]msgs.Float64
 }

@@ -7,6 +7,7 @@ import (
 )
 
 type Range struct {
+	msgs.Package  `ros:"sensor_msgs"`
 	Header        std_msgs.Header
 	RadiationType msgs.Uint8
 	FieldOfView   msgs.Float32

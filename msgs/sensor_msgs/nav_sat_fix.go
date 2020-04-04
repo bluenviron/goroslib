@@ -7,6 +7,7 @@ import (
 )
 
 type NavSatFix struct {
+	msgs.Package           `ros:"sensor_msgs"`
 	Header                 std_msgs.Header
 	Status                 NavSatStatus
 	Latitude               msgs.Float64

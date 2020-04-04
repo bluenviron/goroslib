@@ -6,6 +6,7 @@ import (
 )
 
 type GoalID struct {
-	Stamp msgs.Time
-	Id    msgs.String
+	msgs.Package `ros:"actionlib_msgs"`
+	Stamp        msgs.Time
+	Id           msgs.String
 }

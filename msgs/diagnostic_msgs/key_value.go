@@ -6,6 +6,7 @@ import (
 )
 
 type KeyValue struct {
-	Key   msgs.String
-	Value msgs.String
+	msgs.Package `ros:"diagnostic_msgs"`
+	Key          msgs.String
+	Value        msgs.String
 }

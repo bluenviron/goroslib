@@ -7,7 +7,8 @@ import (
 )
 
 type JointTrajectory struct {
-	Header     std_msgs.Header
-	JointNames []msgs.String
-	Points     []JointTrajectoryPoint
+	msgs.Package `ros:"trajectory_msgs"`
+	Header       std_msgs.Header
+	JointNames   []msgs.String
+	Points       []JointTrajectoryPoint
 }

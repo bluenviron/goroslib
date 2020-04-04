@@ -6,9 +6,10 @@ import (
 )
 
 type MenuEntry struct {
-	Id          msgs.Uint32
-	ParentId    msgs.Uint32
-	Title       msgs.String
-	Command     msgs.String
-	CommandType msgs.Uint8
+	msgs.Package `ros:"visualization_msgs"`
+	Id           msgs.Uint32
+	ParentId     msgs.Uint32
+	Title        msgs.String
+	Command      msgs.String
+	CommandType  msgs.Uint8
 }

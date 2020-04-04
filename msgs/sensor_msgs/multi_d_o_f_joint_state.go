@@ -8,9 +8,10 @@ import (
 )
 
 type MultiDOFJointState struct {
-	Header     std_msgs.Header
-	JointNames []msgs.String
-	Transforms []geometry_msgs.Transform
-	Twist      []geometry_msgs.Twist
-	Wrench     []geometry_msgs.Wrench
+	msgs.Package `ros:"sensor_msgs"`
+	Header       std_msgs.Header
+	JointNames   []msgs.String
+	Transforms   []geometry_msgs.Transform
+	Twist        []geometry_msgs.Twist
+	Wrench       []geometry_msgs.Wrench
 }

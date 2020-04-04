@@ -6,7 +6,8 @@ import (
 )
 
 type GoalStatus struct {
-	GoalId GoalID
-	Status msgs.Uint8
-	Text   msgs.String
+	msgs.Package `ros:"actionlib_msgs"`
+	GoalId       GoalID
+	Status       msgs.Uint8
+	Text         msgs.String
 }

@@ -6,6 +6,7 @@ import (
 )
 
 type ByteMultiArray struct {
-	Layout MultiArrayLayout
-	Data   []msgs.Byte
+	msgs.Package `ros:"std_msgs"`
+	Layout       MultiArrayLayout
+	Data         []msgs.Byte
 }

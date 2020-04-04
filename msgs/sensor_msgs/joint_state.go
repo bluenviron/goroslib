@@ -7,9 +7,10 @@ import (
 )
 
 type JointState struct {
-	Header   std_msgs.Header
-	Name     []msgs.String
-	Position []msgs.Float64
-	Velocity []msgs.Float64
-	Effort   []msgs.Float64
+	msgs.Package `ros:"sensor_msgs"`
+	Header       std_msgs.Header
+	Name         []msgs.String
+	Position     []msgs.Float64
+	Velocity     []msgs.Float64
+	Effort       []msgs.Float64
 }

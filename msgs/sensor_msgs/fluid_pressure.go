@@ -7,6 +7,7 @@ import (
 )
 
 type FluidPressure struct {
+	msgs.Package  `ros:"sensor_msgs"`
 	Header        std_msgs.Header
 	FluidPressure msgs.Float64
 	Variance      msgs.Float64

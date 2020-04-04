@@ -6,5 +6,6 @@ import (
 )
 
 type Float32 struct {
-	Data msgs.Float32
+	msgs.Package `ros:"std_msgs"`
+	Data         msgs.Float32
 }

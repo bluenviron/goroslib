@@ -6,7 +6,8 @@ import (
 )
 
 type JoyFeedback struct {
-	Type      msgs.Uint8
-	Id        msgs.Uint8
-	Intensity msgs.Float32
+	msgs.Package `ros:"sensor_msgs"`
+	Type         msgs.Uint8
+	Id           msgs.Uint8
+	Intensity    msgs.Float32
 }

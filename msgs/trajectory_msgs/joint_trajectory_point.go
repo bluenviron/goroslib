@@ -6,6 +6,7 @@ import (
 )
 
 type JointTrajectoryPoint struct {
+	msgs.Package  `ros:"trajectory_msgs"`
 	Positions     []msgs.Float64
 	Velocities    []msgs.Float64
 	Accelerations []msgs.Float64

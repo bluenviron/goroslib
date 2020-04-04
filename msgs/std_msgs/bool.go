@@ -6,5 +6,6 @@ import (
 )
 
 type Bool struct {
-	Data msgs.Bool
+	msgs.Package `ros:"std_msgs"`
+	Data         msgs.Bool
 }

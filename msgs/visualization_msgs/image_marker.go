@@ -8,6 +8,7 @@ import (
 )
 
 type ImageMarker struct {
+	msgs.Package  `ros:"visualization_msgs"`
 	Header        std_msgs.Header
 	Ns            msgs.String
 	Id            msgs.Int32

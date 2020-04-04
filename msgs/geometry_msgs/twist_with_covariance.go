@@ -6,6 +6,7 @@ import (
 )
 
 type TwistWithCovariance struct {
-	Twist      Twist
-	Covariance [36]msgs.Float64
+	msgs.Package `ros:"geometry_msgs"`
+	Twist        Twist
+	Covariance   [36]msgs.Float64
 }
