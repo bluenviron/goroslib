@@ -13,8 +13,9 @@ import (
 // unlike the standard library, a .msg file is not needed.
 // a structure definition is enough.
 type TestMessage struct {
-	FirstField  msgs.Uint32
-	SecondField msgs.String
+	msgs.Package `ros:"my_package"`
+	FirstField   msgs.Uint32
+	SecondField  msgs.String
 }
 
 func onMessage(msg *TestMessage) {
