@@ -145,11 +145,11 @@ outer:
 			}
 
 			err := evt.client.WriteHeader(&tcpros.HeaderServiceProvider{
-				Callerid:     sp.conf.Node.conf.Name,
-				Md5sum:       sp.srvMd5,
-				RequestType:  "goroslib/Msg",
-				ResponseType: "goroslib/Msg",
-				Type:         "goroslib/Msg",
+				Callerid:     ptrString(sp.conf.Node.conf.Name),
+				Md5sum:       ptrString(sp.srvMd5),
+				RequestType:  ptrString("goroslib/Msg"),
+				ResponseType: ptrString("goroslib/Msg"),
+				Type:         ptrString("goroslib/Msg"),
 			})
 			if err != nil {
 				evt.client.Close()

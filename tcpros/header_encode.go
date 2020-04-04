@@ -29,6 +29,13 @@ func headerEncode(w io.Writer, header interface{}) error {
 		key := camelToSnake(rv.Elem().Type().Field(i).Name)
 		val := rv.Elem().Field(i)
 
+		if val.Kind() == reflect.Ptr {
+			if val.IsNil() {
+				continue
+			}
+			val = val.Elem()
+		}
+
 		flen := uint32(0)
 
 		bkey := []byte(key)

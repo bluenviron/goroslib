@@ -136,19 +136,23 @@ func (sp *subscriberPublisher) run() {
 				return
 			}
 
-			if outHeader.Error != "" {
+			if outHeader.Error != nil {
 				return
 			}
 
-			if outHeader.Topic != sp.s.conf.Topic {
+			if outHeader.Topic == nil || outHeader.Md5sum == nil || outHeader.Latching == nil {
 				return
 			}
 
-			if outHeader.Md5sum != sp.s.msgMd5 {
+			if *outHeader.Topic != sp.s.conf.Topic {
 				return
 			}
 
-			if outHeader.Latching != 0 {
+			if *outHeader.Md5sum != sp.s.msgMd5 {
+				return
+			}
+
+			if *outHeader.Latching != 0 {
 				return
 			}
 

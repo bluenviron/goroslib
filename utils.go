@@ -5,6 +5,14 @@ import (
 	"strconv"
 )
 
+func ptrString(v string) *string {
+	return &v
+}
+
+func ptrInt(v int) *int {
+	return &v
+}
+
 func parseUrl(in string) (string, uint16, error) {
 	u, err := url.Parse(in)
 	if err != nil {

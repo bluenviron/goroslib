@@ -83,15 +83,19 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
-	if outHeader.Error != "" {
+	if outHeader.Error != nil {
 		conn.Close()
-		return nil, fmt.Errorf(outHeader.Error)
+		return nil, fmt.Errorf(*outHeader.Error)
 	}
 
-	if outHeader.Md5sum != srvMd5 {
+	if outHeader.Md5sum == nil {
+		return nil, fmt.Errorf("missing md5sum")
+	}
+
+	if *outHeader.Md5sum != srvMd5 {
 		conn.Close()
-		return nil, fmt.Errorf("missing or wrong md5sum: expected %s, got %s",
-			srvMd5, outHeader.Md5sum)
+		return nil, fmt.Errorf("wrong md5sum: expected %s, got %s",
+			srvMd5, *outHeader.Md5sum)
 	}
 
 	return &ServiceClient{

@@ -295,8 +295,7 @@ func (n *Node) run() {
 	go n.runTcprosServer(&wg)
 
 outer:
-	for {
-		rawEvt := <-n.chanEvents
+	for rawEvt := range n.chanEvents {
 		switch evt := rawEvt.(type) {
 		case nodeEventClose:
 			break outer

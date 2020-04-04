@@ -85,6 +85,12 @@ func headerDecode(raw HeaderRaw, header interface{}) error {
 			continue
 		}
 
+		if rf.Kind() == reflect.Ptr {
+			ptr := reflect.New(rf.Type().Elem())
+			rf.Set(ptr)
+			rf = ptr.Elem()
+		}
+
 		switch rf.Kind() {
 		case reflect.String:
 			rf.SetString(val)
@@ -95,6 +101,9 @@ func headerDecode(raw HeaderRaw, header interface{}) error {
 				return err
 			}
 			rf.SetInt(i)
+
+		default:
+			return fmt.Errorf("invalid field kind: %s", rf.Kind())
 		}
 	}
 

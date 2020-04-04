@@ -117,12 +117,11 @@ outer:
 			}
 
 			err := evt.client.WriteHeader(&tcpros.HeaderPublisher{
-				Callerid:          p.conf.Node.conf.Name,
-				Md5sum:            p.msgMd5,
-				Topic:             p.conf.Topic,
-				Type:              "goroslib/Msg",
-				Latching:          0,
-				MessageDefinition: "",
+				Callerid: ptrString(p.conf.Node.conf.Name),
+				Md5sum:   ptrString(p.msgMd5),
+				Topic:    ptrString(p.conf.Topic),
+				Type:     ptrString("goroslib/Msg"),
+				Latching: ptrInt(0),
 			})
 			if err != nil {
 				evt.client.Close()
