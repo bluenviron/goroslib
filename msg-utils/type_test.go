@@ -9,7 +9,7 @@ import (
 )
 
 type MsgExplicitPackage struct {
-	msgs.Package `ros:"mypackage"`
+	msgs.Package `ros:"my_package"`
 	Value        msgs.Uint16
 }
 
@@ -25,7 +25,7 @@ var casesType = []struct {
 	{
 		"explicit package",
 		&MsgExplicitPackage{},
-		"mypackage/MsgExplicitPackage",
+		"my_package/MsgExplicitPackage",
 	},
 	{
 		"implicit package",

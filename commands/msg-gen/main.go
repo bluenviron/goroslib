@@ -92,8 +92,10 @@ func processPackage(name string, addr string) error {
 	}
 
 	for _, f := range files {
-		err := shellCommand(fmt.Sprintf("go run ./commands/msg-import --package=%s %s > %s",
-			name, f.DownloadUrl,
+		err := shellCommand(fmt.Sprintf("go run ./commands/msg-import --package=%s --rospackage=%s %s > %s",
+			name,
+			name,
+			f.DownloadUrl,
 			filepath.Join("msgs", name, camelToSnake(strings.TrimSuffix(f.Name, ".msg"))+".go")))
 		if err != nil {
 			return err

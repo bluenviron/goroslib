@@ -57,7 +57,7 @@ import (
 )
 
 type MessageName struct {
-    msgs.Package `ros:"mypackage"`
+    msgs.Package `ros:"my_package"`
     Field1 msgs.Bool
     Field2 msgs.Int32
 }
@@ -68,7 +68,7 @@ Primitive field types (bool, int, etc) and standard messages are [listed in the 
 An existing `.msg` file can be converted into its equivalent Go structure by running:
 ```
 go get github.com/aler9/goroslib/commands/msg-import
-msg-import --rospackage=mypackage mymessage.msg
+msg-import --rospackage=my_package mymessage.msg
 ```
 
 ## Documentation

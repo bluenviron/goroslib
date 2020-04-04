@@ -65,7 +65,7 @@ func run() error {
 	kingpin.CommandLine.Help = "Convert ROS messages into Go structs."
 
 	argGoPkgName := kingpin.Flag("package", "Go package name").Default("main").String()
-	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("mypackage").String()
+	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
 	argDef := kingpin.Arg("def", "a path or url pointing to a ROS message").Required().String()
 
 	kingpin.Parse()
@@ -98,7 +98,9 @@ func run() error {
 	}()
 
 	str := string(byts)
-	imports := make(map[string]struct{})
+	imports := map[string]struct{}{
+		"github.com/aler9/goroslib/msgs": struct{}{},
+	}
 
 	type field struct {
 		Name string
@@ -181,7 +183,6 @@ func run() error {
 				"int32", "uint32", "int64", "uint64",
 				"float32", "float64", "string",
 				"time", "duration":
-				imports["github.com/aler9/goroslib/msgs"] = struct{}{}
 				return "msgs." + strings.Title(f.Type)
 			}
 			return f.Type
