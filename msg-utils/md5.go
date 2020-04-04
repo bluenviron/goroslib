@@ -147,24 +147,49 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 		return ret, true, nil
 	}
 
-	return "", false, fmt.Errorf("unsupported type '%s'", rt.String())
+	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
 }
 
 func MessageMd5(msg interface{}) (string, error) {
-	text, _, err := md5Text(reflect.TypeOf(msg))
+	rt := reflect.TypeOf(msg)
+	if rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+	}
+	if rt.Kind() != reflect.Struct {
+		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
+	}
+
+	text, _, err := md5Text(rt)
 	if err != nil {
 		return "", err
 	}
+
 	return md5Sum(text), nil
 }
 
 func ServiceMd5(req interface{}, res interface{}) (string, error) {
-	text1, _, err := md5Text(reflect.TypeOf(req))
+	reqt := reflect.TypeOf(req)
+	if reqt.Kind() == reflect.Ptr {
+		reqt = reqt.Elem()
+	}
+	if reqt.Kind() != reflect.Struct {
+		return "", fmt.Errorf("unsupported message type '%s'", reqt.String())
+	}
+
+	text1, _, err := md5Text(reqt)
 	if err != nil {
 		return "", err
 	}
 
-	text2, _, err := md5Text(reflect.TypeOf(res))
+	rest := reflect.TypeOf(res)
+	if rest.Kind() == reflect.Ptr {
+		rest = rest.Elem()
+	}
+	if rest.Kind() != reflect.Struct {
+		return "", fmt.Errorf("unsupported message type '%s'", rest.String())
+	}
+
+	text2, _, err := md5Text(rest)
 	if err != nil {
 		return "", err
 	}

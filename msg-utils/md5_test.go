@@ -12,7 +12,7 @@ type Parent struct {
 	A msgs.String
 }
 
-var casesMessage = []struct {
+var casesMessageMd5 = []struct {
 	name string
 	msg  interface{}
 	sum  string
@@ -98,7 +98,7 @@ var casesMessage = []struct {
 }
 
 func TestMessageMd5(t *testing.T) {
-	for _, c := range casesMessage {
+	for _, c := range casesMessageMd5 {
 		t.Run(c.name, func(t *testing.T) {
 			md5, err := MessageMd5(c.msg)
 			require.NoError(t, err)
@@ -107,7 +107,7 @@ func TestMessageMd5(t *testing.T) {
 	}
 }
 
-var casesService = []struct {
+var casesServiceMd5 = []struct {
 	name string
 	req  interface{}
 	res  interface{}
@@ -127,7 +127,7 @@ var casesService = []struct {
 }
 
 func TestServiceMd5(t *testing.T) {
-	for _, c := range casesService {
+	for _, c := range casesServiceMd5 {
 		t.Run(c.name, func(t *testing.T) {
 			md5, err := ServiceMd5(c.req, c.res)
 			require.NoError(t, err)
