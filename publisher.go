@@ -107,11 +107,19 @@ outer:
 		case publisherEventSubscriberNew:
 			_, ok := p.subscribers[evt.header.Callerid]
 			if ok {
+				evt.client.WriteHeader(&tcpros.HeaderPublisher{
+					Error: ptrString(fmt.Sprintf("topic '%s' is already subscribed by '%s'",
+						p.conf.Topic, evt.header.Callerid)),
+				})
 				evt.client.Close()
 				continue
 			}
 
 			if evt.header.Md5sum != p.msgMd5 {
+				evt.client.WriteHeader(&tcpros.HeaderPublisher{
+					Error: ptrString(fmt.Sprintf("wrong md5: expected '%s', got '%s'",
+						p.msgMd5, evt.header.Md5sum)),
+				})
 				evt.client.Close()
 				continue
 			}
