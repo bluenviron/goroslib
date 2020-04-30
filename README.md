@@ -7,7 +7,7 @@
 
 goroslib is a library in pure Go that allows to build clients (nodes) for the Robot Operating System (ROS).
 
-The Robot Operating System (ROS) defines a protocol that allows different programs to communicate with each others over time, exchanging structured data through topics, services and parameters. It was conceived for linking sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building data streams (for example in video processing).
+The Robot Operating System (ROS) defines a protocol that allows different programs to communicate with each others over time, exchanging structured data through topics, services and parameters. It was conceived for linking sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
 
 The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes.
 
@@ -17,7 +17,7 @@ Features:
 * Get and set parameters
 * Get infos about other nodes, topics, services
 * Compilation of `.msg` files is not necessary, message definitions are deducted from code
-* Standard messages are precompiled and available in folder `msgs/`
+* Standard messages are available in folder `msgs/`
 * Examples provided for every feature, comprehensive test suite, continuous integration
 
 The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS) and APIs (Master API, Parameter Server API, Slave API).
@@ -50,7 +50,7 @@ bool field1
 int32 field2
 ```
 
-This library doesn't require any `.msg` file, instead it is enough to write messages as Go structures, in this format:
+This library doesn't require any `.msg` file, it is enough to write Go structures in this format:
 ```go
 import (
     "github.com/aler9/goroslib/msgs"
@@ -65,7 +65,7 @@ type MessageName struct {
 
 Primitive field types (bool, int, etc) and standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
 
-An existing `.msg` file can be converted into its equivalent Go structure by running:
+A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
 ```
 go get github.com/aler9/goroslib/commands/msg-import
 msg-import --rospackage=my_package mymessage.msg
