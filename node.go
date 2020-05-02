@@ -550,6 +550,7 @@ type InfoNode struct {
 	Port             uint16
 }
 
+// GetNodes returns all the nodes connected to the master.
 func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	sstate, err := n.masterClient.GetSystemState()
 	if err != nil {
@@ -607,6 +608,7 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	return ret, nil
 }
 
+// GetMachines returns all the machines connected to the master through a node.
 func (n *Node) GetMachines() (map[string]struct{}, error) {
 	// this is like its equivalent in python
 	// https://docs.ros.org/melodic/api/rosnode/html/rosnode-pysrc.html#get_machines_by_nodes
@@ -631,6 +633,7 @@ type InfoTopic struct {
 	Subscribers map[string]struct{}
 }
 
+// GetTopics returns all the topics published by nodes connected to the master.
 func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
 	sstate, err := n.masterClient.GetSystemState()
 	if err != nil {
@@ -680,6 +683,7 @@ type InfoService struct {
 	Port      uint16
 }
 
+// GetServices returns all the services provided by nodes connected to the server.
 func (n *Node) GetServices() (map[string]*InfoService, error) {
 	sstate, err := n.masterClient.GetSystemState()
 	if err != nil {
@@ -716,6 +720,8 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 	return ret, nil
 }
 
+// PingNode send a ping request to a given node, wait for the reply and returns
+// the elapsed time in seconds.
 func (n *Node) PingNode(name string) (float64, error) {
 	ur, err := n.masterClient.LookupNode(name)
 	if err != nil {
@@ -745,6 +751,7 @@ func (n *Node) PingNode(name string) (float64, error) {
 	return elapsed, nil
 }
 
+// KillNode send a kill request to a given node.
 func (n *Node) KillNode(name string) error {
 	ur, err := n.masterClient.LookupNode(name)
 	if err != nil {
@@ -770,26 +777,32 @@ func (n *Node) KillNode(name string) error {
 	return nil
 }
 
+// GetParamBool returns a bool parameter from the master.
 func (n *Node) GetParamBool(name string) (bool, error) {
 	return n.paramClient.GetParamBool(name)
 }
 
+// GetParamInt returns an int parameter from the master.
 func (n *Node) GetParamInt(name string) (int, error) {
 	return n.paramClient.GetParamInt(name)
 }
 
+// GetParamString returns a string parameter from the master.
 func (n *Node) GetParamString(name string) (string, error) {
 	return n.paramClient.GetParamString(name)
 }
 
+// SetParamBool sets a bool parameter in the master.
 func (n *Node) SetParamBool(name string, val bool) error {
 	return n.paramClient.SetParamBool(name, val)
 }
 
+// SetParamInt sets an int parameter in the master.
 func (n *Node) SetParamInt(name string, val int) error {
 	return n.paramClient.SetParamInt(name, val)
 }
 
+// SetParamString sets a string parameter in the master.
 func (n *Node) SetParamString(name string, val string) error {
 	return n.paramClient.SetParamString(name, val)
 }
