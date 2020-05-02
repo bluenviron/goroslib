@@ -76,34 +76,36 @@ func TestSubscriberRegister(t *testing.T) {
 }
 
 func TestSubscriberReadAfterPub(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+	recv := func() *TestMessage {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
 
-	p, err := newContainer("node-pub", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
+		p, err := newContainer("node-pub", m.Ip())
+		require.NoError(t, err)
+		defer p.close()
 
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
 
-	chanRecv := make(chan *TestMessage, 10)
+		chanRecv := make(chan *TestMessage, 10)
 
-	sub, err := NewSubscriber(SubscriberConf{
-		Node:  n,
-		Topic: "/test_pub",
-		Callback: func(msg *TestMessage) {
-			chanRecv <- msg
-		},
-	})
-	require.NoError(t, err)
-	defer sub.Close()
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Callback: func(msg *TestMessage) {
+				chanRecv <- msg
+			},
+		})
+		require.NoError(t, err)
+		defer sub.Close()
 
-	recv := <-chanRecv
+		return <-chanRecv
+	}()
 
 	expected := TestMessage{
 		A: 1,
@@ -131,34 +133,36 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 }
 
 func TestSubscriberReadBeforePub(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+	recv := func() *TestMessage {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
 
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
 
-	chanRecv := make(chan *TestMessage, 10)
+		chanRecv := make(chan *TestMessage, 10)
 
-	sub, err := NewSubscriber(SubscriberConf{
-		Node:  n,
-		Topic: "/test_pub",
-		Callback: func(msg *TestMessage) {
-			chanRecv <- msg
-		},
-	})
-	require.NoError(t, err)
-	defer sub.Close()
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Callback: func(msg *TestMessage) {
+				chanRecv <- msg
+			},
+		})
+		require.NoError(t, err)
+		defer sub.Close()
 
-	p, err := newContainer("node-pub", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
+		p, err := newContainer("node-pub", m.Ip())
+		require.NoError(t, err)
+		defer p.close()
 
-	recv := <-chanRecv
+		return <-chanRecv
+	}()
 
 	expected := TestMessage{
 		A: 1,
@@ -186,7 +190,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 }
 
 func TestSubscriberRostopicPubMultiple(t *testing.T) {
-	msg := func() *sensor_msgs.Imu {
+	recv := func() *sensor_msgs.Imu {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
 		defer m.close()
@@ -225,5 +229,5 @@ func TestSubscriberRostopicPubMultiple(t *testing.T) {
 		AngularVelocityCovariance:[9]msgs.Float64{0, 0, 15, 0, 0, 0, 0, 0, 0},
 		LinearAccelerationCovariance:[9]msgs.Float64{0, 0, 0, 0, 0, 0, 0, 0, 13.7},
 	}
-	require.Equal(t, expected, msg)
+	require.Equal(t, expected, recv)
 }
