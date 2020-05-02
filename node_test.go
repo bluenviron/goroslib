@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type cntMaster struct {
+type containerMaster struct {
 	ip string
 }
 
-func newCntMaster() (*cntMaster, error) {
+func newContainerMaster() (*containerMaster, error) {
 	exec.Command("docker", "kill", "goroslib-test-master").Run()
 	exec.Command("docker", "wait", "goroslib-test-master").Run()
 	exec.Command("docker", "rm", "goroslib-test-master").Run()
@@ -44,16 +44,16 @@ func newCntMaster() (*cntMaster, error) {
 		break
 	}
 
-	return &cntMaster{
+	return &containerMaster{
 		ip: ip,
 	}, nil
 }
 
-func (m *cntMaster) Ip() string {
+func (m *containerMaster) Ip() string {
 	return m.ip
 }
 
-func (m *cntMaster) close() {
+func (m *containerMaster) close() {
 	exec.Command("docker", "kill", "goroslib-test-master").Run()
 	exec.Command("docker", "wait", "goroslib-test-master").Run()
 }
@@ -91,41 +91,13 @@ func (c *container) close() {
 
 func (c *container) waitOutput() string {
 	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run()
-	out, _ := exec.Command("docker", "logs", "goroslib-test-" + c.name).Output()
+	out, _ := exec.Command("docker", "logs", "goroslib-test-"+c.name).Output()
 	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()
 	return string(out)
 }
 
-func newCntNodeGen(masterIp string) (*container, error) {
-	return newContainer("node-gen", masterIp)
-}
-
-func newCntNodePub(masterIp string) (*container, error) {
-	return newContainer("node-pub", masterIp)
-}
-
-func newCntNodeSub(masterIp string) (*container, error) {
-	return newContainer("node-sub", masterIp)
-}
-
-func newCntNodeSetparam(masterIp string) (*container, error) {
-	return newContainer("node-setparam", masterIp)
-}
-
-func newCntNodeServiceprovider(masterIp string) (*container, error) {
-	return newContainer("node-serviceprovider", masterIp)
-}
-
-func newCntNodeServiceclient(masterIp string) (*container, error) {
-	return newContainer("node-serviceclient", masterIp)
-}
-
-func newCntRostopicEcho(masterIp string) (*container, error) {
-	return newContainer("rostopic-echo", masterIp)
-}
-
 func TestNodeOpen(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -138,11 +110,11 @@ func TestNodeOpen(t *testing.T) {
 }
 
 func TestNodeGetNodes(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeGen(m.Ip())
+	p, err := newContainer("node-gen", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -172,11 +144,11 @@ func TestNodeGetNodes(t *testing.T) {
 }
 
 func TestNodeGetMachines(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeGen(m.Ip())
+	p, err := newContainer("node-gen", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -194,11 +166,11 @@ func TestNodeGetMachines(t *testing.T) {
 }
 
 func TestNodeGetTopics(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodePub(m.Ip())
+	p, err := newContainer("node-pub", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -221,11 +193,11 @@ func TestNodeGetTopics(t *testing.T) {
 }
 
 func TestNodeGetServices(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeServiceprovider(m.Ip())
+	p, err := newContainer("node-serviceprovider", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -246,11 +218,11 @@ func TestNodeGetServices(t *testing.T) {
 }
 
 func TestNodePingNode(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeGen(m.Ip())
+	p, err := newContainer("node-gen", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -266,11 +238,11 @@ func TestNodePingNode(t *testing.T) {
 }
 
 func TestNodeKillNode(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeGen(m.Ip())
+	p, err := newContainer("node-gen", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -293,11 +265,11 @@ func TestNodeKillNode(t *testing.T) {
 }
 
 func TestNodeGetParam(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeSetparam(m.Ip())
+	p, err := newContainer("node-setparam", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -328,7 +300,7 @@ func TestNodeGetParam(t *testing.T) {
 }
 
 func TestNodeSetParam(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 

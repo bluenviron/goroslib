@@ -18,11 +18,11 @@ type TestServiceRes struct {
 }
 
 func TestServiceClient(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeServiceprovider(m.Ip())
+	p, err := newContainer("node-serviceprovider", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 

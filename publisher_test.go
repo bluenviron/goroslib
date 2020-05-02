@@ -10,7 +10,7 @@ import (
 )
 
 func TestPublisherRegister(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -57,7 +57,7 @@ func TestPublisherRegister(t *testing.T) {
 }
 
 func TestPublisherWriteAfterSub(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -114,7 +114,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 }
 
 func TestPublisherWriteBeforeSub(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -171,7 +171,7 @@ func TestPublisherWriteBeforeSub(t *testing.T) {
 }
 
 func TestPublisherRostopicEchoMultiple(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -214,7 +214,7 @@ func TestPublisherRostopicEchoMultiple(t *testing.T) {
 		<-done
 	}()
 
-	rt, err := newCntRostopicEcho(m.Ip())
+	rt, err := newContainer("rostopic-echo", m.Ip())
 	require.NoError(t, err)
 
 	out := rt.waitOutput()

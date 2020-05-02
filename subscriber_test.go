@@ -26,7 +26,7 @@ type TestMessage struct {
 }
 
 func TestSubscriberRegister(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -74,11 +74,11 @@ func TestSubscriberRegister(t *testing.T) {
 }
 
 func TestSubscriberReadAfterPub(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodePub(m.Ip())
+	p, err := newContainer("node-pub", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -129,7 +129,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 }
 
 func TestSubscriberReadBeforePub(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
@@ -152,7 +152,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 	require.NoError(t, err)
 	defer sub.Close()
 
-	p, err := newCntNodePub(m.Ip())
+	p, err := newContainer("node-pub", m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 

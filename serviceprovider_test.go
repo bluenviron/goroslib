@@ -9,7 +9,7 @@ import (
 )
 
 func TestServiceProvider(t *testing.T) {
-	m, err := newCntMaster()
+	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
 
