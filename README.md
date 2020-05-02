@@ -34,13 +34,13 @@ import (
 ## Examples
 
 * [subscriber](examples/subscriber.go)
-* [subscriber_custom](examples/subscriber_custom.go)
+* [subscriber-custom](examples/subscriber-custom.go)
 * [publisher](examples/publisher.go)
-* [publisher_custom](examples/publisher_custom.go)
+* [publisher-custom](examples/publisher-custom.go)
 * [serviceclient](examples/serviceclient.go)
 * [serviceprovider](examples/serviceprovider.go)
-* [param_set_get](examples/param_set_get.go)
-* [cluster_info](examples/cluster_info.go)
+* [param-set-get](examples/param-set-get.go)
+* [cluster-info](examples/cluster-info.go)
 
 ## Message definitions
 
