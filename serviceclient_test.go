@@ -22,7 +22,7 @@ func TestServiceClient(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeserviceprovider(m.Ip())
+	p, err := newCntNodeServiceprovider(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 

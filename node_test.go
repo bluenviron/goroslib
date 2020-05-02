@@ -58,16 +58,16 @@ func (m *cntMaster) close() {
 	exec.Command("docker", "wait", "goroslib-test-master").Run()
 }
 
-type cntNode struct {
+type container struct {
 	name string
 }
 
-func newCntNode(name string, masterIp string) (*cntNode, error) {
+func newContainer(name string, masterIp string) (*container, error) {
 	exec.Command("docker", "kill", "goroslib-test-"+name).Run()
 	exec.Command("docker", "wait", "goroslib-test-"+name).Run()
 	exec.Command("docker", "rm", "goroslib-test-"+name).Run()
 
-	cmd := []string{"docker", "run", "--rm", "-d", "--name=goroslib-test-" + name}
+	cmd := []string{"docker", "run", "-d", "--name=goroslib-test-" + name}
 	cmd = append(cmd, "-e", "MASTER_IP="+masterIp)
 	cmd = append(cmd, "goroslib-test-"+name)
 	err := exec.Command(cmd[0], cmd[1:]...).Run()
@@ -75,40 +75,53 @@ func newCntNode(name string, masterIp string) (*cntNode, error) {
 		return nil, err
 	}
 
+	// wait for node initialization
 	time.Sleep(1 * time.Second)
 
-	return &cntNode{
+	return &container{
 		name: name,
 	}, nil
 }
 
-func (n *cntNode) close() {
-	exec.Command("docker", "kill", "goroslib-test-"+n.name).Run()
-	exec.Command("docker", "wait", "goroslib-test-"+n.name).Run()
+func (c *container) close() {
+	exec.Command("docker", "kill", "goroslib-test-"+c.name).Run()
+	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run()
+	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()
 }
 
-func newCntNodegen(masterIp string) (*cntNode, error) {
-	return newCntNode("nodegen", masterIp)
+func (c *container) waitOutput() string {
+	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run()
+	out, _ := exec.Command("docker", "logs", "goroslib-test-" + c.name).Output()
+	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()
+	return string(out)
 }
 
-func newCntNodepub(masterIp string) (*cntNode, error) {
-	return newCntNode("nodepub", masterIp)
+func newCntNodeGen(masterIp string) (*container, error) {
+	return newContainer("node-gen", masterIp)
 }
 
-func newCntNodesub(masterIp string) (*cntNode, error) {
-	return newCntNode("nodesub", masterIp)
+func newCntNodePub(masterIp string) (*container, error) {
+	return newContainer("node-pub", masterIp)
 }
 
-func newCntNodesetparam(masterIp string) (*cntNode, error) {
-	return newCntNode("nodesetparam", masterIp)
+func newCntNodeSub(masterIp string) (*container, error) {
+	return newContainer("node-sub", masterIp)
 }
 
-func newCntNodeserviceprovider(masterIp string) (*cntNode, error) {
-	return newCntNode("nodeserviceprovider", masterIp)
+func newCntNodeSetparam(masterIp string) (*container, error) {
+	return newContainer("node-setparam", masterIp)
 }
 
-func newCntNodeserviceclient(masterIp string) (*cntNode, error) {
-	return newCntNode("nodeserviceclient", masterIp)
+func newCntNodeServiceprovider(masterIp string) (*container, error) {
+	return newContainer("node-serviceprovider", masterIp)
+}
+
+func newCntNodeServiceclient(masterIp string) (*container, error) {
+	return newContainer("node-serviceclient", masterIp)
+}
+
+func newCntRostopicEcho(masterIp string) (*container, error) {
+	return newContainer("rostopic-echo", masterIp)
 }
 
 func TestNodeOpen(t *testing.T) {
@@ -129,7 +142,7 @@ func TestNodeGetNodes(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodegen(m.Ip())
+	p, err := newCntNodeGen(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -163,7 +176,7 @@ func TestNodeGetMachines(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodegen(m.Ip())
+	p, err := newCntNodeGen(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -185,7 +198,7 @@ func TestNodeGetTopics(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodepub(m.Ip())
+	p, err := newCntNodePub(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -212,7 +225,7 @@ func TestNodeGetServices(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodeserviceprovider(m.Ip())
+	p, err := newCntNodeServiceprovider(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -237,7 +250,7 @@ func TestNodePingNode(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodegen(m.Ip())
+	p, err := newCntNodeGen(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -257,7 +270,7 @@ func TestNodeKillNode(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodegen(m.Ip())
+	p, err := newCntNodeGen(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -284,7 +297,7 @@ func TestNodeGetParam(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodesetparam(m.Ip())
+	p, err := newCntNodeSetparam(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 

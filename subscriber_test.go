@@ -78,7 +78,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newCntNodepub(m.Ip())
+	p, err := newCntNodePub(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 
@@ -152,7 +152,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 	require.NoError(t, err)
 	defer sub.Close()
 
-	p, err := newCntNodepub(m.Ip())
+	p, err := newCntNodePub(m.Ip())
 	require.NoError(t, err)
 	defer p.close()
 

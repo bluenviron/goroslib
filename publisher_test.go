@@ -1,13 +1,12 @@
 package goroslib
 
 import (
-	"os/exec"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 func TestPublisherRegister(t *testing.T) {
@@ -171,29 +170,7 @@ func TestPublisherWriteBeforeSub(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func newRostopicEcho(masterIp string) (string, error) {
-	exec.Command("docker", "kill", "goroslib-test-rostopic-echo").Run()
-	exec.Command("docker", "wait", "goroslib-test-rostopic-echo").Run()
-	exec.Command("docker", "rm", "goroslib-test-rostopic-echo").Run()
-
-	cmd := []string{"docker", "run", "--rm", "--name=goroslib-test-rostopic-echo"}
-	cmd = append(cmd, "-e", "MASTER_IP="+masterIp)
-	cmd = append(cmd, "goroslib-test-rostopic-echo")
-	c := exec.Command(cmd[0], cmd[1:]...)
-	out, err := c.Output()
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
-}
-
-type Float64 struct {
-	msgs.Package `ros:"std_msgs"`
-	Data         msgs.Float64
-}
-
-func TestPublisherRostopicEcho(t *testing.T) {
+func TestPublisherRostopicEchoMultiple(t *testing.T) {
 	m, err := newCntMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -208,7 +185,7 @@ func TestPublisherRostopicEcho(t *testing.T) {
 	pub, err := NewPublisher(PublisherConf{
 		Node:  n,
 		Topic: "/test_pub",
-		Msg:   &Float64{},
+		Msg:   &std_msgs.Float64{},
 	})
 	require.NoError(t, err)
 	defer pub.Close()
@@ -225,7 +202,7 @@ func TestPublisherRostopicEcho(t *testing.T) {
 		for {
 			select {
 			case <-t.C:
-				pub.Write(&Float64{Data: 34.5})
+				pub.Write(&std_msgs.Float64{Data: 34.5})
 
 			case <-terminate:
 				return
@@ -237,7 +214,9 @@ func TestPublisherRostopicEcho(t *testing.T) {
 		<-done
 	}()
 
-	out, err := newRostopicEcho(m.Ip())
+	rt, err := newCntRostopicEcho(m.Ip())
 	require.NoError(t, err)
+
+	out := rt.waitOutput()
 	require.Equal(t, "data: 34.5\n---\n", out)
 }
