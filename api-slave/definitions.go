@@ -1,38 +1,50 @@
 package api_slave
 
-type getPidReq struct {
+type Request interface {
+	isRequest()
+}
+
+type Response interface {
+	isResponse()
+}
+
+type GetPidReq struct {
 	CallerId string
 }
 
-type ReqGetPid getPidReq
+func (GetPidReq) isRequest() {}
 
-type getPidRes struct {
+type GetPidRes struct {
 	Code          int
 	StatusMessage string
 	Pid           int
 }
 
-type publisherUpdateReq struct {
+func (GetPidRes) isResponse() {}
+
+type PublisherUpdateReq struct {
 	CallerId      string
 	Topic         string
 	PublisherUrls []string
 }
 
-type ReqPublisherUpdate publisherUpdateReq
+func (PublisherUpdateReq) isRequest() {}
 
-type publisherUpdateRes struct {
+type PublisherUpdateRes struct {
 	Code          int
 	StatusMessage string
 	Ignore        int
 }
 
-type requestTopicReq struct {
+func (PublisherUpdateRes) isResponse() {}
+
+type RequestTopicReq struct {
 	CallerId  string
 	Topic     string
 	Protocols [][]string
 }
 
-type ReqRequestTopic requestTopicReq
+func (RequestTopicReq) isRequest() {}
 
 type TopicProtocol struct {
 	Name string
@@ -40,21 +52,25 @@ type TopicProtocol struct {
 	Port int
 }
 
-type requestTopicRes struct {
+type RequestTopicRes struct {
 	Code          int
 	StatusMessage string
 	Proto         TopicProtocol
 }
 
-type shutdownReq struct {
+func (RequestTopicRes) isResponse() {}
+
+type ShutdownReq struct {
 	CallerId string
 	Reason   string
 }
 
-type ReqShutdown shutdownReq
+func (ShutdownReq) isRequest() {}
 
-type shutdownRes struct {
+type ShutdownRes struct {
 	Code          int
 	StatusMessage string
 	Ignore        int
 }
+
+func (ShutdownRes) isResponse() {}

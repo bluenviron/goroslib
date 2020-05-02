@@ -29,26 +29,26 @@ func (s *Server) GetUrl() string {
 	return s.xs.GetUrl()
 }
 
-func (s *Server) Read() (interface{}, error) {
+func (s *Server) Read() (Request, error) {
 	for {
 		raw, err := s.xs.Read()
 		if err != nil {
 			return nil, err
 		}
 
-		var req interface{}
+		var req Request
 		switch raw.Method {
 		case "getPid":
-			req = &ReqGetPid{}
+			req = &GetPidReq{}
 
 		case "shutdown":
-			req = &ReqShutdown{}
+			req = &ShutdownReq{}
 
 		case "publisherUpdate":
-			req = &ReqPublisherUpdate{}
+			req = &PublisherUpdateReq{}
 
 		case "requestTopic":
-			req = &ReqRequestTopic{}
+			req = &RequestTopicReq{}
 
 		default:
 			s.xs.Write(xmlrpc.ErrorRes{})
@@ -65,25 +65,6 @@ func (s *Server) Read() (interface{}, error) {
 	}
 }
 
-func (s *Server) WriteGetPid(code int, statusMessage string, pid int) {
-	s.xs.Write(getPidRes{
-		Code:          code,
-		StatusMessage: statusMessage,
-		Pid:           pid,
-	})
-}
-
-func (s *Server) WritePublisherUpdate(code int, statusMessage string) {
-	s.xs.Write(publisherUpdateRes{
-		Code:          code,
-		StatusMessage: statusMessage,
-	})
-}
-
-func (s *Server) WriteRequestTopic(code int, statusMessage string, proto TopicProtocol) {
-	s.xs.Write(requestTopicRes{
-		Code:          code,
-		StatusMessage: statusMessage,
-		Proto:         proto,
-	})
+func (s *Server) Write(res Response) {
+	s.xs.Write(res)
 }

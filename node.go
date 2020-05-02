@@ -461,28 +461,39 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 		}
 
 		switch req := rawReq.(type) {
-		case *api_slave.ReqGetPid:
-			n.slaveServer.WriteGetPid(1, "", os.Getpid())
+		case *api_slave.GetPidReq:
+			n.slaveServer.Write(api_slave.GetPidRes{
+				Code:          1,
+				StatusMessage: "",
+				Pid:           os.Getpid(),
+			})
 
-		case *api_slave.ReqShutdown:
+		case *api_slave.ShutdownReq:
 			n.chanEvents <- nodeEventClose{}
 
-		case *api_slave.ReqPublisherUpdate:
+		case *api_slave.PublisherUpdateReq:
 			n.chanEvents <- nodeEventPublisherUpdate{
 				topic: req.Topic,
 				urls:  req.PublisherUrls,
 			}
-			n.slaveServer.WritePublisherUpdate(1, "")
+			n.slaveServer.Write(api_slave.PublisherUpdateRes{
+				Code:          1,
+				StatusMessage: "",
+			})
 
-		case *api_slave.ReqRequestTopic:
+		case *api_slave.RequestTopicReq:
 			// Do not check here whether the topic exists or not,
 			// just send the TCPROS port.
 			// The check on the existence of the topic will take place in the
 			// TCPROS connection.
-			n.slaveServer.WriteRequestTopic(1, "", api_slave.TopicProtocol{
-				Name: "TCPROS",
-				Host: n.conf.Host,
-				Port: int(n.tcprosServer.GetPort()),
+			n.slaveServer.Write(api_slave.RequestTopicRes{
+				Code:          1,
+				StatusMessage: "",
+				Proto: api_slave.TopicProtocol{
+					Name: "TCPROS",
+					Host: n.conf.Host,
+					Port: int(n.tcprosServer.GetPort()),
+				},
 			})
 		}
 	}
