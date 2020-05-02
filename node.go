@@ -135,32 +135,33 @@ type nodeEventServiceProviderClose struct {
 	sp *ServiceProvider
 }
 
+// NodeConf is the configuration of a Node.
 type NodeConf struct {
 	// name of the node
 	Name string
 
-	// (optional) the hostname or ip of this node, needed by other nodes
+	// (optional) hostname or ip of this node, needed by other nodes
 	// in order to communicate with it it.
 	// if not provided, it will be set automatically
 	Host string
 
-	// (optional) the port of the XML-RPC server of this node.
+	// (optional) port of the XML-RPC server of this node.
 	// if not provided, it will be chosen by the OS
 	XmlRpcPort uint16
 
-	// (optional) the port of the TCPROS server of this node.
+	// (optional) port of the TCPROS server of this node.
 	// if not provided, it will be chosen by the OS
 	TcpRosPort uint16
 
 	// hostname or ip of the master node
 	MasterHost string
 
-	// (optional) port of the Http API of the master node
+	// (optional) port of the HTTP API of the master node
 	// if not provided, it will be set to 11311
 	MasterPort uint16
 }
 
-// Node is a ROS Node, that can create subscribers, publishers, service providers
+// Node is a ROS Node, an entity that can create subscribers, publishers, service providers
 // and service clients.
 type Node struct {
 	conf NodeConf
@@ -176,8 +177,6 @@ type Node struct {
 	subscribers      map[string]*Subscriber
 	publishers       map[string]*Publisher
 	serviceProviders map[string]*ServiceProvider
-
-	//rosoutPub *Publisher
 }
 
 // NewNode allocates a Node. See NodeConf for the options.
@@ -276,7 +275,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 	return n, nil
 }
 
-// Close closes a Node.
+// Close closes a Node and shuts down all its operations.
 func (n *Node) Close() error {
 	n.chanEvents <- nodeEventClose{}
 	<-n.chanDone
@@ -542,6 +541,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 	}
 }
 
+// InfoNode contains informations about a node.
 type InfoNode struct {
 	PublishedTopics  map[string]struct{}
 	SubscribedTopics map[string]struct{}
@@ -624,6 +624,7 @@ func (n *Node) GetMachines() (map[string]struct{}, error) {
 	return ret, nil
 }
 
+// InfoTopic contains informations about a topic.
 type InfoTopic struct {
 	Type        string
 	Publishers  map[string]struct{}
@@ -672,6 +673,7 @@ func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
 	return ret, nil
 }
 
+// InfoService contains informations about a service.
 type InfoService struct {
 	Providers map[string]struct{}
 	Hostname  string

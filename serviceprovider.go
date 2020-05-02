@@ -28,12 +28,21 @@ type serviceProviderEventRequest struct {
 	req      interface{}
 }
 
+// ServiceProviderConf is the configuration of a ServiceProvider.
 type ServiceProviderConf struct {
-	Node     *Node
-	Service  string
+	// node which the service provider belongs to
+	Node *Node
+
+	// name of the service from which providers will be obtained
+	Service string
+
+	// function in the form func(*NameOfRequest) *NameOfReply{}  that will be called
+	// whenever a request arrives
 	Callback interface{}
 }
 
+// ServiceProvider is a ROS service provider, an entity that can receive requests
+// and send back replies.
 type ServiceProvider struct {
 	conf    ServiceProviderConf
 	reqMsg  reflect.Type
@@ -48,6 +57,7 @@ type ServiceProvider struct {
 	clients map[string]*serviceProviderClient
 }
 
+// NewServiceProvider allocates a ServiceProvider. See ServiceProviderConf for the options.
 func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	if conf.Node == nil {
 		return nil, fmt.Errorf("Node is empty")
@@ -128,6 +138,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	return sp, nil
 }
 
+// Close closes a ServiceProvider and shuts down all its operations.
 func (sp *ServiceProvider) Close() error {
 	sp.chanEvents <- serviceProviderEventClose{}
 	<-sp.chanDone

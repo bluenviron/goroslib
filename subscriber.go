@@ -21,12 +21,20 @@ type subscriberEventMessage struct {
 	msg interface{}
 }
 
+// SubscriberConf is the configuration of a Subscriber.
 type SubscriberConf struct {
-	Node     *Node
-	Topic    string
+	// node which the subscriber belongs to
+	Node *Node
+
+	// name of the topic from which messages will be read
+	Topic string
+
+	// function in the form func(msg *NameOfMessage){} that will be called
+	// whenever a message arrives
 	Callback interface{}
 }
 
+// Subscriber is a ROS subscriber, an entity that can receive messages from a named channel.
 type Subscriber struct {
 	conf    SubscriberConf
 	msgMsg  reflect.Type
@@ -39,6 +47,7 @@ type Subscriber struct {
 	publishers map[string]*subscriberPublisher
 }
 
+// NewSubscriber allocates a Subscriber. See SubscriberConf for the options.
 func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	if conf.Node == nil {
 		return nil, fmt.Errorf("Node is empty")
@@ -102,6 +111,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	return s, nil
 }
 
+// Close closes a Subscriber and shuts down all its operations.
 func (s *Subscriber) Close() error {
 	s.chanEvents <- subscriberEventClose{}
 	<-s.chanDone

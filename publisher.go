@@ -27,13 +27,24 @@ type publisherEventWrite struct {
 	msg interface{}
 }
 
+// PublisherConf is the configuration of a Publisher.
 type PublisherConf struct {
-	Node  *Node
+	// node which the publisher belongs to
+	Node *Node
+
+	// name of the topic in which messages will be written
 	Topic string
-	Msg   interface{}
+
+	// an instance of the message that will be published
+	Msg interface{}
+
+	// (optional) whether to enable latching, that consists in saving the last
+	// published message and send it to any new subscriber that connects to
+	// this publisher
 	Latch bool
 }
 
+// Publisher is a ROS publisher, an entity that can publish messages in a named channel.
 type Publisher struct {
 	conf    PublisherConf
 	msgType string
@@ -46,6 +57,7 @@ type Publisher struct {
 	lastMessage interface{}
 }
 
+// NewPublisher allocates a Publisher. See PublisherConf for the options.
 func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	if conf.Node == nil {
 		return nil, fmt.Errorf("Node is empty")
@@ -97,6 +109,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	return p, nil
 }
 
+// Close closes a Publisher and shuts down all its operations.
 func (p *Publisher) Close() error {
 	p.chanEvents <- publisherEventClose{}
 	<-p.chanDone
