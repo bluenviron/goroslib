@@ -721,8 +721,8 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 }
 
 // PingNode send a ping request to a given node, wait for the reply and returns
-// the elapsed time in seconds.
-func (n *Node) PingNode(name string) (float64, error) {
+// the elapsed time.
+func (n *Node) PingNode(name string) (time.Duration, error) {
 	ur, err := n.masterClient.LookupNode(name)
 	if err != nil {
 		return 0, err
@@ -746,9 +746,7 @@ func (n *Node) PingNode(name string) (float64, error) {
 		return 0, err
 	}
 
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-
-	return elapsed, nil
+	return time.Since(start), nil
 }
 
 // KillNode send a kill request to a given node.
