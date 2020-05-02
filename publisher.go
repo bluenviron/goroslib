@@ -31,6 +31,7 @@ type PublisherConf struct {
 	Node  *Node
 	Topic string
 	Msg   interface{}
+	Latch bool
 }
 
 type Publisher struct {
@@ -42,6 +43,7 @@ type Publisher struct {
 	chanDone   chan struct{}
 
 	subscribers map[string]*publisherSubscriber
+	lastMessage interface{}
 }
 
 func NewPublisher(conf PublisherConf) (*Publisher, error) {
@@ -136,7 +138,12 @@ outer:
 				Md5sum:   ptrString(p.msgMd5),
 				Topic:    ptrString(p.conf.Topic),
 				Type:     ptrString(p.msgType),
-				Latching: ptrInt(0),
+				Latching: ptrInt(func() int {
+					if p.conf.Latch {
+						return 1
+					}
+					return 0
+				}()),
 			})
 			if err != nil {
 				evt.client.Close()
@@ -145,10 +152,18 @@ outer:
 
 			p.subscribers[evt.header.Callerid] = newPublisherSubscriber(p, evt.header.Callerid, evt.client)
 
+			if p.conf.Latch && p.lastMessage != nil {
+				p.subscribers[evt.header.Callerid].writeMessage(p.lastMessage)
+			}
+
 		case publisherEventSubscriberClose:
 			delete(p.subscribers, evt.sub.callerid)
 
 		case publisherEventWrite:
+			if p.conf.Latch {
+				p.lastMessage = evt.msg
+			}
+
 			for _, s := range p.subscribers {
 				s.writeMessage(evt.msg)
 			}

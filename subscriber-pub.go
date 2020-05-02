@@ -152,10 +152,6 @@ func (sp *subscriberPublisher) run() {
 				return
 			}
 
-			if *outHeader.Latching != 0 {
-				return
-			}
-
 			for {
 				msg := reflect.New(sp.s.msgMsg).Interface()
 				err := conn.ReadMessage(msg)

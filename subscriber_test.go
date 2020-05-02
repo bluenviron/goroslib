@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/aler9/goroslib/msgs"
-	"github.com/aler9/goroslib/msgs/std_msgs"
 	"github.com/aler9/goroslib/msgs/sensor_msgs"
+	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type TestParent struct {
@@ -189,7 +189,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 	require.Equal(t, &expected, recv)
 }
 
-func TestSubscriberRostopicPubMultiple(t *testing.T) {
+func TestSubscriberRostopicPub(t *testing.T) {
 	recv := func() *sensor_msgs.Imu {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
@@ -218,16 +218,16 @@ func TestSubscriberRostopicPubMultiple(t *testing.T) {
 		require.NoError(t, err)
 		defer sub.Close()
 
-		return <- chanRecv
+		return <-chanRecv
 	}()
 
 	expected := &sensor_msgs.Imu{
 		Header: std_msgs.Header{
 			Seq: 1,
 		},
-		OrientationCovariance: [9]msgs.Float64{0, 0, 0, 0, 0.2, 0, 0, 0, 0},
-		AngularVelocityCovariance:[9]msgs.Float64{0, 0, 15, 0, 0, 0, 0, 0, 0},
-		LinearAccelerationCovariance:[9]msgs.Float64{0, 0, 0, 0, 0, 0, 0, 0, 13.7},
+		OrientationCovariance:        [9]msgs.Float64{0, 0, 0, 0, 0.2, 0, 0, 0, 0},
+		AngularVelocityCovariance:    [9]msgs.Float64{0, 0, 15, 0, 0, 0, 0, 0, 0},
+		LinearAccelerationCovariance: [9]msgs.Float64{0, 0, 0, 0, 0, 0, 0, 0, 13.7},
 	}
 	require.Equal(t, expected, recv)
 }

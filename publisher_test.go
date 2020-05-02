@@ -56,7 +56,7 @@ func TestPublisherRegister(t *testing.T) {
 	require.Equal(t, false, ok)
 }
 
-func TestPublisherWriteAfterSub(t *testing.T) {
+func TestPublisherWriteAfterSubNoLatch(t *testing.T) {
 	sent := &TestMessage{
 		A: 1,
 		B: []TestParent{
@@ -116,7 +116,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func TestPublisherWriteBeforeSub(t *testing.T) {
+func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 	sent := &TestMessage{
 		A: 1,
 		B: []TestParent{
@@ -176,7 +176,66 @@ func TestPublisherWriteBeforeSub(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func TestPublisherRostopicEchoMultiple(t *testing.T) {
+func TestPublisherWriteLatch(t *testing.T) {
+	sent := &TestMessage{
+		A: 1,
+		B: []TestParent{
+			{
+				A: "other test",
+				B: time.Unix(1500, 1345).UTC(),
+			},
+		},
+	}
+
+	recv := func() *TestMessage {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &TestMessage{},
+			Latch: true,
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		pub.Write(sent)
+
+		ns, err := NewNode(NodeConf{
+			Name:       "/goroslibsub",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer ns.Close()
+
+		chanRecv := make(chan *TestMessage)
+
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:  ns,
+			Topic: "/test_pub",
+			Callback: func(msg *TestMessage) {
+				chanRecv <- msg
+			},
+		})
+		require.NoError(t, err)
+		defer sub.Close()
+
+		return <-chanRecv
+	}()
+
+	require.Equal(t, sent, recv)
+}
+
+func TestPublisherRostopicEchoNoLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
@@ -197,29 +256,42 @@ func TestPublisherRostopicEchoMultiple(t *testing.T) {
 		require.NoError(t, err)
 		defer pub.Close()
 
-		terminate := make(chan int)
-		done := make(chan int)
+		rt, err := newContainer("rostopic-echo", m.Ip())
+		require.NoError(t, err)
 
-		go func() {
-			defer func() { done <- 1 }()
+		time.Sleep(1 * time.Second)
 
-			t := time.NewTicker(1 * time.Second)
-			defer t.Stop()
+		pub.Write(&std_msgs.Float64{Data: 34.5})
 
-			for {
-				select {
-				case <-t.C:
-					pub.Write(&std_msgs.Float64{Data: 34.5})
+		return rt.waitOutput()
+	}()
 
-				case <-terminate:
-					return
-				}
-			}
-		}()
-		defer func() {
-			terminate <- 1
-			<-done
-		}()
+	require.Equal(t, "data: 34.5\n---\n", recv)
+}
+
+func TestPublisherRostopicEchoLatch(t *testing.T) {
+	recv := func() string {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &std_msgs.Float64{},
+			Latch: true,
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		pub.Write(&std_msgs.Float64{Data: 45.5})
 
 		rt, err := newContainer("rostopic-echo", m.Ip())
 		require.NoError(t, err)
@@ -227,5 +299,5 @@ func TestPublisherRostopicEchoMultiple(t *testing.T) {
 		return rt.waitOutput()
 	}()
 
-	require.Equal(t, "data: 34.5\n---\n", recv)
+	require.Equal(t, "data: 45.5\n---\n", recv)
 }
