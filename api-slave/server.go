@@ -38,14 +38,17 @@ func (s *Server) Read() (interface{}, error) {
 
 		var req interface{}
 		switch raw.Method {
+		case "getPid":
+			req = &ReqGetPid{}
+
+		case "shutdown":
+			req = &ReqShutdown{}
+
 		case "publisherUpdate":
 			req = &ReqPublisherUpdate{}
 
 		case "requestTopic":
 			req = &ReqRequestTopic{}
-
-		case "shutdown":
-			req = &ReqShutdown{}
 
 		default:
 			s.xs.Write(xmlrpc.ErrorRes{})
@@ -60,6 +63,14 @@ func (s *Server) Read() (interface{}, error) {
 
 		return req, nil
 	}
+}
+
+func (s *Server) WriteGetPid(code int, statusMessage string, pid int) {
+	s.xs.Write(getPidRes{
+		Code:          code,
+		StatusMessage: statusMessage,
+		Pid:           pid,
+	})
 }
 
 func (s *Server) WritePublisherUpdate(code int, statusMessage string) {

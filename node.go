@@ -46,6 +46,7 @@ package goroslib
 import (
 	"fmt"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -460,6 +461,12 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 		}
 
 		switch req := rawReq.(type) {
+		case *api_slave.ReqGetPid:
+			n.slaveServer.WriteGetPid(1, "", os.Getpid())
+
+		case *api_slave.ReqShutdown:
+			n.chanEvents <- nodeEventClose{}
+
 		case *api_slave.ReqPublisherUpdate:
 			n.chanEvents <- nodeEventPublisherUpdate{
 				topic: req.Topic,
@@ -477,9 +484,6 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 				Host: n.conf.Host,
 				Port: int(n.tcprosServer.GetPort()),
 			})
-
-		case *api_slave.ReqShutdown:
-			n.chanEvents <- nodeEventClose{}
 		}
 	}
 }

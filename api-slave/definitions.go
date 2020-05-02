@@ -4,6 +4,8 @@ type getPidReq struct {
 	CallerId string
 }
 
+type ReqGetPid getPidReq
+
 type getPidRes struct {
 	Code          int
 	StatusMessage string

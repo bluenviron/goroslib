@@ -217,7 +217,7 @@ func TestNodeGetServices(t *testing.T) {
 	require.Equal(t, map[string]struct{}{"/nodeserviceprovider": {}}, service.Providers)
 }
 
-func TestNodePingNode(t *testing.T) {
+func TestNodePingNodeExternal(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -237,7 +237,38 @@ func TestNodePingNode(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestNodeKillNode(t *testing.T) {
+func TestNodePingNodeInternal(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n1, err := NewNode(NodeConf{
+		Name:       "/goroslib1",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n1.Close()
+
+	pub, err := NewPublisher(PublisherConf{
+		Node:  n1,
+		Topic: "/test_pub",
+		Msg:   &TestMessage{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
+
+	n2, err := NewNode(NodeConf{
+		Name:       "/goroslib2",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n2.Close()
+
+	_, err = n2.PingNode("/goroslib1")
+	require.NoError(t, err)
+}
+
+func TestNodeKillNodeExternal(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
