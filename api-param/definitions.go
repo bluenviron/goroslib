@@ -1,58 +1,58 @@
 package api_param
 
-type hasParamReq struct {
+type RequestHasParam struct {
 	CallerId string
 	Name     string
 }
 
-type HasParamRes struct {
+type ResponseHasParam struct {
 	Code    int
 	NameOut string
 	Res     bool
 }
 
-type getParamReq struct {
+type RequestGetParam struct {
 	CallerId string
 	Name     string
 }
 
-type getParamBoolRes struct {
+type ResponseGetParamBool struct {
 	Code          int
 	StatusMessage string
 	Res           bool
 }
 
-type getParamIntRes struct {
+type ResponseGetParamInt struct {
 	Code          int
 	StatusMessage string
 	Res           int
 }
 
-type getParamStringRes struct {
+type ResponseGetParamString struct {
 	Code          int
 	StatusMessage string
 	Res           string
 }
 
-type setParamBoolReq struct {
+type RequestSetParamBool struct {
 	CallerId string
 	Name     string
 	Val      bool
 }
 
-type setParamIntReq struct {
+type RequestSetParamInt struct {
 	CallerId string
 	Name     string
 	Val      int
 }
 
-type setParamStringReq struct {
+type RequestSetParamString struct {
 	CallerId string
 	Name     string
 	Val      string
 }
 
-type setParamRes struct {
+type ResponseSetParam struct {
 	Code          int
 	StatusMessage string
 	Ignore        int

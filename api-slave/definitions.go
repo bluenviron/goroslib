@@ -8,43 +8,43 @@ type Response interface {
 	isResponse()
 }
 
-type GetPidReq struct {
+type RequestGetPid struct {
 	CallerId string
 }
 
-func (GetPidReq) isRequest() {}
+func (RequestGetPid) isRequest() {}
 
-type GetPidRes struct {
+type ResponseGetPid struct {
 	Code          int
 	StatusMessage string
 	Pid           int
 }
 
-func (GetPidRes) isResponse() {}
+func (ResponseGetPid) isResponse() {}
 
-type PublisherUpdateReq struct {
+type RequestPublisherUpdate struct {
 	CallerId      string
 	Topic         string
 	PublisherUrls []string
 }
 
-func (PublisherUpdateReq) isRequest() {}
+func (RequestPublisherUpdate) isRequest() {}
 
-type PublisherUpdateRes struct {
+type ResponsePublisherUpdate struct {
 	Code          int
 	StatusMessage string
 	Ignore        int
 }
 
-func (PublisherUpdateRes) isResponse() {}
+func (ResponsePublisherUpdate) isResponse() {}
 
-type RequestTopicReq struct {
+type RequestRequestTopic struct {
 	CallerId  string
 	Topic     string
 	Protocols [][]string
 }
 
-func (RequestTopicReq) isRequest() {}
+func (RequestRequestTopic) isRequest() {}
 
 type TopicProtocol struct {
 	Name string
@@ -52,25 +52,25 @@ type TopicProtocol struct {
 	Port int
 }
 
-type RequestTopicRes struct {
+type ResponseRequestTopic struct {
 	Code          int
 	StatusMessage string
 	Proto         TopicProtocol
 }
 
-func (RequestTopicRes) isResponse() {}
+func (ResponseRequestTopic) isResponse() {}
 
-type ShutdownReq struct {
+type RequestShutdown struct {
 	CallerId string
 	Reason   string
 }
 
-func (ShutdownReq) isRequest() {}
+func (RequestShutdown) isRequest() {}
 
-type ShutdownRes struct {
+type ResponseShutdown struct {
 	Code          int
 	StatusMessage string
 	Ignore        int
 }
 
-func (ShutdownRes) isResponse() {}
+func (ResponseShutdown) isResponse() {}

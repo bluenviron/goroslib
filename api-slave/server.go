@@ -39,16 +39,16 @@ func (s *Server) Read() (Request, error) {
 		var req Request
 		switch raw.Method {
 		case "getPid":
-			req = &GetPidReq{}
+			req = &RequestGetPid{}
 
 		case "shutdown":
-			req = &ShutdownReq{}
+			req = &RequestShutdown{}
 
 		case "publisherUpdate":
-			req = &PublisherUpdateReq{}
+			req = &RequestPublisherUpdate{}
 
 		case "requestTopic":
-			req = &RequestTopicReq{}
+			req = &RequestRequestTopic{}
 
 		default:
 			s.xs.Write(xmlrpc.ErrorRes{})

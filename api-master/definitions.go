@@ -1,6 +1,6 @@
 package api_master
 
-type getSystemStateReq struct {
+type RequestGetSystemState struct {
 	CallerId string
 }
 
@@ -15,13 +15,13 @@ type SystemState struct {
 	ProvidedServices []SystemStateEntry
 }
 
-type getSystemStateRes struct {
+type ResponseGetSystemState struct {
 	Code          int
 	StatusMessage string
 	State         SystemState
 }
 
-type getTopicTypesReq struct {
+type RequestGetTopicTypes struct {
 	CallerId string
 }
 
@@ -30,68 +30,68 @@ type TopicType struct {
 	Type string
 }
 
-type getTopicTypesRes struct {
+type ResponseGetTopicTypes struct {
 	Code          int
 	StatusMessage string
 	Types         []TopicType
 }
 
-type lookupReq struct {
+type RequestLookup struct {
 	CallerId string
 	Name     string
 }
 
-type lookupRes struct {
+type ResponseLookup struct {
 	Code          int
 	StatusMessage string
 	Uri           string
 }
 
-type registerReq struct {
+type RequestRegister struct {
 	CallerId  string
 	Topic     string
 	TopicType string
 	CallerUrl string
 }
 
-type registerRes struct {
+type ResponseRegister struct {
 	Code          int
 	StatusMessage string
 	Uris          []string
 }
 
-type unregisterReq struct {
+type RequestUnregister struct {
 	CallerId  string
 	Topic     string
 	CallerUrl string
 }
 
-type unregisterRes struct {
+type ResponseUnregister struct {
 	Code            int
 	StatusMessage   string
 	NumUnregistered int
 }
 
-type serviceRegisterReq struct {
+type RequestServiceRegister struct {
 	CallerId   string
 	Service    string
 	ServiceUrl string
 	CallerUrl  string
 }
 
-type serviceRegisterRes struct {
+type ResponseServiceRegister struct {
 	Code          int
 	StatusMessage string
 	Ignore        int
 }
 
-type serviceUnregisterReq struct {
+type RequestServiceUnregister struct {
 	CallerId   string
 	Service    string
 	ServiceUrl string
 }
 
-type serviceUnregisterRes struct {
+type ResponseServiceUnregister struct {
 	Code            int
 	StatusMessage   string
 	NumUnregistered int

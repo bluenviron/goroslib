@@ -23,11 +23,11 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) HasParam(name string) (bool, error) {
-	req := hasParamReq{
+	req := RequestHasParam{
 		c.callerId,
 		name,
 	}
-	var res HasParamRes
+	var res ResponseHasParam
 	err := xmlrpc.Client(c.url, "hasParam", req, &res)
 	if err != nil {
 		return false, err
@@ -45,11 +45,11 @@ func (c *Client) HasParam(name string) (bool, error) {
 }
 
 func (c *Client) GetParamBool(name string) (bool, error) {
-	req := getParamReq{
+	req := RequestGetParam{
 		c.callerId,
 		name,
 	}
-	var res getParamBoolRes
+	var res ResponseGetParamBool
 	err := xmlrpc.Client(c.url, "getParam", req, &res)
 	if err != nil {
 		return false, err
@@ -63,11 +63,11 @@ func (c *Client) GetParamBool(name string) (bool, error) {
 }
 
 func (c *Client) GetParamInt(name string) (int, error) {
-	req := getParamReq{
+	req := RequestGetParam{
 		c.callerId,
 		name,
 	}
-	var res getParamIntRes
+	var res ResponseGetParamInt
 	err := xmlrpc.Client(c.url, "getParam", req, &res)
 	if err != nil {
 		return 0, err
@@ -81,11 +81,11 @@ func (c *Client) GetParamInt(name string) (int, error) {
 }
 
 func (c *Client) GetParamString(name string) (string, error) {
-	req := getParamReq{
+	req := RequestGetParam{
 		c.callerId,
 		name,
 	}
-	var res getParamStringRes
+	var res ResponseGetParamString
 	err := xmlrpc.Client(c.url, "getParam", req, &res)
 	if err != nil {
 		return "", err
@@ -99,12 +99,12 @@ func (c *Client) GetParamString(name string) (string, error) {
 }
 
 func (c *Client) SetParamBool(name string, val bool) error {
-	req := setParamBoolReq{
+	req := RequestSetParamBool{
 		c.callerId,
 		name,
 		val,
 	}
-	var res setParamRes
+	var res ResponseSetParam
 	err := xmlrpc.Client(c.url, "setParam", req, &res)
 	if err != nil {
 		return err
@@ -118,12 +118,12 @@ func (c *Client) SetParamBool(name string, val bool) error {
 }
 
 func (c *Client) SetParamInt(name string, val int) error {
-	req := setParamIntReq{
+	req := RequestSetParamInt{
 		c.callerId,
 		name,
 		val,
 	}
-	var res setParamRes
+	var res ResponseSetParam
 	err := xmlrpc.Client(c.url, "setParam", req, &res)
 	if err != nil {
 		return err
@@ -137,12 +137,12 @@ func (c *Client) SetParamInt(name string, val int) error {
 }
 
 func (c *Client) SetParamString(name string, val string) error {
-	req := setParamStringReq{
+	req := RequestSetParamString{
 		c.callerId,
 		name,
 		val,
 	}
-	var res setParamRes
+	var res ResponseSetParam
 	err := xmlrpc.Client(c.url, "setParam", req, &res)
 	if err != nil {
 		return err

@@ -23,10 +23,10 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) GetSystemState() (*SystemState, error) {
-	req := getSystemStateReq{
+	req := RequestGetSystemState{
 		c.callerId,
 	}
-	var res getSystemStateRes
+	var res ResponseGetSystemState
 	err := xmlrpc.Client(c.url, "getSystemState", req, &res)
 	if err != nil {
 		return nil, err
@@ -40,10 +40,10 @@ func (c *Client) GetSystemState() (*SystemState, error) {
 }
 
 func (c *Client) GetTopicTypes() ([]TopicType, error) {
-	req := getTopicTypesReq{
+	req := RequestGetTopicTypes{
 		c.callerId,
 	}
-	var res getTopicTypesRes
+	var res ResponseGetTopicTypes
 	err := xmlrpc.Client(c.url, "getTopicTypes", req, &res)
 	if err != nil {
 		return nil, err
@@ -57,11 +57,11 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 }
 
 func (c *Client) lookup(method string, name string) (string, error) {
-	req := lookupReq{
+	req := RequestLookup{
 		c.callerId,
 		name,
 	}
-	var res lookupRes
+	var res ResponseLookup
 	err := xmlrpc.Client(c.url, method, req, &res)
 	if err != nil {
 		return "", err
@@ -83,13 +83,13 @@ func (c *Client) LookupService(name string) (string, error) {
 }
 
 func (c *Client) Register(method string, topic string, topicType string, callerUrl string) ([]string, error) {
-	req := registerReq{
+	req := RequestRegister{
 		c.callerId,
 		topic,
 		topicType,
 		callerUrl,
 	}
-	var res registerRes
+	var res ResponseRegister
 	err := xmlrpc.Client(c.url, method, req, &res)
 	if err != nil {
 		return nil, err
@@ -103,12 +103,12 @@ func (c *Client) Register(method string, topic string, topicType string, callerU
 }
 
 func (c *Client) unregister(method string, topic string, callerUrl string) error {
-	req := unregisterReq{
+	req := RequestUnregister{
 		c.callerId,
 		topic,
 		callerUrl,
 	}
-	var res unregisterRes
+	var res ResponseUnregister
 	err := xmlrpc.Client(c.url, method, req, &res)
 	if err != nil {
 		return err
@@ -138,13 +138,13 @@ func (c *Client) UnregisterPublisher(topic string, callerUrl string) error {
 }
 
 func (c *Client) RegisterService(service string, serviceUrl string, callerUrl string) error {
-	req := serviceRegisterReq{
+	req := RequestServiceRegister{
 		c.callerId,
 		service,
 		serviceUrl,
 		callerUrl,
 	}
-	var res serviceRegisterRes
+	var res ResponseServiceRegister
 	err := xmlrpc.Client(c.url, "registerService", req, &res)
 	if err != nil {
 		return err
@@ -158,12 +158,12 @@ func (c *Client) RegisterService(service string, serviceUrl string, callerUrl st
 }
 
 func (c *Client) UnregisterService(service string, serviceUrl string) error {
-	req := serviceUnregisterReq{
+	req := RequestServiceUnregister{
 		c.callerId,
 		service,
 		serviceUrl,
 	}
-	var res serviceUnregisterRes
+	var res ResponseServiceUnregister
 	err := xmlrpc.Client(c.url, "unregisterService", req, &res)
 	if err != nil {
 		return err
