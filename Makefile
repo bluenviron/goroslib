@@ -45,10 +45,9 @@ test:
 	temp \
 	make test-nodocker
 
-IMAGES = $(shell echo test-images/*/ | xargs -n1 basename)
-
 test-nodocker:
-	$(foreach IMG,$(IMAGES),docker build -q test-images/$(IMG) -t goroslib-test-$(IMG)$(NL))
+	$(foreach IMG,$(shell echo test-images/*/ | xargs -n1 basename), \
+	docker build -q test-images/$(IMG) -t goroslib-test-$(IMG)$(NL))
 	$(eval export CGO_ENABLED = 0)
 	go test -v ./msg-utils
 	go test -v ./tcpros
