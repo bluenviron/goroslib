@@ -9,7 +9,7 @@ type publisherSubscriber struct {
 	callerid string
 	client   *tcpros.Conn
 
-	chanDone chan struct{}
+	done chan struct{}
 }
 
 func newPublisherSubscriber(pub *Publisher, callerid string, client *tcpros.Conn) *publisherSubscriber {
@@ -17,7 +17,7 @@ func newPublisherSubscriber(pub *Publisher, callerid string, client *tcpros.Conn
 		pub:      pub,
 		callerid: callerid,
 		client:   client,
-		chanDone: make(chan struct{}),
+		done:     make(chan struct{}),
 	}
 
 	go ps.run()
@@ -27,11 +27,11 @@ func newPublisherSubscriber(pub *Publisher, callerid string, client *tcpros.Conn
 
 func (ps *publisherSubscriber) close() {
 	ps.client.Close()
-	<-ps.chanDone
+	<-ps.done
 }
 
 func (ps *publisherSubscriber) run() {
-	defer func() { ps.chanDone <- struct{}{} }()
+	defer close(ps.done)
 
 outer:
 	for {
@@ -43,7 +43,7 @@ outer:
 
 	ps.client.Close()
 
-	ps.pub.chanEvents <- publisherEventSubscriberClose{ps}
+	ps.pub.events <- publisherEventSubscriberClose{ps}
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {

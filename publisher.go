@@ -50,8 +50,8 @@ type Publisher struct {
 	msgType string
 	msgMd5  string
 
-	chanEvents chan publisherEvent
-	chanDone   chan struct{}
+	events chan publisherEvent
+	done   chan struct{}
 
 	subscribers map[string]*publisherSubscriber
 	lastMessage interface{}
@@ -89,17 +89,17 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		conf:        conf,
 		msgType:     msgType,
 		msgMd5:      msgMd5,
-		chanEvents:  make(chan publisherEvent),
-		chanDone:    make(chan struct{}),
+		events:      make(chan publisherEvent),
+		done:        make(chan struct{}),
 		subscribers: make(map[string]*publisherSubscriber),
 	}
 
-	chanErr := make(chan error)
-	conf.Node.chanEvents <- nodeEventPublisherNew{
-		pub:     p,
-		chanErr: chanErr,
+	errored := make(chan error)
+	conf.Node.events <- nodeEventPublisherNew{
+		pub: p,
+		err: errored,
 	}
-	err = <-chanErr
+	err = <-errored
 	if err != nil {
 		return nil, err
 	}
@@ -111,17 +111,17 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 
 // Close closes a Publisher and shuts down all its operations.
 func (p *Publisher) Close() error {
-	p.chanEvents <- publisherEventClose{}
-	<-p.chanDone
+	p.events <- publisherEventClose{}
+	<-p.done
 	return nil
 }
 
 func (p *Publisher) run() {
-	defer func() { p.chanDone <- struct{}{} }()
+	defer close(p.done)
 
 outer:
 	for {
-		rawEvt := <-p.chanEvents
+		rawEvt := <-p.events
 		switch evt := rawEvt.(type) {
 		case publisherEventClose:
 			break outer
@@ -185,7 +185,7 @@ outer:
 
 	// consume queue
 	go func() {
-		for range p.chanEvents {
+		for range p.events {
 		}
 	}()
 
@@ -193,9 +193,9 @@ outer:
 		c.close()
 	}
 
-	p.conf.Node.chanEvents <- nodeEventPublisherClose{p}
+	p.conf.Node.events <- nodeEventPublisherClose{p}
 
-	close(p.chanEvents)
+	close(p.events)
 }
 
 func (p *Publisher) Write(msg interface{}) {
@@ -203,5 +203,5 @@ func (p *Publisher) Write(msg interface{}) {
 		panic("wrong message type")
 	}
 
-	p.chanEvents <- publisherEventWrite{msg}
+	p.events <- publisherEventWrite{msg}
 }

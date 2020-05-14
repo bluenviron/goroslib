@@ -12,12 +12,12 @@ import (
 type ErrorRes struct{}
 
 type Server struct {
-	host      string
-	port      uint16
-	ln        net.Listener
-	hs        *http.Server
-	chanRead  chan *RequestRaw
-	chanWrite chan interface{}
+	host  string
+	port  uint16
+	ln    net.Listener
+	hs    *http.Server
+	read  chan *RequestRaw
+	write chan interface{}
 }
 
 func NewServer(host string, port uint16) (*Server, error) {
@@ -32,11 +32,11 @@ func NewServer(host string, port uint16) (*Server, error) {
 	}
 
 	s := &Server{
-		host:      host,
-		port:      port,
-		ln:        ln,
-		chanRead:  make(chan *RequestRaw),
-		chanWrite: make(chan interface{}),
+		host:  host,
+		port:  port,
+		ln:    ln,
+		read:  make(chan *RequestRaw),
+		write: make(chan interface{}),
 	}
 
 	s.hs = &http.Server{
@@ -57,9 +57,9 @@ func NewServer(host string, port uint16) (*Server, error) {
 				return
 			}
 
-			s.chanRead <- raw
+			s.read <- raw
 
-			res, ok := <-s.chanWrite
+			res, ok := <-s.write
 			if !ok {
 				return
 			}
@@ -80,16 +80,16 @@ func NewServer(host string, port uint16) (*Server, error) {
 }
 
 func (s *Server) Close() error {
-	// consume chanRead
+	// consume read
 	go func() {
-		for range s.chanRead {
+		for range s.read {
 		}
 	}()
 
 	s.ln.Close()
 	s.hs.Close()
-	close(s.chanRead)
-	close(s.chanWrite)
+	close(s.read)
+	close(s.write)
 	return nil
 }
 
@@ -98,7 +98,7 @@ func (s *Server) GetUrl() string {
 }
 
 func (s *Server) Read() (*RequestRaw, error) {
-	raw, ok := <-s.chanRead
+	raw, ok := <-s.read
 	if !ok {
 		return nil, fmt.Errorf("closed")
 	}
@@ -106,5 +106,5 @@ func (s *Server) Read() (*RequestRaw, error) {
 }
 
 func (s *Server) Write(res interface{}) {
-	s.chanWrite <- res
+	s.write <- res
 }

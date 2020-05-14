@@ -110,8 +110,8 @@ type nodeEventPublisherUpdate struct {
 }
 
 type nodeEventSubscriberNew struct {
-	sub     *Subscriber
-	chanErr chan error
+	sub *Subscriber
+	err chan error
 }
 
 type nodeEventSubscriberClose struct {
@@ -119,8 +119,8 @@ type nodeEventSubscriberClose struct {
 }
 
 type nodeEventPublisherNew struct {
-	pub     *Publisher
-	chanErr chan error
+	pub *Publisher
+	err chan error
 }
 
 type nodeEventPublisherClose struct {
@@ -128,8 +128,8 @@ type nodeEventPublisherClose struct {
 }
 
 type nodeEventServiceProviderNew struct {
-	sp      *ServiceProvider
-	chanErr chan error
+	sp  *ServiceProvider
+	err chan error
 }
 
 type nodeEventServiceProviderClose struct {
@@ -167,8 +167,8 @@ type NodeConf struct {
 type Node struct {
 	conf NodeConf
 
-	chanEvents chan nodeEvent
-	chanDone   chan struct{}
+	events chan nodeEvent
+	done   chan struct{}
 
 	masterClient     *api_master.Client
 	paramClient      *api_param.Client
@@ -229,8 +229,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n := &Node{
 		conf:             conf,
-		chanEvents:       make(chan nodeEvent),
-		chanDone:         make(chan struct{}),
+		events:           make(chan nodeEvent),
+		done:             make(chan struct{}),
 		masterClient:     masterClient,
 		paramClient:      paramClient,
 		slaveServer:      slaveServer,
@@ -278,13 +278,13 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 // Close closes a Node and shuts down all its operations.
 func (n *Node) Close() error {
-	n.chanEvents <- nodeEventClose{}
-	<-n.chanDone
+	n.events <- nodeEventClose{}
+	<-n.done
 	return nil
 }
 
 func (n *Node) run() {
-	defer func() { n.chanDone <- struct{}{} }()
+	defer close(n.done)
 
 	var wg sync.WaitGroup
 
@@ -295,7 +295,7 @@ func (n *Node) run() {
 	go n.runTcprosServer(&wg)
 
 outer:
-	for rawEvt := range n.chanEvents {
+	for rawEvt := range n.events {
 		switch evt := rawEvt.(type) {
 		case nodeEventClose:
 			break outer
@@ -318,7 +318,7 @@ outer:
 				continue
 			}
 
-			pub.chanEvents <- publisherEventSubscriberNew{
+			pub.events <- publisherEventSubscriberNew{
 				client: evt.client,
 				header: evt.header,
 			}
@@ -333,7 +333,7 @@ outer:
 				continue
 			}
 
-			sp.chanEvents <- serviceProviderEventClientNew{
+			sp.events <- serviceProviderEventClientNew{
 				client: evt.client,
 				header: evt.header,
 			}
@@ -343,27 +343,27 @@ outer:
 			if !ok {
 				continue
 			}
-			sub.chanEvents <- subscriberEventPublisherUpdate{evt.urls}
+			sub.events <- subscriberEventPublisherUpdate{evt.urls}
 
 		case nodeEventSubscriberNew:
 			_, ok := n.subscribers[evt.sub.conf.Topic]
 			if ok {
-				evt.chanErr <- fmt.Errorf("Topic %s already subscribed", evt.sub.conf.Topic)
+				evt.err <- fmt.Errorf("Topic %s already subscribed", evt.sub.conf.Topic)
 				continue
 			}
 
 			publisherUrls, err := n.masterClient.RegisterSubscriber(evt.sub.conf.Topic[1:],
 				evt.sub.msgType, n.slaveServer.GetUrl())
 			if err != nil {
-				evt.chanErr <- err
+				evt.err <- err
 				continue
 			}
 
 			n.subscribers[evt.sub.conf.Topic] = evt.sub
-			evt.chanErr <- nil
+			evt.err <- nil
 
 			// send initial publishers list to subscriber
-			evt.sub.chanEvents <- subscriberEventPublisherUpdate{publisherUrls}
+			evt.sub.events <- subscriberEventPublisherUpdate{publisherUrls}
 
 		case nodeEventSubscriberClose:
 			delete(n.subscribers, evt.sub.conf.Topic)
@@ -374,19 +374,19 @@ outer:
 		case nodeEventPublisherNew:
 			_, ok := n.publishers[evt.pub.conf.Topic]
 			if ok {
-				evt.chanErr <- fmt.Errorf("Topic %s already published", evt.pub.conf.Topic)
+				evt.err <- fmt.Errorf("Topic %s already published", evt.pub.conf.Topic)
 				continue
 			}
 
 			_, err := n.masterClient.RegisterPublisher(evt.pub.conf.Topic[1:],
 				evt.pub.msgType, n.slaveServer.GetUrl())
 			if err != nil {
-				evt.chanErr <- err
+				evt.err <- err
 				continue
 			}
 
 			n.publishers[evt.pub.conf.Topic] = evt.pub
-			evt.chanErr <- nil
+			evt.err <- nil
 
 		case nodeEventPublisherClose:
 			delete(n.publishers, evt.pub.conf.Topic)
@@ -397,19 +397,19 @@ outer:
 		case nodeEventServiceProviderNew:
 			_, ok := n.serviceProviders[evt.sp.conf.Service]
 			if ok {
-				evt.chanErr <- fmt.Errorf("Service %s already provided", evt.sp.conf.Service)
+				evt.err <- fmt.Errorf("Service %s already provided", evt.sp.conf.Service)
 				continue
 			}
 
 			err := n.masterClient.RegisterService(evt.sp.conf.Service[1:],
 				n.tcprosServer.GetUrl(), n.slaveServer.GetUrl())
 			if err != nil {
-				evt.chanErr <- err
+				evt.err <- err
 				continue
 			}
 
 			n.serviceProviders[evt.sp.conf.Service] = evt.sp
-			evt.chanErr <- nil
+			evt.err <- nil
 
 		case nodeEventServiceProviderClose:
 			delete(n.serviceProviders, evt.sp.conf.Service)
@@ -421,7 +421,7 @@ outer:
 
 	// consume queue
 	go func() {
-		for range n.chanEvents {
+		for range n.events {
 		}
 	}()
 
@@ -448,7 +448,7 @@ outer:
 
 	wg.Wait()
 
-	close(n.chanEvents)
+	close(n.events)
 }
 
 func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
@@ -469,10 +469,10 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			})
 
 		case *api_slave.RequestShutdown:
-			n.chanEvents <- nodeEventClose{}
+			n.events <- nodeEventClose{}
 
 		case *api_slave.RequestPublisherUpdate:
-			n.chanEvents <- nodeEventPublisherUpdate{
+			n.events <- nodeEventPublisherUpdate{
 				topic: req.Topic,
 				urls:  req.PublisherUrls,
 			}
@@ -508,7 +508,7 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 			return
 		}
 
-		n.chanEvents <- nodeEventTcprosClientNew{client}
+		n.events <- nodeEventTcprosClientNew{client}
 	}
 }
 
@@ -528,7 +528,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 				return false
 			}
 
-			n.chanEvents <- nodeEventTcprosClientSubscriber{
+			n.events <- nodeEventTcprosClientSubscriber{
 				client: client,
 				header: &header,
 			}
@@ -541,7 +541,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 				return false
 			}
 
-			n.chanEvents <- nodeEventTcprosClientServiceClient{
+			n.events <- nodeEventTcprosClientServiceClient{
 				client: client,
 				header: &header,
 			}
@@ -552,7 +552,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 	}()
 	if !ok {
 		client.Close()
-		n.chanEvents <- nodeEventTcprosClientClose{client}
+		n.events <- nodeEventTcprosClientClose{client}
 	}
 }
 

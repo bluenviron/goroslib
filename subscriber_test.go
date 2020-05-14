@@ -92,19 +92,19 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 		require.NoError(t, err)
 		defer n.Close()
 
-		chanRecv := make(chan *TestMessage, 10)
+		recv := make(chan *TestMessage, 10)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  n,
 			Topic: "/test_pub",
 			Callback: func(msg *TestMessage) {
-				chanRecv <- msg
+				recv <- msg
 			},
 		})
 		require.NoError(t, err)
 		defer sub.Close()
 
-		return <-chanRecv
+		return <-recv
 	}()
 
 	expected := TestMessage{
@@ -145,13 +145,13 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 		require.NoError(t, err)
 		defer n.Close()
 
-		chanRecv := make(chan *TestMessage, 10)
+		recv := make(chan *TestMessage, 10)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  n,
 			Topic: "/test_pub",
 			Callback: func(msg *TestMessage) {
-				chanRecv <- msg
+				recv <- msg
 			},
 		})
 		require.NoError(t, err)
@@ -161,7 +161,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 		require.NoError(t, err)
 		defer p.close()
 
-		return <-chanRecv
+		return <-recv
 	}()
 
 	expected := TestMessage{
@@ -206,19 +206,19 @@ func TestSubscriberRostopicPub(t *testing.T) {
 		require.NoError(t, err)
 		defer p.close()
 
-		chanRecv := make(chan *sensor_msgs.Imu, 10)
+		recv := make(chan *sensor_msgs.Imu, 10)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  n,
 			Topic: "/test_pub",
 			Callback: func(msg *sensor_msgs.Imu) {
-				chanRecv <- msg
+				recv <- msg
 			},
 		})
 		require.NoError(t, err)
 		defer sub.Close()
 
-		return <-chanRecv
+		return <-recv
 	}()
 
 	expected := &sensor_msgs.Imu{

@@ -79,13 +79,13 @@ func TestPublisherWriteAfterSubNoLatch(t *testing.T) {
 		require.NoError(t, err)
 		defer ns.Close()
 
-		chanRecv := make(chan *TestMessage)
+		recv := make(chan *TestMessage)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  ns,
 			Topic: "/test_pub",
 			Callback: func(msg *TestMessage) {
-				chanRecv <- msg
+				recv <- msg
 			},
 		})
 		require.NoError(t, err)
@@ -110,7 +110,7 @@ func TestPublisherWriteAfterSubNoLatch(t *testing.T) {
 
 		pub.Write(sent)
 
-		return <-chanRecv
+		return <-recv
 	}()
 
 	require.Equal(t, sent, recv)
@@ -154,13 +154,13 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 		require.NoError(t, err)
 		defer ns.Close()
 
-		chanRecv := make(chan *TestMessage)
+		recv := make(chan *TestMessage)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  ns,
 			Topic: "/test_pub",
 			Callback: func(msg *TestMessage) {
-				chanRecv <- msg
+				recv <- msg
 			},
 		})
 		require.NoError(t, err)
@@ -170,7 +170,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 		pub.Write(sent)
 
-		return <-chanRecv
+		return <-recv
 	}()
 
 	require.Equal(t, sent, recv)
@@ -217,19 +217,19 @@ func TestPublisherWriteLatch(t *testing.T) {
 		require.NoError(t, err)
 		defer ns.Close()
 
-		chanRecv := make(chan *TestMessage)
+		recv := make(chan *TestMessage)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  ns,
 			Topic: "/test_pub",
 			Callback: func(msg *TestMessage) {
-				chanRecv <- msg
+				recv <- msg
 			},
 		})
 		require.NoError(t, err)
 		defer sub.Close()
 
-		return <-chanRecv
+		return <-recv
 	}()
 
 	require.Equal(t, sent, recv)

@@ -51,8 +51,8 @@ type ServiceProvider struct {
 	resType string
 	srvMd5  string
 
-	chanEvents chan serviceProviderEvent
-	chanDone   chan struct{}
+	events chan serviceProviderEvent
+	done   chan struct{}
 
 	clients map[string]*serviceProviderClient
 }
@@ -112,23 +112,23 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	}
 
 	sp := &ServiceProvider{
-		conf:       conf,
-		reqMsg:     reqMsg.Elem(),
-		resMsg:     resMsg.Elem(),
-		reqType:    reqType,
-		resType:    resType,
-		srvMd5:     srvMd5,
-		chanEvents: make(chan serviceProviderEvent),
-		chanDone:   make(chan struct{}),
-		clients:    make(map[string]*serviceProviderClient),
+		conf:    conf,
+		reqMsg:  reqMsg.Elem(),
+		resMsg:  resMsg.Elem(),
+		reqType: reqType,
+		resType: resType,
+		srvMd5:  srvMd5,
+		events:  make(chan serviceProviderEvent),
+		done:    make(chan struct{}),
+		clients: make(map[string]*serviceProviderClient),
 	}
 
-	chanErr := make(chan error)
-	conf.Node.chanEvents <- nodeEventServiceProviderNew{
-		sp:      sp,
-		chanErr: chanErr,
+	errored := make(chan error)
+	conf.Node.events <- nodeEventServiceProviderNew{
+		sp:  sp,
+		err: errored,
 	}
-	err = <-chanErr
+	err = <-errored
 	if err != nil {
 		return nil, err
 	}
@@ -140,19 +140,19 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 
 // Close closes a ServiceProvider and shuts down all its operations.
 func (sp *ServiceProvider) Close() error {
-	sp.chanEvents <- serviceProviderEventClose{}
-	<-sp.chanDone
+	sp.events <- serviceProviderEventClose{}
+	<-sp.done
 	return nil
 }
 
 func (sp *ServiceProvider) run() {
-	defer func() { sp.chanDone <- struct{}{} }()
+	defer close(sp.done)
 
 	cbv := reflect.ValueOf(sp.conf.Callback)
 
 outer:
 	for {
-		rawEvt := <-sp.chanEvents
+		rawEvt := <-sp.events
 		switch evt := rawEvt.(type) {
 		case serviceProviderEventClose:
 			break outer
@@ -205,7 +205,7 @@ outer:
 
 	// consume queue
 	go func() {
-		for range sp.chanEvents {
+		for range sp.events {
 		}
 	}()
 
@@ -213,7 +213,7 @@ outer:
 		c.close()
 	}
 
-	sp.conf.Node.chanEvents <- nodeEventServiceProviderClose{sp}
+	sp.conf.Node.events <- nodeEventServiceProviderClose{sp}
 
-	close(sp.chanEvents)
+	close(sp.events)
 }

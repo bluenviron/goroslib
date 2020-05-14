@@ -12,16 +12,16 @@ type subscriberPublisher struct {
 	s   *Subscriber
 	url string
 
-	chanClose chan struct{}
-	chanDone  chan struct{}
+	terminate chan struct{}
+	done      chan struct{}
 }
 
 func newSubscriberPublisher(s *Subscriber, url string) *subscriberPublisher {
 	sp := &subscriberPublisher{
 		s:         s,
 		url:       url,
-		chanClose: make(chan struct{}),
-		chanDone:  make(chan struct{}),
+		terminate: make(chan struct{}),
+		done:      make(chan struct{}),
 	}
 
 	go sp.run()
@@ -30,12 +30,12 @@ func newSubscriberPublisher(s *Subscriber, url string) *subscriberPublisher {
 }
 
 func (sp *subscriberPublisher) close() {
-	sp.chanClose <- struct{}{}
-	<-sp.chanDone
+	close(sp.terminate)
+	<-sp.done
 }
 
 func (sp *subscriberPublisher) run() {
-	defer func() { sp.chanDone <- struct{}{} }()
+	defer close(sp.done)
 
 	host, port, err := parseUrl(sp.url)
 	if err != nil {
@@ -52,22 +52,22 @@ func (sp *subscriberPublisher) run() {
 			select {
 			case <-t.C:
 				continue
-			case <-sp.chanClose:
+			case <-sp.terminate:
 				return
 			}
 		}
 
 		var xcs *api_slave.Client
 		var err error
-		chanSubDone := make(chan struct{}, 1)
+		subDone := make(chan struct{})
 		go func() {
-			defer func() { chanSubDone <- struct{}{} }()
+			defer close(subDone)
 			xcs, err = api_slave.NewClient(host, port, sp.s.conf.Node.conf.Name)
 		}()
 
 		select {
-		case <-chanSubDone:
-		case <-sp.chanClose:
+		case <-subDone:
+		case <-sp.terminate:
 			return
 		}
 
@@ -75,9 +75,10 @@ func (sp *subscriberPublisher) run() {
 			continue
 		}
 
+		subDone = make(chan struct{})
 		var proto *api_slave.TopicProtocol
 		go func() {
-			defer func() { chanSubDone <- struct{}{} }()
+			defer close(subDone)
 			defer xcs.Close()
 
 			var err error
@@ -92,22 +93,23 @@ func (sp *subscriberPublisher) run() {
 		}()
 
 		select {
-		case <-chanSubDone:
-		case <-sp.chanClose:
+		case <-subDone:
+		case <-sp.terminate:
 			xcs.Close()
-			<-chanSubDone
+			<-subDone
 			return
 		}
 
+		subDone = make(chan struct{})
 		var conn *tcpros.Conn
 		go func() {
-			defer func() { chanSubDone <- struct{}{} }()
+			defer close(subDone)
 			conn, err = tcpros.NewClient(proto.Host, uint16(proto.Port))
 		}()
 
 		select {
-		case <-chanSubDone:
-		case <-sp.chanClose:
+		case <-subDone:
+		case <-sp.terminate:
 			return
 		}
 
@@ -115,8 +117,9 @@ func (sp *subscriberPublisher) run() {
 			continue
 		}
 
+		subDone = make(chan struct{})
 		go func() {
-			defer func() { chanSubDone <- struct{}{} }()
+			defer close(subDone)
 			defer conn.Close()
 
 			err = conn.WriteHeader(&tcpros.HeaderSubscriber{
@@ -159,15 +162,15 @@ func (sp *subscriberPublisher) run() {
 					return
 				}
 
-				sp.s.chanEvents <- subscriberEventMessage{msg}
+				sp.s.events <- subscriberEventMessage{msg}
 			}
 		}()
 
 		select {
-		case <-chanSubDone:
-		case <-sp.chanClose:
+		case <-subDone:
+		case <-sp.terminate:
 			conn.Close()
-			<-chanSubDone
+			<-subDone
 			return
 		}
 	}

@@ -41,8 +41,8 @@ type Subscriber struct {
 	msgType string
 	msgMd5  string
 
-	chanEvents chan subscriberEvent
-	chanDone   chan struct{}
+	events chan subscriberEvent
+	done   chan struct{}
 
 	publishers map[string]*subscriberPublisher
 }
@@ -91,17 +91,17 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		msgMsg:     msgMsg.Elem(),
 		msgType:    msgType,
 		msgMd5:     msgMd5,
-		chanEvents: make(chan subscriberEvent),
-		chanDone:   make(chan struct{}),
+		events:     make(chan subscriberEvent),
+		done:       make(chan struct{}),
 		publishers: make(map[string]*subscriberPublisher),
 	}
 
-	chanErr := make(chan error)
-	conf.Node.chanEvents <- nodeEventSubscriberNew{
-		sub:     s,
-		chanErr: chanErr,
+	errored := make(chan error)
+	conf.Node.events <- nodeEventSubscriberNew{
+		sub: s,
+		err: errored,
 	}
-	err = <-chanErr
+	err = <-errored
 	if err != nil {
 		return nil, err
 	}
@@ -113,19 +113,19 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 
 // Close closes a Subscriber and shuts down all its operations.
 func (s *Subscriber) Close() error {
-	s.chanEvents <- subscriberEventClose{}
-	<-s.chanDone
+	s.events <- subscriberEventClose{}
+	<-s.done
 	return nil
 }
 
 func (s *Subscriber) run() {
-	defer func() { s.chanDone <- struct{}{} }()
+	defer close(s.done)
 
 	cbv := reflect.ValueOf(s.conf.Callback)
 
 outer:
 	for {
-		rawEvt := <-s.chanEvents
+		rawEvt := <-s.events
 		switch evt := rawEvt.(type) {
 		case subscriberEventClose:
 			break outer
@@ -158,7 +158,7 @@ outer:
 
 	// consume queue
 	go func() {
-		for range s.chanEvents {
+		for range s.events {
 		}
 	}()
 
@@ -166,7 +166,7 @@ outer:
 		pub.close()
 	}
 
-	s.conf.Node.chanEvents <- nodeEventSubscriberClose{s}
+	s.conf.Node.events <- nodeEventSubscriberClose{s}
 
-	close(s.chanEvents)
+	close(s.events)
 }

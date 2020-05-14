@@ -11,7 +11,7 @@ type serviceProviderClient struct {
 	callerid string
 	client   *tcpros.Conn
 
-	chanDone chan struct{}
+	done chan struct{}
 }
 
 func newServiceProviderClient(sp *ServiceProvider, callerid string, client *tcpros.Conn) *serviceProviderClient {
@@ -19,7 +19,7 @@ func newServiceProviderClient(sp *ServiceProvider, callerid string, client *tcpr
 		sp:       sp,
 		callerid: callerid,
 		client:   client,
-		chanDone: make(chan struct{}),
+		done:     make(chan struct{}),
 	}
 
 	go spc.run()
@@ -29,11 +29,11 @@ func newServiceProviderClient(sp *ServiceProvider, callerid string, client *tcpr
 
 func (sp *serviceProviderClient) close() {
 	sp.client.Close()
-	<-sp.chanDone
+	<-sp.done
 }
 
 func (spc *serviceProviderClient) run() {
-	defer func() { spc.chanDone <- struct{}{} }()
+	defer close(spc.done)
 
 outer:
 	for {
@@ -43,7 +43,7 @@ outer:
 			break outer
 		}
 
-		spc.sp.chanEvents <- serviceProviderEventRequest{
+		spc.sp.events <- serviceProviderEventRequest{
 			callerid: spc.callerid,
 			req:      req,
 		}
@@ -51,5 +51,5 @@ outer:
 
 	spc.client.Close()
 
-	spc.sp.chanEvents <- serviceProviderEventClientClose{spc}
+	spc.sp.events <- serviceProviderEventClientClose{spc}
 }
