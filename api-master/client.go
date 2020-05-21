@@ -26,6 +26,7 @@ func (c *Client) GetSystemState() (*SystemState, error) {
 	req := RequestGetSystemState{
 		c.callerId,
 	}
+
 	var res ResponseGetSystemState
 	err := xmlrpc.Client(c.url, "getSystemState", req, &res)
 	if err != nil {
@@ -43,6 +44,7 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 	req := RequestGetTopicTypes{
 		c.callerId,
 	}
+
 	var res ResponseGetTopicTypes
 	err := xmlrpc.Client(c.url, "getTopicTypes", req, &res)
 	if err != nil {
@@ -56,11 +58,9 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 	return res.Types, nil
 }
 
-func (c *Client) lookup(method string, name string) (string, error) {
-	req := RequestLookup{
-		c.callerId,
-		name,
-	}
+func (c *Client) lookup(method string, req RequestLookup) (string, error) {
+	req.CallerId = c.callerId
+
 	var res ResponseLookup
 	err := xmlrpc.Client(c.url, method, req, &res)
 	if err != nil {
@@ -74,21 +74,17 @@ func (c *Client) lookup(method string, name string) (string, error) {
 	return res.Uri, nil
 }
 
-func (c *Client) LookupNode(name string) (string, error) {
-	return c.lookup("lookupNode", name)
+func (c *Client) LookupNode(req RequestLookup) (string, error) {
+	return c.lookup("lookupNode", req)
 }
 
-func (c *Client) LookupService(name string) (string, error) {
-	return c.lookup("lookupService", name)
+func (c *Client) LookupService(req RequestLookup) (string, error) {
+	return c.lookup("lookupService", req)
 }
 
-func (c *Client) Register(method string, topic string, topicType string, callerUrl string) ([]string, error) {
-	req := RequestRegister{
-		c.callerId,
-		topic,
-		topicType,
-		callerUrl,
-	}
+func (c *Client) register(method string, req RequestRegister) ([]string, error) {
+	req.CallerId = c.callerId
+
 	var res ResponseRegister
 	err := xmlrpc.Client(c.url, method, req, &res)
 	if err != nil {
@@ -102,12 +98,9 @@ func (c *Client) Register(method string, topic string, topicType string, callerU
 	return res.Uris, nil
 }
 
-func (c *Client) unregister(method string, topic string, callerUrl string) error {
-	req := RequestUnregister{
-		c.callerId,
-		topic,
-		callerUrl,
-	}
+func (c *Client) unregister(method string, req RequestUnregister) error {
+	req.CallerId = c.callerId
+
 	var res ResponseUnregister
 	err := xmlrpc.Client(c.url, method, req, &res)
 	if err != nil {
@@ -121,29 +114,25 @@ func (c *Client) unregister(method string, topic string, callerUrl string) error
 	return nil
 }
 
-func (c *Client) RegisterSubscriber(topic string, topicType string, callerUrl string) ([]string, error) {
-	return c.Register("registerSubscriber", topic, topicType, callerUrl)
+func (c *Client) RegisterSubscriber(req RequestRegister) ([]string, error) {
+	return c.register("registerSubscriber", req)
 }
 
-func (c *Client) UnregisterSubscriber(topic string, callerUrl string) error {
-	return c.unregister("unregisterSubscriber", topic, callerUrl)
+func (c *Client) UnregisterSubscriber(req RequestUnregister) error {
+	return c.unregister("unregisterSubscriber", req)
 }
 
-func (c *Client) RegisterPublisher(topic string, topicType string, callerUrl string) ([]string, error) {
-	return c.Register("registerPublisher", topic, topicType, callerUrl)
+func (c *Client) RegisterPublisher(req RequestRegister) ([]string, error) {
+	return c.register("registerPublisher", req)
 }
 
-func (c *Client) UnregisterPublisher(topic string, callerUrl string) error {
-	return c.unregister("unregisterPublisher", topic, callerUrl)
+func (c *Client) UnregisterPublisher(req RequestUnregister) error {
+	return c.unregister("unregisterPublisher", req)
 }
 
-func (c *Client) RegisterService(service string, serviceUrl string, callerUrl string) error {
-	req := RequestServiceRegister{
-		c.callerId,
-		service,
-		serviceUrl,
-		callerUrl,
-	}
+func (c *Client) RegisterService(req RequestRegisterService) error {
+	req.CallerId = c.callerId
+
 	var res ResponseServiceRegister
 	err := xmlrpc.Client(c.url, "registerService", req, &res)
 	if err != nil {
@@ -157,12 +146,9 @@ func (c *Client) RegisterService(service string, serviceUrl string, callerUrl st
 	return nil
 }
 
-func (c *Client) UnregisterService(service string, serviceUrl string) error {
-	req := RequestServiceUnregister{
-		c.callerId,
-		service,
-		serviceUrl,
-	}
+func (c *Client) UnregisterService(req RequestUnregisterService) error {
+	req.CallerId = c.callerId
+
 	var res ResponseServiceUnregister
 	err := xmlrpc.Client(c.url, "unregisterService", req, &res)
 	if err != nil {

@@ -352,8 +352,11 @@ outer:
 				continue
 			}
 
-			publisherUrls, err := n.masterClient.RegisterSubscriber(evt.sub.conf.Topic[1:],
-				evt.sub.msgType, n.slaveServer.GetUrl())
+			publisherUrls, err := n.masterClient.RegisterSubscriber(api_master.RequestRegister{
+				Topic:     evt.sub.conf.Topic[1:],
+				TopicType: evt.sub.msgType,
+				CallerUrl: n.slaveServer.GetUrl(),
+			})
 			if err != nil {
 				evt.err <- err
 				continue
@@ -368,8 +371,10 @@ outer:
 		case nodeEventSubscriberClose:
 			delete(n.subscribers, evt.sub.conf.Topic)
 
-			n.masterClient.UnregisterSubscriber(evt.sub.conf.Topic[1:],
-				n.slaveServer.GetUrl())
+			n.masterClient.UnregisterSubscriber(api_master.RequestUnregister{
+				Topic:     evt.sub.conf.Topic[1:],
+				CallerUrl: n.slaveServer.GetUrl(),
+			})
 
 		case nodeEventPublisherNew:
 			_, ok := n.publishers[evt.pub.conf.Topic]
@@ -378,8 +383,11 @@ outer:
 				continue
 			}
 
-			_, err := n.masterClient.RegisterPublisher(evt.pub.conf.Topic[1:],
-				evt.pub.msgType, n.slaveServer.GetUrl())
+			_, err := n.masterClient.RegisterPublisher(api_master.RequestRegister{
+				Topic:     evt.pub.conf.Topic[1:],
+				TopicType: evt.pub.msgType,
+				CallerUrl: n.slaveServer.GetUrl(),
+			})
 			if err != nil {
 				evt.err <- err
 				continue
@@ -391,8 +399,10 @@ outer:
 		case nodeEventPublisherClose:
 			delete(n.publishers, evt.pub.conf.Topic)
 
-			n.masterClient.UnregisterPublisher(evt.pub.conf.Topic[1:],
-				n.slaveServer.GetUrl())
+			n.masterClient.UnregisterPublisher(api_master.RequestUnregister{
+				Topic:     evt.pub.conf.Topic[1:],
+				CallerUrl: n.slaveServer.GetUrl(),
+			})
 
 		case nodeEventServiceProviderNew:
 			_, ok := n.serviceProviders[evt.sp.conf.Service]
@@ -401,8 +411,11 @@ outer:
 				continue
 			}
 
-			err := n.masterClient.RegisterService(evt.sp.conf.Service[1:],
-				n.tcprosServer.GetUrl(), n.slaveServer.GetUrl())
+			err := n.masterClient.RegisterService(api_master.RequestRegisterService{
+				Service:    evt.sp.conf.Service[1:],
+				ServiceUrl: n.tcprosServer.GetUrl(),
+				CallerUrl:  n.slaveServer.GetUrl(),
+			})
 			if err != nil {
 				evt.err <- err
 				continue
@@ -414,8 +427,10 @@ outer:
 		case nodeEventServiceProviderClose:
 			delete(n.serviceProviders, evt.sp.conf.Service)
 
-			n.masterClient.UnregisterService(evt.sp.conf.Service[1:],
-				n.slaveServer.GetUrl())
+			n.masterClient.UnregisterService(api_master.RequestUnregisterService{
+				Service:    evt.sp.conf.Service[1:],
+				ServiceUrl: n.tcprosServer.GetUrl(),
+			})
 		}
 	}
 
@@ -617,7 +632,9 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	}
 
 	for node, info := range ret {
-		ur, err := n.masterClient.LookupNode(node)
+		ur, err := n.masterClient.LookupNode(api_master.RequestLookup{
+			Name: node,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("lookupNode: %v", err)
 		}
@@ -729,7 +746,9 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			ret[entry.Name].Providers[node] = struct{}{}
 		}
 
-		ur, err := n.masterClient.LookupService(entry.Name)
+		ur, err := n.masterClient.LookupService(api_master.RequestLookup{
+			Name: entry.Name,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("lookupService: %v", err)
 		}
@@ -749,7 +768,9 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 // PingNode send a ping request to a given node, wait for the reply and returns
 // the elapsed time.
 func (n *Node) PingNode(name string) (time.Duration, error) {
-	ur, err := n.masterClient.LookupNode(name)
+	ur, err := n.masterClient.LookupNode(api_master.RequestLookup{
+		Name: name,
+	})
 	if err != nil {
 		return 0, err
 	}
@@ -777,7 +798,9 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 
 // KillNode send a kill request to a given node.
 func (n *Node) KillNode(name string) error {
-	ur, err := n.masterClient.LookupNode(name)
+	ur, err := n.masterClient.LookupNode(api_master.RequestLookup{
+		Name: name,
+	})
 	if err != nil {
 		return err
 	}
@@ -793,7 +816,9 @@ func (n *Node) KillNode(name string) error {
 	}
 	defer xcs.Close()
 
-	err = xcs.Shutdown("")
+	err = xcs.Shutdown(api_slave.RequestShutdown{
+		Reason: "",
+	})
 	if err != nil {
 		return err
 	}
@@ -803,30 +828,45 @@ func (n *Node) KillNode(name string) error {
 
 // GetParamBool returns a bool parameter from the master.
 func (n *Node) GetParamBool(name string) (bool, error) {
-	return n.paramClient.GetParamBool(name)
+	return n.paramClient.GetParamBool(api_param.RequestGetParam{
+		Name: name,
+	})
 }
 
 // GetParamInt returns an int parameter from the master.
 func (n *Node) GetParamInt(name string) (int, error) {
-	return n.paramClient.GetParamInt(name)
+	return n.paramClient.GetParamInt(api_param.RequestGetParam{
+		Name: name,
+	})
 }
 
 // GetParamString returns a string parameter from the master.
 func (n *Node) GetParamString(name string) (string, error) {
-	return n.paramClient.GetParamString(name)
+	return n.paramClient.GetParamString(api_param.RequestGetParam{
+		Name: name,
+	})
 }
 
 // SetParamBool sets a bool parameter in the master.
 func (n *Node) SetParamBool(name string, val bool) error {
-	return n.paramClient.SetParamBool(name, val)
+	return n.paramClient.SetParamBool(api_param.RequestSetParamBool{
+		Name: name,
+		Val:  val,
+	})
 }
 
 // SetParamInt sets an int parameter in the master.
 func (n *Node) SetParamInt(name string, val int) error {
-	return n.paramClient.SetParamInt(name, val)
+	return n.paramClient.SetParamInt(api_param.RequestSetParamInt{
+		Name: name,
+		Val:  val,
+	})
 }
 
 // SetParamString sets a string parameter in the master.
 func (n *Node) SetParamString(name string, val string) error {
-	return n.paramClient.SetParamString(name, val)
+	return n.paramClient.SetParamString(api_param.RequestSetParamString{
+		Name: name,
+		Val:  val,
+	})
 }

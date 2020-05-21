@@ -36,24 +36,26 @@ func (s *Server) Read() (Request, error) {
 			return nil, err
 		}
 
-		var req Request
-		switch raw.Method {
-		case "getBusInfo":
-			req = &RequestGetBusInfo{}
+		req, ok := func() (Request, bool) {
+			switch raw.Method {
+			case "getBusInfo":
+				return &RequestGetBusInfo{}, true
 
-		case "getPid":
-			req = &RequestGetPid{}
+			case "getPid":
+				return &RequestGetPid{}, true
 
-		case "publisherUpdate":
-			req = &RequestPublisherUpdate{}
+			case "publisherUpdate":
+				return &RequestPublisherUpdate{}, true
 
-		case "requestTopic":
-			req = &RequestRequestTopic{}
+			case "requestTopic":
+				return &RequestRequestTopic{}, true
 
-		case "shutdown":
-			req = &RequestShutdown{}
-
-		default:
+			case "shutdown":
+				return &RequestShutdown{}, true
+			}
+			return nil, false
+		}()
+		if !ok {
 			s.xs.Write(xmlrpc.ErrorRes{})
 			continue
 		}

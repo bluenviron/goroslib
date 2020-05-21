@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
 	"github.com/aler9/goroslib/tcpros"
 )
@@ -56,7 +57,9 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Res must be a pointer to a struct")
 	}
 
-	ur, err := conf.Node.masterClient.LookupService(conf.Service)
+	ur, err := conf.Node.masterClient.LookupService(api_master.RequestLookup{
+		Name: conf.Service,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("lookupService: %v", err)
 	}

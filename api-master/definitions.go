@@ -72,7 +72,7 @@ type ResponseUnregister struct {
 	NumUnregistered int
 }
 
-type RequestServiceRegister struct {
+type RequestRegisterService struct {
 	CallerId   string
 	Service    string
 	ServiceUrl string
@@ -85,7 +85,7 @@ type ResponseServiceRegister struct {
 	Ignore        int
 }
 
-type RequestServiceUnregister struct {
+type RequestUnregisterService struct {
 	CallerId   string
 	Service    string
 	ServiceUrl string

@@ -26,6 +26,7 @@ func (c *Client) GetPid() (int, error) {
 	req := RequestGetPid{
 		CallerId: c.callerId,
 	}
+
 	var res ResponseGetPid
 	err := xmlrpc.Client(c.api, "getPid", req, &res)
 	if err != nil {
@@ -39,11 +40,9 @@ func (c *Client) GetPid() (int, error) {
 	return res.Pid, nil
 }
 
-func (c *Client) Shutdown(reason string) error {
-	req := RequestShutdown{
-		CallerId: c.callerId,
-		Reason:   reason,
-	}
+func (c *Client) Shutdown(req RequestShutdown) error {
+	req.CallerId = c.callerId
+
 	var res ResponseShutdown
 	err := xmlrpc.Client(c.api, "shutdown", req, &res)
 	if err != nil {
@@ -57,12 +56,9 @@ func (c *Client) Shutdown(reason string) error {
 	return nil
 }
 
-func (c *Client) RequestTopic(topic string, protocols [][]string) (*TopicProtocol, error) {
-	req := RequestRequestTopic{
-		CallerId:  c.callerId,
-		Topic:     topic,
-		Protocols: protocols,
-	}
+func (c *Client) RequestTopic(req RequestRequestTopic) (*TopicProtocol, error) {
+	req.CallerId = c.callerId
+
 	var res ResponseRequestTopic
 	err := xmlrpc.Client(c.api, "requestTopic", req, &res)
 	if err != nil {

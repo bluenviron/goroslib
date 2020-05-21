@@ -82,7 +82,10 @@ func (sp *subscriberPublisher) run() {
 			defer xcs.Close()
 
 			var err error
-			proto, err = xcs.RequestTopic(sp.s.conf.Topic, [][]string{{"TCPROS"}})
+			proto, err = xcs.RequestTopic(api_slave.RequestRequestTopic{
+				Topic:     sp.s.conf.Topic,
+				Protocols: [][]string{{"TCPROS"}},
+			})
 			if err != nil {
 				return
 			}
