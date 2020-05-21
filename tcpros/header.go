@@ -1,3 +1,4 @@
+// tcpros implements the TCPROS protocol
 package tcpros
 
 import (

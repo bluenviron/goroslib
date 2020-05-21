@@ -1,3 +1,4 @@
+// msgs contains base types and standard messages
 package msgs
 
 import (

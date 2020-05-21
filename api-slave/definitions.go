@@ -1,4 +1,4 @@
-// api_slave implements the ROS Slave API, documented here: https://wiki.ros.org/ROS/Slave_API
+// api_slave implements the Slave API, documented here: https://wiki.ros.org/ROS/Slave_API
 package api_slave
 
 type Request interface {

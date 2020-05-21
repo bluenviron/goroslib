@@ -1,4 +1,4 @@
-// api_master implements the ROS Master API, documented here: https://wiki.ros.org/ROS/Master_API
+// api_master implements the Master API, documented here: https://wiki.ros.org/ROS/Master_API
 package api_master
 
 type RequestGetPublishedTopics struct {
