@@ -2,13 +2,67 @@ package goroslib
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/aler9/goroslib/msgs"
 )
 
-func TestServiceProvider(t *testing.T) {
+func TestServiceProviderRegister(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Name:       "/goroslib",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	sp, err := NewServiceProvider(ServiceProviderConf{
+		Node:    n,
+		Service: "/test_srv",
+		Callback: func(req *TestServiceReq) *TestServiceRes {
+			c := msgs.Float64(0)
+			if req.A == 123 && req.B == "456" {
+				c = 123
+			}
+
+			return &TestServiceRes{
+				C: c,
+			}
+		},
+	})
+	require.NoError(t, err)
+
+	// test registration
+
+	time.Sleep(1 * time.Second)
+
+	services, err := n.GetServices()
+	require.NoError(t, err)
+
+	service, ok := services["/test_srv"]
+	require.Equal(t, true, ok)
+
+	_, ok = service.Providers["/goroslib"]
+	require.Equal(t, true, ok)
+
+	// test un-registration
+
+	sp.Close()
+	time.Sleep(1 * time.Second)
+
+	services, err = n.GetServices()
+	require.NoError(t, err)
+
+	service, ok = services["/test_srv"]
+	require.Equal(t, false, ok)
+}
+
+func TestServiceProviderReqRes(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
