@@ -1,4 +1,16 @@
+// api_master implements the ROS Master API, documented here: https://wiki.ros.org/ROS/Master_API
 package api_master
+
+type RequestGetPublishedTopics struct {
+	CallerId string
+	Subgraph string
+}
+
+type ResponseGetPublishedTopics struct {
+	Code          int
+	StatusMessage string
+	Topics        [][]string
+}
 
 type RequestGetSystemState struct {
 	CallerId string
@@ -34,6 +46,16 @@ type ResponseGetTopicTypes struct {
 	Code          int
 	StatusMessage string
 	Types         []TopicType
+}
+
+type RequestGetUri struct {
+	CallerId string
+}
+
+type ResponseGetUri struct {
+	Code          int
+	StatusMessage string
+	MasterUri     string
 }
 
 type RequestLookup struct {

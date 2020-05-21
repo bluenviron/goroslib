@@ -1,3 +1,4 @@
+// api_param implements the ROS Parameter API, documented here: https://wiki.ros.org/ROS/Parameter%20Server%20API
 package api_param
 
 import (

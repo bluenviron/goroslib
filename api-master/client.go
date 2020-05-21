@@ -22,6 +22,22 @@ func (c *Client) Close() error {
 	return nil
 }
 
+func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) ([][]string, error) {
+	req.CallerId = c.callerId
+
+	var res ResponseGetPublishedTopics
+	err := xmlrpc.Client(c.url, "getPublishedTopics", req, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Code != 1 {
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+	}
+
+	return res.Topics, nil
+}
+
 func (c *Client) GetSystemState() (*SystemState, error) {
 	req := RequestGetSystemState{
 		c.callerId,
@@ -56,6 +72,24 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 	}
 
 	return res.Types, nil
+}
+
+func (c *Client) GetUri() (string, error) {
+	req := RequestGetUri{
+		c.callerId,
+	}
+
+	var res ResponseGetUri
+	err := xmlrpc.Client(c.url, "getUri", req, &res)
+	if err != nil {
+		return "", err
+	}
+
+	if res.Code != 1 {
+		return "", fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+	}
+
+	return res.MasterUri, nil
 }
 
 func (c *Client) lookup(method string, req RequestLookup) (string, error) {
