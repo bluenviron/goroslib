@@ -3,11 +3,15 @@ package goroslib
 import (
 	"net"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/aler9/goroslib/msgs/sensor_msgs"
+	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type containerMaster struct {
@@ -368,4 +372,58 @@ func TestNodeSetParam(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "ABC", res)
 	})
+}
+
+func TestNodeRosnodeInfo(t *testing.T) {
+	recv := func() string {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		// a publisher/subscriber is needed for the node to be listed
+		// standard nodes creates some default publishers, subscribers and
+		// services during initialization, while goroslib does not do this yet
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &std_msgs.Float64{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:     n,
+			Topic:    "/test_pub",
+			Callback: func(msg *sensor_msgs.Imu) {},
+		})
+		require.NoError(t, err)
+		defer sub.Close()
+
+		rt, err := newContainer("rosnode-info", m.Ip())
+		require.NoError(t, err)
+
+		return rt.waitOutput()
+	}()
+
+	require.Regexp(t, regexp.MustCompile("^--------------------------------------------------------------------------------\n"+
+		"Node \\[/goroslib\\]\n"+
+		"Publications: \n"+
+		" \\* /test_pub \\[std_msgs/Float64\\]\n"+
+		"\n"+
+		"Subscriptions: \n"+
+		" \\* /test_pub \\[std_msgs/Float64\\]\n"+
+		"\n"+
+		"Services: None\n"+
+		"\n"+
+		"\n"+
+		"contacting node http://.+? ...\n"+
+		"Pid: .+?\n"+
+		"\n$"), recv)
 }

@@ -5,7 +5,7 @@ export ROS_IP=$(hostname -i)
 
 source /opt/ros/melodic/setup.bash
 
-rostopic pub /test_pub sensor_msgs/Imu "header:
+rostopic pub -r 1 /test_pub sensor_msgs/Imu "header:
   seq: 13
   stamp: {secs: 0, nsecs: 0}
   frame_id: ''

@@ -85,7 +85,7 @@ make test
 
 ## Links
 
-Protocol documentation (v1)
+(v1) Protocol documentation
 * https://wiki.ros.org/ROS/Technical%20Overview
 * https://wiki.ros.org/Implementing%20Client%20Libraries
 * https://wiki.ros.org/ROS/Master_API

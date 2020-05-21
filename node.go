@@ -461,15 +461,23 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 		}
 
 		switch req := rawReq.(type) {
+		case *api_slave.RequestGetBusInfo:
+			n.slaveServer.Write(api_slave.ResponseGetBusInfo{
+				Code:          1,
+				StatusMessage: "bus info",
+				// TODO: provide bus infos in this format:
+				// connectionId, destinationId, direction (i, o, b), transport, topic,connected
+				// {"1", "/rosout", "o", "tcpros", "/rosout", "1"}
+				// [ 1, /rosout, o, tcpros, /rosout, 1, TCPROS connection on port 46477 to [127.0.0.1:51790 on socket 8] ]
+				BusInfo: [][]string{},
+			})
+
 		case *api_slave.RequestGetPid:
 			n.slaveServer.Write(api_slave.ResponseGetPid{
 				Code:          1,
 				StatusMessage: "",
 				Pid:           os.Getpid(),
 			})
-
-		case *api_slave.RequestShutdown:
-			n.events <- nodeEventClose{}
 
 		case *api_slave.RequestPublisherUpdate:
 			n.events <- nodeEventPublisherUpdate{
@@ -495,6 +503,9 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 					Port: int(n.tcprosServer.GetPort()),
 				},
 			})
+
+		case *api_slave.RequestShutdown:
+			n.events <- nodeEventClose{}
 		}
 	}
 }

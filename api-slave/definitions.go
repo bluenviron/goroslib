@@ -8,6 +8,20 @@ type Response interface {
 	isResponse()
 }
 
+type RequestGetBusInfo struct {
+	CallerId string
+}
+
+func (RequestGetBusInfo) isRequest() {}
+
+type ResponseGetBusInfo struct {
+	Code          int
+	StatusMessage string
+	BusInfo       [][]string
+}
+
+func (ResponseGetBusInfo) isResponse() {}
+
 type RequestGetPid struct {
 	CallerId string
 }
