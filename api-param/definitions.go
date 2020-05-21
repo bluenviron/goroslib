@@ -1,19 +1,29 @@
 package api_param
 
-type RequestHasParam struct {
+type RequestDeleteParam struct {
 	CallerId string
-	Name     string
+	Key      string
 }
 
-type ResponseHasParam struct {
-	Code    int
-	NameOut string
-	Res     bool
+type ResponseDeleteParam struct {
+	Code          int
+	StatusMessage string
+	Ignore        int
+}
+
+type RequestGetParamNames struct {
+	CallerId string
+}
+
+type ResponseGetParamNames struct {
+	Code          int
+	StatusMessage string
+	List          []string
 }
 
 type RequestGetParam struct {
 	CallerId string
-	Name     string
+	Key      string
 }
 
 type ResponseGetParamBool struct {
@@ -34,21 +44,43 @@ type ResponseGetParamString struct {
 	Res           string
 }
 
+type RequestHasParam struct {
+	CallerId string
+	Key      string
+}
+
+type ResponseHasParam struct {
+	Code   int
+	KeyOut string
+	Res    bool
+}
+
+type RequestSearchParam struct {
+	CallerId string
+	Key      string
+}
+
+type ResponseSearchParam struct {
+	Code          int
+	StatusMessage string
+	FoundKey      string
+}
+
 type RequestSetParamBool struct {
 	CallerId string
-	Name     string
+	Key      string
 	Val      bool
 }
 
 type RequestSetParamInt struct {
 	CallerId string
-	Name     string
+	Key      string
 	Val      int
 }
 
 type RequestSetParamString struct {
 	CallerId string
-	Name     string
+	Key      string
 	Val      string
 }
 

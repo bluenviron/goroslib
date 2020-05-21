@@ -23,24 +23,38 @@ func (c *Client) Close() error {
 	return nil
 }
 
-func (c *Client) HasParam(req RequestHasParam) (bool, error) {
+func (c *Client) DeleteParam(req RequestDeleteParam) error {
 	req.CallerId = c.callerId
 
-	var res ResponseHasParam
-	err := xmlrpc.Client(c.url, "hasParam", req, &res)
+	var res ResponseDeleteParam
+	err := xmlrpc.Client(c.url, "deleteParam", req, &res)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if res.Code != 1 {
-		return false, fmt.Errorf("server returned an error (%d)", res.Code)
+		return fmt.Errorf("server returned an error (%d)", res.Code)
 	}
 
-	if res.NameOut != req.Name {
-		return false, fmt.Errorf("unexpected response")
+	return nil
+}
+
+func (c *Client) GetParamNames() ([]string, error) {
+	req := RequestGetParamNames{
+		CallerId: c.callerId,
 	}
 
-	return res.Res, nil
+	var res ResponseGetParamNames
+	err := xmlrpc.Client(c.url, "getParamNames", req, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Code != 1 {
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+	}
+
+	return res.List, nil
 }
 
 func (c *Client) GetParamBool(req RequestGetParam) (bool, error) {
@@ -91,6 +105,42 @@ func (c *Client) GetParamString(req RequestGetParam) (string, error) {
 	return res.Res, nil
 }
 
+func (c *Client) HasParam(req RequestHasParam) (bool, error) {
+	req.CallerId = c.callerId
+
+	var res ResponseHasParam
+	err := xmlrpc.Client(c.url, "hasParam", req, &res)
+	if err != nil {
+		return false, err
+	}
+
+	if res.Code != 1 {
+		return false, fmt.Errorf("server returned an error (%d)", res.Code)
+	}
+
+	if res.KeyOut != req.Key {
+		return false, fmt.Errorf("unexpected response")
+	}
+
+	return res.Res, nil
+}
+
+func (c *Client) SearchParam(req RequestSearchParam) (string, error) {
+	req.CallerId = c.callerId
+
+	var res ResponseSearchParam
+	err := xmlrpc.Client(c.url, "searchParam", req, &res)
+	if err != nil {
+		return "", err
+	}
+
+	if res.Code != 1 {
+		return "", fmt.Errorf("server returned an error (%d)", res.Code)
+	}
+
+	return res.FoundKey, nil
+}
+
 func (c *Client) SetParamBool(req RequestSetParamBool) error {
 	req.CallerId = c.callerId
 
@@ -138,15 +188,3 @@ func (c *Client) SetParamString(req RequestSetParamString) error {
 
 	return nil
 }
-
-// deleteParam
-
-// searchParam
-
-// subscribeParam
-
-// unsubscribeParam
-
-// hasParam
-
-// getParamNames

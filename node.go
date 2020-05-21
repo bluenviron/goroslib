@@ -827,46 +827,46 @@ func (n *Node) KillNode(name string) error {
 }
 
 // GetParamBool returns a bool parameter from the master.
-func (n *Node) GetParamBool(name string) (bool, error) {
+func (n *Node) GetParamBool(key string) (bool, error) {
 	return n.paramClient.GetParamBool(api_param.RequestGetParam{
-		Name: name,
+		Key: key,
 	})
 }
 
 // GetParamInt returns an int parameter from the master.
-func (n *Node) GetParamInt(name string) (int, error) {
+func (n *Node) GetParamInt(key string) (int, error) {
 	return n.paramClient.GetParamInt(api_param.RequestGetParam{
-		Name: name,
+		Key: key,
 	})
 }
 
 // GetParamString returns a string parameter from the master.
-func (n *Node) GetParamString(name string) (string, error) {
+func (n *Node) GetParamString(key string) (string, error) {
 	return n.paramClient.GetParamString(api_param.RequestGetParam{
-		Name: name,
+		Key: key,
 	})
 }
 
 // SetParamBool sets a bool parameter in the master.
-func (n *Node) SetParamBool(name string, val bool) error {
+func (n *Node) SetParamBool(key string, val bool) error {
 	return n.paramClient.SetParamBool(api_param.RequestSetParamBool{
-		Name: name,
-		Val:  val,
+		Key: key,
+		Val: val,
 	})
 }
 
 // SetParamInt sets an int parameter in the master.
-func (n *Node) SetParamInt(name string, val int) error {
+func (n *Node) SetParamInt(key string, val int) error {
 	return n.paramClient.SetParamInt(api_param.RequestSetParamInt{
-		Name: name,
-		Val:  val,
+		Key: key,
+		Val: val,
 	})
 }
 
 // SetParamString sets a string parameter in the master.
-func (n *Node) SetParamString(name string, val string) error {
+func (n *Node) SetParamString(key string, val string) error {
 	return n.paramClient.SetParamString(api_param.RequestSetParamString{
-		Name: name,
-		Val:  val,
+		Key: key,
+		Val: val,
 	})
 }
