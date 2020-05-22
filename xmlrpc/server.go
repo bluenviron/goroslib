@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -15,12 +16,14 @@ type Server struct {
 	host  string
 	port  uint16
 	ln    net.Listener
-	hs    *http.Server
 	read  chan *RequestRaw
 	write chan interface{}
+	done  chan struct{}
 }
 
 func NewServer(host string, port uint16) (*Server, error) {
+	// net.Listen and http.Server are splitted since the latter
+	// does not allow to use 0 as port
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err
@@ -37,23 +40,30 @@ func NewServer(host string, port uint16) (*Server, error) {
 		ln:    ln,
 		read:  make(chan *RequestRaw),
 		write: make(chan interface{}),
+		done:  make(chan struct{}),
 	}
 
-	s.hs = &http.Server{
+	go s.run()
+
+	return s, nil
+}
+
+func (s *Server) run() {
+	hs := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if req.URL.Path != "/RPC2" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
 			if req.Method != "POST" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
 			raw, err := requestDecodeRaw(req.Body)
 			if err != nil {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
@@ -65,31 +75,33 @@ func NewServer(host string, port uint16) (*Server, error) {
 			}
 
 			if _, ok := res.(ErrorRes); ok {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 			} else {
 				responseEncode(w, res)
 			}
 		}),
 	}
 
-	go func() {
-		s.hs.Serve(s.ln)
-	}()
+	hs.Serve(s.ln)
 
-	return s, nil
-}
-
-func (s *Server) Close() error {
 	// consume read
 	go func() {
 		for range s.read {
 		}
 	}()
 
-	s.ln.Close()
-	s.hs.Close()
+	// wait for all handlers to return
+	hs.Shutdown(context.Background())
+
 	close(s.read)
 	close(s.write)
+
+	close(s.done)
+}
+
+func (s *Server) Close() error {
+	s.ln.Close()
+	<-s.done
 	return nil
 }
 
