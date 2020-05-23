@@ -329,12 +329,12 @@ func TestNodeKillNodeInternal(t *testing.T) {
 	err = n2.KillNode("/goroslib1")
 	require.NoError(t, err)
 
-	/*time.Sleep(1 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	res, err := n2.GetNodes()
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(res))*/
+	require.Equal(t, 1, len(res))
 }
 
 func TestNodeGetParam(t *testing.T) {
