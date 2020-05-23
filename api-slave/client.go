@@ -7,19 +7,15 @@ import (
 )
 
 type Client struct {
-	api      string
+	xc       *xmlrpc.Client
 	callerId string
 }
 
-func NewClient(host string, port uint16, callerId string) (*Client, error) {
+func NewClient(host string, port uint16, callerId string) *Client {
 	return &Client{
-		api:      fmt.Sprintf("http://%s:%d/", host, port),
+		xc:       xmlrpc.NewClient(host, port),
 		callerId: callerId,
-	}, nil
-}
-
-func (c *Client) Close() error {
-	return nil
+	}
 }
 
 func (c *Client) GetPid() (int, error) {
@@ -28,7 +24,7 @@ func (c *Client) GetPid() (int, error) {
 	}
 
 	var res ResponseGetPid
-	err := xmlrpc.Client(c.api, "getPid", req, &res)
+	err := c.xc.Do("getPid", req, &res)
 	if err != nil {
 		return 0, err
 	}
@@ -44,7 +40,7 @@ func (c *Client) Shutdown(req RequestShutdown) error {
 	req.CallerId = c.callerId
 
 	var res ResponseShutdown
-	err := xmlrpc.Client(c.api, "shutdown", req, &res)
+	err := c.xc.Do("shutdown", req, &res)
 	if err != nil {
 		return err
 	}
@@ -60,7 +56,7 @@ func (c *Client) RequestTopic(req RequestRequestTopic) (*TopicProtocol, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseRequestTopic
-	err := xmlrpc.Client(c.api, "requestTopic", req, &res)
+	err := c.xc.Do("requestTopic", req, &res)
 	if err != nil {
 		return nil, err
 	}

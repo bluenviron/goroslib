@@ -7,26 +7,22 @@ import (
 )
 
 type Client struct {
-	url      string
+	xc       *xmlrpc.Client
 	callerId string
 }
 
-func NewClient(host string, port uint16, callerId string) (*Client, error) {
+func NewClient(host string, port uint16, callerId string) *Client {
 	return &Client{
-		url:      fmt.Sprintf("http://%s:%d/", host, port),
+		xc:       xmlrpc.NewClient(host, port),
 		callerId: callerId,
-	}, nil
-}
-
-func (c *Client) Close() error {
-	return nil
+	}
 }
 
 func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) ([][]string, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetPublishedTopics
-	err := xmlrpc.Client(c.url, "getPublishedTopics", req, &res)
+	err := c.xc.Do("getPublishedTopics", req, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +40,7 @@ func (c *Client) GetSystemState() (*SystemState, error) {
 	}
 
 	var res ResponseGetSystemState
-	err := xmlrpc.Client(c.url, "getSystemState", req, &res)
+	err := c.xc.Do("getSystemState", req, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +58,7 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 	}
 
 	var res ResponseGetTopicTypes
-	err := xmlrpc.Client(c.url, "getTopicTypes", req, &res)
+	err := c.xc.Do("getTopicTypes", req, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +76,7 @@ func (c *Client) GetUri() (string, error) {
 	}
 
 	var res ResponseGetUri
-	err := xmlrpc.Client(c.url, "getUri", req, &res)
+	err := c.xc.Do("getUri", req, &res)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +92,7 @@ func (c *Client) lookup(method string, req RequestLookup) (string, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseLookup
-	err := xmlrpc.Client(c.url, method, req, &res)
+	err := c.xc.Do(method, req, &res)
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +116,7 @@ func (c *Client) register(method string, req RequestRegister) ([]string, error) 
 	req.CallerId = c.callerId
 
 	var res ResponseRegister
-	err := xmlrpc.Client(c.url, method, req, &res)
+	err := c.xc.Do(method, req, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +132,7 @@ func (c *Client) unregister(method string, req RequestUnregister) error {
 	req.CallerId = c.callerId
 
 	var res ResponseUnregister
-	err := xmlrpc.Client(c.url, method, req, &res)
+	err := c.xc.Do(method, req, &res)
 	if err != nil {
 		return err
 	}
@@ -168,7 +164,7 @@ func (c *Client) RegisterService(req RequestRegisterService) error {
 	req.CallerId = c.callerId
 
 	var res ResponseServiceRegister
-	err := xmlrpc.Client(c.url, "registerService", req, &res)
+	err := c.xc.Do("registerService", req, &res)
 	if err != nil {
 		return err
 	}
@@ -184,7 +180,7 @@ func (c *Client) UnregisterService(req RequestUnregisterService) error {
 	req.CallerId = c.callerId
 
 	var res ResponseServiceUnregister
-	err := xmlrpc.Client(c.url, "unregisterService", req, &res)
+	err := c.xc.Do("unregisterService", req, &res)
 	if err != nil {
 		return err
 	}

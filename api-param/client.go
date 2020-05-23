@@ -7,26 +7,22 @@ import (
 )
 
 type Client struct {
-	url      string
+	xc       *xmlrpc.Client
 	callerId string
 }
 
-func NewClient(host string, port uint16, callerId string) (*Client, error) {
+func NewClient(host string, port uint16, callerId string) *Client {
 	return &Client{
-		url:      fmt.Sprintf("http://%s:%d/", host, port),
+		xc:       xmlrpc.NewClient(host, port),
 		callerId: callerId,
-	}, nil
-}
-
-func (c *Client) Close() error {
-	return nil
+	}
 }
 
 func (c *Client) DeleteParam(req RequestDeleteParam) error {
 	req.CallerId = c.callerId
 
 	var res ResponseDeleteParam
-	err := xmlrpc.Client(c.url, "deleteParam", req, &res)
+	err := c.xc.Do("deleteParam", req, &res)
 	if err != nil {
 		return err
 	}
@@ -44,7 +40,7 @@ func (c *Client) GetParamNames() ([]string, error) {
 	}
 
 	var res ResponseGetParamNames
-	err := xmlrpc.Client(c.url, "getParamNames", req, &res)
+	err := c.xc.Do("getParamNames", req, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +56,7 @@ func (c *Client) GetParamBool(req RequestGetParam) (bool, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetParamBool
-	err := xmlrpc.Client(c.url, "getParam", req, &res)
+	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return false, err
 	}
@@ -76,7 +72,7 @@ func (c *Client) GetParamInt(req RequestGetParam) (int, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetParamInt
-	err := xmlrpc.Client(c.url, "getParam", req, &res)
+	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return 0, err
 	}
@@ -92,7 +88,7 @@ func (c *Client) GetParamString(req RequestGetParam) (string, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetParamString
-	err := xmlrpc.Client(c.url, "getParam", req, &res)
+	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +104,7 @@ func (c *Client) HasParam(req RequestHasParam) (bool, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseHasParam
-	err := xmlrpc.Client(c.url, "hasParam", req, &res)
+	err := c.xc.Do("hasParam", req, &res)
 	if err != nil {
 		return false, err
 	}
@@ -128,7 +124,7 @@ func (c *Client) SearchParam(req RequestSearchParam) (string, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseSearchParam
-	err := xmlrpc.Client(c.url, "searchParam", req, &res)
+	err := c.xc.Do("searchParam", req, &res)
 	if err != nil {
 		return "", err
 	}
@@ -144,7 +140,7 @@ func (c *Client) SetParamBool(req RequestSetParamBool) error {
 	req.CallerId = c.callerId
 
 	var res ResponseSetParam
-	err := xmlrpc.Client(c.url, "setParam", req, &res)
+	err := c.xc.Do("setParam", req, &res)
 	if err != nil {
 		return err
 	}
@@ -160,7 +156,7 @@ func (c *Client) SetParamInt(req RequestSetParamInt) error {
 	req.CallerId = c.callerId
 
 	var res ResponseSetParam
-	err := xmlrpc.Client(c.url, "setParam", req, &res)
+	err := c.xc.Do("setParam", req, &res)
 	if err != nil {
 		return err
 	}
@@ -176,7 +172,7 @@ func (c *Client) SetParamString(req RequestSetParamString) error {
 	req.CallerId = c.callerId
 
 	var res ResponseSetParam
-	err := xmlrpc.Client(c.url, "setParam", req, &res)
+	err := c.xc.Do("setParam", req, &res)
 	if err != nil {
 		return err
 	}

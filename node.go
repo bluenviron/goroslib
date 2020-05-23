@@ -204,31 +204,19 @@ func NewNode(conf NodeConf) (*Node, error) {
 		}
 	}
 
-	masterClient, err := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	paramClient, err := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
-	if err != nil {
-		masterClient.Close()
-		return nil, err
-	}
-
 	slaveServer, err := api_slave.NewServer(conf.Host, conf.XmlRpcPort)
 	if err != nil {
-		masterClient.Close()
-		paramClient.Close()
 		return nil, err
 	}
 
 	tcprosServer, err := tcpros.NewServer(conf.Host, conf.TcpRosPort)
 	if err != nil {
-		masterClient.Close()
-		paramClient.Close()
 		slaveServer.Close()
 		return nil, err
 	}
+
+	masterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+	paramClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
 
 	n := &Node{
 		conf:             conf,
@@ -438,8 +426,6 @@ outer:
 		c.Close()
 	}
 
-	n.paramClient.Close()
-	n.masterClient.Close()
 	n.slaveServer.Close()
 	n.tcprosServer.Close()
 
@@ -771,11 +757,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 		return 0, err
 	}
 
-	xcs, err := api_slave.NewClient(hostname, port, n.conf.Name)
-	if err != nil {
-		return 0, err
-	}
-	defer xcs.Close()
+	xcs := api_slave.NewClient(hostname, port, n.conf.Name)
 
 	start := time.Now()
 
@@ -801,11 +783,7 @@ func (n *Node) KillNode(name string) error {
 		return err
 	}
 
-	xcs, err := api_slave.NewClient(hostname, port, n.conf.Name)
-	if err != nil {
-		return err
-	}
-	defer xcs.Close()
+	xcs := api_slave.NewClient(hostname, port, n.conf.Name)
 
 	err = xcs.Shutdown(api_slave.RequestShutdown{
 		Reason: "",

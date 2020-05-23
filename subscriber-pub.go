@@ -52,7 +52,7 @@ outer:
 		subDone := make(chan struct{})
 		go func() {
 			defer close(subDone)
-			xcs, err = api_slave.NewClient(host, port, sp.s.conf.Node.conf.Name)
+			xcs = api_slave.NewClient(host, port, sp.s.conf.Node.conf.Name)
 		}()
 
 		select {
@@ -69,7 +69,6 @@ outer:
 		var proto *api_slave.TopicProtocol
 		go func() {
 			defer close(subDone)
-			defer xcs.Close()
 
 			var err error
 			proto, err = xcs.RequestTopic(api_slave.RequestRequestTopic{
@@ -88,7 +87,6 @@ outer:
 		select {
 		case <-subDone:
 		case <-sp.terminate:
-			xcs.Close()
 			<-subDone
 			break outer
 		}
