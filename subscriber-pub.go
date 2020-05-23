@@ -47,41 +47,17 @@ outer:
 			}
 		}
 
-		var xcs *api_slave.Client
-		var err error
+		xcs := api_slave.NewClient(host, port, sp.s.conf.Node.conf.Name)
+
 		subDone := make(chan struct{})
-		go func() {
-			defer close(subDone)
-			xcs = api_slave.NewClient(host, port, sp.s.conf.Node.conf.Name)
-		}()
-
-		select {
-		case <-subDone:
-		case <-sp.terminate:
-			break outer
-		}
-
-		if err != nil {
-			continue
-		}
-
-		subDone = make(chan struct{})
 		var proto *api_slave.TopicProtocol
+		var err error
 		go func() {
 			defer close(subDone)
-
-			var err error
 			proto, err = xcs.RequestTopic(api_slave.RequestRequestTopic{
 				Topic:     sp.s.conf.Topic,
 				Protocols: [][]string{{"TCPROS"}},
 			})
-			if err != nil {
-				return
-			}
-
-			if proto.Name != "TCPROS" {
-				return
-			}
 		}()
 
 		select {
@@ -89,6 +65,14 @@ outer:
 		case <-sp.terminate:
 			<-subDone
 			break outer
+		}
+
+		if err != nil {
+			return
+		}
+
+		if proto.Name != "TCPROS" {
+			return
 		}
 
 		subDone = make(chan struct{})
