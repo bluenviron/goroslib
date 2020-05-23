@@ -146,8 +146,6 @@ func (sp *ServiceProvider) Close() error {
 }
 
 func (sp *ServiceProvider) run() {
-	defer close(sp.done)
-
 	cbv := reflect.ValueOf(sp.conf.Callback)
 
 outer:
@@ -216,4 +214,6 @@ outer:
 	sp.conf.Node.events <- nodeEventServiceProviderClose{sp}
 
 	close(sp.events)
+
+	close(sp.done)
 }

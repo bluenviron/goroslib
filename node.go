@@ -284,8 +284,6 @@ func (n *Node) Close() error {
 }
 
 func (n *Node) run() {
-	defer close(n.done)
-
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -464,15 +462,15 @@ outer:
 	wg.Wait()
 
 	close(n.events)
+
+	close(n.done)
 }
 
 func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
-	defer wg.Done()
-
 	for {
 		rawReq, err := n.slaveServer.Read()
 		if err != nil {
-			return
+			break
 		}
 
 		switch req := rawReq.(type) {
@@ -523,24 +521,24 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			n.events <- nodeEventClose{}
 		}
 	}
+
+	wg.Done()
 }
 
 func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
-	defer wg.Done()
-
 	for {
 		client, err := n.tcprosServer.Accept()
 		if err != nil {
-			return
+			break
 		}
 
 		n.events <- nodeEventTcprosClientNew{client}
 	}
+
+	wg.Done()
 }
 
 func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
-	defer wg.Done()
-
 	ok := func() bool {
 		rawHeader, err := client.ReadHeaderRaw()
 		if err != nil {
@@ -580,6 +578,8 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 		client.Close()
 		n.events <- nodeEventTcprosClientClose{client}
 	}
+
+	wg.Done()
 }
 
 // InfoNode contains informations about a node.

@@ -117,8 +117,6 @@ func (p *Publisher) Close() error {
 }
 
 func (p *Publisher) run() {
-	defer close(p.done)
-
 outer:
 	for {
 		rawEvt := <-p.events
@@ -196,6 +194,8 @@ outer:
 	p.conf.Node.events <- nodeEventPublisherClose{p}
 
 	close(p.events)
+
+	close(p.done)
 }
 
 func (p *Publisher) Write(msg interface{}) {

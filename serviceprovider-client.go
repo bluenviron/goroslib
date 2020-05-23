@@ -33,8 +33,6 @@ func (sp *serviceProviderClient) close() {
 }
 
 func (spc *serviceProviderClient) run() {
-	defer close(spc.done)
-
 outer:
 	for {
 		req := reflect.New(spc.sp.reqMsg).Interface()
@@ -52,4 +50,6 @@ outer:
 	spc.client.Close()
 
 	spc.sp.events <- serviceProviderEventClientClose{spc}
+
+	close(spc.done)
 }

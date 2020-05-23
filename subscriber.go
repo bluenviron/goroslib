@@ -119,8 +119,6 @@ func (s *Subscriber) Close() error {
 }
 
 func (s *Subscriber) run() {
-	defer close(s.done)
-
 	cbv := reflect.ValueOf(s.conf.Callback)
 
 outer:
@@ -169,4 +167,6 @@ outer:
 	s.conf.Node.events <- nodeEventSubscriberClose{s}
 
 	close(s.events)
+
+	close(s.done)
 }

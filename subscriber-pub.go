@@ -35,15 +35,10 @@ func (sp *subscriberPublisher) close() {
 }
 
 func (sp *subscriberPublisher) run() {
-	defer close(sp.done)
-
-	host, port, err := parseUrl(sp.url)
-	if err != nil {
-		return
-	}
-
+	host, port, _ := parseUrl(sp.url)
 	firstTime := true
 
+outer:
 	for {
 		if firstTime {
 			firstTime = false
@@ -53,7 +48,7 @@ func (sp *subscriberPublisher) run() {
 			case <-t.C:
 				continue
 			case <-sp.terminate:
-				return
+				break outer
 			}
 		}
 
@@ -68,7 +63,7 @@ func (sp *subscriberPublisher) run() {
 		select {
 		case <-subDone:
 		case <-sp.terminate:
-			return
+			break outer
 		}
 
 		if err != nil {
@@ -100,7 +95,7 @@ func (sp *subscriberPublisher) run() {
 		case <-sp.terminate:
 			xcs.Close()
 			<-subDone
-			return
+			break outer
 		}
 
 		subDone = make(chan struct{})
@@ -113,7 +108,7 @@ func (sp *subscriberPublisher) run() {
 		select {
 		case <-subDone:
 		case <-sp.terminate:
-			return
+			break outer
 		}
 
 		if err != nil {
@@ -174,7 +169,9 @@ func (sp *subscriberPublisher) run() {
 		case <-sp.terminate:
 			conn.Close()
 			<-subDone
-			return
+			break outer
 		}
 	}
+
+	close(sp.done)
 }

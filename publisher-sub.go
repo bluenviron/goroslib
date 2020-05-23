@@ -31,8 +31,6 @@ func (ps *publisherSubscriber) close() {
 }
 
 func (ps *publisherSubscriber) run() {
-	defer close(ps.done)
-
 outer:
 	for {
 		_, err := ps.client.ReadHeaderRaw()
@@ -44,6 +42,8 @@ outer:
 	ps.client.Close()
 
 	ps.pub.events <- publisherEventSubscriberClose{ps}
+
+	close(ps.done)
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {
