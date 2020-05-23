@@ -81,63 +81,88 @@ func getOwnIp() string {
 }
 
 type nodeEvent interface {
+	isNodeEvent()
 }
 
 type nodeEventClose struct {
 }
 
+func (nodeEventClose) isNodeEvent() {}
+
 type nodeEventTcprosClientNew struct {
 	client *tcpros.Conn
 }
 
+func (nodeEventTcprosClientNew) isNodeEvent() {}
+
 type nodeEventTcprosClientClose struct {
 	client *tcpros.Conn
 }
+
+func (nodeEventTcprosClientClose) isNodeEvent() {}
 
 type nodeEventTcprosClientSubscriber struct {
 	client *tcpros.Conn
 	header *tcpros.HeaderSubscriber
 }
 
+func (nodeEventTcprosClientSubscriber) isNodeEvent() {}
+
 type nodeEventTcprosClientServiceClient struct {
 	client *tcpros.Conn
 	header *tcpros.HeaderServiceClient
 }
+
+func (nodeEventTcprosClientServiceClient) isNodeEvent() {}
 
 type nodeEventPublisherUpdate struct {
 	topic string
 	urls  []string
 }
 
+func (nodeEventPublisherUpdate) isNodeEvent() {}
+
 type nodeEventSubscriberNew struct {
 	sub *Subscriber
 	err chan error
 }
+
+func (nodeEventSubscriberNew) isNodeEvent() {}
 
 type nodeEventSubscriberClose struct {
 	sub  *Subscriber
 	done chan struct{}
 }
 
+func (nodeEventSubscriberClose) isNodeEvent() {}
+
 type nodeEventPublisherNew struct {
 	pub *Publisher
 	err chan error
 }
+
+func (nodeEventPublisherNew) isNodeEvent() {}
 
 type nodeEventPublisherClose struct {
 	pub  *Publisher
 	done chan struct{}
 }
 
+func (nodeEventPublisherClose) isNodeEvent() {}
+
 type nodeEventServiceProviderNew struct {
 	sp  *ServiceProvider
 	err chan error
 }
 
+func (nodeEventServiceProviderNew) isNodeEvent() {}
+
 type nodeEventServiceProviderClose struct {
 	sp   *ServiceProvider
 	done chan struct{}
 }
+
+func (nodeEventServiceProviderClose) isNodeEvent() {}
 
 // NodeConf is the configuration of a Node.
 type NodeConf struct {

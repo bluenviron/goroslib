@@ -10,24 +10,33 @@ import (
 )
 
 type serviceProviderEvent interface {
+	isServiceProviderEvent()
 }
 
 type serviceProviderEventClose struct {
 }
+
+func (serviceProviderEventClose) isServiceProviderEvent() {}
 
 type serviceProviderEventClientNew struct {
 	client *tcpros.Conn
 	header *tcpros.HeaderServiceClient
 }
 
+func (serviceProviderEventClientNew) isServiceProviderEvent() {}
+
 type serviceProviderEventClientClose struct {
 	spc *serviceProviderClient
 }
+
+func (serviceProviderEventClientClose) isServiceProviderEvent() {}
 
 type serviceProviderEventRequest struct {
 	callerid string
 	req      interface{}
 }
+
+func (serviceProviderEventRequest) isServiceProviderEvent() {}
 
 // ServiceProviderConf is the configuration of a ServiceProvider.
 type ServiceProviderConf struct {

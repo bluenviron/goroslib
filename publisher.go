@@ -10,23 +10,32 @@ import (
 )
 
 type publisherEvent interface {
+	isPublisherEvent()
 }
 
 type publisherEventClose struct {
 }
+
+func (publisherEventClose) isPublisherEvent() {}
 
 type publisherEventSubscriberNew struct {
 	client *tcpros.Conn
 	header *tcpros.HeaderSubscriber
 }
 
+func (publisherEventSubscriberNew) isPublisherEvent() {}
+
 type publisherEventSubscriberClose struct {
 	sub *publisherSubscriber
 }
 
+func (publisherEventSubscriberClose) isPublisherEvent() {}
+
 type publisherEventWrite struct {
 	msg interface{}
 }
+
+func (publisherEventWrite) isPublisherEvent() {}
 
 // PublisherConf is the configuration of a Publisher.
 type PublisherConf struct {

@@ -9,18 +9,25 @@ import (
 )
 
 type subscriberEvent interface {
+	isSubscriberEvent()
 }
 
 type subscriberEventClose struct {
 }
 
+func (subscriberEventClose) isSubscriberEvent() {}
+
 type subscriberEventPublisherUpdate struct {
 	urls []string
 }
 
+func (subscriberEventPublisherUpdate) isSubscriberEvent() {}
+
 type subscriberEventMessage struct {
 	msg interface{}
 }
+
+func (subscriberEventMessage) isSubscriberEvent() {}
 
 // SubscriberConf is the configuration of a Subscriber.
 type SubscriberConf struct {
