@@ -173,9 +173,9 @@ type Node struct {
 	events chan nodeEvent
 	done   chan struct{}
 
-	masterClient     *api_master.Client
-	paramClient      *api_param.Client
-	slaveServer      *api_slave.Server
+	apiMasterClient  *api_master.Client
+	apiParamClient   *api_param.Client
+	apiSlaveServer   *api_slave.Server
 	tcprosServer     *tcpros.Server
 	tcprosClients    map[*tcpros.Conn]struct{}
 	subscribers      map[string]*Subscriber
@@ -204,27 +204,27 @@ func NewNode(conf NodeConf) (*Node, error) {
 		}
 	}
 
-	slaveServer, err := api_slave.NewServer(conf.Host, conf.XmlRpcPort)
+	apiSlaveServer, err := api_slave.NewServer(conf.Host, conf.XmlRpcPort)
 	if err != nil {
 		return nil, err
 	}
 
 	tcprosServer, err := tcpros.NewServer(conf.Host, conf.TcpRosPort)
 	if err != nil {
-		slaveServer.Close()
+		apiSlaveServer.Close()
 		return nil, err
 	}
 
-	masterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
-	paramClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+	apiMasterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+	apiParamClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
 
 	n := &Node{
 		conf:             conf,
 		events:           make(chan nodeEvent),
 		done:             make(chan struct{}),
-		masterClient:     masterClient,
-		paramClient:      paramClient,
-		slaveServer:      slaveServer,
+		apiMasterClient:  apiMasterClient,
+		apiParamClient:   apiParamClient,
+		apiSlaveServer:   apiSlaveServer,
 		tcprosServer:     tcprosServer,
 		tcprosClients:    make(map[*tcpros.Conn]struct{}),
 		subscribers:      make(map[string]*Subscriber),
@@ -236,7 +236,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	// request tcp_keepalive as in
 	// http://docs.ros.org/melodic/api/roscpp/html/init_8cpp_source.html
-	/*_, err = n.paramClient.HasParam("/tcp_keepalive")
+	/*_, err = n.apiParamClient.HasParam("/tcp_keepalive")
 	if err != nil {
 		n.Close()
 		return nil, err
@@ -268,13 +268,13 @@ func NewNode(conf NodeConf) (*Node, error) {
 }
 
 func (n *Node) run() {
+	apislaveServerDone := make(chan struct{})
+	go n.runApiSlaveServer(apislaveServerDone)
+
+	tcprosServerDone := make(chan struct{})
+	go n.runTcprosServer(tcprosServerDone)
+
 	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go n.runApiSlaveServer(&wg)
-
-	wg.Add(1)
-	go n.runTcprosServer(&wg)
 
 outer:
 	for rawEvt := range n.events {
@@ -331,10 +331,10 @@ outer:
 				continue
 			}
 
-			publisherUrls, err := n.masterClient.RegisterSubscriber(api_master.RequestRegister{
+			publisherUrls, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
 				Topic:     evt.sub.conf.Topic[1:],
 				TopicType: evt.sub.msgType,
-				CallerUrl: n.slaveServer.GetUrl(),
+				CallerUrl: n.apiSlaveServer.GetUrl(),
 			})
 			if err != nil {
 				evt.err <- err
@@ -358,10 +358,10 @@ outer:
 				continue
 			}
 
-			_, err := n.masterClient.RegisterPublisher(api_master.RequestRegister{
+			_, err := n.apiMasterClient.RegisterPublisher(api_master.RequestRegister{
 				Topic:     evt.pub.conf.Topic[1:],
 				TopicType: evt.pub.msgType,
-				CallerUrl: n.slaveServer.GetUrl(),
+				CallerUrl: n.apiSlaveServer.GetUrl(),
 			})
 			if err != nil {
 				evt.err <- err
@@ -382,10 +382,10 @@ outer:
 				continue
 			}
 
-			err := n.masterClient.RegisterService(api_master.RequestRegisterService{
+			err := n.apiMasterClient.RegisterService(api_master.RequestRegisterService{
 				Service:    evt.sp.conf.Service[1:],
 				ServiceUrl: n.tcprosServer.GetUrl(),
-				CallerUrl:  n.slaveServer.GetUrl(),
+				CallerUrl:  n.apiSlaveServer.GetUrl(),
 			})
 			if err != nil {
 				evt.err <- err
@@ -410,6 +410,11 @@ outer:
 		}
 	}()
 
+	n.apiSlaveServer.Close()
+	n.tcprosServer.Close()
+	<-apislaveServerDone
+	<-tcprosServerDone
+
 	for _, sub := range n.subscribers {
 		sub.Close()
 	}
@@ -426,9 +431,6 @@ outer:
 		c.Close()
 	}
 
-	n.slaveServer.Close()
-	n.tcprosServer.Close()
-
 	wg.Wait()
 
 	close(n.events)
@@ -443,16 +445,16 @@ func (n *Node) Close() error {
 	return nil
 }
 
-func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
+func (n *Node) runApiSlaveServer(done chan struct{}) {
 	for {
-		rawReq, err := n.slaveServer.Read()
+		rawReq, err := n.apiSlaveServer.Read()
 		if err != nil {
 			break
 		}
 
 		switch req := rawReq.(type) {
 		case *api_slave.RequestGetBusInfo:
-			n.slaveServer.Write(api_slave.ResponseGetBusInfo{
+			n.apiSlaveServer.Write(api_slave.ResponseGetBusInfo{
 				Code:          1,
 				StatusMessage: "bus info",
 				// TODO: provide bus infos in this format:
@@ -463,7 +465,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			})
 
 		case *api_slave.RequestGetPid:
-			n.slaveServer.Write(api_slave.ResponseGetPid{
+			n.apiSlaveServer.Write(api_slave.ResponseGetPid{
 				Code:          1,
 				StatusMessage: "",
 				Pid:           os.Getpid(),
@@ -474,7 +476,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 				topic: req.Topic,
 				urls:  req.PublisherUrls,
 			}
-			n.slaveServer.Write(api_slave.ResponsePublisherUpdate{
+			n.apiSlaveServer.Write(api_slave.ResponsePublisherUpdate{
 				Code:          1,
 				StatusMessage: "",
 			})
@@ -484,7 +486,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			// just send the TCPROS port.
 			// The check on the existence of the topic will take place in the
 			// TCPROS connection.
-			n.slaveServer.Write(api_slave.ResponseRequestTopic{
+			n.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
 				Code:          1,
 				StatusMessage: "",
 				Proto: api_slave.TopicProtocol{
@@ -499,10 +501,10 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 		}
 	}
 
-	wg.Done()
+	close(done)
 }
 
-func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
+func (n *Node) runTcprosServer(done chan struct{}) {
 	for {
 		client, err := n.tcprosServer.Accept()
 		if err != nil {
@@ -512,7 +514,7 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 		n.events <- nodeEventTcprosClientNew{client}
 	}
 
-	wg.Done()
+	close(done)
 }
 
 func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
@@ -570,7 +572,7 @@ type InfoNode struct {
 
 // GetNodes returns all the nodes connected to the master.
 func (n *Node) GetNodes() (map[string]*InfoNode, error) {
-	sstate, err := n.masterClient.GetSystemState()
+	sstate, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, err
 	}
@@ -609,7 +611,7 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	}
 
 	for node, info := range ret {
-		ur, err := n.masterClient.LookupNode(api_master.RequestLookup{
+		ur, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
 			Name: node,
 		})
 		if err != nil {
@@ -655,12 +657,12 @@ type InfoTopic struct {
 
 // GetTopics returns all the topics published by nodes connected to the master.
 func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
-	sstate, err := n.masterClient.GetSystemState()
+	sstate, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, fmt.Errorf("getSystemState: %v", err)
 	}
 
-	ttypes, err := n.masterClient.GetTopicTypes()
+	ttypes, err := n.apiMasterClient.GetTopicTypes()
 	if err != nil {
 		return nil, fmt.Errorf("getTopicTypes: %v", err)
 	}
@@ -705,7 +707,7 @@ type InfoService struct {
 
 // GetServices returns all the services provided by nodes connected to the server.
 func (n *Node) GetServices() (map[string]*InfoService, error) {
-	sstate, err := n.masterClient.GetSystemState()
+	sstate, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, fmt.Errorf("getSystemState: %v", err)
 	}
@@ -723,7 +725,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			ret[entry.Name].Providers[node] = struct{}{}
 		}
 
-		ur, err := n.masterClient.LookupService(api_master.RequestLookup{
+		ur, err := n.apiMasterClient.LookupService(api_master.RequestLookup{
 			Name: entry.Name,
 		})
 		if err != nil {
@@ -745,7 +747,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 // PingNode send a ping request to a given node, wait for the reply and returns
 // the elapsed time.
 func (n *Node) PingNode(name string) (time.Duration, error) {
-	ur, err := n.masterClient.LookupNode(api_master.RequestLookup{
+	ur, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
 		Name: name,
 	})
 	if err != nil {
@@ -771,7 +773,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 
 // KillNode send a kill request to a given node.
 func (n *Node) KillNode(name string) error {
-	ur, err := n.masterClient.LookupNode(api_master.RequestLookup{
+	ur, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
 		Name: name,
 	})
 	if err != nil {
@@ -797,28 +799,28 @@ func (n *Node) KillNode(name string) error {
 
 // GetParamBool returns a bool parameter from the master.
 func (n *Node) GetParamBool(key string) (bool, error) {
-	return n.paramClient.GetParamBool(api_param.RequestGetParam{
+	return n.apiParamClient.GetParamBool(api_param.RequestGetParam{
 		Key: key,
 	})
 }
 
 // GetParamInt returns an int parameter from the master.
 func (n *Node) GetParamInt(key string) (int, error) {
-	return n.paramClient.GetParamInt(api_param.RequestGetParam{
+	return n.apiParamClient.GetParamInt(api_param.RequestGetParam{
 		Key: key,
 	})
 }
 
 // GetParamString returns a string parameter from the master.
 func (n *Node) GetParamString(key string) (string, error) {
-	return n.paramClient.GetParamString(api_param.RequestGetParam{
+	return n.apiParamClient.GetParamString(api_param.RequestGetParam{
 		Key: key,
 	})
 }
 
 // SetParamBool sets a bool parameter in the master.
 func (n *Node) SetParamBool(key string, val bool) error {
-	return n.paramClient.SetParamBool(api_param.RequestSetParamBool{
+	return n.apiParamClient.SetParamBool(api_param.RequestSetParamBool{
 		Key: key,
 		Val: val,
 	})
@@ -826,7 +828,7 @@ func (n *Node) SetParamBool(key string, val bool) error {
 
 // SetParamInt sets an int parameter in the master.
 func (n *Node) SetParamInt(key string, val int) error {
-	return n.paramClient.SetParamInt(api_param.RequestSetParamInt{
+	return n.apiParamClient.SetParamInt(api_param.RequestSetParamInt{
 		Key: key,
 		Val: val,
 	})
@@ -834,7 +836,7 @@ func (n *Node) SetParamInt(key string, val int) error {
 
 // SetParamString sets a string parameter in the master.
 func (n *Node) SetParamString(key string, val string) error {
-	return n.paramClient.SetParamString(api_param.RequestSetParamString{
+	return n.apiParamClient.SetParamString(api_param.RequestSetParamString{
 		Key: key,
 		Val: val,
 	})

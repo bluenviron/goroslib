@@ -57,7 +57,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Res must be a pointer to a struct")
 	}
 
-	ur, err := conf.Node.masterClient.LookupService(api_master.RequestLookup{
+	ur, err := conf.Node.apiMasterClient.LookupService(api_master.RequestLookup{
 		Name: conf.Service,
 	})
 	if err != nil {

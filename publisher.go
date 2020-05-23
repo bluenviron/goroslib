@@ -181,9 +181,9 @@ outer:
 		}
 	}()
 
-	p.conf.Node.masterClient.UnregisterPublisher(api_master.RequestUnregister{
+	p.conf.Node.apiMasterClient.UnregisterPublisher(api_master.RequestUnregister{
 		Topic:     p.conf.Topic[1:],
-		CallerUrl: p.conf.Node.slaveServer.GetUrl(),
+		CallerUrl: p.conf.Node.apiSlaveServer.GetUrl(),
 	})
 
 	for _, c := range p.subscribers {

@@ -154,9 +154,9 @@ outer:
 		}
 	}()
 
-	s.conf.Node.masterClient.UnregisterSubscriber(api_master.RequestUnregister{
+	s.conf.Node.apiMasterClient.UnregisterSubscriber(api_master.RequestUnregister{
 		Topic:     s.conf.Topic[1:],
-		CallerUrl: s.conf.Node.slaveServer.GetUrl(),
+		CallerUrl: s.conf.Node.apiSlaveServer.GetUrl(),
 	})
 
 	for _, pub := range s.publishers {

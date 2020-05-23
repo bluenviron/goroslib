@@ -201,7 +201,7 @@ outer:
 		}
 	}()
 
-	sp.conf.Node.masterClient.UnregisterService(api_master.RequestUnregisterService{
+	sp.conf.Node.apiMasterClient.UnregisterService(api_master.RequestUnregisterService{
 		Service:    sp.conf.Service[1:],
 		ServiceUrl: sp.conf.Node.tcprosServer.GetUrl(),
 	})
