@@ -433,6 +433,7 @@ outer:
 
 	// use clientsWg for all remaining subscribers, publishers, service providers
 	clientsWg.Add(len(n.subscribers) + len(n.publishers) + len(n.serviceProviders))
+	closeChans := make(chan chan struct{})
 
 	// consume queue
 	go func() {
@@ -442,22 +443,19 @@ outer:
 				evt.err <- fmt.Errorf("terminated")
 
 			case nodeEventSubscriberClose:
-				close(evt.done)
-				clientsWg.Done()
+				closeChans <- evt.done
 
 			case nodeEventPublisherNew:
 				evt.err <- fmt.Errorf("terminated")
 
 			case nodeEventPublisherClose:
-				close(evt.done)
-				clientsWg.Done()
+				closeChans <- evt.done
 
 			case nodeEventServiceProviderNew:
 				evt.err <- fmt.Errorf("terminated")
 
 			case nodeEventServiceProviderClose:
-				close(evt.done)
-				clientsWg.Done()
+				closeChans <- evt.done
 			}
 		}
 	}()
@@ -480,7 +478,14 @@ outer:
 	for _, sp := range n.serviceProviders {
 		sp.events <- serviceProviderEventClose{}
 	}
+	go func() {
+		for ch := range closeChans {
+			close(ch)
+			clientsWg.Done()
+		}
+	}()
 	clientsWg.Wait()
+	close(closeChans)
 
 	// wait Close()
 	<-n.terminate

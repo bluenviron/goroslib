@@ -299,6 +299,44 @@ func TestNodeKillNodeExternal(t *testing.T) {
 	require.Equal(t, 1, len(res))
 }
 
+func TestNodeKillNodeInternal(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n1, err := NewNode(NodeConf{
+		Name:       "/goroslib1",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n1.Close()
+
+	pub, err := NewPublisher(PublisherConf{
+		Node:  n1,
+		Topic: "/test_pub",
+		Msg:   &TestMessage{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
+
+	n2, err := NewNode(NodeConf{
+		Name:       "/goroslib2",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n2.Close()
+
+	err = n2.KillNode("/goroslib1")
+	require.NoError(t, err)
+
+	/*time.Sleep(1 * time.Second)
+
+	res, err := n2.GetNodes()
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(res))*/
+}
+
 func TestNodeGetParam(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
