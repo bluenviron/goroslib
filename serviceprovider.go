@@ -63,6 +63,7 @@ type ServiceProvider struct {
 
 	events    chan serviceProviderEvent
 	terminate chan struct{}
+	nodeDone  chan struct{}
 	done      chan struct{}
 
 	clients map[string]*serviceProviderClient
@@ -131,6 +132,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		srvMd5:    srvMd5,
 		events:    make(chan serviceProviderEvent),
 		terminate: make(chan struct{}),
+		nodeDone:  make(chan struct{}),
 		done:      make(chan struct{}),
 		clients:   make(map[string]*serviceProviderClient),
 	}
@@ -221,9 +223,8 @@ outer:
 		c.close()
 	}
 
-	done := make(chan struct{})
-	sp.conf.Node.events <- nodeEventServiceProviderClose{sp, done}
-	<-done
+	sp.conf.Node.events <- nodeEventServiceProviderClose{sp}
+	<-sp.nodeDone
 
 	// wait Close()
 	<-sp.terminate

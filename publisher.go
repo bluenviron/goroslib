@@ -62,6 +62,7 @@ type Publisher struct {
 
 	events    chan publisherEvent
 	terminate chan struct{}
+	nodeDone  chan struct{}
 	done      chan struct{}
 
 	subscribers map[string]*publisherSubscriber
@@ -102,6 +103,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		msgMd5:      msgMd5,
 		events:      make(chan publisherEvent),
 		terminate:   make(chan struct{}),
+		nodeDone:    make(chan struct{}),
 		done:        make(chan struct{}),
 		subscribers: make(map[string]*publisherSubscriber),
 	}
@@ -201,9 +203,8 @@ outer:
 		c.close()
 	}
 
-	done := make(chan struct{})
-	p.conf.Node.events <- nodeEventPublisherClose{p, done}
-	<-done
+	p.conf.Node.events <- nodeEventPublisherClose{p}
+	<-p.nodeDone
 
 	// wait Close()
 	<-p.terminate

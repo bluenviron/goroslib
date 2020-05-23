@@ -130,8 +130,7 @@ type nodeEventSubscriberNew struct {
 func (nodeEventSubscriberNew) isNodeEvent() {}
 
 type nodeEventSubscriberClose struct {
-	sub  *Subscriber
-	done chan struct{}
+	sub *Subscriber
 }
 
 func (nodeEventSubscriberClose) isNodeEvent() {}
@@ -144,8 +143,7 @@ type nodeEventPublisherNew struct {
 func (nodeEventPublisherNew) isNodeEvent() {}
 
 type nodeEventPublisherClose struct {
-	pub  *Publisher
-	done chan struct{}
+	pub *Publisher
 }
 
 func (nodeEventPublisherClose) isNodeEvent() {}
@@ -158,8 +156,7 @@ type nodeEventServiceProviderNew struct {
 func (nodeEventServiceProviderNew) isNodeEvent() {}
 
 type nodeEventServiceProviderClose struct {
-	sp   *ServiceProvider
-	done chan struct{}
+	sp *ServiceProvider
 }
 
 func (nodeEventServiceProviderClose) isNodeEvent() {}
@@ -376,7 +373,7 @@ outer:
 
 		case nodeEventSubscriberClose:
 			delete(n.subscribers, evt.sub.conf.Topic)
-			close(evt.done)
+			close(evt.sub.nodeDone)
 
 		case nodeEventPublisherNew:
 			_, ok := n.publishers[evt.pub.conf.Topic]
@@ -400,7 +397,7 @@ outer:
 
 		case nodeEventPublisherClose:
 			delete(n.publishers, evt.pub.conf.Topic)
-			close(evt.done)
+			close(evt.pub.nodeDone)
 
 		case nodeEventServiceProviderNew:
 			_, ok := n.serviceProviders[evt.sp.conf.Service]
@@ -424,7 +421,7 @@ outer:
 
 		case nodeEventServiceProviderClose:
 			delete(n.serviceProviders, evt.sp.conf.Service)
-			close(evt.done)
+			close(evt.sp.nodeDone)
 
 		case nodeEventClose:
 			break outer
@@ -433,7 +430,6 @@ outer:
 
 	// use clientsWg for all remaining subscribers, publishers, service providers
 	clientsWg.Add(len(n.subscribers) + len(n.publishers) + len(n.serviceProviders))
-	closeChans := make(chan chan struct{})
 
 	// consume queue
 	go func() {
@@ -443,19 +439,19 @@ outer:
 				evt.err <- fmt.Errorf("terminated")
 
 			case nodeEventSubscriberClose:
-				closeChans <- evt.done
+				clientsWg.Done()
 
 			case nodeEventPublisherNew:
 				evt.err <- fmt.Errorf("terminated")
 
 			case nodeEventPublisherClose:
-				closeChans <- evt.done
+				clientsWg.Done()
 
 			case nodeEventServiceProviderNew:
 				evt.err <- fmt.Errorf("terminated")
 
 			case nodeEventServiceProviderClose:
-				closeChans <- evt.done
+				clientsWg.Done()
 			}
 		}
 	}()
@@ -471,21 +467,17 @@ outer:
 	}
 	for _, sub := range n.subscribers {
 		sub.events <- subscriberEventClose{}
+		close(sub.nodeDone)
 	}
 	for _, pub := range n.publishers {
 		pub.events <- publisherEventClose{}
+		close(pub.nodeDone)
 	}
 	for _, sp := range n.serviceProviders {
 		sp.events <- serviceProviderEventClose{}
+		close(sp.nodeDone)
 	}
-	go func() {
-		for ch := range closeChans {
-			close(ch)
-			clientsWg.Done()
-		}
-	}()
 	clientsWg.Wait()
-	close(closeChans)
 
 	// wait Close()
 	<-n.terminate

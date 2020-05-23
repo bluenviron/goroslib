@@ -51,6 +51,7 @@ type Subscriber struct {
 
 	events    chan subscriberEvent
 	terminate chan struct{}
+	nodeDone  chan struct{}
 	done      chan struct{}
 
 	publishers map[string]*subscriberPublisher
@@ -102,6 +103,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		msgMd5:     msgMd5,
 		events:     make(chan subscriberEvent),
 		terminate:  make(chan struct{}),
+		nodeDone:   make(chan struct{}),
 		done:       make(chan struct{}),
 		publishers: make(map[string]*subscriberPublisher),
 	}
@@ -172,9 +174,8 @@ outer:
 		pub.close()
 	}
 
-	done := make(chan struct{})
-	s.conf.Node.events <- nodeEventSubscriberClose{s, done}
-	<-done
+	s.conf.Node.events <- nodeEventSubscriberClose{s}
+	<-s.nodeDone
 
 	// wait Close()
 	<-s.terminate
