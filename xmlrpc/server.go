@@ -7,9 +7,9 @@ import (
 	"net/http"
 )
 
-// special response that sends status code 400
-// the C++ implementation in case of errors replies with a
-// <methodResponse><fault><value>..., which would require additional parsing
+// ErrorRes is a special response that sends status code 400.
+// in case of errors, the C++ implementation replies with
+// <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
 type Server struct {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
 	"github.com/aler9/goroslib/tcpros"
 )
@@ -114,9 +115,6 @@ outer:
 	for {
 		rawEvt := <-p.events
 		switch evt := rawEvt.(type) {
-		case publisherEventClose:
-			break outer
-
 		case publisherEventSubscriberNew:
 			_, ok := p.subscribers[evt.header.Callerid]
 			if ok {
@@ -171,6 +169,9 @@ outer:
 			for _, s := range p.subscribers {
 				s.writeMessage(evt.msg)
 			}
+
+		case publisherEventClose:
+			break outer
 		}
 	}
 
@@ -180,11 +181,18 @@ outer:
 		}
 	}()
 
+	p.conf.Node.masterClient.UnregisterPublisher(api_master.RequestUnregister{
+		Topic:     p.conf.Topic[1:],
+		CallerUrl: p.conf.Node.slaveServer.GetUrl(),
+	})
+
 	for _, c := range p.subscribers {
 		c.close()
 	}
 
-	p.conf.Node.events <- nodeEventPublisherClose{p}
+	done := make(chan struct{})
+	p.conf.Node.events <- nodeEventPublisherClose{p, done}
+	<-done
 
 	close(p.events)
 

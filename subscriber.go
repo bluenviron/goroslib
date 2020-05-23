@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
 )
 
@@ -118,9 +119,6 @@ outer:
 	for {
 		rawEvt := <-s.events
 		switch evt := rawEvt.(type) {
-		case subscriberEventClose:
-			break outer
-
 		case subscriberEventPublisherUpdate:
 			validPublishers := make(map[string]struct{})
 
@@ -144,6 +142,9 @@ outer:
 		// in order to avoid mutexes in the user side
 		case subscriberEventMessage:
 			cbv.Call([]reflect.Value{reflect.ValueOf(evt.msg)})
+
+		case subscriberEventClose:
+			break outer
 		}
 	}
 
@@ -153,11 +154,18 @@ outer:
 		}
 	}()
 
+	s.conf.Node.masterClient.UnregisterSubscriber(api_master.RequestUnregister{
+		Topic:     s.conf.Topic[1:],
+		CallerUrl: s.conf.Node.slaveServer.GetUrl(),
+	})
+
 	for _, pub := range s.publishers {
 		pub.close()
 	}
 
-	s.conf.Node.events <- nodeEventSubscriberClose{s}
+	done := make(chan struct{})
+	s.conf.Node.events <- nodeEventSubscriberClose{s, done}
+	<-done
 
 	close(s.events)
 

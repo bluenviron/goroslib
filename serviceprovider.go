@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
 	"github.com/aler9/goroslib/tcpros"
 )
@@ -145,9 +146,6 @@ outer:
 	for {
 		rawEvt := <-sp.events
 		switch evt := rawEvt.(type) {
-		case serviceProviderEventClose:
-			break outer
-
 		case serviceProviderEventClientNew:
 			_, ok := sp.clients[evt.header.Callerid]
 			if ok {
@@ -191,6 +189,9 @@ outer:
 			}
 
 			conn.client.WriteMessage(res[0].Interface())
+
+		case serviceProviderEventClose:
+			break outer
 		}
 	}
 
@@ -200,11 +201,18 @@ outer:
 		}
 	}()
 
+	sp.conf.Node.masterClient.UnregisterService(api_master.RequestUnregisterService{
+		Service:    sp.conf.Service[1:],
+		ServiceUrl: sp.conf.Node.tcprosServer.GetUrl(),
+	})
+
 	for _, c := range sp.clients {
 		c.close()
 	}
 
-	sp.conf.Node.events <- nodeEventServiceProviderClose{sp}
+	done := make(chan struct{})
+	sp.conf.Node.events <- nodeEventServiceProviderClose{sp, done}
+	<-done
 
 	close(sp.events)
 

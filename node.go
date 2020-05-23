@@ -115,7 +115,8 @@ type nodeEventSubscriberNew struct {
 }
 
 type nodeEventSubscriberClose struct {
-	sub *Subscriber
+	sub  *Subscriber
+	done chan struct{}
 }
 
 type nodeEventPublisherNew struct {
@@ -124,7 +125,8 @@ type nodeEventPublisherNew struct {
 }
 
 type nodeEventPublisherClose struct {
-	pub *Publisher
+	pub  *Publisher
+	done chan struct{}
 }
 
 type nodeEventServiceProviderNew struct {
@@ -133,7 +135,8 @@ type nodeEventServiceProviderNew struct {
 }
 
 type nodeEventServiceProviderClose struct {
-	sp *ServiceProvider
+	sp   *ServiceProvider
+	done chan struct{}
 }
 
 // NodeConf is the configuration of a Node.
@@ -288,9 +291,6 @@ func (n *Node) run() {
 outer:
 	for rawEvt := range n.events {
 		switch evt := rawEvt.(type) {
-		case nodeEventClose:
-			break outer
-
 		case nodeEventTcprosClientNew:
 			n.tcprosClients[evt.client] = struct{}{}
 			wg.Add(1)
@@ -361,11 +361,7 @@ outer:
 
 		case nodeEventSubscriberClose:
 			delete(n.subscribers, evt.sub.conf.Topic)
-
-			n.masterClient.UnregisterSubscriber(api_master.RequestUnregister{
-				Topic:     evt.sub.conf.Topic[1:],
-				CallerUrl: n.slaveServer.GetUrl(),
-			})
+			close(evt.done)
 
 		case nodeEventPublisherNew:
 			_, ok := n.publishers[evt.pub.conf.Topic]
@@ -389,11 +385,7 @@ outer:
 
 		case nodeEventPublisherClose:
 			delete(n.publishers, evt.pub.conf.Topic)
-
-			n.masterClient.UnregisterPublisher(api_master.RequestUnregister{
-				Topic:     evt.pub.conf.Topic[1:],
-				CallerUrl: n.slaveServer.GetUrl(),
-			})
+			close(evt.done)
 
 		case nodeEventServiceProviderNew:
 			_, ok := n.serviceProviders[evt.sp.conf.Service]
@@ -417,11 +409,10 @@ outer:
 
 		case nodeEventServiceProviderClose:
 			delete(n.serviceProviders, evt.sp.conf.Service)
+			close(evt.done)
 
-			n.masterClient.UnregisterService(api_master.RequestUnregisterService{
-				Service:    evt.sp.conf.Service[1:],
-				ServiceUrl: n.tcprosServer.GetUrl(),
-			})
+		case nodeEventClose:
+			break outer
 		}
 	}
 
