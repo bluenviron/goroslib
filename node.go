@@ -525,6 +525,11 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			})
 
 		case *api_slave.RequestShutdown:
+			n.apiSlaveServer.Write(api_slave.ResponseShutdown{
+				Code:          1,
+				StatusMessage: "",
+			})
+
 			n.events <- nodeEventClose{}
 		}
 	}
