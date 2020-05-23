@@ -138,13 +138,6 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	return sp, nil
 }
 
-// Close closes a ServiceProvider and shuts down all its operations.
-func (sp *ServiceProvider) Close() error {
-	sp.events <- serviceProviderEventClose{}
-	<-sp.done
-	return nil
-}
-
 func (sp *ServiceProvider) run() {
 	cbv := reflect.ValueOf(sp.conf.Callback)
 
@@ -216,4 +209,11 @@ outer:
 	close(sp.events)
 
 	close(sp.done)
+}
+
+// Close closes a ServiceProvider and shuts down all its operations.
+func (sp *ServiceProvider) Close() error {
+	sp.events <- serviceProviderEventClose{}
+	<-sp.done
+	return nil
 }

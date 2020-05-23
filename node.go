@@ -276,13 +276,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 	return n, nil
 }
 
-// Close closes a Node and shuts down all its operations.
-func (n *Node) Close() error {
-	n.events <- nodeEventClose{}
-	<-n.done
-	return nil
-}
-
 func (n *Node) run() {
 	var wg sync.WaitGroup
 
@@ -464,6 +457,13 @@ outer:
 	close(n.events)
 
 	close(n.done)
+}
+
+// Close closes a Node and shuts down all its operations.
+func (n *Node) Close() error {
+	n.events <- nodeEventClose{}
+	<-n.done
+	return nil
 }
 
 func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {

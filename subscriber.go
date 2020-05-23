@@ -111,13 +111,6 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	return s, nil
 }
 
-// Close closes a Subscriber and shuts down all its operations.
-func (s *Subscriber) Close() error {
-	s.events <- subscriberEventClose{}
-	<-s.done
-	return nil
-}
-
 func (s *Subscriber) run() {
 	cbv := reflect.ValueOf(s.conf.Callback)
 
@@ -169,4 +162,11 @@ outer:
 	close(s.events)
 
 	close(s.done)
+}
+
+// Close closes a Subscriber and shuts down all its operations.
+func (s *Subscriber) Close() error {
+	s.events <- subscriberEventClose{}
+	<-s.done
+	return nil
 }

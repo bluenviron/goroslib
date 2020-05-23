@@ -25,11 +25,6 @@ func newPublisherSubscriber(pub *Publisher, callerid string, client *tcpros.Conn
 	return ps
 }
 
-func (ps *publisherSubscriber) close() {
-	ps.client.Close()
-	<-ps.done
-}
-
 func (ps *publisherSubscriber) run() {
 outer:
 	for {
@@ -44,6 +39,11 @@ outer:
 	ps.pub.events <- publisherEventSubscriberClose{ps}
 
 	close(ps.done)
+}
+
+func (ps *publisherSubscriber) close() {
+	ps.client.Close()
+	<-ps.done
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {

@@ -109,13 +109,6 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	return p, nil
 }
 
-// Close closes a Publisher and shuts down all its operations.
-func (p *Publisher) Close() error {
-	p.events <- publisherEventClose{}
-	<-p.done
-	return nil
-}
-
 func (p *Publisher) run() {
 outer:
 	for {
@@ -196,6 +189,13 @@ outer:
 	close(p.events)
 
 	close(p.done)
+}
+
+// Close closes a Publisher and shuts down all its operations.
+func (p *Publisher) Close() error {
+	p.events <- publisherEventClose{}
+	<-p.done
+	return nil
 }
 
 func (p *Publisher) Write(msg interface{}) {

@@ -27,11 +27,6 @@ func newServiceProviderClient(sp *ServiceProvider, callerid string, client *tcpr
 	return spc
 }
 
-func (sp *serviceProviderClient) close() {
-	sp.client.Close()
-	<-sp.done
-}
-
 func (spc *serviceProviderClient) run() {
 outer:
 	for {
@@ -52,4 +47,9 @@ outer:
 	spc.sp.events <- serviceProviderEventClientClose{spc}
 
 	close(spc.done)
+}
+
+func (sp *serviceProviderClient) close() {
+	sp.client.Close()
+	<-sp.done
 }

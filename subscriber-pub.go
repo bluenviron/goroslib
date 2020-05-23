@@ -29,11 +29,6 @@ func newSubscriberPublisher(s *Subscriber, url string) *subscriberPublisher {
 	return sp
 }
 
-func (sp *subscriberPublisher) close() {
-	close(sp.terminate)
-	<-sp.done
-}
-
 func (sp *subscriberPublisher) run() {
 	host, port, _ := parseUrl(sp.url)
 	firstTime := true
@@ -174,4 +169,9 @@ outer:
 	}
 
 	close(sp.done)
+}
+
+func (sp *subscriberPublisher) close() {
+	close(sp.terminate)
+	<-sp.done
 }
