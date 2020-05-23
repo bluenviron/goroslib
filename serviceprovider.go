@@ -52,8 +52,9 @@ type ServiceProvider struct {
 	resType string
 	srvMd5  string
 
-	events chan serviceProviderEvent
-	done   chan struct{}
+	events    chan serviceProviderEvent
+	terminate chan struct{}
+	done      chan struct{}
 
 	clients map[string]*serviceProviderClient
 }
@@ -113,15 +114,16 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	}
 
 	sp := &ServiceProvider{
-		conf:    conf,
-		reqMsg:  reqMsg.Elem(),
-		resMsg:  resMsg.Elem(),
-		reqType: reqType,
-		resType: resType,
-		srvMd5:  srvMd5,
-		events:  make(chan serviceProviderEvent),
-		done:    make(chan struct{}),
-		clients: make(map[string]*serviceProviderClient),
+		conf:      conf,
+		reqMsg:    reqMsg.Elem(),
+		resMsg:    resMsg.Elem(),
+		reqType:   reqType,
+		resType:   resType,
+		srvMd5:    srvMd5,
+		events:    make(chan serviceProviderEvent),
+		terminate: make(chan struct{}),
+		done:      make(chan struct{}),
+		clients:   make(map[string]*serviceProviderClient),
 	}
 
 	errored := make(chan error)
@@ -214,6 +216,9 @@ outer:
 	sp.conf.Node.events <- nodeEventServiceProviderClose{sp, done}
 	<-done
 
+	// wait Close()
+	<-sp.terminate
+
 	close(sp.events)
 
 	close(sp.done)
@@ -222,6 +227,7 @@ outer:
 // Close closes a ServiceProvider and shuts down all its operations.
 func (sp *ServiceProvider) Close() error {
 	sp.events <- serviceProviderEventClose{}
+	close(sp.terminate)
 	<-sp.done
 	return nil
 }

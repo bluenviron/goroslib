@@ -170,8 +170,9 @@ type NodeConf struct {
 type Node struct {
 	conf NodeConf
 
-	events chan nodeEvent
-	done   chan struct{}
+	events    chan nodeEvent
+	terminate chan struct{}
+	done      chan struct{}
 
 	apiMasterClient  *api_master.Client
 	apiParamClient   *api_param.Client
@@ -221,6 +222,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 	n := &Node{
 		conf:             conf,
 		events:           make(chan nodeEvent),
+		terminate:        make(chan struct{}),
 		done:             make(chan struct{}),
 		apiMasterClient:  apiMasterClient,
 		apiParamClient:   apiParamClient,
@@ -268,21 +270,21 @@ func NewNode(conf NodeConf) (*Node, error) {
 }
 
 func (n *Node) run() {
-	apislaveServerDone := make(chan struct{})
-	go n.runApiSlaveServer(apislaveServerDone)
+	var serversWg sync.WaitGroup
 
-	tcprosServerDone := make(chan struct{})
-	go n.runTcprosServer(tcprosServerDone)
+	serversWg.Add(2)
+	go n.runApiSlaveServer(&serversWg)
+	go n.runTcprosServer(&serversWg)
 
-	var wg sync.WaitGroup
+	var clientsWg sync.WaitGroup
 
 outer:
 	for rawEvt := range n.events {
 		switch evt := rawEvt.(type) {
 		case nodeEventTcprosClientNew:
 			n.tcprosClients[evt.client] = struct{}{}
-			wg.Add(1)
-			go n.runTcprosClient(&wg, evt.client)
+			clientsWg.Add(1)
+			go n.runTcprosClient(&clientsWg, evt.client)
 
 		case nodeEventTcprosClientClose:
 			delete(n.tcprosClients, evt.client)
@@ -404,34 +406,59 @@ outer:
 		}
 	}
 
+	// use clientsWg for all remaining subscribers, publishers, service providers
+	clientsWg.Add(len(n.subscribers) + len(n.publishers) + len(n.serviceProviders))
+
 	// consume queue
 	go func() {
-		for range n.events {
+		for rawEvt := range n.events {
+			switch evt := rawEvt.(type) {
+			case nodeEventSubscriberNew:
+				evt.err <- fmt.Errorf("terminated")
+
+			case nodeEventSubscriberClose:
+				close(evt.done)
+				clientsWg.Done()
+
+			case nodeEventPublisherNew:
+				evt.err <- fmt.Errorf("terminated")
+
+			case nodeEventPublisherClose:
+				close(evt.done)
+				clientsWg.Done()
+
+			case nodeEventServiceProviderNew:
+				evt.err <- fmt.Errorf("terminated")
+
+			case nodeEventServiceProviderClose:
+				close(evt.done)
+				clientsWg.Done()
+			}
 		}
 	}()
 
+	// close all servers and wait
 	n.apiSlaveServer.Close()
 	n.tcprosServer.Close()
-	<-apislaveServerDone
-	<-tcprosServerDone
+	serversWg.Wait()
 
-	for _, sub := range n.subscribers {
-		sub.Close()
-	}
-
-	for _, pub := range n.publishers {
-		pub.Close()
-	}
-
-	for _, sp := range n.serviceProviders {
-		sp.Close()
-	}
-
+	// close all clients and wait
 	for c := range n.tcprosClients {
 		c.Close()
 	}
+	for _, sub := range n.subscribers {
+		sub.events <- subscriberEventClose{}
+	}
+	for _, pub := range n.publishers {
+		pub.events <- publisherEventClose{}
+	}
+	for _, sp := range n.serviceProviders {
+		sp.events <- serviceProviderEventClose{}
+	}
+	clientsWg.Wait()
 
-	wg.Wait()
+	// wait Close()
+	<-n.terminate
 
 	close(n.events)
 
@@ -441,11 +468,12 @@ outer:
 // Close closes a Node and shuts down all its operations.
 func (n *Node) Close() error {
 	n.events <- nodeEventClose{}
+	close(n.terminate)
 	<-n.done
 	return nil
 }
 
-func (n *Node) runApiSlaveServer(done chan struct{}) {
+func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 	for {
 		rawReq, err := n.apiSlaveServer.Read()
 		if err != nil {
@@ -501,10 +529,10 @@ func (n *Node) runApiSlaveServer(done chan struct{}) {
 		}
 	}
 
-	close(done)
+	wg.Done()
 }
 
-func (n *Node) runTcprosServer(done chan struct{}) {
+func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 	for {
 		client, err := n.tcprosServer.Accept()
 		if err != nil {
@@ -514,7 +542,7 @@ func (n *Node) runTcprosServer(done chan struct{}) {
 		n.events <- nodeEventTcprosClientNew{client}
 	}
 
-	close(done)
+	wg.Done()
 }
 
 func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {

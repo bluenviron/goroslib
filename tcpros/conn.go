@@ -40,7 +40,7 @@ func snakeToCamel(in string) string {
 type Conn struct {
 	readBuf  *bufio.Reader
 	writeBuf *bufio.Writer
-	closer   io.WriteCloser
+	closer   io.Closer
 }
 
 // NewConn allocates a Conn, that takes ownership of the input net.Conn.
