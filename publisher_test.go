@@ -269,6 +269,47 @@ func TestPublisherWriteToRostopicEchoNoLatch(t *testing.T) {
 	require.Equal(t, "data: 34.5\n---\n", recv)
 }
 
+func TestPublisherWriteToCppLatch(t *testing.T) {
+	recv := func() string {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &TestMessage{},
+			Latch: true,
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		pub.Write(&TestMessage{
+			A: 1,
+			B: []TestParent{
+				{
+					A: "other test",
+					B: time.Unix(1500, 1345).UTC(),
+				},
+			},
+		})
+
+		rt, err := newContainer("node-sub", m.Ip())
+		require.NoError(t, err)
+
+		return rt.waitOutput()
+	}()
+
+	require.Equal(t, "1 other test 5776731014620\n", recv)
+}
+
 func TestPublisherWriteToRostopicEchoLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-    "time"
+	"time"
 
 	"github.com/aler9/goroslib"
 	"github.com/aler9/goroslib/msgs/std_msgs"
@@ -13,7 +13,7 @@ func onMessage(msg *std_msgs.Float64) {
 }
 
 func main() {
-    time.Sleep(2 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	// create a node with given name and linked to given master.
 	// master can be reached with an ip or hostname.

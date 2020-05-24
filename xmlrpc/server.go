@@ -51,7 +51,7 @@ func NewServer(host string, port uint16) (*Server, error) {
 func (s *Server) run() {
 	hs := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			if req.URL.Path != "/RPC2" {
+			if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
