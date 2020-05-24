@@ -135,8 +135,9 @@ outer:
 
 			// add new publishers
 			for _, url := range evt.urls {
+				validPublishers[url] = struct{}{}
+
 				if _, ok := s.publishers[url]; !ok {
-					validPublishers[url] = struct{}{}
 					s.publishers[url] = newSubscriberPublisher(s, url)
 				}
 			}
