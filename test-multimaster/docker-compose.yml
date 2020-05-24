@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  core1:
+    build: ./multimaster
+    environment:
+      ROS_MASTER_URI: http://core1:11311
+    command: >
+      stdbuf -o L bash -c "(roscore &);
+      sleep 2;
+      sleep 5; (rosrun master_discovery_fkie master_discovery &);
+      sleep 1; rosrun master_sync_fkie master_sync"
+
+  suba1:
+    image: ros:melodic-ros-core-bionic
+    environment:
+      ROS_MASTER_URI: http://core1:11311
+    command: >
+      bash -c "sleep 2; rostopic echo /test_pub"
+
+  subb1:
+    build:
+      context: ../
+      dockerfile: ./test-multimaster/goroslib/Dockerfile
+    environment:
+      ROS_MASTER_URI: http://core1:11311
+
+  core2:
+    build: ./multimaster
+    environment:
+      ROS_MASTER_URI: http://core2:11311
+    command: >
+      stdbuf -o L bash -c '(roscore &);
+      sleep 2; (rostopic pub -r 1 /test_pub std_msgs/Float64 62.3 &);
+      sleep 5; (rosrun master_discovery_fkie master_discovery &);
+      sleep 1; (rosrun master_sync_fkie master_sync &);
+      sleep 5; rostopic pub -r 1 /test_pub std_msgs/Float64 32.3'
