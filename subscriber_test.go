@@ -75,7 +75,7 @@ func TestSubscriberRegister(t *testing.T) {
 	require.Equal(t, false, ok)
 }
 
-func TestSubscriberReadAfterPub(t *testing.T) {
+func TestSubscriberReadFromCppAfterPub(t *testing.T) {
 	recv := func() *TestMessage {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 	require.Equal(t, &expected, recv)
 }
 
-func TestSubscriberReadBeforePub(t *testing.T) {
+func TestSubscriberReadFromCppBeforePub(t *testing.T) {
 	recv := func() *TestMessage {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
@@ -189,7 +189,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 	require.Equal(t, &expected, recv)
 }
 
-func TestSubscriberRostopicPub(t *testing.T) {
+func TestSubscriberReadFromRostopicPub(t *testing.T) {
 	recv := func() *sensor_msgs.Imu {
 		m, err := newContainerMaster()
 		require.NoError(t, err)

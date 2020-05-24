@@ -221,7 +221,7 @@ func TestNodeGetServices(t *testing.T) {
 	require.Equal(t, map[string]struct{}{"/nodeserviceprovider": {}}, service.Providers)
 }
 
-func TestNodePingNodeExternal(t *testing.T) {
+func TestNodePingCppNode(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -241,7 +241,7 @@ func TestNodePingNodeExternal(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestNodePingNodeInternal(t *testing.T) {
+func TestNodePingGoNode(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -272,7 +272,7 @@ func TestNodePingNodeInternal(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestNodeKillNodeExternal(t *testing.T) {
+func TestNodeKillCppNode(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -299,7 +299,7 @@ func TestNodeKillNodeExternal(t *testing.T) {
 	require.Equal(t, 1, len(res))
 }
 
-func TestNodeKillNodeInternal(t *testing.T) {
+func TestNodeKillGoNode(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()

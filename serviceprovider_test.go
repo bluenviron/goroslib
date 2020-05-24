@@ -62,7 +62,7 @@ func TestServiceProviderRegister(t *testing.T) {
 	require.Equal(t, false, ok)
 }
 
-func TestServiceProviderReqRes(t *testing.T) {
+func TestServiceProviderResToGo(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()

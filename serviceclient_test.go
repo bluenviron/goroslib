@@ -17,7 +17,7 @@ type TestServiceRes struct {
 	C msgs.Float64
 }
 
-func TestServiceClientReqRes(t *testing.T) {
+func TestServiceClientReqToCpp(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()

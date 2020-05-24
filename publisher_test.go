@@ -56,7 +56,7 @@ func TestPublisherRegister(t *testing.T) {
 	require.Equal(t, false, ok)
 }
 
-func TestPublisherWriteAfterSubNoLatch(t *testing.T) {
+func TestPublisherWriteToGoAfterSubNoLatch(t *testing.T) {
 	sent := &TestMessage{
 		A: 1,
 		B: []TestParent{
@@ -116,7 +116,7 @@ func TestPublisherWriteAfterSubNoLatch(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
+func TestPublisherWriteToGoBeforeSubNoLatch(t *testing.T) {
 	sent := &TestMessage{
 		A: 1,
 		B: []TestParent{
@@ -176,7 +176,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func TestPublisherWriteLatch(t *testing.T) {
+func TestPublisherWriteToGoLatch(t *testing.T) {
 	sent := &TestMessage{
 		A: 1,
 		B: []TestParent{
@@ -235,7 +235,7 @@ func TestPublisherWriteLatch(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func TestPublisherRostopicEchoNoLatch(t *testing.T) {
+func TestPublisherWriteToRostopicEchoNoLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestPublisherRostopicEchoNoLatch(t *testing.T) {
 	require.Equal(t, "data: 34.5\n---\n", recv)
 }
 
-func TestPublisherRostopicEchoLatch(t *testing.T) {
+func TestPublisherWriteToRostopicEchoLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
