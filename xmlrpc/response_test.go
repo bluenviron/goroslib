@@ -24,6 +24,7 @@ var casesResponse = []struct {
 			`<value>TCPROS</value>` +
 			`<value>testing</value>` +
 			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
 			`</data></array></value>` +
 			`<value>testing</value>` +
 			`</data></array></value></param>` +
@@ -36,6 +37,7 @@ var casesResponse = []struct {
 			`<value>TCPROS</value>` +
 			`<value>testing</value>` +
 			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
 			`</data></array></value>` +
 			`<value>testing</value>` +
 			`</data></array></value></param>` +
@@ -52,6 +54,7 @@ var casesResponse = []struct {
 				"TCPROS",
 				"testing",
 				123,
+				-1.324543,
 			},
 			"testing",
 		},

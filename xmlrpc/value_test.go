@@ -70,20 +70,23 @@ var casesValue = []struct {
 			`<value>test1</value>` +
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
 			`</data></array></value>`),
 		[]byte(`<value><array><data>` +
 			`<value>test1</value>` +
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
 			`</data></array></value>`),
 		Substruct{
 			"test1",
 			"test2",
 			123,
+			-1.324543,
 		},
 	},
 	{
-		"array as slice",
+		"array as slice, single type",
 		[]byte(`<value><array><data>` +
 			`<value>test1</value>` +
 			`<value>test2</value>` +
@@ -93,6 +96,22 @@ var casesValue = []struct {
 			`<value>test2</value>` +
 			`</data></array></value>`),
 		[]string{"test1", "test2"},
+	},
+	{
+		"array as slice, multi type",
+		[]byte(`<value><array><data>` +
+			`<value>test1</value>` +
+			`<value>test2</value>` +
+			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
+			`</data></array></value>`),
+		[]byte(`<value><array><data>` +
+			`<value>test1</value>` +
+			`<value>test2</value>` +
+			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
+			`</data></array></value>`),
+		[]interface{}{"test1", "test2", 123, -1.324543},
 	},
 }
 

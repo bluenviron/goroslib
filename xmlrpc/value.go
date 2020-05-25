@@ -25,12 +25,12 @@ func decodeBool(in []byte, val reflect.Value) error {
 		return fmt.Errorf("value is not a bool: %v", in)
 	}
 
-	switch val.Elem().Kind() {
-	case reflect.Bool:
-		*(val.Interface().(*bool)) = v
+	switch tval := val.Interface().(type) {
+	case *bool:
+		*tval = v
 
 	default:
-		return fmt.Errorf("cannot decode a bool into a %s", val.Elem().Kind())
+		return fmt.Errorf("cannot decode a bool into a %T", val.Interface())
 	}
 	return nil
 }
@@ -42,12 +42,15 @@ func decodeInt(in []byte, val reflect.Value) error {
 		return err
 	}
 
-	switch val.Elem().Kind() {
-	case reflect.Int:
-		*(val.Interface().(*int)) = int(v)
+	switch tval := val.Interface().(type) {
+	case *int:
+		*tval = int(v)
+
+	case *interface{}:
+		*tval = int(v)
 
 	default:
-		return fmt.Errorf("cannot decode a int into a %s", val.Elem().Kind())
+		return fmt.Errorf("cannot decode a int into a %T", val.Interface())
 	}
 	return nil
 }
@@ -58,23 +61,29 @@ func decodeDouble(in []byte, val reflect.Value) error {
 		return err
 	}
 
-	switch val.Elem().Kind() {
-	case reflect.Float64:
-		*(val.Interface().(*float64)) = v
+	switch tval := val.Interface().(type) {
+	case *float64:
+		*tval = v
+
+	case *interface{}:
+		*tval = v
 
 	default:
-		return fmt.Errorf("cannot decode a double into a %s", val.Elem().Kind())
+		return fmt.Errorf("cannot decode a double into a %T", val.Interface())
 	}
 	return nil
 }
 
 func decodeString(in []byte, val reflect.Value) error {
-	switch val.Elem().Kind() {
-	case reflect.String:
-		*(val.Interface().(*string)) = string(in)
+	switch tval := val.Interface().(type) {
+	case *string:
+		*tval = string(in)
+
+	case *interface{}:
+		*tval = string(in)
 
 	default:
-		return fmt.Errorf("cannot decode a string into a %s", val.Elem().Kind())
+		return fmt.Errorf("cannot decode a string into a %T", val.Interface())
 	}
 	return nil
 }
@@ -108,6 +117,8 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 		}
 
 	case reflect.Slice:
+		typ := val.Elem().Type().Elem()
+
 		for {
 			err := xmlGetStartElement(dec, "value")
 			if err != nil {
@@ -118,7 +129,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			el := reflect.New(val.Elem().Type().Elem())
+			el := reflect.New(typ)
 			err = decodeValue(dec, el)
 			if err != nil {
 				return err
@@ -235,10 +246,10 @@ func encodeValue(w io.Writer, val reflect.Value) error {
 		return err
 	}
 
-	switch val.Kind() {
-	case reflect.Bool:
+	switch tval := val.Interface().(type) {
+	case bool:
 		v := "0"
-		if val.Interface().(bool) {
+		if tval {
 			v = "1"
 		}
 		_, err := w.Write([]byte(`<boolean>` + v + `</boolean>`))
@@ -246,68 +257,71 @@ func encodeValue(w io.Writer, val reflect.Value) error {
 			return err
 		}
 
-	case reflect.Int:
-		_, err := w.Write([]byte(`<i4>` + strconv.FormatInt(int64(val.Interface().(int)), 10) + `</i4>`))
+	case int:
+		_, err := w.Write([]byte(`<i4>` + strconv.FormatInt(int64(tval), 10) + `</i4>`))
 		if err != nil {
 			return err
 		}
 
-	case reflect.Float64:
-		_, err := w.Write([]byte(`<double>` + strconv.FormatFloat(val.Interface().(float64), 'G', -1, 64) + `</double>`))
+	case float64:
+		_, err := w.Write([]byte(`<double>` + strconv.FormatFloat(tval, 'G', -1, 64) + `</double>`))
 		if err != nil {
 			return err
 		}
 
-	case reflect.String:
-		_, err := w.Write([]byte(val.Interface().(string)))
-		if err != nil {
-			return err
-		}
-
-	case reflect.Struct:
-		_, err := w.Write([]byte(`<array><data>`))
-		if err != nil {
-			return err
-		}
-
-		nf := val.NumField()
-		for i := 0; i < nf; i++ {
-			field := val.Field(i)
-
-			err := encodeValue(w, field)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = w.Write([]byte(`</data></array>`))
-		if err != nil {
-			return err
-		}
-
-	case reflect.Slice:
-		_, err := w.Write([]byte(`<array><data>`))
-		if err != nil {
-			return err
-		}
-
-		le := val.Len()
-		for i := 0; i < le; i++ {
-			el := val.Index(i)
-
-			err := encodeValue(w, el)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = w.Write([]byte(`</data></array>`))
+	case string:
+		_, err := w.Write([]byte(tval))
 		if err != nil {
 			return err
 		}
 
 	default:
-		return fmt.Errorf("unhandled value type: %s", val.Kind())
+		switch val.Kind() {
+		case reflect.Struct:
+			_, err := w.Write([]byte(`<array><data>`))
+			if err != nil {
+				return err
+			}
+
+			nf := val.NumField()
+			for i := 0; i < nf; i++ {
+				field := val.Field(i)
+
+				err := encodeValue(w, field)
+				if err != nil {
+					return err
+				}
+			}
+
+			_, err = w.Write([]byte(`</data></array>`))
+			if err != nil {
+				return err
+			}
+
+		case reflect.Slice:
+			_, err := w.Write([]byte(`<array><data>`))
+			if err != nil {
+				return err
+			}
+
+			le := val.Len()
+			for i := 0; i < le; i++ {
+				el := val.Index(i)
+
+				err := encodeValue(w, el)
+				if err != nil {
+					return err
+				}
+			}
+
+			_, err = w.Write([]byte(`</data></array>`))
+			if err != nil {
+				return err
+			}
+
+		default:
+			return fmt.Errorf("unhandled value type: %s", val.Kind())
+		}
 	}
 
 	_, err = w.Write([]byte(`</value>`))

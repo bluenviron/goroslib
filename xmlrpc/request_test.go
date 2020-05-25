@@ -12,6 +12,7 @@ type Substruct struct {
 	Param1 string
 	Param2 string
 	Param3 int
+	Param4 float64
 }
 
 var casesRequest = []struct {
@@ -29,6 +30,7 @@ var casesRequest = []struct {
 			`<value>test1</value>` +
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
 			`</data></array></value></param>` +
 			`<param><value><boolean>1</boolean></value></param>` +
 			`</params></methodCall>`),
@@ -38,6 +40,7 @@ var casesRequest = []struct {
 			`<value>test1</value>` +
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
 			`</data></array></value></param>` +
 			`<param><value><boolean>1</boolean></value></param>` +
 			`</params></methodCall>`),
@@ -52,6 +55,7 @@ var casesRequest = []struct {
 				"test1",
 				"test2",
 				123,
+				-1.324543,
 			},
 			true,
 		},
