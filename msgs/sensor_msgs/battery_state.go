@@ -9,19 +9,19 @@ import (
 type BatteryState struct {
 	msgs.Package          `ros:"sensor_msgs"`
 	Header                std_msgs.Header
-	Voltage               msgs.Float32
-	Temperature           msgs.Float32
-	Current               msgs.Float32
-	Charge                msgs.Float32
-	Capacity              msgs.Float32
-	DesignCapacity        msgs.Float32
-	Percentage            msgs.Float32
-	PowerSupplyStatus     msgs.Uint8
-	PowerSupplyHealth     msgs.Uint8
-	PowerSupplyTechnology msgs.Uint8
-	Present               msgs.Bool
-	CellVoltage           []msgs.Float32
-	CellTemperature       []msgs.Float32
-	Location              msgs.String
-	SerialNumber          msgs.String
+	Voltage               float32
+	Temperature           float32
+	Current               float32
+	Charge                float32
+	Capacity              float32
+	DesignCapacity        float32
+	Percentage            float32
+	PowerSupplyStatus     uint8
+	PowerSupplyHealth     uint8
+	PowerSupplyTechnology uint8
+	Present               bool
+	CellVoltage           []float32
+	CellTemperature       []float32
+	Location              string
+	SerialNumber          string
 }

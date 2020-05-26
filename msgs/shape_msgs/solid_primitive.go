@@ -7,6 +7,6 @@ import (
 
 type SolidPrimitive struct {
 	msgs.Package `ros:"shape_msgs"`
-	Type         msgs.Uint8
-	Dimensions   []msgs.Float64
+	Type         uint8
+	Dimensions   []float64
 }

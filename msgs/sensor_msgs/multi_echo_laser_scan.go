@@ -9,13 +9,13 @@ import (
 type MultiEchoLaserScan struct {
 	msgs.Package   `ros:"sensor_msgs"`
 	Header         std_msgs.Header
-	AngleMin       msgs.Float32
-	AngleMax       msgs.Float32
-	AngleIncrement msgs.Float32
-	TimeIncrement  msgs.Float32
-	ScanTime       msgs.Float32
-	RangeMin       msgs.Float32
-	RangeMax       msgs.Float32
+	AngleMin       float32
+	AngleMax       float32
+	AngleIncrement float32
+	TimeIncrement  float32
+	ScanTime       float32
+	RangeMin       float32
+	RangeMax       float32
 	Ranges         []LaserEcho
 	Intensities    []LaserEcho
 }

@@ -9,14 +9,14 @@ import (
 type CameraInfo struct {
 	msgs.Package    `ros:"sensor_msgs"`
 	Header          std_msgs.Header
-	Height          msgs.Uint32
-	Width           msgs.Uint32
-	DistortionModel msgs.String
-	D               []msgs.Float64
-	K               [9]msgs.Float64
-	R               [9]msgs.Float64
-	P               [12]msgs.Float64
-	BinningX        msgs.Uint32
-	BinningY        msgs.Uint32
+	Height          uint32
+	Width           uint32
+	DistortionModel string
+	D               []float64
+	K               [9]float64
+	R               [9]float64
+	P               [12]float64
+	BinningX        uint32
+	BinningY        uint32
 	Roi             RegionOfInterest
 }

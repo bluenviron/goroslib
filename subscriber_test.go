@@ -6,25 +6,24 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/sensor_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type TestParent struct {
-	A msgs.String
-	B msgs.Time
-	C msgs.Bool
-	D msgs.Byte
-	E msgs.Char
-	F msgs.Duration
+	A string
+	B time.Time
+	C bool
+	D int8
+	E uint8
+	F time.Duration
 }
 
 type TestMessage struct {
-	A msgs.Uint8
+	A uint8
 	B []TestParent
 	C [2]TestParent
-	D [2]msgs.Uint32
+	D [2]uint32
 }
 
 func TestSubscriberRegister(t *testing.T) {
@@ -127,7 +126,7 @@ func TestSubscriberReadFromCppAfterPub(t *testing.T) {
 				A: "BB",
 			},
 		},
-		D: [2]msgs.Uint32{222, 333},
+		D: [2]uint32{222, 333},
 	}
 	require.Equal(t, &expected, recv)
 }
@@ -184,7 +183,7 @@ func TestSubscriberReadFromCppBeforePub(t *testing.T) {
 				A: "BB",
 			},
 		},
-		D: [2]msgs.Uint32{222, 333},
+		D: [2]uint32{222, 333},
 	}
 	require.Equal(t, &expected, recv)
 }
@@ -225,9 +224,9 @@ func TestSubscriberReadFromRostopicPub(t *testing.T) {
 		Header: std_msgs.Header{
 			Seq: 1,
 		},
-		OrientationCovariance:        [9]msgs.Float64{0, 0, 0, 0, 0.2, 0, 0, 0, 0},
-		AngularVelocityCovariance:    [9]msgs.Float64{0, 0, 15, 0, 0, 0, 0, 0, 0},
-		LinearAccelerationCovariance: [9]msgs.Float64{0, 0, 0, 0, 0, 0, 0, 0, 13.7},
+		OrientationCovariance:        [9]float64{0, 0, 0, 0, 0.2, 0, 0, 0, 0},
+		AngularVelocityCovariance:    [9]float64{0, 0, 15, 0, 0, 0, 0, 0, 0},
+		LinearAccelerationCovariance: [9]float64{0, 0, 0, 0, 0, 0, 0, 0, 13.7},
 	}
 	require.Equal(t, expected, recv)
 }

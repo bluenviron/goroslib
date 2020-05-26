@@ -5,21 +5,22 @@ import (
 	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
+	"time"
 )
 
 type ImageMarker struct {
 	msgs.Package  `ros:"visualization_msgs"`
 	Header        std_msgs.Header
-	Ns            msgs.String
-	Id            msgs.Int32
-	Type          msgs.Int32
-	Action        msgs.Int32
+	Ns            string
+	Id            int32
+	Type          int32
+	Action        int32
 	Position      geometry_msgs.Point
-	Scale         msgs.Float32
+	Scale         float32
 	OutlineColor  std_msgs.ColorRGBA
-	Filled        msgs.Uint8
+	Filled        uint8
 	FillColor     std_msgs.ColorRGBA
-	Lifetime      msgs.Duration
+	Lifetime      time.Duration
 	Points        []geometry_msgs.Point
 	OutlineColors []std_msgs.ColorRGBA
 }

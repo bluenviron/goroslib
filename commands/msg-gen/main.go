@@ -92,6 +92,15 @@ func processPackage(name string, addr string) error {
 	}
 
 	for _, f := range files {
+		// skip deprecated types
+		if (name == "std_msgs" && f.Name == "Char.msg") ||
+			(name == "std_msgs" && f.Name == "Byte.msg") ||
+			(name == "std_msgs" && f.Name == "ByteMultiArray.msg") ||
+			(name == "diagnostic_msgs" && f.Name == "DiagnosticStatus.msg") ||
+			(name == "diagnostic_msgs" && f.Name == "DiagnosticArray.msg") {
+			continue
+		}
+
 		err := shellCommand(fmt.Sprintf("go run ./commands/msg-import --package=%s --rospackage=%s %s > %s",
 			name,
 			name,

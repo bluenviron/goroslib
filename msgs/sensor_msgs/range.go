@@ -9,9 +9,9 @@ import (
 type Range struct {
 	msgs.Package  `ros:"sensor_msgs"`
 	Header        std_msgs.Header
-	RadiationType msgs.Uint8
-	FieldOfView   msgs.Float32
-	MinRange      msgs.Float32
-	MaxRange      msgs.Float32
-	Range         msgs.Float32
+	RadiationType uint8
+	FieldOfView   float32
+	MinRange      float32
+	MaxRange      float32
+	Range         float32
 }

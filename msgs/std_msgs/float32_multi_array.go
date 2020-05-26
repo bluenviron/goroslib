@@ -8,5 +8,5 @@ import (
 type Float32MultiArray struct {
 	msgs.Package `ros:"std_msgs"`
 	Layout       MultiArrayLayout
-	Data         []msgs.Float32
+	Data         []float32
 }

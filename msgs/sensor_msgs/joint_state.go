@@ -9,8 +9,8 @@ import (
 type JointState struct {
 	msgs.Package `ros:"sensor_msgs"`
 	Header       std_msgs.Header
-	Name         []msgs.String
-	Position     []msgs.Float64
-	Velocity     []msgs.Float64
-	Effort       []msgs.Float64
+	Name         []string
+	Position     []float64
+	Velocity     []float64
+	Effort       []float64
 }

@@ -11,9 +11,9 @@ type Imu struct {
 	msgs.Package                 `ros:"sensor_msgs"`
 	Header                       std_msgs.Header
 	Orientation                  geometry_msgs.Quaternion
-	OrientationCovariance        [9]msgs.Float64
+	OrientationCovariance        [9]float64
 	AngularVelocity              geometry_msgs.Vector3
-	AngularVelocityCovariance    [9]msgs.Float64
+	AngularVelocityCovariance    [9]float64
 	LinearAcceleration           geometry_msgs.Vector3
-	LinearAccelerationCovariance [9]msgs.Float64
+	LinearAccelerationCovariance [9]float64
 }

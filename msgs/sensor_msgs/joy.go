@@ -9,6 +9,6 @@ import (
 type Joy struct {
 	msgs.Package `ros:"sensor_msgs"`
 	Header       std_msgs.Header
-	Axes         []msgs.Float32
-	Buttons      []msgs.Int32
+	Axes         []float32
+	Buttons      []int32
 }

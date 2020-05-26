@@ -10,9 +10,9 @@ type NavSatFix struct {
 	msgs.Package           `ros:"sensor_msgs"`
 	Header                 std_msgs.Header
 	Status                 NavSatStatus
-	Latitude               msgs.Float64
-	Longitude              msgs.Float64
-	Altitude               msgs.Float64
-	PositionCovariance     [9]msgs.Float64
-	PositionCovarianceType msgs.Uint8
+	Latitude               float64
+	Longitude              float64
+	Altitude               float64
+	PositionCovariance     [9]float64
+	PositionCovarianceType uint8
 }

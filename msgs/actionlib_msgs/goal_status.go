@@ -8,6 +8,6 @@ import (
 type GoalStatus struct {
 	msgs.Package `ros:"actionlib_msgs"`
 	GoalId       GoalID
-	Status       msgs.Uint8
-	Text         msgs.String
+	Status       uint8
+	Text         string
 }

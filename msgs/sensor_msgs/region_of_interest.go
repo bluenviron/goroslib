@@ -7,9 +7,9 @@ import (
 
 type RegionOfInterest struct {
 	msgs.Package `ros:"sensor_msgs"`
-	XOffset      msgs.Uint32
-	YOffset      msgs.Uint32
-	Height       msgs.Uint32
-	Width        msgs.Uint32
-	DoRectify    msgs.Bool
+	XOffset      uint32
+	YOffset      uint32
+	Height       uint32
+	Width        uint32
+	DoRectify    bool
 }

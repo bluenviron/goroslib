@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/aler9/goroslib/msgs"
@@ -50,52 +51,46 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 	}
 
 	switch rt {
-	case reflect.TypeOf(msgs.Bool(false)):
+	case reflect.TypeOf(bool(false)):
 		return "bool", false, nil
 
-	case reflect.TypeOf(msgs.Byte(0)):
-		return "byte", false, nil
-
-	case reflect.TypeOf(msgs.Char(0)):
-		return "char", false, nil
-
-	case reflect.TypeOf(msgs.Int8(0)):
+	case reflect.TypeOf(int8(0)):
 		return "int8", false, nil
 
-	case reflect.TypeOf(msgs.Uint8(0)):
+	case reflect.TypeOf(uint8(0)):
 		return "uint8", false, nil
 
-	case reflect.TypeOf(msgs.Int16(0)):
+	case reflect.TypeOf(int16(0)):
 		return "int16", false, nil
 
-	case reflect.TypeOf(msgs.Uint16(0)):
+	case reflect.TypeOf(uint16(0)):
 		return "uint16", false, nil
 
-	case reflect.TypeOf(msgs.Int32(0)):
+	case reflect.TypeOf(int32(0)):
 		return "int32", false, nil
 
-	case reflect.TypeOf(msgs.Uint32(0)):
+	case reflect.TypeOf(uint32(0)):
 		return "uint32", false, nil
 
-	case reflect.TypeOf(msgs.Int64(0)):
+	case reflect.TypeOf(int64(0)):
 		return "int64", false, nil
 
-	case reflect.TypeOf(msgs.Uint64(0)):
+	case reflect.TypeOf(uint64(0)):
 		return "uint64", false, nil
 
-	case reflect.TypeOf(msgs.Float32(0)):
+	case reflect.TypeOf(float32(0)):
 		return "float32", false, nil
 
-	case reflect.TypeOf(msgs.Float64(0)):
+	case reflect.TypeOf(float64(0)):
 		return "float64", false, nil
 
-	case reflect.TypeOf(msgs.String(0)):
+	case reflect.TypeOf(string(0)):
 		return "string", false, nil
 
-	case reflect.TypeOf(msgs.Time{}):
+	case reflect.TypeOf(time.Time{}):
 		return "time", false, nil
 
-	case reflect.TypeOf(msgs.Duration(0)):
+	case reflect.TypeOf(time.Duration(0)):
 		return "duration", false, nil
 	}
 

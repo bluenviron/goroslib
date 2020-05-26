@@ -8,5 +8,5 @@ import (
 type Int32MultiArray struct {
 	msgs.Package `ros:"std_msgs"`
 	Layout       MultiArrayLayout
-	Data         []msgs.Int32
+	Data         []int32
 }

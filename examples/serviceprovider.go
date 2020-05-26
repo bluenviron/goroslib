@@ -16,13 +16,13 @@ import (
 
 type TestServiceReq struct {
 	msgs.Package `ros:"my_package"`
-	A            msgs.Float64
-	B            msgs.String
+	A            float64
+	B            string
 }
 
 type TestServiceRes struct {
 	msgs.Package `ros:"my_package"`
-	C            msgs.Float64
+	C            float64
 }
 
 func onService(req *TestServiceReq) *TestServiceRes {

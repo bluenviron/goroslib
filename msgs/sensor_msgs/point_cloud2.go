@@ -9,12 +9,12 @@ import (
 type PointCloud2 struct {
 	msgs.Package `ros:"sensor_msgs"`
 	Header       std_msgs.Header
-	Height       msgs.Uint32
-	Width        msgs.Uint32
+	Height       uint32
+	Width        uint32
 	Fields       []PointField
-	IsBigendian  msgs.Bool
-	PointStep    msgs.Uint32
-	RowStep      msgs.Uint32
-	Data         []msgs.Uint8
-	IsDense      msgs.Bool
+	IsBigendian  bool
+	PointStep    uint32
+	RowStep      uint32
+	Data         []uint8
+	IsDense      bool
 }

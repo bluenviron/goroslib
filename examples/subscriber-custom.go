@@ -14,8 +14,8 @@ import (
 // a structure definition is enough.
 type TestMessage struct {
 	msgs.Package `ros:"my_package"`
-	FirstField   msgs.Uint32
-	SecondField  msgs.String
+	FirstField   uint32
+	SecondField  string
 }
 
 func onMessage(msg *TestMessage) {

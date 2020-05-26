@@ -7,5 +7,5 @@ import (
 
 type Int64 struct {
 	msgs.Package `ros:"std_msgs"`
-	Data         msgs.Int64
+	Data         int64
 }

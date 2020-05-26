@@ -7,7 +7,7 @@ import (
 
 type Pose2D struct {
 	msgs.Package `ros:"geometry_msgs"`
-	X            msgs.Float64
-	Y            msgs.Float64
-	Theta        msgs.Float64
+	X            float64
+	Y            float64
+	Theta        float64
 }

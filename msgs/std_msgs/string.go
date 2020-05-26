@@ -7,5 +7,5 @@ import (
 
 type String struct {
 	msgs.Package `ros:"std_msgs"`
-	Data         msgs.String
+	Data         string
 }

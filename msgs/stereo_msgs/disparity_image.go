@@ -11,10 +11,10 @@ type DisparityImage struct {
 	msgs.Package `ros:"stereo_msgs"`
 	Header       std_msgs.Header
 	Image        sensor_msgs.Image
-	F            msgs.Float32
-	T            msgs.Float32
+	F            float32
+	T            float32
 	ValidWindow  sensor_msgs.RegionOfInterest
-	MinDisparity msgs.Float32
-	MaxDisparity msgs.Float32
-	DeltaD       msgs.Float32
+	MinDisparity float32
+	MaxDisparity float32
+	DeltaD       float32
 }

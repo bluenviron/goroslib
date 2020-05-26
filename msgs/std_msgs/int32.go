@@ -7,5 +7,5 @@ import (
 
 type Int32 struct {
 	msgs.Package `ros:"std_msgs"`
-	Data         msgs.Int32
+	Data         int32
 }

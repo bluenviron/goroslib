@@ -163,7 +163,7 @@ func run() error {
 				// implicit std_msgs fields
 				if goPkgName != "std_msgs" {
 					switch f.Type {
-					case "Bool", "ByteMultiArray", "Byte", "Char", "ColorRGBA",
+					case "Bool", "ColorRGBA",
 						"Duration", "Empty", "Float32MultiArray", "Float32",
 						"Float64MultiArray", "Float64", "Header", "Int8MultiArray",
 						"Int8", "Int16MultiArray", "Int16", "Int32MultiArray", "Int32",
@@ -178,13 +178,19 @@ func run() error {
 
 			// native types
 			switch f.Type {
-			case "bool", "byte", "char",
-				"int8", "uint8", "int16", "uint16",
-				"int32", "uint32", "int64", "uint64",
-				"float32", "float64", "string",
-				"time", "duration":
-				return "msgs." + strings.Title(f.Type)
+			case "bool", "int8", "uint8", "int16", "uint16",
+				"int32", "uint32", "int64", "uint64", "float32",
+				"float64", "string":
+				return f.Type
+
+			case "time", "duration":
+				imports["time"] = struct{}{}
+				return "time." + strings.Title(f.Type)
+
+			case "byte", "char":
+				return "DEPRECATED"
 			}
+
 			return f.Type
 		}()
 

@@ -8,5 +8,5 @@ import (
 type UInt64MultiArray struct {
 	msgs.Package `ros:"std_msgs"`
 	Layout       MultiArrayLayout
-	Data         []msgs.Uint64
+	Data         []uint64
 }

@@ -11,5 +11,5 @@ type InteractiveMarkerPose struct {
 	msgs.Package `ros:"visualization_msgs"`
 	Header       std_msgs.Header
 	Pose         geometry_msgs.Pose
-	Name         msgs.String
+	Name         string
 }

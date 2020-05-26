@@ -7,8 +7,8 @@ import (
 
 type ColorRGBA struct {
 	msgs.Package `ros:"std_msgs"`
-	R            msgs.Float32
-	G            msgs.Float32
-	B            msgs.Float32
-	A            msgs.Float32
+	R            float32
+	G            float32
+	B            float32
+	A            float32
 }

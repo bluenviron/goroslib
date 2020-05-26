@@ -10,5 +10,5 @@ type OccupancyGrid struct {
 	msgs.Package `ros:"nav_msgs"`
 	Header       std_msgs.Header
 	Info         MapMetaData
-	Data         []msgs.Int8
+	Data         []int8
 }

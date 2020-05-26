@@ -10,12 +10,12 @@ import (
 type InteractiveMarkerFeedback struct {
 	msgs.Package    `ros:"visualization_msgs"`
 	Header          std_msgs.Header
-	ClientId        msgs.String
-	MarkerName      msgs.String
-	ControlName     msgs.String
-	EventType       msgs.Uint8
+	ClientId        string
+	MarkerName      string
+	ControlName     string
+	EventType       uint8
 	Pose            geometry_msgs.Pose
-	MenuEntryId     msgs.Uint32
+	MenuEntryId     uint32
 	MousePoint      geometry_msgs.Point
-	MousePointValid msgs.Bool
+	MousePointValid bool
 }

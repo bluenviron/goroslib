@@ -52,8 +52,8 @@ test-nodocker:
 	go test -v ./msg-utils
 	go test -v ./tcpros
 	go test -v ./xmlrpc
-	go test -v .
 	go test -v ./msgs/...
+	go test -v .
 	go build -o /dev/null ./commands/...
 	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
 

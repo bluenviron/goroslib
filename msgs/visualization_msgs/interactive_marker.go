@@ -11,9 +11,9 @@ type InteractiveMarker struct {
 	msgs.Package `ros:"visualization_msgs"`
 	Header       std_msgs.Header
 	Pose         geometry_msgs.Pose
-	Name         msgs.String
-	Description  msgs.String
-	Scale        msgs.Float32
+	Name         string
+	Description  string
+	Scale        float32
 	MenuEntries  []MenuEntry
 	Controls     []InteractiveMarkerControl
 }

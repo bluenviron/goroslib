@@ -7,5 +7,5 @@ import (
 
 type LaserEcho struct {
 	msgs.Package `ros:"sensor_msgs"`
-	Echoes       []msgs.Float32
+	Echoes       []float32
 }

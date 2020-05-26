@@ -7,5 +7,5 @@ import (
 
 type Float64 struct {
 	msgs.Package `ros:"std_msgs"`
-	Data         msgs.Float64
+	Data         float64
 }

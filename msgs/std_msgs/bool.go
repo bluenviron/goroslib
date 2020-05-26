@@ -7,5 +7,5 @@ import (
 
 type Bool struct {
 	msgs.Package `ros:"std_msgs"`
-	Data         msgs.Bool
+	Data         bool
 }

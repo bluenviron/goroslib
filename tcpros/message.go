@@ -14,128 +14,110 @@ import (
 
 func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte) error {
 	switch cv := val.Interface().(type) {
-	case *msgs.Bool:
+	case *bool:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		b := msgs.Bool(false)
+		b := bool(false)
 		if buf[0] == 0x01 {
 			b = true
 		}
 		*cv = b
 		return nil
 
-	case *msgs.Byte:
+	case *int8:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		*cv = msgs.Byte(buf[0])
+		*cv = int8(buf[0])
 		return nil
 
-	case *msgs.Char:
+	case *uint8:
 		_, err := io.ReadFull(r, buf[:1])
 		if err != nil {
 			return err
 		}
 		*mlen -= 1
-		*cv = msgs.Char(buf[0])
+		*cv = uint8(buf[0])
 		return nil
 
-	case *msgs.Int8:
-		_, err := io.ReadFull(r, buf[:1])
-		if err != nil {
-			return err
-		}
-		*mlen -= 1
-		*cv = msgs.Int8(buf[0])
-		return nil
-
-	case *msgs.Uint8:
-		_, err := io.ReadFull(r, buf[:1])
-		if err != nil {
-			return err
-		}
-		*mlen -= 1
-		*cv = msgs.Uint8(buf[0])
-		return nil
-
-	case *msgs.Int16:
+	case *int16:
 		_, err := io.ReadFull(r, buf[:2])
 		if err != nil {
 			return err
 		}
 		*mlen -= 2
-		*cv = msgs.Int16(binary.LittleEndian.Uint16(buf))
+		*cv = int16(binary.LittleEndian.Uint16(buf))
 		return nil
 
-	case *msgs.Uint16:
+	case *uint16:
 		_, err := io.ReadFull(r, buf[:2])
 		if err != nil {
 			return err
 		}
 		*mlen -= 2
-		*cv = msgs.Uint16(binary.LittleEndian.Uint16(buf))
+		*cv = uint16(binary.LittleEndian.Uint16(buf))
 		return nil
 
-	case *msgs.Int32:
+	case *int32:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
 		}
 		*mlen -= 4
-		*cv = msgs.Int32(binary.LittleEndian.Uint32(buf))
+		*cv = int32(binary.LittleEndian.Uint32(buf))
 		return nil
 
-	case *msgs.Uint32:
+	case *uint32:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
 		}
 		*mlen -= 4
-		*cv = msgs.Uint32(binary.LittleEndian.Uint32(buf))
+		*cv = uint32(binary.LittleEndian.Uint32(buf))
 		return nil
 
-	case *msgs.Int64:
+	case *int64:
 		_, err := io.ReadFull(r, buf[:8])
 		if err != nil {
 			return err
 		}
 		*mlen -= 8
-		*cv = msgs.Int64(binary.LittleEndian.Uint64(buf))
+		*cv = int64(binary.LittleEndian.Uint64(buf))
 		return nil
 
-	case *msgs.Uint64:
+	case *uint64:
 		_, err := io.ReadFull(r, buf[:8])
 		if err != nil {
 			return err
 		}
 		*mlen -= 8
-		*cv = msgs.Uint64(binary.LittleEndian.Uint64(buf))
+		*cv = uint64(binary.LittleEndian.Uint64(buf))
 		return nil
 
-	case *msgs.Float32:
+	case *float32:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
 		}
 		*mlen -= 4
-		*cv = msgs.Float32(math.Float32frombits(binary.LittleEndian.Uint32(buf)))
+		*cv = float32(math.Float32frombits(binary.LittleEndian.Uint32(buf)))
 		return nil
 
-	case *msgs.Float64:
+	case *float64:
 		_, err := io.ReadFull(r, buf[:8])
 		if err != nil {
 			return err
 		}
 		*mlen -= 8
-		*cv = msgs.Float64(math.Float64frombits(binary.LittleEndian.Uint64(buf)))
+		*cv = float64(math.Float64frombits(binary.LittleEndian.Uint64(buf)))
 		return nil
 
-	case *msgs.String:
+	case *string:
 		// string length
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
@@ -155,13 +137,13 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 				return err
 			}
 			*mlen -= le
-			*cv = msgs.String(bstr)
+			*cv = string(bstr)
 		} else {
 			*cv = ""
 		}
 		return nil
 
-	case *msgs.Time:
+	case *time.Time:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
@@ -185,7 +167,7 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		return nil
 
-	case *msgs.Duration:
+	case *time.Duration:
 		_, err := io.ReadFull(r, buf[:4])
 		if err != nil {
 			return err
@@ -341,7 +323,7 @@ func messageDecode(r io.Reader, msg interface{}) error {
 
 func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 	switch cv := val.Elem().Interface().(type) {
-	case msgs.Bool:
+	case bool:
 		b := uint8(0x00)
 		if cv {
 			b = 0x01
@@ -349,63 +331,55 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		_, err := w.Write([]byte{b})
 		return err
 
-	case msgs.Byte:
+	case int8:
 		_, err := w.Write([]byte{uint8(cv)})
 		return err
 
-	case msgs.Char:
+	case uint8:
 		_, err := w.Write([]byte{uint8(cv)})
 		return err
 
-	case msgs.Int8:
-		_, err := w.Write([]byte{uint8(cv)})
-		return err
-
-	case msgs.Uint8:
-		_, err := w.Write([]byte{uint8(cv)})
-		return err
-
-	case msgs.Int16:
+	case int16:
 		binary.LittleEndian.PutUint16(buf, uint16(cv))
 		_, err := w.Write(buf[:2])
 		return err
 
-	case msgs.Uint16:
+	case uint16:
 		binary.LittleEndian.PutUint16(buf, uint16(cv))
 		_, err := w.Write(buf[:2])
 		return err
 
-	case msgs.Int32:
+	case int32:
 		binary.LittleEndian.PutUint32(buf, uint32(cv))
 		_, err := w.Write(buf[:4])
 		return err
 
-	case msgs.Uint32:
+	case uint32:
 		binary.LittleEndian.PutUint32(buf, uint32(cv))
 		_, err := w.Write(buf[:4])
 		return err
 
-	case msgs.Int64:
+	case int64:
 		binary.LittleEndian.PutUint64(buf, uint64(cv))
 		_, err := w.Write(buf[:8])
 		return err
 
-	case msgs.Uint64:
+	case uint64:
 		binary.LittleEndian.PutUint64(buf, uint64(cv))
 		_, err := w.Write(buf[:8])
 		return err
 
-	case msgs.Float32:
+	case float32:
 		binary.LittleEndian.PutUint32(buf, math.Float32bits(float32(cv)))
 		_, err := w.Write(buf[:4])
 		return err
 
-	case msgs.Float64:
+	case float64:
 		binary.LittleEndian.PutUint64(buf, math.Float64bits(float64(cv)))
 		_, err := w.Write(buf[:8])
 		return err
 
-	case msgs.String:
+	case string:
 		bstr := []byte(cv)
 
 		// string length
@@ -419,7 +393,7 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		_, err = w.Write(bstr)
 		return err
 
-	case msgs.Time:
+	case time.Time:
 		// special case: zero means year zero, not 1970
 		// so time.Time{} can be encoded / decoded
 		var nano int64
@@ -440,7 +414,7 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		_, err = w.Write(buf[:4])
 		return err
 
-	case msgs.Duration:
+	case time.Duration:
 		nano := cv.Nanoseconds()
 
 		binary.LittleEndian.PutUint32(buf, uint32(nano/1000000000))

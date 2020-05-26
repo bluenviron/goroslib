@@ -9,6 +9,6 @@ import (
 type TransformStamped struct {
 	msgs.Package `ros:"geometry_msgs"`
 	Header       std_msgs.Header
-	ChildFrameId msgs.String
+	ChildFrameId string
 	Transform    Transform
 }

@@ -10,7 +10,7 @@ import (
 type MultiDOFJointState struct {
 	msgs.Package `ros:"sensor_msgs"`
 	Header       std_msgs.Header
-	JointNames   []msgs.String
+	JointNames   []string
 	Transforms   []geometry_msgs.Transform
 	Twist        []geometry_msgs.Twist
 	Wrench       []geometry_msgs.Wrench

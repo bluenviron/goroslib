@@ -9,6 +9,6 @@ import (
 type Illuminance struct {
 	msgs.Package `ros:"sensor_msgs"`
 	Header       std_msgs.Header
-	Illuminance  msgs.Float64
-	Variance     msgs.Float64
+	Illuminance  float64
+	Variance     float64
 }

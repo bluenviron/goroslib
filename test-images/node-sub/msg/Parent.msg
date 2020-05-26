@@ -1,6 +1,6 @@
 string a
 time b
 bool c
-byte d
-char e
+int8 d
+uint8 e
 duration f

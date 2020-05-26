@@ -9,6 +9,6 @@ import (
 type RelativeHumidity struct {
 	msgs.Package     `ros:"sensor_msgs"`
 	Header           std_msgs.Header
-	RelativeHumidity msgs.Float64
-	Variance         msgs.Float64
+	RelativeHumidity float64
+	Variance         float64
 }

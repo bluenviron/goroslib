@@ -11,5 +11,5 @@ type MagneticField struct {
 	msgs.Package            `ros:"sensor_msgs"`
 	Header                  std_msgs.Header
 	MagneticField           geometry_msgs.Vector3
-	MagneticFieldCovariance [9]msgs.Float64
+	MagneticFieldCovariance [9]float64
 }

@@ -42,7 +42,11 @@ import (
 * [param-set-get](examples/param-set-get.go)
 * [cluster-info](examples/cluster-info.go)
 
-## Message definitions
+## Standard messages
+
+Standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
+
+## Custom messages
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
 ```
@@ -58,12 +62,28 @@ import (
 
 type MessageName struct {
     msgs.Package `ros:"my_package"`
-    Field1 msgs.Bool
-    Field2 msgs.Int32
+    Field1 bool
+    Field2 int32
 }
 ```
 
-Primitive field types (bool, int, etc) and standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
+The type of a message field can be one of the following:
+* one of the primitive field types:
+  * bool
+  * int8
+  * uint8
+  * int16
+  * uint16
+  * int32
+  * uint32
+  * int64
+  * uint64
+  * float32
+  * float64
+  * string
+  * time.Time
+  * time.Duration
+* another standard or custom message
 
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
 ```

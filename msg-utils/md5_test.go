@@ -2,6 +2,7 @@ package msg_utils
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type Parent struct {
-	A msgs.String
+	A string
 }
 
 var casesMessageMd5 = []struct {
@@ -21,45 +22,43 @@ var casesMessageMd5 = []struct {
 		"base types",
 		&struct {
 			msgs.Package `ros:"testing"`
-			A            msgs.Bool
-			B            msgs.Byte
-			C            msgs.Char
-			D            msgs.Int8
-			E            msgs.Uint8
-			F            msgs.Int16
-			G            msgs.Uint16
-			H            msgs.Int32
-			I            msgs.Uint32
-			J            msgs.Int64
-			K            msgs.Uint64
-			L            msgs.Float32
-			M            msgs.Float64
-			N            msgs.String
-			O            msgs.Time
-			P            msgs.Duration
+			A            bool
+			B            int8
+			C            uint8
+			D            int16
+			E            uint16
+			F            int32
+			G            uint32
+			H            int64
+			I            uint64
+			J            float32
+			K            float64
+			L            string
+			M            time.Time
+			N            time.Duration
 		}{},
-		"384497568d692fe745850d4b0751295d",
+		"1fe19d9a049a663e9b521bf584177015",
 	},
 	{
 		"variable array",
 		&struct {
-			A msgs.Uint8
-			B []msgs.Uint32
+			A uint8
+			B []uint32
 		}{},
 		"fdee5bb88110a832e32fedabd50c71fc",
 	},
 	{
 		"fixed array",
 		&struct {
-			A msgs.Uint8
-			B [2]msgs.Uint32
+			A uint8
+			B [2]uint32
 		}{},
 		"fd38051c1051a88ecf1ce1924053076c",
 	},
 	{
 		"parent without pointer",
 		&struct {
-			A msgs.Uint8
+			A uint8
 			B Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -67,7 +66,7 @@ var casesMessageMd5 = []struct {
 	{
 		"parent with pointer",
 		&struct {
-			A msgs.Uint8
+			A uint8
 			B *Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -75,7 +74,7 @@ var casesMessageMd5 = []struct {
 	{
 		"array of parent without pointer",
 		&struct {
-			A msgs.Uint8
+			A uint8
 			B []Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -83,7 +82,7 @@ var casesMessageMd5 = []struct {
 	{
 		"array of parent with pointer",
 		&struct {
-			A msgs.Uint8
+			A uint8
 			B []*Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -91,7 +90,7 @@ var casesMessageMd5 = []struct {
 	{
 		"fixed array of parent",
 		&struct {
-			A msgs.Uint8
+			A uint8
 			B [2]Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
@@ -117,11 +116,11 @@ var casesServiceMd5 = []struct {
 	{
 		"base types",
 		&struct {
-			A msgs.Float64
-			B msgs.String
+			A float64
+			B string
 		}{},
 		&struct {
-			C msgs.Float64
+			C float64
 		}{},
 		"4fa8f09823d7ad898c6295d42385de20",
 	},

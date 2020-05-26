@@ -4,17 +4,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/aler9/goroslib/msgs"
 )
 
 type TestServiceReq struct {
-	A msgs.Float64
-	B msgs.String
+	A float64
+	B string
 }
 
 type TestServiceRes struct {
-	C msgs.Float64
+	C float64
 }
 
 func TestServiceClientReqToCpp(t *testing.T) {

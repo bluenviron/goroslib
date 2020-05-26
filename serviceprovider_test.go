@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/aler9/goroslib/msgs"
 )
 
 func TestServiceProviderRegister(t *testing.T) {
@@ -25,7 +23,7 @@ func TestServiceProviderRegister(t *testing.T) {
 		Node:    n,
 		Service: "/test_srv",
 		Callback: func(req *TestServiceReq) *TestServiceRes {
-			c := msgs.Float64(0)
+			c := float64(0)
 			if req.A == 123 && req.B == "456" {
 				c = 123
 			}
@@ -78,7 +76,7 @@ func TestServiceProviderResToGo(t *testing.T) {
 		Node:    nsp,
 		Service: "/test_srv",
 		Callback: func(req *TestServiceReq) *TestServiceRes {
-			c := msgs.Float64(0)
+			c := float64(0)
 			if req.A == 123 && req.B == "456" {
 				c = 123
 			}

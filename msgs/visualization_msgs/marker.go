@@ -5,23 +5,24 @@ import (
 	"github.com/aler9/goroslib/msgs"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
+	"time"
 )
 
 type Marker struct {
 	msgs.Package             `ros:"visualization_msgs"`
 	Header                   std_msgs.Header
-	Ns                       msgs.String
-	Id                       msgs.Int32
-	Type                     msgs.Int32
-	Action                   msgs.Int32
+	Ns                       string
+	Id                       int32
+	Type                     int32
+	Action                   int32
 	Pose                     geometry_msgs.Pose
 	Scale                    geometry_msgs.Vector3
 	Color                    std_msgs.ColorRGBA
-	Lifetime                 msgs.Duration
-	FrameLocked              msgs.Bool
+	Lifetime                 time.Duration
+	FrameLocked              bool
 	Points                   []geometry_msgs.Point
 	Colors                   []std_msgs.ColorRGBA
-	Text                     msgs.String
-	MeshResource             msgs.String
-	MeshUseEmbeddedMaterials msgs.Bool
+	Text                     string
+	MeshResource             string
+	MeshUseEmbeddedMaterials bool
 }

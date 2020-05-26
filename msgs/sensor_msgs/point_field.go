@@ -7,8 +7,8 @@ import (
 
 type PointField struct {
 	msgs.Package `ros:"sensor_msgs"`
-	Name         msgs.String
-	Offset       msgs.Uint32
-	Datatype     msgs.Uint8
-	Count        msgs.Uint32
+	Name         string
+	Offset       uint32
+	Datatype     uint8
+	Count        uint32
 }

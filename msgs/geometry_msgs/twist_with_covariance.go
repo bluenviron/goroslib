@@ -8,5 +8,5 @@ import (
 type TwistWithCovariance struct {
 	msgs.Package `ros:"geometry_msgs"`
 	Twist        Twist
-	Covariance   [36]msgs.Float64
+	Covariance   [36]float64
 }

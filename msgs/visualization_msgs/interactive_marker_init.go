@@ -7,7 +7,7 @@ import (
 
 type InteractiveMarkerInit struct {
 	msgs.Package `ros:"visualization_msgs"`
-	ServerId     msgs.String
-	SeqNum       msgs.Uint64
+	ServerId     string
+	SeqNum       uint64
 	Markers      []InteractiveMarker
 }

@@ -7,7 +7,7 @@ import (
 
 type Point32 struct {
 	msgs.Package `ros:"geometry_msgs"`
-	X            msgs.Float32
-	Y            msgs.Float32
-	Z            msgs.Float32
+	X            float32
+	Y            float32
+	Z            float32
 }

@@ -7,7 +7,7 @@ import (
 
 type Vector3 struct {
 	msgs.Package `ros:"geometry_msgs"`
-	X            msgs.Float64
-	Y            msgs.Float64
-	Z            msgs.Float64
+	X            float64
+	Y            float64
+	Z            float64
 }
