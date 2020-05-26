@@ -5,10 +5,11 @@ import (
 	"time"
 )
 
+// extra field that is added to set package name
 type Package int
+
+// base types, http://wiki.ros.org/msg#Field_Types
 type Bool bool
-type Byte uint8
-type Char uint8
 type Int8 int8
 type Uint8 uint8
 type Int16 int16
@@ -22,3 +23,7 @@ type Float64 float64
 type String string
 type Time = time.Time
 type Duration = time.Duration
+
+// deprecated types
+type Byte int8
+type Char uint8
