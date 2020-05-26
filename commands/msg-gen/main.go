@@ -101,7 +101,7 @@ func processPackage(name string, addr string) error {
 			continue
 		}
 
-		err := shellCommand(fmt.Sprintf("go run ./commands/msg-import --package=%s --rospackage=%s %s > %s",
+		err := shellCommand(fmt.Sprintf("go run ./commands/msg-import --gopackage=%s --rospackage=%s %s > %s",
 			name,
 			name,
 			f.DownloadUrl,

@@ -64,7 +64,7 @@ func downloadBytes(addr string) ([]byte, error) {
 func run() error {
 	kingpin.CommandLine.Help = "Convert ROS messages into Go structs."
 
-	argGoPkgName := kingpin.Flag("package", "Go package name").Default("main").String()
+	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
 	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
 	argDef := kingpin.Arg("def", "a path or url pointing to a ROS message").Required().String()
 
