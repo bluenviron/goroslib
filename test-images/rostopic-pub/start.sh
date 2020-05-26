@@ -3,8 +3,6 @@
 export ROS_MASTER_URI=http://$MASTER_IP:11311/
 export ROS_IP=$(hostname -i)
 
-source /opt/ros/melodic/setup.bash
-
 rostopic pub -r 1 /test_pub sensor_msgs/Imu "header:
   seq: 13
   stamp: {secs: 0, nsecs: 0}
