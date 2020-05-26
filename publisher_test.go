@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"regexp"
 	"testing"
 	"time"
 
@@ -235,40 +236,6 @@ func TestPublisherWriteToGoLatch(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
-func TestPublisherWriteToRostopicEchoNoLatch(t *testing.T) {
-	recv := func() string {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
-		defer m.close()
-
-		n, err := NewNode(NodeConf{
-			Name:       "/goroslib",
-			MasterHost: m.Ip(),
-		})
-		require.NoError(t, err)
-		defer n.Close()
-
-		pub, err := NewPublisher(PublisherConf{
-			Node:  n,
-			Topic: "/test_pub",
-			Msg:   &std_msgs.Float64{},
-		})
-		require.NoError(t, err)
-		defer pub.Close()
-
-		rt, err := newContainer("rostopic-echo", m.Ip())
-		require.NoError(t, err)
-
-		time.Sleep(1 * time.Second)
-
-		pub.Write(&std_msgs.Float64{Data: 34.5})
-
-		return rt.waitOutput()
-	}()
-
-	require.Equal(t, "data: 34.5\n---\n", recv)
-}
-
 func TestPublisherWriteToCppLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()
@@ -310,6 +277,40 @@ func TestPublisherWriteToCppLatch(t *testing.T) {
 	require.Equal(t, "1 other test 5776731014620\n", recv)
 }
 
+func TestPublisherWriteToRostopicEchoNoLatch(t *testing.T) {
+	recv := func() string {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &std_msgs.Float64{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		rt, err := newContainer("rostopic-echo", m.Ip())
+		require.NoError(t, err)
+
+		time.Sleep(1 * time.Second)
+
+		pub.Write(&std_msgs.Float64{Data: 34.5})
+
+		return rt.waitOutput()
+	}()
+
+	require.Equal(t, "data: 34.5\n---\n", recv)
+}
+
 func TestPublisherWriteToRostopicEchoLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()
@@ -341,4 +342,43 @@ func TestPublisherWriteToRostopicEchoLatch(t *testing.T) {
 	}()
 
 	require.Equal(t, "data: 45.5\n---\n", recv)
+}
+
+func TestPublisherWriteToRostopicHz(t *testing.T) {
+	recv := func() string {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &std_msgs.Float64{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		ticker := time.NewTicker(200 * time.Millisecond)
+		defer ticker.Stop()
+
+		go func() {
+			for range ticker.C {
+				pub.Write(&std_msgs.Float64{Data: 22.5})
+			}
+		}()
+
+		rt, err := newContainer("rostopic-hz", m.Ip())
+		require.NoError(t, err)
+
+		return rt.waitOutput()
+	}()
+
+	require.Regexp(t, regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: 5.0[0-9]+\nmin: 0.200s max: 0.200s std dev: 0.0[0-9]+s window: [0-9]\n$"), recv)
 }

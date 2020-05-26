@@ -37,6 +37,20 @@ type ResponseGetPid struct {
 
 func (ResponseGetPid) isResponse() {}
 
+type RequestGetPublications struct {
+	CallerId string
+}
+
+func (RequestGetPublications) isRequest() {}
+
+type ResponseGetPublications struct {
+	Code          int
+	StatusMessage string
+	TopicList     [][]string
+}
+
+func (ResponseGetPublications) isResponse() {}
+
 type RequestPublisherUpdate struct {
 	CallerId      string
 	Topic         string

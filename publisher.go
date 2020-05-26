@@ -139,7 +139,8 @@ outer:
 				continue
 			}
 
-			if evt.header.Md5sum != p.msgMd5 {
+			// wildcard is used by rostopic hz
+			if evt.header.Md5sum != "*" && evt.header.Md5sum != p.msgMd5 {
 				evt.client.WriteHeader(&tcpros.HeaderPublisher{
 					Error: ptrString(fmt.Sprintf("wrong md5: expected '%s', got '%s'",
 						p.msgMd5, evt.header.Md5sum)),

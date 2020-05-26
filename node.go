@@ -122,6 +122,12 @@ type nodeEventPublisherUpdate struct {
 
 func (nodeEventPublisherUpdate) isNodeEvent() {}
 
+type nodeEventGetPublications struct {
+	res chan [][]string
+}
+
+func (nodeEventGetPublications) isNodeEvent() {}
+
 type nodeEventSubscriberNew struct {
 	sub *Subscriber
 	err chan error
@@ -348,6 +354,13 @@ outer:
 			}
 			sub.events <- subscriberEventPublisherUpdate{evt.urls}
 
+		case nodeEventGetPublications:
+			res := [][]string{}
+			for _, pub := range n.publishers {
+				res = append(res, []string{pub.conf.Topic, pub.msgType})
+			}
+			evt.res <- res
+
 		case nodeEventSubscriberNew:
 			_, ok := n.subscribers[evt.sub.conf.Topic]
 			if ok {
@@ -435,6 +448,9 @@ outer:
 	go func() {
 		for rawEvt := range n.events {
 			switch evt := rawEvt.(type) {
+			case nodeEventGetPublications:
+				evt.res <- nil
+
 			case nodeEventSubscriberNew:
 				evt.err <- fmt.Errorf("terminated")
 
@@ -521,11 +537,23 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 				Pid:           os.Getpid(),
 			})
 
+		case *api_slave.RequestGetPublications:
+			publications := make(chan [][]string)
+			n.events <- nodeEventGetPublications{publications}
+			res := <-publications
+
+			n.apiSlaveServer.Write(api_slave.ResponseGetPublications{
+				Code:          1,
+				StatusMessage: "",
+				TopicList:     res,
+			})
+
 		case *api_slave.RequestPublisherUpdate:
 			n.events <- nodeEventPublisherUpdate{
 				topic: req.Topic,
 				urls:  req.PublisherUrls,
 			}
+
 			n.apiSlaveServer.Write(api_slave.ResponsePublisherUpdate{
 				Code:          1,
 				StatusMessage: "",
