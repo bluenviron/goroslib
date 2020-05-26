@@ -44,6 +44,8 @@ func main() {
 
 	// publish a message every second
 	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	for range ticker.C {
 		msg := &TestMessage{
 			FirstField:  3,
