@@ -33,9 +33,9 @@ import (
 
 ## Examples
 
-* [subscriber](examples/subscriber.go)
+* [subscriber-standard](examples/subscriber-standard.go)
 * [subscriber-custom](examples/subscriber-custom.go)
-* [publisher](examples/publisher.go)
+* [publisher-standard](examples/publisher-standard.go)
 * [publisher-custom](examples/publisher-custom.go)
 * [serviceclient](examples/serviceclient.go)
 * [serviceprovider](examples/serviceprovider.go)
