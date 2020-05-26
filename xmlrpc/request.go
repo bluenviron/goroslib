@@ -83,7 +83,7 @@ func requestDecode(raw *RequestRaw, req interface{}) error {
 			return err
 		}
 
-		err = decodeValue(raw.dec, field)
+		err = valueDecode(raw.dec, field)
 		if err != nil {
 			return err
 		}
@@ -115,7 +115,7 @@ func requestEncode(w io.Writer, method string, params interface{}) error {
 			return err
 		}
 
-		err = encodeValue(w, field)
+		err = valueEncode(w, field)
 		if err != nil {
 			return err
 		}

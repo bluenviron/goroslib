@@ -105,7 +105,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			err = decodeValue(dec, field)
+			err = valueDecode(dec, field)
 			if err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 			}
 
 			el := reflect.New(typ)
-			err = decodeValue(dec, el)
+			err = valueDecode(dec, el)
 			if err != nil {
 				return err
 			}
@@ -145,7 +145,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 	return xmlGetEndElement(dec, "array")
 }
 
-func decodeValue(dec *xml.Decoder, val reflect.Value) error {
+func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 	tok, err := dec.Token()
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func decodeValue(dec *xml.Decoder, val reflect.Value) error {
 	return nil
 }
 
-func encodeValue(w io.Writer, val reflect.Value) error {
+func valueEncode(w io.Writer, val reflect.Value) error {
 	_, err := w.Write([]byte(`<value>`))
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func encodeValue(w io.Writer, val reflect.Value) error {
 			for i := 0; i < nf; i++ {
 				field := val.Field(i)
 
-				err := encodeValue(w, field)
+				err := valueEncode(w, field)
 				if err != nil {
 					return err
 				}
@@ -308,7 +308,7 @@ func encodeValue(w io.Writer, val reflect.Value) error {
 			for i := 0; i < le; i++ {
 				el := val.Index(i)
 
-				err := encodeValue(w, el)
+				err := valueEncode(w, el)
 				if err != nil {
 					return err
 				}

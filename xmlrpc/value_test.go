@@ -124,7 +124,7 @@ func TestValueDecode(t *testing.T) {
 			require.NoError(t, err)
 
 			v := reflect.New(reflect.TypeOf(c.v))
-			err = decodeValue(dec, reflect.ValueOf(v.Interface()))
+			err = valueDecode(dec, reflect.ValueOf(v.Interface()))
 			require.NoError(t, err)
 
 			require.Equal(t, c.v, v.Elem().Interface())
@@ -139,7 +139,7 @@ func TestValueEncode(t *testing.T) {
 	for _, c := range casesValue {
 		t.Run(c.name, func(t *testing.T) {
 			var b bytes.Buffer
-			err := encodeValue(&b, reflect.ValueOf(c.v))
+			err := valueEncode(&b, reflect.ValueOf(c.v))
 			require.NoError(t, err)
 			require.Equal(t, c.benc, b.Bytes())
 		})

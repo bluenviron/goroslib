@@ -55,7 +55,7 @@ func responseDecode(r io.Reader, req interface{}) error {
 			return err
 		}
 
-		err = decodeValue(dec, field)
+		err = valueDecode(dec, field)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func responseEncode(w io.Writer, params interface{}) error {
 	for i := 0; i < nf; i++ {
 		field := rv.Field(i)
 
-		err = encodeValue(w, field)
+		err = valueEncode(w, field)
 		if err != nil {
 			return err
 		}
