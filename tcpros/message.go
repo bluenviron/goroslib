@@ -25,7 +25,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 			b = true
 		}
 		*cv = b
-		return nil
 
 	case *int8:
 		_, err := io.ReadFull(r, buf[:1])
@@ -34,7 +33,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 1
 		*cv = int8(buf[0])
-		return nil
 
 	case *uint8:
 		_, err := io.ReadFull(r, buf[:1])
@@ -43,7 +41,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 1
 		*cv = uint8(buf[0])
-		return nil
 
 	case *int16:
 		_, err := io.ReadFull(r, buf[:2])
@@ -52,7 +49,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 2
 		*cv = int16(binary.LittleEndian.Uint16(buf))
-		return nil
 
 	case *uint16:
 		_, err := io.ReadFull(r, buf[:2])
@@ -61,7 +57,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 2
 		*cv = uint16(binary.LittleEndian.Uint16(buf))
-		return nil
 
 	case *int32:
 		_, err := io.ReadFull(r, buf[:4])
@@ -70,7 +65,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 4
 		*cv = int32(binary.LittleEndian.Uint32(buf))
-		return nil
 
 	case *uint32:
 		_, err := io.ReadFull(r, buf[:4])
@@ -79,7 +73,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 4
 		*cv = uint32(binary.LittleEndian.Uint32(buf))
-		return nil
 
 	case *int64:
 		_, err := io.ReadFull(r, buf[:8])
@@ -88,7 +81,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 8
 		*cv = int64(binary.LittleEndian.Uint64(buf))
-		return nil
 
 	case *uint64:
 		_, err := io.ReadFull(r, buf[:8])
@@ -97,7 +89,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 8
 		*cv = uint64(binary.LittleEndian.Uint64(buf))
-		return nil
 
 	case *float32:
 		_, err := io.ReadFull(r, buf[:4])
@@ -106,7 +97,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 4
 		*cv = float32(math.Float32frombits(binary.LittleEndian.Uint32(buf)))
-		return nil
 
 	case *float64:
 		_, err := io.ReadFull(r, buf[:8])
@@ -115,7 +105,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		}
 		*mlen -= 8
 		*cv = float64(math.Float64frombits(binary.LittleEndian.Uint64(buf)))
-		return nil
 
 	case *string:
 		// string length
@@ -141,7 +130,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		} else {
 			*cv = ""
 		}
-		return nil
 
 	case *time.Time:
 		_, err := io.ReadFull(r, buf[:4])
@@ -165,7 +153,6 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		} else {
 			*cv = time.Unix(int64(secs), int64(nano)).UTC()
 		}
-		return nil
 
 	case *time.Duration:
 		_, err := io.ReadFull(r, buf[:4])
@@ -183,109 +170,109 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 		nano := int32(binary.LittleEndian.Uint32(buf))
 
 		*cv = (time.Second * time.Duration(secs)) + (time.Nanosecond * time.Duration(nano))
-		return nil
+
+	default:
+		switch val.Elem().Kind() {
+		case reflect.Slice:
+			// slice length
+			_, err := io.ReadFull(r, buf[:4])
+			if err != nil {
+				return err
+			}
+			*mlen -= 4
+			le := binary.LittleEndian.Uint32(buf)
+			if le > *mlen {
+				return fmt.Errorf("invalid slice length")
+			}
+
+			// slice elements
+			for i := 0; i < int(le); i++ {
+				el := reflect.New(val.Elem().Type().Elem())
+
+				if el.Elem().Kind() == reflect.Ptr {
+					// allocate if is pointer and null
+					if el.Elem().IsNil() {
+						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
+					}
+
+					err := messageDecodeValue(r, el.Elem(), mlen, buf)
+					if err != nil {
+						return err
+					}
+
+				} else {
+					err := messageDecodeValue(r, el, mlen, buf)
+					if err != nil {
+						return err
+					}
+				}
+
+				val.Elem().Set(reflect.Append(val.Elem(), el.Elem()))
+			}
+
+		case reflect.Array:
+			// array elements
+			le := val.Elem().Len()
+			for i := 0; i < int(le); i++ {
+				el := reflect.New(val.Elem().Type().Elem())
+
+				if el.Elem().Kind() == reflect.Ptr {
+					// allocate if is pointer and null
+					if el.Elem().IsNil() {
+						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
+					}
+
+					err := messageDecodeValue(r, el.Elem(), mlen, buf)
+					if err != nil {
+						return err
+					}
+
+				} else {
+					err := messageDecodeValue(r, el, mlen, buf)
+					if err != nil {
+						return err
+					}
+				}
+
+				val.Elem().Index(i).Set(el.Elem())
+			}
+
+		case reflect.Struct:
+			// struct fields
+			nf := val.Elem().NumField()
+			for i := 0; i < nf; i++ {
+				f := val.Elem().Field(i)
+				ft := val.Elem().Type().Field(i)
+
+				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+					continue
+				}
+
+				if f.Kind() == reflect.Ptr {
+					// allocate if is pointer and null
+					if f.IsNil() {
+						f.Set(reflect.New(f.Type().Elem()))
+					}
+
+					err := messageDecodeValue(r, f, mlen, buf)
+					if err != nil {
+						return err
+					}
+
+				} else {
+					err := messageDecodeValue(r, f.Addr(), mlen, buf)
+					if err != nil {
+						return err
+					}
+				}
+			}
+
+		default:
+			return fmt.Errorf("unsupported field type '%s'", val.Elem().Type())
+		}
 	}
 
-	switch val.Elem().Kind() {
-	case reflect.Slice:
-		// slice length
-		_, err := io.ReadFull(r, buf[:4])
-		if err != nil {
-			return err
-		}
-		*mlen -= 4
-		le := binary.LittleEndian.Uint32(buf)
-		if le > *mlen {
-			return fmt.Errorf("invalid slice length")
-		}
-
-		// slice elements
-		for i := 0; i < int(le); i++ {
-			el := reflect.New(val.Elem().Type().Elem())
-
-			if el.Elem().Kind() == reflect.Ptr {
-				// allocate if is pointer and null
-				if el.Elem().IsNil() {
-					el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
-				}
-
-				err := messageDecodeValue(r, el.Elem(), mlen, buf)
-				if err != nil {
-					return err
-				}
-
-			} else {
-				err := messageDecodeValue(r, el, mlen, buf)
-				if err != nil {
-					return err
-				}
-			}
-
-			val.Elem().Set(reflect.Append(val.Elem(), el.Elem()))
-		}
-		return nil
-
-	case reflect.Array:
-		// array elements
-		le := val.Elem().Len()
-		for i := 0; i < int(le); i++ {
-			el := reflect.New(val.Elem().Type().Elem())
-
-			if el.Elem().Kind() == reflect.Ptr {
-				// allocate if is pointer and null
-				if el.Elem().IsNil() {
-					el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
-				}
-
-				err := messageDecodeValue(r, el.Elem(), mlen, buf)
-				if err != nil {
-					return err
-				}
-
-			} else {
-				err := messageDecodeValue(r, el, mlen, buf)
-				if err != nil {
-					return err
-				}
-			}
-
-			val.Elem().Index(i).Set(el.Elem())
-		}
-		return nil
-
-	case reflect.Struct:
-		// struct fields
-		nf := val.Elem().NumField()
-		for i := 0; i < nf; i++ {
-			f := val.Elem().Field(i)
-			ft := val.Elem().Type().Field(i)
-
-			if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
-				continue
-			}
-
-			if f.Kind() == reflect.Ptr {
-				// allocate if is pointer and null
-				if f.IsNil() {
-					f.Set(reflect.New(f.Type().Elem()))
-				}
-
-				err := messageDecodeValue(r, f, mlen, buf)
-				if err != nil {
-					return err
-				}
-
-			} else {
-				err := messageDecodeValue(r, f.Addr(), mlen, buf)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	}
-
-	return fmt.Errorf("unsupported field type '%s'", val.Elem().Type())
+	return nil
 }
 
 func messageDecode(r io.Reader, msg interface{}) error {
@@ -329,55 +316,77 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 			b = 0x01
 		}
 		_, err := w.Write([]byte{b})
-		return err
+		if err != nil {
+			return err
+		}
 
 	case int8:
 		_, err := w.Write([]byte{uint8(cv)})
-		return err
+		if err != nil {
+			return err
+		}
 
 	case uint8:
 		_, err := w.Write([]byte{uint8(cv)})
-		return err
+		if err != nil {
+			return err
+		}
 
 	case int16:
 		binary.LittleEndian.PutUint16(buf, uint16(cv))
 		_, err := w.Write(buf[:2])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case uint16:
 		binary.LittleEndian.PutUint16(buf, uint16(cv))
 		_, err := w.Write(buf[:2])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case int32:
 		binary.LittleEndian.PutUint32(buf, uint32(cv))
 		_, err := w.Write(buf[:4])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case uint32:
 		binary.LittleEndian.PutUint32(buf, uint32(cv))
 		_, err := w.Write(buf[:4])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case int64:
 		binary.LittleEndian.PutUint64(buf, uint64(cv))
 		_, err := w.Write(buf[:8])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case uint64:
 		binary.LittleEndian.PutUint64(buf, uint64(cv))
 		_, err := w.Write(buf[:8])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case float32:
 		binary.LittleEndian.PutUint32(buf, math.Float32bits(float32(cv)))
 		_, err := w.Write(buf[:4])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case float64:
 		binary.LittleEndian.PutUint64(buf, math.Float64bits(float64(cv)))
 		_, err := w.Write(buf[:8])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case string:
 		bstr := []byte(cv)
@@ -391,7 +400,9 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 
 		// string
 		_, err = w.Write(bstr)
-		return err
+		if err != nil {
+			return err
+		}
 
 	case time.Time:
 		// special case: zero means year zero, not 1970
@@ -412,7 +423,9 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 
 		binary.LittleEndian.PutUint32(buf, uint32(nano%1000000000))
 		_, err = w.Write(buf[:4])
-		return err
+		if err != nil {
+			return err
+		}
 
 	case time.Duration:
 		nano := cv.Nanoseconds()
@@ -425,86 +438,89 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 
 		binary.LittleEndian.PutUint32(buf, uint32(nano%1000000000))
 		_, err = w.Write(buf[:4])
-		return err
-	}
-
-	switch val.Elem().Kind() {
-	case reflect.Slice:
-		le := val.Elem().Len()
-
-		// slice length
-		binary.LittleEndian.PutUint32(buf, uint32(le))
-		_, err := w.Write(buf[:4])
 		if err != nil {
 			return err
 		}
 
-		// slice elements
-		for i := 0; i < le; i++ {
-			el := val.Elem().Index(i)
+	default:
+		switch val.Elem().Kind() {
+		case reflect.Slice:
+			le := val.Elem().Len()
 
-			if el.Kind() == reflect.Ptr {
-				err := messageEncodeValue(w, el, buf)
-				if err != nil {
-					return err
-				}
-			} else {
-				err := messageEncodeValue(w, el.Addr(), buf)
-				if err != nil {
-					return err
+			// slice length
+			binary.LittleEndian.PutUint32(buf, uint32(le))
+			_, err := w.Write(buf[:4])
+			if err != nil {
+				return err
+			}
+
+			// slice elements
+			for i := 0; i < le; i++ {
+				el := val.Elem().Index(i)
+
+				if el.Kind() == reflect.Ptr {
+					err := messageEncodeValue(w, el, buf)
+					if err != nil {
+						return err
+					}
+				} else {
+					err := messageEncodeValue(w, el.Addr(), buf)
+					if err != nil {
+						return err
+					}
 				}
 			}
+
+		case reflect.Array:
+			le := val.Elem().Len()
+
+			// array elements
+			for i := 0; i < le; i++ {
+				el := val.Elem().Index(i)
+
+				if el.Kind() == reflect.Ptr {
+					err := messageEncodeValue(w, el, buf)
+					if err != nil {
+						return err
+					}
+				} else {
+					err := messageEncodeValue(w, el.Addr(), buf)
+					if err != nil {
+						return err
+					}
+				}
+			}
+
+		case reflect.Struct:
+			// struct fields
+			nf := val.Elem().NumField()
+			for i := 0; i < nf; i++ {
+				f := val.Elem().Field(i)
+				ft := val.Elem().Type().Field(i)
+
+				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+					continue
+				}
+
+				if f.Kind() == reflect.Ptr {
+					err := messageEncodeValue(w, f, buf)
+					if err != nil {
+						return err
+					}
+				} else {
+					err := messageEncodeValue(w, f.Addr(), buf)
+					if err != nil {
+						return err
+					}
+				}
+			}
+
+		default:
+			return fmt.Errorf("unsupported type '%s'", val.Elem().Type())
 		}
-		return nil
-
-	case reflect.Array:
-		le := val.Elem().Len()
-
-		// array elements
-		for i := 0; i < le; i++ {
-			el := val.Elem().Index(i)
-
-			if el.Kind() == reflect.Ptr {
-				err := messageEncodeValue(w, el, buf)
-				if err != nil {
-					return err
-				}
-			} else {
-				err := messageEncodeValue(w, el.Addr(), buf)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-
-	case reflect.Struct:
-		// struct fields
-		nf := val.Elem().NumField()
-		for i := 0; i < nf; i++ {
-			f := val.Elem().Field(i)
-			ft := val.Elem().Type().Field(i)
-
-			if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
-				continue
-			}
-
-			if f.Kind() == reflect.Ptr {
-				err := messageEncodeValue(w, f, buf)
-				if err != nil {
-					return err
-				}
-			} else {
-				err := messageEncodeValue(w, f.Addr(), buf)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		return nil
 	}
 
-	return fmt.Errorf("unsupported type '%s'", val.Elem().Type())
+	return nil
 }
 
 func messageEncode(w io.Writer, msg interface{}) error {
