@@ -380,5 +380,5 @@ func TestPublisherWriteToRostopicHz(t *testing.T) {
 		return rt.waitOutput()
 	}()
 
-	require.Regexp(t, regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: 5.0[0-9]+\nmin: 0.200s max: 0.200s std dev: 0.0[0-9]+s window: [0-9]\n$"), recv)
+	require.Regexp(t, regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: (5\\.0[0-9]+|4\\.9+)\nmin: 0.200s max: 0.200s std dev: 0.0[0-9]+s window: [0-9]\n$"), recv)
 }
