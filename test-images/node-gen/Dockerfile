@@ -1,5 +1,9 @@
 FROM ros:melodic-ros-core-bionic
 
+RUN apt update && apt install -y --no-install-recommends \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /catkin_ws/src/nodegen
 
 COPY CMakeLists.txt main.cpp package.xml ./
