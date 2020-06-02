@@ -1,4 +1,4 @@
-package tcpros
+package msg_utils
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/aler9/goroslib/msgs"
 )
 
-func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte) error {
+func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte) error {
 	switch cv := val.Interface().(type) {
 	case *bool:
 		_, err := io.ReadFull(r, buf[:1])
@@ -195,13 +195,13 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
 					}
 
-					err := messageDecodeValue(r, el.Elem(), mlen, buf)
+					err := binaryDecodeValue(r, el.Elem(), mlen, buf)
 					if err != nil {
 						return err
 					}
 
 				} else {
-					err := messageDecodeValue(r, el, mlen, buf)
+					err := binaryDecodeValue(r, el, mlen, buf)
 					if err != nil {
 						return err
 					}
@@ -222,13 +222,13 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
 					}
 
-					err := messageDecodeValue(r, el.Elem(), mlen, buf)
+					err := binaryDecodeValue(r, el.Elem(), mlen, buf)
 					if err != nil {
 						return err
 					}
 
 				} else {
-					err := messageDecodeValue(r, el, mlen, buf)
+					err := binaryDecodeValue(r, el, mlen, buf)
 					if err != nil {
 						return err
 					}
@@ -254,13 +254,13 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 						f.Set(reflect.New(f.Type().Elem()))
 					}
 
-					err := messageDecodeValue(r, f, mlen, buf)
+					err := binaryDecodeValue(r, f, mlen, buf)
 					if err != nil {
 						return err
 					}
 
 				} else {
-					err := messageDecodeValue(r, f.Addr(), mlen, buf)
+					err := binaryDecodeValue(r, f.Addr(), mlen, buf)
 					if err != nil {
 						return err
 					}
@@ -275,7 +275,8 @@ func messageDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte
 	return nil
 }
 
-func messageDecode(r io.Reader, msg interface{}) error {
+// BinaryDecode decodes a message in binary format.
+func BinaryDecode(r io.Reader, msg interface{}) error {
 	// check target
 	rv := reflect.ValueOf(msg)
 	if rv.Kind() != reflect.Ptr {
@@ -296,7 +297,7 @@ func messageDecode(r io.Reader, msg interface{}) error {
 	mlen := binary.LittleEndian.Uint32(buf)
 
 	// read message
-	err = messageDecodeValue(r, rv, &mlen, buf)
+	err = binaryDecodeValue(r, rv, &mlen, buf)
 	if err != nil {
 		return err
 	}
@@ -308,7 +309,7 @@ func messageDecode(r io.Reader, msg interface{}) error {
 	return nil
 }
 
-func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
+func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 	switch cv := val.Elem().Interface().(type) {
 	case bool:
 		b := uint8(0x00)
@@ -459,12 +460,12 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 				el := val.Elem().Index(i)
 
 				if el.Kind() == reflect.Ptr {
-					err := messageEncodeValue(w, el, buf)
+					err := binaryEncodeValue(w, el, buf)
 					if err != nil {
 						return err
 					}
 				} else {
-					err := messageEncodeValue(w, el.Addr(), buf)
+					err := binaryEncodeValue(w, el.Addr(), buf)
 					if err != nil {
 						return err
 					}
@@ -479,12 +480,12 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 				el := val.Elem().Index(i)
 
 				if el.Kind() == reflect.Ptr {
-					err := messageEncodeValue(w, el, buf)
+					err := binaryEncodeValue(w, el, buf)
 					if err != nil {
 						return err
 					}
 				} else {
-					err := messageEncodeValue(w, el.Addr(), buf)
+					err := binaryEncodeValue(w, el.Addr(), buf)
 					if err != nil {
 						return err
 					}
@@ -503,12 +504,12 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 				}
 
 				if f.Kind() == reflect.Ptr {
-					err := messageEncodeValue(w, f, buf)
+					err := binaryEncodeValue(w, f, buf)
 					if err != nil {
 						return err
 					}
 				} else {
-					err := messageEncodeValue(w, f.Addr(), buf)
+					err := binaryEncodeValue(w, f.Addr(), buf)
 					if err != nil {
 						return err
 					}
@@ -523,7 +524,8 @@ func messageEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 	return nil
 }
 
-func messageEncode(w io.Writer, msg interface{}) error {
+// BinaryEncode encodes a message in binary format.
+func BinaryEncode(w io.Writer, msg interface{}) error {
 	// check target
 	rv := reflect.ValueOf(msg)
 	if rv.Kind() != reflect.Ptr {
@@ -538,7 +540,7 @@ func messageEncode(w io.Writer, msg interface{}) error {
 
 	// encode message
 	var vw bytes.Buffer
-	err := messageEncodeValue(&vw, rv, buf)
+	err := binaryEncodeValue(&vw, rv, buf)
 	if err != nil {
 		return err
 	}

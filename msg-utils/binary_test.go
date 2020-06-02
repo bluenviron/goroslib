@@ -1,4 +1,4 @@
-package tcpros
+package msg_utils
 
 import (
 	"bytes"
@@ -10,10 +10,6 @@ import (
 
 	"github.com/aler9/goroslib/msgs"
 )
-
-type Parent struct {
-	A string
-}
 
 var casesMessage = []struct {
 	name string
@@ -156,7 +152,7 @@ func TestMessageDecode(t *testing.T) {
 	for _, c := range casesMessage {
 		t.Run(c.name, func(t *testing.T) {
 			msg := reflect.New(reflect.TypeOf(c.msg).Elem()).Interface()
-			err := messageDecode(bytes.NewBuffer(c.byts), msg)
+			err := BinaryDecode(bytes.NewBuffer(c.byts), msg)
 			require.NoError(t, err)
 			require.Equal(t, c.msg, msg)
 		})
@@ -167,7 +163,7 @@ func TestMessageEncode(t *testing.T) {
 	for _, c := range casesMessage {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := messageEncode(&buf, c.msg)
+			err := BinaryEncode(&buf, c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.byts, buf.Bytes())
 		})

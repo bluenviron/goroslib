@@ -6,6 +6,8 @@ import (
 	"io"
 	"net"
 	"unicode"
+
+	"github.com/aler9/goroslib/msg-utils"
 )
 
 const (
@@ -83,7 +85,7 @@ func (c *Conn) ReadServiceResState() error {
 }
 
 func (c *Conn) ReadMessage(msg interface{}) error {
-	return messageDecode(c.readBuf, msg)
+	return msg_utils.BinaryDecode(c.readBuf, msg)
 }
 
 func (c *Conn) WriteHeader(header interface{}) error {
@@ -101,7 +103,7 @@ func (c *Conn) WriteServiceResState() error {
 }
 
 func (c *Conn) WriteMessage(msg interface{}) error {
-	err := messageEncode(c.writeBuf, msg)
+	err := msg_utils.BinaryEncode(c.writeBuf, msg)
 	if err != nil {
 		return err
 	}
