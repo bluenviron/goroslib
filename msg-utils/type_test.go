@@ -34,10 +34,10 @@ var casesType = []struct {
 	},
 }
 
-func TestMessageType(t *testing.T) {
+func TestType(t *testing.T) {
 	for _, c := range casesType {
 		t.Run(c.name, func(t *testing.T) {
-			typ, err := MessageType(c.msg)
+			typ, err := Type(c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.typ, typ)
 		})

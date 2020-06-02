@@ -64,7 +64,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("lookupService: %v", err)
 	}
 
-	srvMd5, err := msg_utils.ServiceMd5(conf.Req, conf.Res)
+	srvMd5, err := msg_utils.Md5Service(conf.Req, conf.Res)
 	if err != nil {
 		return nil, err
 	}

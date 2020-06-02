@@ -148,7 +148,8 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
 }
 
-func MessageMd5(msg interface{}) (string, error) {
+// Md5Message computes the checksum of a message.
+func Md5Message(msg interface{}) (string, error) {
 	rt := reflect.TypeOf(msg)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
@@ -165,7 +166,8 @@ func MessageMd5(msg interface{}) (string, error) {
 	return md5Sum(text), nil
 }
 
-func ServiceMd5(req interface{}, res interface{}) (string, error) {
+// Md5Message computes the checksum of a service.
+func Md5Service(req interface{}, res interface{}) (string, error) {
 	reqt := reflect.TypeOf(req)
 	if reqt.Kind() == reflect.Ptr {
 		reqt = reqt.Elem()

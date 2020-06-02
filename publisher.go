@@ -87,12 +87,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg must be a pointer to a struct")
 	}
 
-	msgType, err := msg_utils.MessageType(conf.Msg)
+	msgType, err := msg_utils.Type(conf.Msg)
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msg_utils.MessageMd5(conf.Msg)
+	msgMd5, err := msg_utils.Md5Message(conf.Msg)
 	if err != nil {
 		return nil, err
 	}

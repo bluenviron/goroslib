@@ -7,7 +7,8 @@ import (
 	"github.com/aler9/goroslib/msgs"
 )
 
-func MessageType(msg interface{}) (string, error) {
+// Type returns the type of a message.
+func Type(msg interface{}) (string, error) {
 	rt := reflect.TypeOf(msg)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()

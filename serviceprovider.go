@@ -106,17 +106,17 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Response must be a pointer to a struct")
 	}
 
-	reqType, err := msg_utils.MessageType(reflect.New(reqMsg.Elem()).Interface())
+	reqType, err := msg_utils.Type(reflect.New(reqMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	resType, err := msg_utils.MessageType(reflect.New(resMsg.Elem()).Interface())
+	resType, err := msg_utils.Type(reflect.New(resMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	srvMd5, err := msg_utils.ServiceMd5(
+	srvMd5, err := msg_utils.Md5Service(
 		reflect.New(reqMsg.Elem()).Interface(),
 		reflect.New(resMsg.Elem()).Interface())
 	if err != nil {

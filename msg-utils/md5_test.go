@@ -13,7 +13,7 @@ type Parent struct {
 	A string
 }
 
-var casesMessageMd5 = []struct {
+var casesMd5Message = []struct {
 	name string
 	msg  interface{}
 	sum  string
@@ -97,17 +97,17 @@ var casesMessageMd5 = []struct {
 	},
 }
 
-func TestMessageMd5(t *testing.T) {
-	for _, c := range casesMessageMd5 {
+func TestMd5Message(t *testing.T) {
+	for _, c := range casesMd5Message {
 		t.Run(c.name, func(t *testing.T) {
-			md5, err := MessageMd5(c.msg)
+			md5, err := Md5Message(c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.sum, md5)
 		})
 	}
 }
 
-var casesServiceMd5 = []struct {
+var casesMd5Service = []struct {
 	name string
 	req  interface{}
 	res  interface{}
@@ -126,10 +126,10 @@ var casesServiceMd5 = []struct {
 	},
 }
 
-func TestServiceMd5(t *testing.T) {
-	for _, c := range casesServiceMd5 {
+func TestMd5Service(t *testing.T) {
+	for _, c := range casesMd5Service {
 		t.Run(c.name, func(t *testing.T) {
-			md5, err := ServiceMd5(c.req, c.res)
+			md5, err := Md5Service(c.req, c.res)
 			require.NoError(t, err)
 			require.Equal(t, c.sum, md5)
 		})

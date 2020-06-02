@@ -86,12 +86,12 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Message must be a pointer to a struct")
 	}
 
-	msgType, err := msg_utils.MessageType(reflect.New(msgMsg.Elem()).Interface())
+	msgType, err := msg_utils.Type(reflect.New(msgMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msg_utils.MessageMd5(reflect.New(msgMsg.Elem()).Interface())
+	msgMd5, err := msg_utils.Md5Message(reflect.New(msgMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
