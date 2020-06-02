@@ -52,7 +52,7 @@ func (c *Client) Shutdown(req RequestShutdown) error {
 	return nil
 }
 
-func (c *Client) RequestTopic(req RequestRequestTopic) (*TopicProtocol, error) {
+func (c *Client) RequestTopic(req RequestRequestTopic) ([]interface{}, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseRequestTopic
@@ -65,5 +65,5 @@ func (c *Client) RequestTopic(req RequestRequestTopic) (*TopicProtocol, error) {
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res.Proto, nil
+	return res.Protocol, nil
 }

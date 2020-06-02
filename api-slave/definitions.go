@@ -75,16 +75,10 @@ type RequestRequestTopic struct {
 
 func (RequestRequestTopic) isRequest() {}
 
-type TopicProtocol struct {
-	Name string
-	Host string
-	Port int
-}
-
 type ResponseRequestTopic struct {
 	Code          int
 	StatusMessage string
-	Proto         TopicProtocol
+	Protocol      []interface{}
 }
 
 func (ResponseRequestTopic) isResponse() {}

@@ -50,11 +50,11 @@ outer:
 		xcs := api_slave.NewClient(host, port, sp.s.conf.Node.conf.Name)
 
 		subDone := make(chan struct{})
-		var proto *api_slave.TopicProtocol
+		var protocol []interface{}
 		var err error
 		go func() {
 			defer close(subDone)
-			proto, err = xcs.RequestTopic(api_slave.RequestRequestTopic{
+			protocol, err = xcs.RequestTopic(api_slave.RequestRequestTopic{
 				Topic:     sp.s.conf.Topic,
 				Protocols: [][]string{{"TCPROS"}},
 			})
@@ -71,7 +71,26 @@ outer:
 			return
 		}
 
-		if proto.Name != "TCPROS" {
+		if len(protocol) != 3 {
+			return
+		}
+
+		protoName, ok := protocol[0].(string)
+		if !ok {
+			return
+		}
+
+		protoHost, ok := protocol[1].(string)
+		if !ok {
+			return
+		}
+
+		protoPort, ok := protocol[2].(int)
+		if !ok {
+			return
+		}
+
+		if protoName != "TCPROS" {
 			return
 		}
 
@@ -79,7 +98,7 @@ outer:
 		var conn *tcpros.Conn
 		go func() {
 			defer close(subDone)
-			conn, err = tcpros.NewClient(proto.Host, uint16(proto.Port))
+			conn, err = tcpros.NewClient(protoHost, uint16(protoPort))
 		}()
 
 		select {

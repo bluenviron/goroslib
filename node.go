@@ -567,10 +567,10 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			n.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
 				Code:          1,
 				StatusMessage: "",
-				Proto: api_slave.TopicProtocol{
-					Name: "TCPROS",
-					Host: n.conf.Host,
-					Port: int(n.tcprosServer.GetPort()),
+				Protocol: []interface{}{
+					"TCPROS",                      // name
+					n.conf.Host,                   // host
+					int(n.tcprosServer.GetPort()), // port
 				},
 			})
 
