@@ -163,7 +163,7 @@ outer:
 						Protocol: []interface{}{
 							"TCPROS",
 							p.conf.Node.conf.Host,
-							int(p.conf.Node.tcprosServer.Port()),
+							p.conf.Node.conf.TcprosPort,
 						},
 					})
 					return nil
@@ -229,7 +229,7 @@ outer:
 						Protocol: []interface{}{
 							"UDPROS",
 							p.conf.Node.conf.Host,
-							int(p.conf.Node.udprosServer.Port()),
+							p.conf.Node.conf.UdprosPort,
 							p.id,
 							1500,
 							func() []byte {

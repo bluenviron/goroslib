@@ -14,14 +14,13 @@ type ErrorRes struct{}
 
 type Server struct {
 	host  string
-	port  uint16
 	ln    net.Listener
 	read  chan *RequestRaw
 	write chan interface{}
 	done  chan struct{}
 }
 
-func NewServer(host string, port uint16) (*Server, error) {
+func NewServer(host string, port int) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -29,14 +28,8 @@ func NewServer(host string, port uint16) (*Server, error) {
 		return nil, err
 	}
 
-	// if port was chosen automatically, get it
-	if port == 0 {
-		port = uint16(ln.Addr().(*net.TCPAddr).Port)
-	}
-
 	s := &Server{
 		host:  host,
-		port:  port,
 		ln:    ln,
 		read:  make(chan *RequestRaw),
 		write: make(chan interface{}),
@@ -46,6 +39,10 @@ func NewServer(host string, port uint16) (*Server, error) {
 	go s.run()
 
 	return s, nil
+}
+
+func (s *Server) Port() int {
+	return s.ln.Addr().(*net.TCPAddr).Port
 }
 
 func (s *Server) run() {
@@ -106,7 +103,7 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) GetUrl() string {
-	return fmt.Sprintf("http://%s:%d", s.host, s.port)
+	return fmt.Sprintf("http://%s:%d", s.host, s.Port())
 }
 
 func (s *Server) Read() (*RequestRaw, error) {

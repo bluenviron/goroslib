@@ -70,7 +70,7 @@ func (sp *subscriberPublisher) close() {
 	<-sp.done
 }
 
-func (sp *subscriberPublisher) do(host string, port uint16) error {
+func (sp *subscriberPublisher) do(host string, port int) error {
 	xcs := api_slave.NewClient(host, port, sp.sub.conf.Node.conf.Name)
 
 	subDone := make(chan struct{})
@@ -98,7 +98,7 @@ func (sp *subscriberPublisher) do(host string, port uint16) error {
 						return buf.Bytes()[4:]
 					}(),
 					sp.sub.conf.Node.conf.Host,
-					int(sp.sub.conf.Node.udprosServer.Port()),
+					sp.sub.conf.Node.conf.UdprosPort,
 					1500,
 				}}
 			}(),
@@ -151,7 +151,7 @@ func (sp *subscriberPublisher) doTcp(res *api_slave.ResponseRequestTopic) error 
 	var err error
 	go func() {
 		defer close(subDone)
-		conn, err = proto_tcp.NewClient(protoHost, uint16(protoPort))
+		conn, err = proto_tcp.NewClient(protoHost, protoPort)
 	}()
 
 	select {

@@ -8,14 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ptrString(v string) *string {
-	return &v
-}
-
-func ptrInt(v int) *int {
-	return &v
-}
-
 type headerSubscriber struct {
 	Callerid          string
 	Topic             string
@@ -28,15 +20,20 @@ type headerSubscriber struct {
 func (*headerSubscriber) IsHeader() {}
 
 type headerPublisher struct {
-	Error    *string
-	Topic    *string
-	Type     *string
-	Md5sum   *string
-	Callerid *string
-	Latching *int
+	Topic    string
+	Type     string
+	Md5sum   string
+	Callerid string
+	Latching int
 }
 
 func (*headerPublisher) IsHeader() {}
+
+type headerError struct {
+	Error string
+}
+
+func (*headerError) IsHeader() {}
 
 var casesHeader = []struct {
 	name   string
@@ -72,11 +69,11 @@ var casesHeader = []struct {
 	{
 		"publisher",
 		&headerPublisher{
-			Callerid: ptrString("/testing_1_2_3"),
-			Md5sum:   ptrString("6a62c6daae1as3f4ff57a132d6f95cec2"),
-			Topic:    ptrString("/test_topic"),
-			Type:     ptrString("testlib/Msg"),
-			Latching: ptrInt(0),
+			Callerid: "/testing_1_2_3",
+			Md5sum:   "6a62c6daae1as3f4ff57a132d6f95cec2",
+			Topic:    "/test_topic",
+			Type:     "testlib/Msg",
+			Latching: 0,
 		},
 		[]byte("\x7e\x00\x00\x00\x11\x00\x00\x00\x74\x6f\x70\x69\x63\x3d\x2f\x74\x65\x73" +
 			"\x74\x5f\x74\x6f\x70\x69\x63\x10\x00\x00\x00\x74\x79\x70\x65\x3d\x74\x65" +
@@ -89,8 +86,8 @@ var casesHeader = []struct {
 	},
 	{
 		"publisher with error",
-		&headerPublisher{
-			Error: ptrString("test error"),
+		&headerError{
+			Error: ("test error"),
 		},
 		[]byte("\x14\x00\x00\x00\x10\x00\x00\x00\x65\x72\x72\x6f\x72\x3d\x74\x65\x73" +
 			"\x74\x20\x65\x72\x72\x6f\x72"),

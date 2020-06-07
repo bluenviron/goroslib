@@ -201,7 +201,7 @@ type NodeConf struct {
 
 	// (optional) port of the HTTP API of the master node
 	// if not provided, it will be set to 11311
-	MasterPort uint16
+	MasterPort int
 
 	// name of this node
 	Name string
@@ -213,15 +213,15 @@ type NodeConf struct {
 
 	// (optional) port of the XML-RPC server of this node.
 	// if not provided, it will be chosen by the OS
-	XmlRpcPort uint16
+	XmlRpcPort int
 
 	// (optional) port of the TCPROS server of this node.
 	// if not provided, it will be chosen by the OS
-	TcprosPort uint16
+	TcprosPort int
 
 	// (optional) port of the UDPROS server of this node.
 	// if not provided, it will be chosen by the OS
-	UdprosPort uint16
+	UdprosPort int
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
@@ -279,6 +279,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		apiSlaveServer.Close()
 		return nil, err
 	}
+	conf.TcprosPort = tcprosServer.Port() // get port in case it has not been set
 
 	udprosServer, err := proto_udp.NewServer(conf.Host, conf.UdprosPort)
 	if err != nil {
@@ -286,6 +287,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		apiSlaveServer.Close()
 		return nil, err
 	}
+	conf.UdprosPort = udprosServer.Port() // get port in case it has not been set
 
 	n := &Node{
 		conf:                conf,

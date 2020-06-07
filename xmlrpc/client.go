@@ -10,7 +10,7 @@ type Client struct {
 	url string
 }
 
-func NewClient(host string, port uint16) *Client {
+func NewClient(host string, port int) *Client {
 	return &Client{
 		url: "http://" + host + ":" + strconv.FormatUint(uint64(port), 10) + "/RPC2",
 	}

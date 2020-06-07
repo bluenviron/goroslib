@@ -11,7 +11,7 @@ type Client struct {
 	callerId string
 }
 
-func NewClient(host string, port uint16, callerId string) *Client {
+func NewClient(host string, port int, callerId string) *Client {
 	return &Client{
 		xc:       xmlrpc.NewClient(host, port),
 		callerId: callerId,

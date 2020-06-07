@@ -10,26 +10,17 @@ const (
 )
 
 type Server struct {
-	host string
-	port uint16
-	ln   net.PacketConn
+	ln net.PacketConn
 }
 
-func NewServer(host string, port uint16) (*Server, error) {
+func NewServer(host string, port int) (*Server, error) {
 	ln, err := net.ListenPacket("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err
 	}
 
-	// if port was chosen automatically, get it
-	if port == 0 {
-		port = uint16(ln.LocalAddr().(*net.UDPAddr).Port)
-	}
-
 	return &Server{
-		host: host,
-		port: port,
-		ln:   ln,
+		ln: ln,
 	}, nil
 }
 
@@ -37,8 +28,8 @@ func (s *Server) Close() error {
 	return s.ln.Close()
 }
 
-func (s *Server) Port() uint16 {
-	return s.port
+func (s *Server) Port() int {
+	return s.ln.LocalAddr().(*net.UDPAddr).Port
 }
 
 func (s *Server) ReadFrame() (*Frame, *net.UDPAddr, error) {

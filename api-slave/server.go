@@ -8,7 +8,7 @@ type Server struct {
 	xs *xmlrpc.Server
 }
 
-func NewServer(host string, port uint16) (*Server, error) {
+func NewServer(host string, port int) (*Server, error) {
 	xs, err := xmlrpc.NewServer(host, port)
 	if err != nil {
 		return nil, err

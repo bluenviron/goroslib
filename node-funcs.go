@@ -15,7 +15,7 @@ type InfoNode struct {
 	SubscribedTopics map[string]struct{}
 	ProvidedServices map[string]struct{}
 	Hostname         string
-	Port             uint16
+	Port             int
 }
 
 // GetNodes returns all the nodes connected to the master.
@@ -150,7 +150,7 @@ func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
 type InfoService struct {
 	Providers map[string]struct{}
 	Hostname  string
-	Port      uint16
+	Port      int
 }
 
 // GetServices returns all the services provided by nodes connected to the server.

@@ -5,15 +5,7 @@ import (
 	"strconv"
 )
 
-func ptrString(v string) *string {
-	return &v
-}
-
-func ptrInt(v int) *int {
-	return &v
-}
-
-func parseUrl(in string) (string, uint16, error) {
+func parseUrl(in string) (string, int, error) {
 	u, err := url.Parse(in)
 	if err != nil {
 		return "", 0, err
@@ -24,5 +16,5 @@ func parseUrl(in string) (string, uint16, error) {
 		return "", 0, err
 	}
 
-	return u.Hostname(), uint16(port), nil
+	return u.Hostname(), int(port), nil
 }
