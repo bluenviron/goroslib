@@ -4,7 +4,7 @@ RUN apt update && apt install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /catkin_ws/src/nodesub
+WORKDIR /catkin_ws/src/nodepub
 
 COPY CMakeLists.txt main.cpp package.xml ./
 

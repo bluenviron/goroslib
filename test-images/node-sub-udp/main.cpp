@@ -1,11 +1,18 @@
 
 #include <ros/ros.h>
+#include <inttypes.h>
 
-#include <nodesub/Mymsg.h>
+#include <std_msgs/Int64MultiArray.h>
 
 
-void on_message(const nodesub::Mymsg::ConstPtr& in) {
-    printf("%d %s %lu\n", in->a, in->b[0].a.c_str(), in->b[0].b);
+void on_message(const std_msgs::Int64MultiArray::ConstPtr& in) {
+    printf("%d ", in->data.size());
+
+    for (auto it = in->data.begin(); it != in->data.end(); it++) {
+        printf("%" PRId64 " ", *it);
+    }
+
+    printf("\n");
     ros::shutdown();
 }
 

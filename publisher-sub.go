@@ -76,6 +76,7 @@ func (ps *publisherSubscriber) close() {
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 	if ps.tcpClient != nil {
 		ps.tcpClient.WriteMessage(msg)
+
 	} else {
 		ps.curMessageId += 1
 
@@ -84,15 +85,41 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 		if err != nil {
 			return
 		}
+		byts := rawMessage.Bytes()
+		lbyts := len(byts)
 
-		f := &proto_udp.Frame{
-			ConnectionId: uint32(ps.pub.id),
-			Opcode:       0,
-			MessageId:    ps.curMessageId,
-			BlockId:      1,
-			RawMessage:   rawMessage.Bytes(),
+		for i := 0; i < lbyts; i += proto_udp.MAX_CONTENT_LENGTH {
+			ps.pub.conf.Node.udprosServer.WriteFrame(&proto_udp.Frame{
+				ConnectionId: uint32(ps.pub.id),
+				Opcode: func() proto_udp.Opcode {
+					if i == 0 {
+						return proto_udp.Data0
+					}
+
+					return proto_udp.DataN
+				}(),
+				MessageId: ps.curMessageId,
+				BlockId: func() uint16 {
+					// return block count
+					if i == 0 {
+						if (lbyts % proto_udp.MAX_CONTENT_LENGTH) == 0 {
+							return uint16(lbyts / proto_udp.MAX_CONTENT_LENGTH)
+						}
+						return uint16((lbyts / proto_udp.MAX_CONTENT_LENGTH) + 1)
+					}
+
+					// return current block id
+					return uint16(i / proto_udp.MAX_CONTENT_LENGTH)
+				}(),
+				Content: func() []byte {
+					j := i + proto_udp.MAX_CONTENT_LENGTH
+					if j > lbyts {
+						j = lbyts
+					}
+
+					return byts[i:j]
+				}(),
+			}, ps.udpAddr)
 		}
-
-		ps.pub.conf.Node.udprosServer.WriteFrame(f, ps.udpAddr)
 	}
 }

@@ -12,7 +12,10 @@ import (
 type Protocol int
 
 const (
+	// TCP is the TCPROS protocol
 	TCP Protocol = iota
+
+	// UDP is the UDPROS protocol
 	UDP
 )
 

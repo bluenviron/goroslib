@@ -274,16 +274,36 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 		close(chanFrame)
 	}()
 
+	var curMsg []byte
+	curFieldId := 0
+	curFieldCount := 0
+
 	for {
 		select {
 		case frame := <-chanFrame:
-			msg := reflect.New(sp.sub.msgMsg).Interface()
-			err := proto_common.MessageDecode(bytes.NewBuffer(frame.RawMessage), msg)
-			if err != nil {
-				return err
+			switch frame.Opcode {
+			case proto_udp.Data0:
+				curMsg = append([]byte{}, frame.Content...)
+				curFieldId = 0
+				curFieldCount = int(frame.BlockId)
+
+			case proto_udp.DataN:
+				if int(frame.BlockId) != (curFieldId + 1) {
+					continue
+				}
+				curMsg = append(curMsg, frame.Content...)
+				curFieldId += 1
 			}
 
-			sp.sub.events <- subscriberEventMessage{msg}
+			if (curFieldId + 1) == curFieldCount {
+				msg := reflect.New(sp.sub.msgMsg).Interface()
+				err := proto_common.MessageDecode(bytes.NewBuffer(curMsg), msg)
+				if err != nil {
+					continue
+				}
+
+				sp.sub.events <- subscriberEventMessage{msg}
+			}
 
 		case <-sp.terminate:
 			return errSubscriberPubTerminate

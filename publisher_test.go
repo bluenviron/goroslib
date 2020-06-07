@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"regexp"
+	"strconv"
 	"testing"
 	"time"
 
@@ -237,17 +238,13 @@ func TestPublisherWriteToGoLatch(t *testing.T) {
 }
 
 func TestPublisherWriteToGoUdp(t *testing.T) {
-	sent := &TestMessage{
-		A: 1,
-		B: []TestParent{
-			{
-				A: "other test",
-				B: time.Unix(1500, 1345).UTC(),
-			},
-		},
+	sent := &std_msgs.Int64MultiArray{}
+
+	for i := int64(1); i <= 400; i++ {
+		sent.Data = append(sent.Data, i)
 	}
 
-	recv := func() *TestMessage {
+	recv := func() *std_msgs.Int64MultiArray {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
 		defer m.close()
@@ -259,12 +256,12 @@ func TestPublisherWriteToGoUdp(t *testing.T) {
 		require.NoError(t, err)
 		defer ns.Close()
 
-		recv := make(chan *TestMessage)
+		recv := make(chan *std_msgs.Int64MultiArray)
 
 		sub, err := NewSubscriber(SubscriberConf{
 			Node:  ns,
 			Topic: "/test_pub",
-			Callback: func(msg *TestMessage) {
+			Callback: func(msg *std_msgs.Int64MultiArray) {
 				recv <- msg
 			},
 			Protocol: UDP,
@@ -282,7 +279,7 @@ func TestPublisherWriteToGoUdp(t *testing.T) {
 		pub, err := NewPublisher(PublisherConf{
 			Node:  n,
 			Topic: "/test_pub",
-			Msg:   &TestMessage{},
+			Msg:   &std_msgs.Int64MultiArray{},
 		})
 		require.NoError(t, err)
 		defer pub.Close()
@@ -354,7 +351,7 @@ func TestPublisherWriteToCppUdp(t *testing.T) {
 		pub, err := NewPublisher(PublisherConf{
 			Node:  n,
 			Topic: "/test_pub",
-			Msg:   &TestMessage{},
+			Msg:   &std_msgs.Int64MultiArray{},
 		})
 		require.NoError(t, err)
 		defer pub.Close()
@@ -364,20 +361,24 @@ func TestPublisherWriteToCppUdp(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
-		pub.Write(&TestMessage{
-			A: 1,
-			B: []TestParent{
-				{
-					A: "other test",
-					B: time.Unix(1500, 1345).UTC(),
-				},
-			},
-		})
+		msg := &std_msgs.Int64MultiArray{}
+
+		for i := int64(1); i <= 400; i++ {
+			msg.Data = append(msg.Data, i)
+		}
+
+		pub.Write(msg)
 
 		return rt.waitOutput()
 	}()
 
-	require.Equal(t, "1 other test 5776731014620\n", recv)
+	expected := "400 "
+	for i := 1; i <= 400; i++ {
+		expected += strconv.FormatInt(int64(i), 10) + " "
+	}
+	expected += "\n"
+
+	require.Equal(t, expected, recv)
 }
 
 func TestPublisherWriteToRostopicEchoNoLatch(t *testing.T) {
