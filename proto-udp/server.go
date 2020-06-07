@@ -13,7 +13,7 @@ type Server struct {
 	ln net.PacketConn
 }
 
-func NewServer(host string, port int) (*Server, error) {
+func NewServer(port int) (*Server, error) {
 	ln, err := net.ListenPacket("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err

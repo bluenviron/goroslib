@@ -6,6 +6,7 @@ import (
 
 	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
+	"github.com/aler9/goroslib/xmlrpc"
 )
 
 // Protocol is a ROS stream protocol.
@@ -181,7 +182,7 @@ outer:
 
 	s.conf.Node.apiMasterClient.UnregisterSubscriber(api_master.RequestUnregister{
 		Topic:     s.conf.Topic[1:],
-		CallerUrl: s.conf.Node.apiSlaveServer.GetUrl(),
+		CallerUrl: xmlrpc.ServerUrl(s.conf.Node.conf.Host, s.conf.Node.conf.ApislavePort),
 	})
 
 	for _, pub := range s.publishers {

@@ -8,8 +8,8 @@ type Server struct {
 	xs *xmlrpc.Server
 }
 
-func NewServer(host string, port int) (*Server, error) {
-	xs, err := xmlrpc.NewServer(host, port)
+func NewServer(port int) (*Server, error) {
+	xs, err := xmlrpc.NewServer(port)
 	if err != nil {
 		return nil, err
 	}
@@ -21,12 +21,12 @@ func NewServer(host string, port int) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) Close() error {
-	return s.xs.Close()
+func (s *Server) Port() int {
+	return s.xs.Port()
 }
 
-func (s *Server) GetUrl() string {
-	return s.xs.GetUrl()
+func (s *Server) Close() error {
+	return s.xs.Close()
 }
 
 func (s *Server) Read() (Request, error) {

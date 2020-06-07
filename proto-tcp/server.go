@@ -5,20 +5,22 @@ import (
 	"net"
 )
 
-type Server struct {
-	host string
-	ln   net.Listener
+func ServerUrl(host string, port int) string {
+	return fmt.Sprintf("rosrpc://%s:%d", host, port)
 }
 
-func NewServer(host string, port int) (*Server, error) {
+type Server struct {
+	ln net.Listener
+}
+
+func NewServer(port int) (*Server, error) {
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server{
-		host: host,
-		ln:   ln,
+		ln: ln,
 	}, nil
 }
 
@@ -28,10 +30,6 @@ func (s *Server) Close() error {
 
 func (s *Server) Port() int {
 	return s.ln.Addr().(*net.TCPAddr).Port
-}
-
-func (s *Server) GetUrl() string {
-	return fmt.Sprintf("rosrpc://%s:%d", s.host, s.Port())
 }
 
 func (s *Server) Accept() (*Conn, error) {

@@ -55,6 +55,7 @@ import (
 	"github.com/aler9/goroslib/proto-common"
 	"github.com/aler9/goroslib/proto-tcp"
 	"github.com/aler9/goroslib/proto-udp"
+	"github.com/aler9/goroslib/xmlrpc"
 )
 
 func getOwnIp() string {
@@ -211,9 +212,9 @@ type NodeConf struct {
 	// if not provided, it will be set automatically
 	Host string
 
-	// (optional) port of the XML-RPC server of this node.
+	// (optional) port of the Slave API server of this node.
 	// if not provided, it will be chosen by the OS
-	XmlRpcPort int
+	ApislavePort int
 
 	// (optional) port of the TCPROS server of this node.
 	// if not provided, it will be chosen by the OS
@@ -269,19 +270,20 @@ func NewNode(conf NodeConf) (*Node, error) {
 	apiMasterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
 	apiParamClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
 
-	apiSlaveServer, err := api_slave.NewServer(conf.Host, conf.XmlRpcPort)
+	apiSlaveServer, err := api_slave.NewServer(conf.ApislavePort)
 	if err != nil {
 		return nil, err
 	}
+	conf.ApislavePort = apiSlaveServer.Port() // get port in case it has not been set
 
-	tcprosServer, err := proto_tcp.NewServer(conf.Host, conf.TcprosPort)
+	tcprosServer, err := proto_tcp.NewServer(conf.TcprosPort)
 	if err != nil {
 		apiSlaveServer.Close()
 		return nil, err
 	}
 	conf.TcprosPort = tcprosServer.Port() // get port in case it has not been set
 
-	udprosServer, err := proto_udp.NewServer(conf.Host, conf.UdprosPort)
+	udprosServer, err := proto_udp.NewServer(conf.UdprosPort)
 	if err != nil {
 		tcprosServer.Close()
 		apiSlaveServer.Close()
@@ -402,7 +404,7 @@ outer:
 		case nodeEventUdpFrame:
 			for sp, chanFrame := range n.udprosSubPublishers {
 				if evt.frame.ConnectionId == sp.udprosId &&
-					evt.source.IP.String() == sp.udprosIp {
+					evt.source.IP.Equal(sp.udprosIp) {
 					chanFrame <- evt.frame
 					break
 				}
@@ -447,7 +449,7 @@ outer:
 			res, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
 				Topic:     evt.sub.conf.Topic[1:],
 				TopicType: evt.sub.msgType,
-				CallerUrl: n.apiSlaveServer.GetUrl(),
+				CallerUrl: xmlrpc.ServerUrl(n.conf.Host, n.conf.ApislavePort),
 			})
 			if err != nil {
 				evt.err <- err
@@ -474,7 +476,7 @@ outer:
 			_, err := n.apiMasterClient.RegisterPublisher(api_master.RequestRegister{
 				Topic:     evt.pub.conf.Topic[1:],
 				TopicType: evt.pub.msgType,
-				CallerUrl: n.apiSlaveServer.GetUrl(),
+				CallerUrl: xmlrpc.ServerUrl(n.conf.Host, n.conf.ApislavePort),
 			})
 			if err != nil {
 				evt.err <- err
@@ -499,8 +501,8 @@ outer:
 
 			err := n.apiMasterClient.RegisterService(api_master.RequestRegisterService{
 				Service:    evt.sp.conf.Service[1:],
-				ServiceUrl: n.tcprosServer.GetUrl(),
-				CallerUrl:  n.apiSlaveServer.GetUrl(),
+				ServiceUrl: proto_tcp.ServerUrl(n.conf.Host, n.conf.TcprosPort),
+				CallerUrl:  xmlrpc.ServerUrl(n.conf.Host, n.conf.ApislavePort),
 			})
 			if err != nil {
 				evt.err <- err

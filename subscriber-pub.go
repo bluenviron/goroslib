@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net"
 	"reflect"
 	"time"
 
@@ -18,7 +19,7 @@ var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")
 type subscriberPublisher struct {
 	sub        *Subscriber
 	url        string
-	udprosIp   string
+	udprosIp   net.IP
 	udprosPort int
 	udprosId   uint32
 
@@ -260,8 +261,14 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 		return fmt.Errorf("wrong protoName")
 	}
 
-	sp.udprosIp = protoHost
-	sp.udprosPort = protoPort
+	// solve host and port
+	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", protoHost, protoPort))
+	if err != nil {
+		return fmt.Errorf("unable to solve host")
+	}
+
+	sp.udprosIp = addr.IP
+	sp.udprosPort = addr.Port
 	sp.udprosId = uint32(protoId)
 
 	chanFrame := make(chan *proto_udp.Frame)

@@ -12,15 +12,18 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
+func ServerUrl(host string, port int) string {
+	return fmt.Sprintf("http://%s:%d", host, port)
+}
+
 type Server struct {
-	host  string
 	ln    net.Listener
 	read  chan *RequestRaw
 	write chan interface{}
 	done  chan struct{}
 }
 
-func NewServer(host string, port int) (*Server, error) {
+func NewServer(port int) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -29,7 +32,6 @@ func NewServer(host string, port int) (*Server, error) {
 	}
 
 	s := &Server{
-		host:  host,
 		ln:    ln,
 		read:  make(chan *RequestRaw),
 		write: make(chan interface{}),
@@ -100,10 +102,6 @@ func (s *Server) Close() error {
 	s.ln.Close()
 	<-s.done
 	return nil
-}
-
-func (s *Server) GetUrl() string {
-	return fmt.Sprintf("http://%s:%d", s.host, s.Port())
 }
 
 func (s *Server) Read() (*RequestRaw, error) {
