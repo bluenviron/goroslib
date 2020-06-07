@@ -43,6 +43,10 @@ import (
 * [param-set-get](examples/param-set-get.go)
 * [cluster-info](examples/cluster-info.go)
 
+## Documentation
+
+https://godoc.org/github.com/aler9/goroslib
+
 ## Standard messages
 
 Standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
@@ -91,10 +95,6 @@ A command-line utility is provided to convert existing `.msg` files into their e
 go get github.com/aler9/goroslib/commands/msg-import
 msg-import --rospackage=my_package mymessage.msg
 ```
-
-## Documentation
-
-https://godoc.org/github.com/aler9/goroslib
 
 ## Testing
 
