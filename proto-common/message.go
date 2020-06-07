@@ -1,4 +1,5 @@
-package msg_utils
+// proto_common contains functions and definitions for both TCPROS and UDPROS
+package proto_common
 
 import (
 	"bytes"
@@ -275,8 +276,8 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 	return nil
 }
 
-// BinaryDecode decodes a message in binary format.
-func BinaryDecode(r io.Reader, msg interface{}) error {
+// MessageDecode decodes a message in binary format.
+func MessageDecode(r io.Reader, msg interface{}) error {
 	// check target
 	rv := reflect.ValueOf(msg)
 	if rv.Kind() != reflect.Ptr {
@@ -524,8 +525,8 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 	return nil
 }
 
-// BinaryEncode encodes a message in binary format.
-func BinaryEncode(w io.Writer, msg interface{}) error {
+// MessageEncode encodes a message in binary format.
+func MessageEncode(w io.Writer, msg interface{}) error {
 	// check target
 	rv := reflect.ValueOf(msg)
 	if rv.Kind() != reflect.Ptr {

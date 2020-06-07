@@ -48,12 +48,13 @@ import (
 	"net"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/api-param"
 	"github.com/aler9/goroslib/api-slave"
-	"github.com/aler9/goroslib/tcpros"
+	"github.com/aler9/goroslib/proto-common"
+	"github.com/aler9/goroslib/proto-tcp"
+	"github.com/aler9/goroslib/proto-udp"
 )
 
 func getOwnIp() string {
@@ -84,36 +85,56 @@ type nodeEvent interface {
 	isNodeEvent()
 }
 
-type nodeEventClose struct {
-}
+type nodeEventClose struct{}
 
 func (nodeEventClose) isNodeEvent() {}
 
-type nodeEventTcprosClientNew struct {
-	client *tcpros.Conn
+type nodeEventTcpClientNew struct {
+	client *proto_tcp.Conn
 }
 
-func (nodeEventTcprosClientNew) isNodeEvent() {}
+func (nodeEventTcpClientNew) isNodeEvent() {}
 
-type nodeEventTcprosClientClose struct {
-	client *tcpros.Conn
+type nodeEventTcpClientClose struct {
+	client *proto_tcp.Conn
 }
 
-func (nodeEventTcprosClientClose) isNodeEvent() {}
+func (nodeEventTcpClientClose) isNodeEvent() {}
 
-type nodeEventTcprosClientSubscriber struct {
-	client *tcpros.Conn
-	header *tcpros.HeaderSubscriber
+type nodeEventTcpClientSubscriber struct {
+	client *proto_tcp.Conn
+	header *proto_tcp.HeaderSubscriber
 }
 
-func (nodeEventTcprosClientSubscriber) isNodeEvent() {}
+func (nodeEventTcpClientSubscriber) isNodeEvent() {}
 
-type nodeEventTcprosClientServiceClient struct {
-	client *tcpros.Conn
-	header *tcpros.HeaderServiceClient
+type nodeEventTcpClientServiceClient struct {
+	client *proto_tcp.Conn
+	header *proto_tcp.HeaderServiceClient
 }
 
-func (nodeEventTcprosClientServiceClient) isNodeEvent() {}
+func (nodeEventTcpClientServiceClient) isNodeEvent() {}
+
+type nodeEventUdpSubPublisherNew struct {
+	sp        *subscriberPublisher
+	chanFrame chan *proto_udp.Frame
+}
+
+func (nodeEventUdpSubPublisherNew) isNodeEvent() {}
+
+type nodeEventUdpSubPublisherClose struct {
+	sp   *subscriberPublisher
+	done chan struct{}
+}
+
+func (nodeEventUdpSubPublisherClose) isNodeEvent() {}
+
+type nodeEventUdpFrame struct {
+	frame  *proto_udp.Frame
+	source *net.UDPAddr
+}
+
+func (nodeEventUdpFrame) isNodeEvent() {}
 
 type nodeEventPublisherUpdate struct {
 	topic string
@@ -127,6 +148,12 @@ type nodeEventGetPublications struct {
 }
 
 func (nodeEventGetPublications) isNodeEvent() {}
+
+type nodeEventSubscriberRequestTopic struct {
+	req *api_slave.RequestRequestTopic
+}
+
+func (nodeEventSubscriberRequestTopic) isNodeEvent() {}
 
 type nodeEventSubscriberNew struct {
 	sub *Subscriber
@@ -169,7 +196,14 @@ func (nodeEventServiceProviderClose) isNodeEvent() {}
 
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
-	// name of the node
+	// hostname or ip of the master node
+	MasterHost string
+
+	// (optional) port of the HTTP API of the master node
+	// if not provided, it will be set to 11311
+	MasterPort uint16
+
+	// name of this node
 	Name string
 
 	// (optional) hostname or ip of this node, needed by other nodes
@@ -183,33 +217,32 @@ type NodeConf struct {
 
 	// (optional) port of the TCPROS server of this node.
 	// if not provided, it will be chosen by the OS
-	TcpRosPort uint16
+	TcprosPort uint16
 
-	// hostname or ip of the master node
-	MasterHost string
-
-	// (optional) port of the HTTP API of the master node
-	// if not provided, it will be set to 11311
-	MasterPort uint16
+	// (optional) port of the UDPROS server of this node.
+	// if not provided, it will be chosen by the OS
+	UdprosPort uint16
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
 // and service clients.
 type Node struct {
-	conf NodeConf
+	conf                NodeConf
+	apiMasterClient     *api_master.Client
+	apiParamClient      *api_param.Client
+	apiSlaveServer      *api_slave.Server
+	tcprosServer        *proto_tcp.Server
+	udprosServer        *proto_udp.Server
+	tcprosClients       map[*proto_tcp.Conn]struct{}
+	udprosSubPublishers map[*subscriberPublisher]chan *proto_udp.Frame
+	subscribers         map[string]*Subscriber
+	publishers          map[string]*Publisher
+	serviceProviders    map[string]*ServiceProvider
+	publisherLastId     int
 
 	events    chan nodeEvent
 	terminate chan struct{}
 	done      chan struct{}
-
-	apiMasterClient  *api_master.Client
-	apiParamClient   *api_param.Client
-	apiSlaveServer   *api_slave.Server
-	tcprosServer     *tcpros.Server
-	tcprosClients    map[*tcpros.Conn]struct{}
-	subscribers      map[string]*Subscriber
-	publishers       map[string]*Publisher
-	serviceProviders map[string]*ServiceProvider
 }
 
 // NewNode allocates a Node. See NodeConf for the options.
@@ -233,33 +266,42 @@ func NewNode(conf NodeConf) (*Node, error) {
 		}
 	}
 
+	apiMasterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+	apiParamClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+
 	apiSlaveServer, err := api_slave.NewServer(conf.Host, conf.XmlRpcPort)
 	if err != nil {
 		return nil, err
 	}
 
-	tcprosServer, err := tcpros.NewServer(conf.Host, conf.TcpRosPort)
+	tcprosServer, err := proto_tcp.NewServer(conf.Host, conf.TcprosPort)
 	if err != nil {
 		apiSlaveServer.Close()
 		return nil, err
 	}
 
-	apiMasterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
-	apiParamClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+	udprosServer, err := proto_udp.NewServer(conf.Host, conf.UdprosPort)
+	if err != nil {
+		tcprosServer.Close()
+		apiSlaveServer.Close()
+		return nil, err
+	}
 
 	n := &Node{
-		conf:             conf,
-		events:           make(chan nodeEvent),
-		terminate:        make(chan struct{}),
-		done:             make(chan struct{}),
-		apiMasterClient:  apiMasterClient,
-		apiParamClient:   apiParamClient,
-		apiSlaveServer:   apiSlaveServer,
-		tcprosServer:     tcprosServer,
-		tcprosClients:    make(map[*tcpros.Conn]struct{}),
-		subscribers:      make(map[string]*Subscriber),
-		publishers:       make(map[string]*Publisher),
-		serviceProviders: make(map[string]*ServiceProvider),
+		conf:                conf,
+		apiMasterClient:     apiMasterClient,
+		apiParamClient:      apiParamClient,
+		apiSlaveServer:      apiSlaveServer,
+		tcprosServer:        tcprosServer,
+		udprosServer:        udprosServer,
+		tcprosClients:       make(map[*proto_tcp.Conn]struct{}),
+		udprosSubPublishers: make(map[*subscriberPublisher]chan *proto_udp.Frame),
+		subscribers:         make(map[string]*Subscriber),
+		publishers:          make(map[string]*Publisher),
+		serviceProviders:    make(map[string]*ServiceProvider),
+		events:              make(chan nodeEvent),
+		terminate:           make(chan struct{}),
+		done:                make(chan struct{}),
 	}
 
 	go n.run()
@@ -300,24 +342,25 @@ func NewNode(conf NodeConf) (*Node, error) {
 func (n *Node) run() {
 	var serversWg sync.WaitGroup
 
-	serversWg.Add(2)
+	serversWg.Add(3)
 	go n.runApiSlaveServer(&serversWg)
 	go n.runTcprosServer(&serversWg)
+	go n.runUdprosServer(&serversWg)
 
 	var clientsWg sync.WaitGroup
 
 outer:
 	for rawEvt := range n.events {
 		switch evt := rawEvt.(type) {
-		case nodeEventTcprosClientNew:
+		case nodeEventTcpClientNew:
 			n.tcprosClients[evt.client] = struct{}{}
 			clientsWg.Add(1)
 			go n.runTcprosClient(&clientsWg, evt.client)
 
-		case nodeEventTcprosClientClose:
+		case nodeEventTcpClientClose:
 			delete(n.tcprosClients, evt.client)
 
-		case nodeEventTcprosClientSubscriber:
+		case nodeEventTcpClientSubscriber:
 			// pass client ownership to publisher, if exists
 			delete(n.tcprosClients, evt.client)
 
@@ -327,12 +370,12 @@ outer:
 				continue
 			}
 
-			pub.events <- publisherEventSubscriberNew{
+			pub.events <- publisherEventSubscriberTcpNew{
 				client: evt.client,
 				header: evt.header,
 			}
 
-		case nodeEventTcprosClientServiceClient:
+		case nodeEventTcpClientServiceClient:
 			// pass client ownership to service provider, if exists
 			delete(n.tcprosClients, evt.client)
 
@@ -347,19 +390,50 @@ outer:
 				header: evt.header,
 			}
 
+		case nodeEventUdpSubPublisherNew:
+			n.udprosSubPublishers[evt.sp] = evt.chanFrame
+
+		case nodeEventUdpSubPublisherClose:
+			delete(n.udprosSubPublishers, evt.sp)
+			close(evt.done)
+
+		case nodeEventUdpFrame:
+			for sp, chanFrame := range n.udprosSubPublishers {
+				if evt.frame.ConnectionId == sp.udprosId &&
+					evt.source.IP.String() == sp.udprosIp {
+					chanFrame <- evt.frame
+					break
+				}
+			}
+
 		case nodeEventPublisherUpdate:
 			sub, ok := n.subscribers[evt.topic]
 			if !ok {
 				continue
 			}
+
 			sub.events <- subscriberEventPublisherUpdate{evt.urls}
 
 		case nodeEventGetPublications:
 			res := [][]string{}
+
 			for _, pub := range n.publishers {
 				res = append(res, []string{pub.conf.Topic, pub.msgType})
 			}
+
 			evt.res <- res
+
+		case nodeEventSubscriberRequestTopic:
+			pub, ok := n.publishers[evt.req.Topic]
+			if !ok {
+				n.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+					Code:          0,
+					StatusMessage: "topic not found",
+				})
+				continue
+			}
+
+			pub.events <- publisherEventRequestTopic{evt.req}
 
 		case nodeEventSubscriberNew:
 			_, ok := n.subscribers[evt.sub.conf.Topic]
@@ -368,7 +442,7 @@ outer:
 				continue
 			}
 
-			publisherUrls, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
+			res, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
 				Topic:     evt.sub.conf.Topic[1:],
 				TopicType: evt.sub.msgType,
 				CallerUrl: n.apiSlaveServer.GetUrl(),
@@ -382,7 +456,7 @@ outer:
 			evt.err <- nil
 
 			// send initial publishers list to subscriber
-			evt.sub.events <- subscriberEventPublisherUpdate{publisherUrls}
+			evt.sub.events <- subscriberEventPublisherUpdate{res.Uris}
 
 		case nodeEventSubscriberClose:
 			delete(n.subscribers, evt.sub.conf.Topic)
@@ -405,6 +479,8 @@ outer:
 				continue
 			}
 
+			n.publisherLastId += 1
+			evt.pub.id = n.publisherLastId
 			n.publishers[evt.pub.conf.Topic] = evt.pub
 			evt.err <- nil
 
@@ -451,6 +527,9 @@ outer:
 			case nodeEventGetPublications:
 				evt.res <- nil
 
+			case nodeEventUdpSubPublisherClose:
+				close(evt.done)
+
 			case nodeEventSubscriberNew:
 				evt.err <- fmt.Errorf("terminated")
 
@@ -475,6 +554,7 @@ outer:
 	// close all servers and wait
 	n.apiSlaveServer.Close()
 	n.tcprosServer.Close()
+	n.udprosServer.Close()
 	serversWg.Wait()
 
 	// close all clients and wait
@@ -560,19 +640,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			})
 
 		case *api_slave.RequestRequestTopic:
-			// Do not check here whether the topic exists or not,
-			// just send the TCPROS port.
-			// The check on the existence of the topic will take place in the
-			// TCPROS connection.
-			n.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
-				Code:          1,
-				StatusMessage: "",
-				Protocol: []interface{}{
-					"TCPROS",                      // name
-					n.conf.Host,                   // host
-					int(n.tcprosServer.GetPort()), // port
-				},
-			})
+			n.events <- nodeEventSubscriberRequestTopic{req}
 
 		case *api_slave.RequestShutdown:
 			n.apiSlaveServer.Write(api_slave.ResponseShutdown{
@@ -594,13 +662,26 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 			break
 		}
 
-		n.events <- nodeEventTcprosClientNew{client}
+		n.events <- nodeEventTcpClientNew{client}
 	}
 
 	wg.Done()
 }
 
-func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
+func (n *Node) runUdprosServer(wg *sync.WaitGroup) {
+	for {
+		frame, source, err := n.udprosServer.ReadFrame()
+		if err != nil {
+			break
+		}
+
+		n.events <- nodeEventUdpFrame{frame, source}
+	}
+
+	wg.Done()
+}
+
+func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
 	ok := func() bool {
 		rawHeader, err := client.ReadHeaderRaw()
 		if err != nil {
@@ -608,26 +689,26 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 		}
 
 		if _, ok := rawHeader["topic"]; ok {
-			var header tcpros.HeaderSubscriber
-			err = rawHeader.Decode(&header)
+			var header proto_tcp.HeaderSubscriber
+			err = proto_common.HeaderDecode(rawHeader, &header)
 			if err != nil {
 				return false
 			}
 
-			n.events <- nodeEventTcprosClientSubscriber{
+			n.events <- nodeEventTcpClientSubscriber{
 				client: client,
 				header: &header,
 			}
 			return true
 
 		} else if _, ok := rawHeader["service"]; ok {
-			var header tcpros.HeaderServiceClient
-			err = rawHeader.Decode(&header)
+			var header proto_tcp.HeaderServiceClient
+			err = proto_common.HeaderDecode(rawHeader, &header)
 			if err != nil {
 				return false
 			}
 
-			n.events <- nodeEventTcprosClientServiceClient{
+			n.events <- nodeEventTcpClientServiceClient{
 				client: client,
 				header: &header,
 			}
@@ -638,289 +719,8 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *tcpros.Conn) {
 	}()
 	if !ok {
 		client.Close()
-		n.events <- nodeEventTcprosClientClose{client}
+		n.events <- nodeEventTcpClientClose{client}
 	}
 
 	wg.Done()
-}
-
-// InfoNode contains informations about a node.
-type InfoNode struct {
-	PublishedTopics  map[string]struct{}
-	SubscribedTopics map[string]struct{}
-	ProvidedServices map[string]struct{}
-	Hostname         string
-	Port             uint16
-}
-
-// GetNodes returns all the nodes connected to the master.
-func (n *Node) GetNodes() (map[string]*InfoNode, error) {
-	sstate, err := n.apiMasterClient.GetSystemState()
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make(map[string]*InfoNode)
-
-	initEntry := func(node string) {
-		if _, ok := ret[node]; !ok {
-			ret[node] = &InfoNode{
-				PublishedTopics:  make(map[string]struct{}),
-				SubscribedTopics: make(map[string]struct{}),
-				ProvidedServices: make(map[string]struct{}),
-			}
-		}
-	}
-
-	for _, entry := range sstate.PublishedTopics {
-		for _, node := range entry.Nodes {
-			initEntry(node)
-			ret[node].PublishedTopics[entry.Name] = struct{}{}
-		}
-	}
-
-	for _, entry := range sstate.SubscribedTopics {
-		for _, node := range entry.Nodes {
-			initEntry(node)
-			ret[node].SubscribedTopics[entry.Name] = struct{}{}
-		}
-	}
-
-	for _, entry := range sstate.ProvidedServices {
-		for _, node := range entry.Nodes {
-			initEntry(node)
-			ret[node].ProvidedServices[entry.Name] = struct{}{}
-		}
-	}
-
-	for node, info := range ret {
-		ur, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
-			Name: node,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("lookupNode: %v", err)
-		}
-
-		hostname, port, err := parseUrl(ur)
-		if err != nil {
-			return nil, err
-		}
-
-		info.Hostname = hostname
-		info.Port = port
-	}
-
-	return ret, nil
-}
-
-// GetMachines returns all the machines connected to the master through a node.
-func (n *Node) GetMachines() (map[string]struct{}, error) {
-	// this is like its equivalent in python
-	// https://docs.ros.org/melodic/api/rosnode/html/rosnode-pysrc.html#get_machines_by_nodes
-
-	nodes, err := n.GetNodes()
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make(map[string]struct{})
-	for _, info := range nodes {
-		ret[info.Hostname] = struct{}{}
-	}
-
-	return ret, nil
-}
-
-// InfoTopic contains informations about a topic.
-type InfoTopic struct {
-	Type        string
-	Publishers  map[string]struct{}
-	Subscribers map[string]struct{}
-}
-
-// GetTopics returns all the topics published by nodes connected to the master.
-func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
-	sstate, err := n.apiMasterClient.GetSystemState()
-	if err != nil {
-		return nil, fmt.Errorf("getSystemState: %v", err)
-	}
-
-	ttypes, err := n.apiMasterClient.GetTopicTypes()
-	if err != nil {
-		return nil, fmt.Errorf("getTopicTypes: %v", err)
-	}
-
-	ret := make(map[string]*InfoTopic)
-
-	for _, entry := range ttypes {
-		ret[entry.Name] = &InfoTopic{
-			Type:        entry.Type,
-			Publishers:  make(map[string]struct{}),
-			Subscribers: make(map[string]struct{}),
-		}
-	}
-
-	for _, entry := range sstate.PublishedTopics {
-		if _, ok := ret[entry.Name]; !ok {
-			continue
-		}
-		for _, node := range entry.Nodes {
-			ret[entry.Name].Publishers[node] = struct{}{}
-		}
-	}
-
-	for _, entry := range sstate.SubscribedTopics {
-		if _, ok := ret[entry.Name]; !ok {
-			continue
-		}
-		for _, node := range entry.Nodes {
-			ret[entry.Name].Subscribers[node] = struct{}{}
-		}
-	}
-
-	return ret, nil
-}
-
-// InfoService contains informations about a service.
-type InfoService struct {
-	Providers map[string]struct{}
-	Hostname  string
-	Port      uint16
-}
-
-// GetServices returns all the services provided by nodes connected to the server.
-func (n *Node) GetServices() (map[string]*InfoService, error) {
-	sstate, err := n.apiMasterClient.GetSystemState()
-	if err != nil {
-		return nil, fmt.Errorf("getSystemState: %v", err)
-	}
-
-	ret := make(map[string]*InfoService)
-
-	for _, entry := range sstate.ProvidedServices {
-		if _, ok := ret[entry.Name]; !ok {
-			ret[entry.Name] = &InfoService{
-				Providers: make(map[string]struct{}),
-			}
-		}
-
-		for _, node := range entry.Nodes {
-			ret[entry.Name].Providers[node] = struct{}{}
-		}
-
-		ur, err := n.apiMasterClient.LookupService(api_master.RequestLookup{
-			Name: entry.Name,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("lookupService: %v", err)
-		}
-
-		hostname, port, err := parseUrl(ur)
-		if err != nil {
-			return nil, err
-		}
-
-		ret[entry.Name].Hostname = hostname
-		ret[entry.Name].Port = port
-	}
-
-	return ret, nil
-}
-
-// PingNode send a ping request to a given node, wait for the reply and returns
-// the elapsed time.
-func (n *Node) PingNode(name string) (time.Duration, error) {
-	ur, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
-		Name: name,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	hostname, port, err := parseUrl(ur)
-	if err != nil {
-		return 0, err
-	}
-
-	xcs := api_slave.NewClient(hostname, port, n.conf.Name)
-
-	start := time.Now()
-
-	_, err = xcs.GetPid()
-	if err != nil {
-		return 0, err
-	}
-
-	return time.Since(start), nil
-}
-
-// KillNode send a kill request to a given node.
-func (n *Node) KillNode(name string) error {
-	ur, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
-		Name: name,
-	})
-	if err != nil {
-		return err
-	}
-
-	hostname, port, err := parseUrl(ur)
-	if err != nil {
-		return err
-	}
-
-	xcs := api_slave.NewClient(hostname, port, n.conf.Name)
-
-	err = xcs.Shutdown(api_slave.RequestShutdown{
-		Reason: "",
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// GetParamBool returns a bool parameter from the master.
-func (n *Node) GetParamBool(key string) (bool, error) {
-	return n.apiParamClient.GetParamBool(api_param.RequestGetParam{
-		Key: key,
-	})
-}
-
-// GetParamInt returns an int parameter from the master.
-func (n *Node) GetParamInt(key string) (int, error) {
-	return n.apiParamClient.GetParamInt(api_param.RequestGetParam{
-		Key: key,
-	})
-}
-
-// GetParamString returns a string parameter from the master.
-func (n *Node) GetParamString(key string) (string, error) {
-	return n.apiParamClient.GetParamString(api_param.RequestGetParam{
-		Key: key,
-	})
-}
-
-// SetParamBool sets a bool parameter in the master.
-func (n *Node) SetParamBool(key string, val bool) error {
-	return n.apiParamClient.SetParamBool(api_param.RequestSetParamBool{
-		Key: key,
-		Val: val,
-	})
-}
-
-// SetParamInt sets an int parameter in the master.
-func (n *Node) SetParamInt(key string, val int) error {
-	return n.apiParamClient.SetParamInt(api_param.RequestSetParamInt{
-		Key: key,
-		Val: val,
-	})
-}
-
-// SetParamString sets a string parameter in the master.
-func (n *Node) SetParamString(key string, val string) error {
-	return n.apiParamClient.SetParamString(api_param.RequestSetParamString{
-		Key: key,
-		Val: val,
-	})
 }

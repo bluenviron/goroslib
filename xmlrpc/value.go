@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -84,6 +85,25 @@ func decodeString(in []byte, val reflect.Value) error {
 
 	default:
 		return fmt.Errorf("cannot decode a string into a %T", val.Interface())
+	}
+	return nil
+}
+
+func decodeBase64(in []byte, val reflect.Value) error {
+	byts, err := base64.StdEncoding.DecodeString(string(in))
+	if err != nil {
+		return err
+	}
+
+	switch tval := val.Interface().(type) {
+	case *[]byte:
+		*tval = byts
+
+	case *interface{}:
+		*tval = byts
+
+	default:
+		return fmt.Errorf("cannot decode a base64 into a %T", val.Interface())
 	}
 	return nil
 }
@@ -199,6 +219,17 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
+		case "base64":
+			cnt, err := xmlGetContent(dec)
+			if err != nil {
+				return err
+			}
+
+			err = decodeBase64(cnt, val)
+			if err != nil {
+				return err
+			}
+
 		case "array":
 			err = decodeArray(dec, val)
 			if err != nil {
@@ -271,6 +302,12 @@ func valueEncode(w io.Writer, val reflect.Value) error {
 
 	case string:
 		_, err := w.Write([]byte(tval))
+		if err != nil {
+			return err
+		}
+
+	case []byte:
+		_, err := w.Write([]byte(`<base64>` + base64.StdEncoding.EncodeToString(tval) + `</base64>`))
 		if err != nil {
 			return err
 		}

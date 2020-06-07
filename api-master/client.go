@@ -18,7 +18,7 @@ func NewClient(host string, port uint16, callerId string) *Client {
 	}
 }
 
-func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) ([][]string, error) {
+func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) (*ResponseGetPublishedTopics, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetPublishedTopics
@@ -31,10 +31,10 @@ func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) ([][]string, 
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Topics, nil
+	return &res, nil
 }
 
-func (c *Client) GetSystemState() (*SystemState, error) {
+func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 	req := RequestGetSystemState{
 		c.callerId,
 	}
@@ -49,10 +49,10 @@ func (c *Client) GetSystemState() (*SystemState, error) {
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res.State, nil
+	return &res, nil
 }
 
-func (c *Client) GetTopicTypes() ([]TopicType, error) {
+func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 	req := RequestGetTopicTypes{
 		c.callerId,
 	}
@@ -67,10 +67,10 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Types, nil
+	return &res, nil
 }
 
-func (c *Client) GetUri() (string, error) {
+func (c *Client) GetUri() (*ResponseGetUri, error) {
 	req := RequestGetUri{
 		c.callerId,
 	}
@@ -78,41 +78,41 @@ func (c *Client) GetUri() (string, error) {
 	var res ResponseGetUri
 	err := c.xc.Do("getUri", req, &res)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.MasterUri, nil
+	return &res, nil
 }
 
-func (c *Client) lookup(method string, req RequestLookup) (string, error) {
+func (c *Client) lookup(method string, req RequestLookup) (*ResponseLookup, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseLookup
 	err := c.xc.Do(method, req, &res)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Uri, nil
+	return &res, nil
 }
 
-func (c *Client) LookupNode(req RequestLookup) (string, error) {
+func (c *Client) LookupNode(req RequestLookup) (*ResponseLookup, error) {
 	return c.lookup("lookupNode", req)
 }
 
-func (c *Client) LookupService(req RequestLookup) (string, error) {
+func (c *Client) LookupService(req RequestLookup) (*ResponseLookup, error) {
 	return c.lookup("lookupService", req)
 }
 
-func (c *Client) register(method string, req RequestRegister) ([]string, error) {
+func (c *Client) register(method string, req RequestRegister) (*ResponseRegister, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseRegister
@@ -125,7 +125,15 @@ func (c *Client) register(method string, req RequestRegister) ([]string, error) 
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Uris, nil
+	return &res, nil
+}
+
+func (c *Client) RegisterSubscriber(req RequestRegister) (*ResponseRegister, error) {
+	return c.register("registerSubscriber", req)
+}
+
+func (c *Client) RegisterPublisher(req RequestRegister) (*ResponseRegister, error) {
+	return c.register("registerPublisher", req)
 }
 
 func (c *Client) unregister(method string, req RequestUnregister) error {
@@ -144,16 +152,8 @@ func (c *Client) unregister(method string, req RequestUnregister) error {
 	return nil
 }
 
-func (c *Client) RegisterSubscriber(req RequestRegister) ([]string, error) {
-	return c.register("registerSubscriber", req)
-}
-
 func (c *Client) UnregisterSubscriber(req RequestUnregister) error {
 	return c.unregister("unregisterSubscriber", req)
-}
-
-func (c *Client) RegisterPublisher(req RequestRegister) ([]string, error) {
-	return c.register("registerPublisher", req)
 }
 
 func (c *Client) UnregisterPublisher(req RequestUnregister) error {

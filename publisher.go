@@ -1,35 +1,45 @@
 package goroslib
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"reflect"
 
 	"github.com/aler9/goroslib/api-master"
+	"github.com/aler9/goroslib/api-slave"
 	"github.com/aler9/goroslib/msg-utils"
-	"github.com/aler9/goroslib/tcpros"
+	"github.com/aler9/goroslib/proto-common"
+	"github.com/aler9/goroslib/proto-tcp"
+	"github.com/aler9/goroslib/proto-udp"
 )
 
 type publisherEvent interface {
 	isPublisherEvent()
 }
 
-type publisherEventClose struct {
-}
+type publisherEventClose struct{}
 
 func (publisherEventClose) isPublisherEvent() {}
 
-type publisherEventSubscriberNew struct {
-	client *tcpros.Conn
-	header *tcpros.HeaderSubscriber
+type publisherEventRequestTopic struct {
+	req *api_slave.RequestRequestTopic
 }
 
-func (publisherEventSubscriberNew) isPublisherEvent() {}
+func (publisherEventRequestTopic) isPublisherEvent() {}
 
-type publisherEventSubscriberClose struct {
+type publisherEventSubscriberTcpNew struct {
+	client *proto_tcp.Conn
+	header *proto_tcp.HeaderSubscriber
+}
+
+func (publisherEventSubscriberTcpNew) isPublisherEvent() {}
+
+type publisherEventSubscriberTcpClose struct {
 	sub *publisherSubscriber
 }
 
-func (publisherEventSubscriberClose) isPublisherEvent() {}
+func (publisherEventSubscriberTcpClose) isPublisherEvent() {}
 
 type publisherEventWrite struct {
 	msg interface{}
@@ -56,17 +66,17 @@ type PublisherConf struct {
 
 // Publisher is a ROS publisher, an entity that can publish messages in a named channel.
 type Publisher struct {
-	conf    PublisherConf
-	msgType string
-	msgMd5  string
+	conf        PublisherConf
+	msgType     string
+	msgMd5      string
+	subscribers map[string]*publisherSubscriber
+	lastMessage interface{}
+	id          int
 
 	events    chan publisherEvent
 	terminate chan struct{}
 	nodeDone  chan struct{}
 	done      chan struct{}
-
-	subscribers map[string]*publisherSubscriber
-	lastMessage interface{}
 }
 
 // NewPublisher allocates a Publisher. See PublisherConf for the options.
@@ -101,19 +111,19 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		conf:        conf,
 		msgType:     msgType,
 		msgMd5:      msgMd5,
+		subscribers: make(map[string]*publisherSubscriber),
 		events:      make(chan publisherEvent),
 		terminate:   make(chan struct{}),
 		nodeDone:    make(chan struct{}),
 		done:        make(chan struct{}),
-		subscribers: make(map[string]*publisherSubscriber),
 	}
 
-	errored := make(chan error)
+	chanErr := make(chan error)
 	conf.Node.events <- nodeEventPublisherNew{
 		pub: p,
-		err: errored,
+		err: chanErr,
 	}
-	err = <-errored
+	err = <-chanErr
 	if err != nil {
 		return nil, err
 	}
@@ -128,51 +138,175 @@ outer:
 	for {
 		rawEvt := <-p.events
 		switch evt := rawEvt.(type) {
-		case publisherEventSubscriberNew:
-			_, ok := p.subscribers[evt.header.Callerid]
-			if ok {
-				evt.client.WriteHeader(&tcpros.HeaderPublisher{
-					Error: ptrString(fmt.Sprintf("topic '%s' is already subscribed by '%s'",
-						p.conf.Topic, evt.header.Callerid)),
-				})
-				evt.client.Close()
-				continue
-			}
+		case publisherEventRequestTopic:
+			err := func() error {
+				if len(evt.req.Protocols) < 1 {
+					return fmt.Errorf("invalid protocol")
+				}
 
-			// wildcard is used by rostopic hz
-			if evt.header.Md5sum != "*" && evt.header.Md5sum != p.msgMd5 {
-				evt.client.WriteHeader(&tcpros.HeaderPublisher{
-					Error: ptrString(fmt.Sprintf("wrong md5: expected '%s', got '%s'",
-						p.msgMd5, evt.header.Md5sum)),
-				})
-				evt.client.Close()
-				continue
-			}
+				proto := evt.req.Protocols[0]
 
-			err := evt.client.WriteHeader(&tcpros.HeaderPublisher{
-				Callerid: ptrString(p.conf.Node.conf.Name),
-				Md5sum:   ptrString(p.msgMd5),
-				Topic:    ptrString(p.conf.Topic),
-				Type:     ptrString(p.msgType),
-				Latching: ptrInt(func() int {
-					if p.conf.Latch {
-						return 1
+				if len(proto) < 1 {
+					return fmt.Errorf("invalid protocol")
+				}
+
+				protoName, ok := proto[0].(string)
+				if !ok {
+					return fmt.Errorf("invalid protocol")
+				}
+
+				switch protoName {
+				case "TCPROS":
+					p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+						Code:          1,
+						StatusMessage: "",
+						Protocol: []interface{}{
+							"TCPROS",
+							p.conf.Node.conf.Host,
+							int(p.conf.Node.tcprosServer.Port()),
+						},
+					})
+					return nil
+
+				case "UDPROS":
+					if len(proto) < 5 {
+						return fmt.Errorf("invalid protocol")
 					}
-					return 0
-				}()),
-			})
+
+					protoDef, ok := proto[1].([]byte)
+					if !ok {
+						return fmt.Errorf("invalid protoDef")
+					}
+
+					protoHost, ok := proto[2].(string)
+					if !ok {
+						return fmt.Errorf("invalid protoHost")
+					}
+
+					protoPort, ok := proto[3].(int)
+					if !ok {
+						return fmt.Errorf("invalid protoPort")
+					}
+
+					_, ok = proto[4].(int)
+					if !ok {
+						return fmt.Errorf("invalid proto1500")
+					}
+
+					newProtoDef := make([]byte, 4)
+					binary.LittleEndian.PutUint32(newProtoDef, uint32(len(protoDef)))
+					newProtoDef = append(newProtoDef, protoDef...)
+					buf := bytes.NewBuffer(newProtoDef)
+
+					raw, err := proto_common.HeaderDecodeRaw(buf)
+					if err != nil {
+						return err
+					}
+
+					var header proto_udp.HeaderSubscriber
+					err = proto_common.HeaderDecode(raw, &header)
+					if err != nil {
+						return err
+					}
+
+					_, ok = p.subscribers[header.Callerid]
+					if ok {
+						return fmt.Errorf("topic '%s' is already subscribed by '%s'",
+							p.conf.Topic, header.Callerid)
+					}
+
+					if header.Md5sum != p.msgMd5 {
+						return fmt.Errorf("wrong md5: expected '%s', got '%s'",
+							p.msgMd5, header.Md5sum)
+					}
+
+					p.subscribers[header.Callerid] = newPublisherSubscriber(p,
+						header.Callerid, nil, protoHost, protoPort)
+
+					p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+						Code:          1,
+						StatusMessage: "",
+						Protocol: []interface{}{
+							"UDPROS",
+							p.conf.Node.conf.Host,
+							int(p.conf.Node.udprosServer.Port()),
+							p.id,
+							1500,
+							func() []byte {
+								buf := bytes.NewBuffer(nil)
+								proto_common.HeaderEncode(buf, &proto_udp.HeaderPublisher{
+									Callerid: p.conf.Node.conf.Name,
+									Md5sum:   p.msgMd5,
+									Topic:    p.conf.Topic,
+									Type:     p.msgType,
+								})
+								return buf.Bytes()[4:]
+							}(),
+						},
+					})
+
+					return nil
+				}
+
+				return fmt.Errorf("invalid protocol")
+			}()
 			if err != nil {
+				p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+					Code:          0,
+					StatusMessage: err.Error(),
+				})
+				continue
+			}
+
+		case publisherEventSubscriberTcpNew:
+			err := func() error {
+				_, ok := p.subscribers[evt.header.Callerid]
+				if ok {
+					return fmt.Errorf("topic '%s' is already subscribed by '%s'",
+						p.conf.Topic, evt.header.Callerid)
+				}
+
+				// wildcard is used by rostopic hz
+				if evt.header.Md5sum != "*" && evt.header.Md5sum != p.msgMd5 {
+					return fmt.Errorf("wrong md5: expected '%s', got '%s'",
+						p.msgMd5, evt.header.Md5sum)
+				}
+
+				err := evt.client.WriteHeader(&proto_tcp.HeaderPublisher{
+					Callerid: p.conf.Node.conf.Name,
+					Md5sum:   p.msgMd5,
+					Topic:    p.conf.Topic,
+					Type:     p.msgType,
+					Latching: func() int {
+						if p.conf.Latch {
+							return 1
+						}
+						return 0
+					}(),
+				})
+				if err != nil {
+					evt.client.Close()
+					return nil
+				}
+
+				p.subscribers[evt.header.Callerid] = newPublisherSubscriber(p,
+					evt.header.Callerid, evt.client, "", 0)
+
+				if p.conf.Latch && p.lastMessage != nil {
+					p.subscribers[evt.header.Callerid].writeMessage(p.lastMessage)
+				}
+
+				return nil
+			}()
+			if err != nil {
+				evt.client.WriteHeader(&proto_tcp.HeaderError{
+					Error: err.Error(),
+				})
 				evt.client.Close()
 				continue
 			}
 
-			p.subscribers[evt.header.Callerid] = newPublisherSubscriber(p, evt.header.Callerid, evt.client)
-
-			if p.conf.Latch && p.lastMessage != nil {
-				p.subscribers[evt.header.Callerid].writeMessage(p.lastMessage)
-			}
-
-		case publisherEventSubscriberClose:
+		case publisherEventSubscriberTcpClose:
 			delete(p.subscribers, evt.sub.callerid)
 
 		case publisherEventWrite:

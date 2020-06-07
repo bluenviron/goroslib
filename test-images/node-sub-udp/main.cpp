@@ -6,7 +6,7 @@
 
 void on_message(const nodesub::Mymsg::ConstPtr& in) {
     printf("%d %s %lu\n", in->a, in->b[0].a.c_str(), in->b[0].b);
-    //ros::shutdown();
+    ros::shutdown();
 }
 
 int main(int argc, char **argv) {

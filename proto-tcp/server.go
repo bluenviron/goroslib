@@ -1,4 +1,4 @@
-package tcpros
+package proto_tcp
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func (s *Server) Close() error {
 	return s.ln.Close()
 }
 
-func (s *Server) GetPort() uint16 {
+func (s *Server) Port() uint16 {
 	return s.port
 }
 

@@ -236,6 +236,67 @@ func TestPublisherWriteToGoLatch(t *testing.T) {
 	require.Equal(t, sent, recv)
 }
 
+func TestPublisherWriteToGoUdp(t *testing.T) {
+	sent := &TestMessage{
+		A: 1,
+		B: []TestParent{
+			{
+				A: "other test",
+				B: time.Unix(1500, 1345).UTC(),
+			},
+		},
+	}
+
+	recv := func() *TestMessage {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		ns, err := NewNode(NodeConf{
+			Name:       "/goroslibsub",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer ns.Close()
+
+		recv := make(chan *TestMessage)
+
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:  ns,
+			Topic: "/test_pub",
+			Callback: func(msg *TestMessage) {
+				recv <- msg
+			},
+			Protocol: UDP,
+		})
+		require.NoError(t, err)
+		defer sub.Close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &TestMessage{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		time.Sleep(1 * time.Second)
+
+		pub.Write(sent)
+
+		return <-recv
+	}()
+
+	require.Equal(t, sent, recv)
+}
+
 func TestPublisherWriteToCppLatch(t *testing.T) {
 	recv := func() string {
 		m, err := newContainerMaster()
@@ -270,6 +331,48 @@ func TestPublisherWriteToCppLatch(t *testing.T) {
 
 		rt, err := newContainer("node-sub", m.Ip())
 		require.NoError(t, err)
+
+		return rt.waitOutput()
+	}()
+
+	require.Equal(t, "1 other test 5776731014620\n", recv)
+}
+
+func TestPublisherWriteToCppUdp(t *testing.T) {
+	recv := func() string {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Msg:   &TestMessage{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		rt, err := newContainer("node-sub-udp", m.Ip())
+		require.NoError(t, err)
+
+		time.Sleep(1 * time.Second)
+
+		pub.Write(&TestMessage{
+			A: 1,
+			B: []TestParent{
+				{
+					A: "other test",
+					B: time.Unix(1500, 1345).UTC(),
+				},
+			},
+		})
 
 		return rt.waitOutput()
 	}()
@@ -380,5 +483,5 @@ func TestPublisherWriteToRostopicHz(t *testing.T) {
 		return rt.waitOutput()
 	}()
 
-	require.Regexp(t, regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: (5\\.0[0-9]+|4\\.9+)\nmin: 0.200s max: 0.200s std dev: 0.0[0-9]+s window: [0-9]\n$"), recv)
+	require.Regexp(t, regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: (5\\.0[0-9]+|4\\.9[8|9]+)\nmin: 0.200s max: 0.200s std dev: 0.0[0-9]+s window: [0-9]\n$"), recv)
 }

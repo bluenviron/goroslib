@@ -1,5 +1,4 @@
-// tcpros implements the TCPROS protocol
-package tcpros
+package proto_common
 
 import (
 	"bytes"
@@ -8,49 +7,38 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"unicode"
 )
 
-type HeaderSubscriber struct {
-	Callerid          string
-	Topic             string
-	Type              string
-	Md5sum            string
-	MessageDefinition string
-	TcpNodelay        int
+func camelToSnake(in string) string {
+	tmp := []rune(in)
+	tmp[0] = unicode.ToLower(tmp[0])
+	for i := 0; i < len(tmp); i++ {
+		if unicode.IsUpper(tmp[i]) {
+			tmp[i] = unicode.ToLower(tmp[i])
+			tmp = append(tmp[:i], append([]rune{'_'}, tmp[i:]...)...)
+		}
+	}
+	return string(tmp)
 }
 
-type HeaderPublisher struct {
-	Error    *string
-	Topic    *string
-	Type     *string
-	Md5sum   *string
-	Callerid *string
-	Latching *int
-}
-
-type HeaderServiceClient struct {
-	Callerid   string
-	Md5sum     string
-	Service    string
-	Persistent int
-}
-
-type HeaderServiceProvider struct {
-	Error        *string
-	Callerid     *string
-	Md5sum       *string
-	RequestType  *string
-	ResponseType *string
-	Type         *string
+func snakeToCamel(in string) string {
+	tmp := []rune(in)
+	tmp[0] = unicode.ToUpper(tmp[0])
+	for i := 0; i < len(tmp); i++ {
+		if tmp[i] == '_' {
+			tmp[i+1] = unicode.ToUpper(tmp[i+1])
+			tmp = append(tmp[:i], tmp[i+1:]...)
+			i -= 1
+		}
+	}
+	return string(tmp)
 }
 
 type HeaderRaw map[string]string
 
-func (hr HeaderRaw) Decode(header interface{}) error {
-	return headerDecode(hr, header)
-}
-
-func headerDecodeRaw(r io.Reader) (HeaderRaw, error) {
+// HeaderDecodeRaw decodes a raw header in binary format.
+func HeaderDecodeRaw(r io.Reader) (HeaderRaw, error) {
 	raw := make(HeaderRaw)
 
 	// use a shared buffer for performance reasons
@@ -100,7 +88,12 @@ func headerDecodeRaw(r io.Reader) (HeaderRaw, error) {
 	return raw, nil
 }
 
-func headerDecode(raw HeaderRaw, header interface{}) error {
+type Header interface {
+	IsHeader()
+}
+
+// HeaderDecode decodes an header in binary format.
+func HeaderDecode(raw HeaderRaw, header Header) error {
 	// check input
 	rv := reflect.ValueOf(header)
 	if rv.Kind() != reflect.Ptr {
@@ -145,7 +138,8 @@ func headerDecode(raw HeaderRaw, header interface{}) error {
 	return nil
 }
 
-func headerEncode(w io.Writer, header interface{}) error {
+// HeaderEncode encodes an header in binary format.
+func HeaderEncode(w io.Writer, header Header) error {
 	// check input
 	rv := reflect.ValueOf(header)
 	if rv.Kind() != reflect.Ptr {

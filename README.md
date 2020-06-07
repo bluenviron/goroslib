@@ -12,7 +12,7 @@ The Robot Operating System (ROS) is a project that provides a protocol specifica
 The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes.
 
 Features:
-* Subscribe and publish to topics
+* Subscribe and publish to topics, via TCP or UDP
 * Call and provide services
 * Get and set parameters
 * Get infos about other nodes, topics, services
@@ -20,7 +20,7 @@ Features:
 * Standard messages are available in folder `msgs/`
 * Examples provided for every feature, comprehensive test suite, continuous integration
 
-The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS) and APIs (Master API, Parameter Server API, Slave API).
+The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API).
 
 ## Installation
 
@@ -35,6 +35,7 @@ import (
 
 * [subscriber-standard](examples/subscriber-standard.go)
 * [subscriber-custom](examples/subscriber-custom.go)
+* [subscriber-udp](examples/subscriber-udp.go)
 * [publisher-standard](examples/publisher-standard.go)
 * [publisher-custom](examples/publisher-custom.go)
 * [serviceclient](examples/serviceclient.go)
@@ -113,9 +114,10 @@ make test
 * https://wiki.ros.org/ROS/Slave_API
 * https://wiki.ros.org/ROS/Connection%20Header
 * https://wiki.ros.org/ROS/TCPROS
-* https://fossies.org/linux/wireshark/epan/dissectors/packet-tcpros.c
+* https://wiki.ros.org/ROS/UDPROS
+* https://fossies.org/linux/wireshark/epan/dissectors/packet-proto_tcp.c
 
-Messages
+(v1) Messages
 * https://github.com/ros/std_msgs
 * https://github.com/ros/common_msgs
 

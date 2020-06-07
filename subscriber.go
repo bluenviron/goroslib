@@ -8,12 +8,19 @@ import (
 	"github.com/aler9/goroslib/msg-utils"
 )
 
+// Protocol is a ROS stream protocol.
+type Protocol int
+
+const (
+	TCP Protocol = iota
+	UDP
+)
+
 type subscriberEvent interface {
 	isSubscriberEvent()
 }
 
-type subscriberEventClose struct {
-}
+type subscriberEventClose struct{}
 
 func (subscriberEventClose) isSubscriberEvent() {}
 
@@ -40,21 +47,24 @@ type SubscriberConf struct {
 	// function in the form func(msg *NameOfMessage){} that will be called
 	// whenever a message arrives
 	Callback interface{}
+
+	// (optional) protocol that will be used to receive messages
+	// it defaults to TCPROS
+	Protocol Protocol
 }
 
 // Subscriber is a ROS subscriber, an entity that can receive messages from a named channel.
 type Subscriber struct {
-	conf    SubscriberConf
-	msgMsg  reflect.Type
-	msgType string
-	msgMd5  string
+	conf       SubscriberConf
+	msgMsg     reflect.Type
+	msgType    string
+	msgMd5     string
+	publishers map[string]*subscriberPublisher
 
 	events    chan subscriberEvent
 	terminate chan struct{}
 	nodeDone  chan struct{}
 	done      chan struct{}
-
-	publishers map[string]*subscriberPublisher
 }
 
 // NewSubscriber allocates a Subscriber. See SubscriberConf for the options.
@@ -101,19 +111,19 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		msgMsg:     msgMsg.Elem(),
 		msgType:    msgType,
 		msgMd5:     msgMd5,
+		publishers: make(map[string]*subscriberPublisher),
 		events:     make(chan subscriberEvent),
 		terminate:  make(chan struct{}),
 		nodeDone:   make(chan struct{}),
 		done:       make(chan struct{}),
-		publishers: make(map[string]*subscriberPublisher),
 	}
 
-	errored := make(chan error)
+	chanErr := make(chan error)
 	conf.Node.events <- nodeEventSubscriberNew{
 		sub: s,
-		err: errored,
+		err: chanErr,
 	}
-	err = <-errored
+	err = <-chanErr
 	if err != nil {
 		return nil, err
 	}

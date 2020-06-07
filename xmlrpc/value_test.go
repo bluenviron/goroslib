@@ -65,6 +65,12 @@ var casesValue = []struct {
 		"",
 	},
 	{
+		"base64",
+		[]byte("<value><base64>AQIDBA==</base64></value>"),
+		[]byte("<value><base64>AQIDBA==</base64></value>"),
+		[]byte("\x01\x02\x03\x04"),
+	},
+	{
 		"array as struct",
 		[]byte(`<value><array><data>` +
 			`<value>test1</value>` +
@@ -104,14 +110,16 @@ var casesValue = []struct {
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
 			`<value><double>-1.324543</double></value>` +
+			`<value><base64>AQIDBA==</base64></value>` +
 			`</data></array></value>`),
 		[]byte(`<value><array><data>` +
 			`<value>test1</value>` +
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
 			`<value><double>-1.324543</double></value>` +
+			`<value><base64>AQIDBA==</base64></value>` +
 			`</data></array></value>`),
-		[]interface{}{"test1", "test2", 123, -1.324543},
+		[]interface{}{"test1", "test2", 123, -1.324543, []byte("\x01\x02\x03\x04")},
 	},
 }
 

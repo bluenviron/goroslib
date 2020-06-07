@@ -3,18 +3,18 @@ package goroslib
 import (
 	"reflect"
 
-	"github.com/aler9/goroslib/tcpros"
+	"github.com/aler9/goroslib/proto-tcp"
 )
 
 type serviceProviderClient struct {
 	sp       *ServiceProvider
 	callerid string
-	client   *tcpros.Conn
+	client   *proto_tcp.Conn
 
 	done chan struct{}
 }
 
-func newServiceProviderClient(sp *ServiceProvider, callerid string, client *tcpros.Conn) *serviceProviderClient {
+func newServiceProviderClient(sp *ServiceProvider, callerid string, client *proto_tcp.Conn) *serviceProviderClient {
 	spc := &serviceProviderClient{
 		sp:       sp,
 		callerid: callerid,

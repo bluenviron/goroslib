@@ -1,4 +1,4 @@
-package tcpros
+package proto_tcp
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"net"
 	"unicode"
 
-	"github.com/aler9/goroslib/msg-utils"
+	"github.com/aler9/goroslib/proto-common"
 )
 
 const (
@@ -58,16 +58,21 @@ func (c *Conn) Close() error {
 	return c.closer.Close()
 }
 
-func (c *Conn) ReadHeaderRaw() (HeaderRaw, error) {
-	return headerDecodeRaw(c.readBuf)
+func (c *Conn) ReadHeaderRaw() (proto_common.HeaderRaw, error) {
+	return proto_common.HeaderDecodeRaw(c.readBuf)
 }
 
-func (c *Conn) ReadHeader(header interface{}) error {
-	raw, err := headerDecodeRaw(c.readBuf)
+func (c *Conn) ReadHeader(header proto_common.Header) error {
+	raw, err := proto_common.HeaderDecodeRaw(c.readBuf)
 	if err != nil {
 		return err
 	}
-	return headerDecode(raw, header)
+
+	if strErr, ok := raw["error"]; ok {
+		return fmt.Errorf(strErr)
+	}
+
+	return proto_common.HeaderDecode(raw, header)
 }
 
 func (c *Conn) ReadServiceResState() error {
@@ -85,11 +90,11 @@ func (c *Conn) ReadServiceResState() error {
 }
 
 func (c *Conn) ReadMessage(msg interface{}) error {
-	return msg_utils.BinaryDecode(c.readBuf, msg)
+	return proto_common.MessageDecode(c.readBuf, msg)
 }
 
-func (c *Conn) WriteHeader(header interface{}) error {
-	err := headerEncode(c.writeBuf, header)
+func (c *Conn) WriteHeader(header proto_common.Header) error {
+	err := proto_common.HeaderEncode(c.writeBuf, header)
 	if err != nil {
 		return err
 	}
@@ -103,7 +108,7 @@ func (c *Conn) WriteServiceResState() error {
 }
 
 func (c *Conn) WriteMessage(msg interface{}) error {
-	err := msg_utils.BinaryEncode(c.writeBuf, msg)
+	err := proto_common.MessageEncode(c.writeBuf, msg)
 	if err != nil {
 		return err
 	}

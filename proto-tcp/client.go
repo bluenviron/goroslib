@@ -1,4 +1,4 @@
-package tcpros
+package proto_tcp
 
 import (
 	"fmt"

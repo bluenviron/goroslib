@@ -6,21 +6,20 @@ import (
 
 	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
-	"github.com/aler9/goroslib/tcpros"
+	"github.com/aler9/goroslib/proto-tcp"
 )
 
 type serviceProviderEvent interface {
 	isServiceProviderEvent()
 }
 
-type serviceProviderEventClose struct {
-}
+type serviceProviderEventClose struct{}
 
 func (serviceProviderEventClose) isServiceProviderEvent() {}
 
 type serviceProviderEventClientNew struct {
-	client *tcpros.Conn
-	header *tcpros.HeaderServiceClient
+	client *proto_tcp.Conn
+	header *proto_tcp.HeaderServiceClient
 }
 
 func (serviceProviderEventClientNew) isServiceProviderEvent() {}
@@ -60,13 +59,12 @@ type ServiceProvider struct {
 	reqType string
 	resType string
 	srvMd5  string
+	clients map[string]*serviceProviderClient
 
 	events    chan serviceProviderEvent
 	terminate chan struct{}
 	nodeDone  chan struct{}
 	done      chan struct{}
-
-	clients map[string]*serviceProviderClient
 }
 
 // NewServiceProvider allocates a ServiceProvider. See ServiceProviderConf for the options.
@@ -130,19 +128,19 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		reqType:   reqType,
 		resType:   resType,
 		srvMd5:    srvMd5,
+		clients:   make(map[string]*serviceProviderClient),
 		events:    make(chan serviceProviderEvent),
 		terminate: make(chan struct{}),
 		nodeDone:  make(chan struct{}),
 		done:      make(chan struct{}),
-		clients:   make(map[string]*serviceProviderClient),
 	}
 
-	errored := make(chan error)
+	chanErr := make(chan error)
 	conf.Node.events <- nodeEventServiceProviderNew{
 		sp:  sp,
-		err: errored,
+		err: chanErr,
 	}
-	err = <-errored
+	err = <-chanErr
 	if err != nil {
 		return nil, err
 	}
@@ -171,12 +169,12 @@ outer:
 				continue
 			}
 
-			err := evt.client.WriteHeader(&tcpros.HeaderServiceProvider{
-				Callerid:     ptrString(sp.conf.Node.conf.Name),
-				Md5sum:       ptrString(sp.srvMd5),
-				RequestType:  ptrString(sp.reqType),
-				ResponseType: ptrString(sp.resType),
-				Type:         ptrString("goroslib/Service"),
+			err := evt.client.WriteHeader(&proto_tcp.HeaderServiceProvider{
+				Callerid:     sp.conf.Node.conf.Name,
+				Md5sum:       sp.srvMd5,
+				RequestType:  sp.reqType,
+				ResponseType: sp.resType,
+				Type:         "goroslib/Service",
 			})
 			if err != nil {
 				evt.client.Close()

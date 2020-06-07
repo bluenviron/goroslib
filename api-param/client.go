@@ -34,7 +34,7 @@ func (c *Client) DeleteParam(req RequestDeleteParam) error {
 	return nil
 }
 
-func (c *Client) GetParamNames() ([]string, error) {
+func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 	req := RequestGetParamNames{
 		CallerId: c.callerId,
 	}
@@ -49,91 +49,91 @@ func (c *Client) GetParamNames() ([]string, error) {
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.List, nil
+	return &res, nil
 }
 
-func (c *Client) GetParamBool(req RequestGetParam) (bool, error) {
+func (c *Client) GetParamBool(req RequestGetParam) (*ResponseGetParamBool, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetParamBool
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return false, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Res, nil
+	return &res, nil
 }
 
-func (c *Client) GetParamInt(req RequestGetParam) (int, error) {
+func (c *Client) GetParamInt(req RequestGetParam) (*ResponseGetParamInt, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetParamInt
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return 0, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Res, nil
+	return &res, nil
 }
 
-func (c *Client) GetParamString(req RequestGetParam) (string, error) {
+func (c *Client) GetParamString(req RequestGetParam) (*ResponseGetParamString, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseGetParamString
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Res, nil
+	return &res, nil
 }
 
-func (c *Client) HasParam(req RequestHasParam) (bool, error) {
+func (c *Client) HasParam(req RequestHasParam) (*ResponseHasParam, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseHasParam
 	err := c.xc.Do("hasParam", req, &res)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return false, fmt.Errorf("server returned an error (%d)", res.Code)
+		return nil, fmt.Errorf("server returned an error (%d)", res.Code)
 	}
 
 	if res.KeyOut != req.Key {
-		return false, fmt.Errorf("unexpected response")
+		return nil, fmt.Errorf("unexpected response")
 	}
 
-	return res.Res, nil
+	return &res, nil
 }
 
-func (c *Client) SearchParam(req RequestSearchParam) (string, error) {
+func (c *Client) SearchParam(req RequestSearchParam) (*ResponseSearchParam, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseSearchParam
 	err := c.xc.Do("searchParam", req, &res)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d)", res.Code)
+		return nil, fmt.Errorf("server returned an error (%d)", res.Code)
 	}
 
-	return res.FoundKey, nil
+	return &res, nil
 }
 
 func (c *Client) SetParamBool(req RequestSetParamBool) error {

@@ -1,4 +1,4 @@
-package tcpros
+package proto_common
 
 import (
 	"bytes"
@@ -16,14 +16,36 @@ func ptrInt(v int) *int {
 	return &v
 }
 
+type headerSubscriber struct {
+	Callerid          string
+	Topic             string
+	Type              string
+	Md5sum            string
+	MessageDefinition string
+	TcpNodelay        int
+}
+
+func (*headerSubscriber) IsHeader() {}
+
+type headerPublisher struct {
+	Error    *string
+	Topic    *string
+	Type     *string
+	Md5sum   *string
+	Callerid *string
+	Latching *int
+}
+
+func (*headerPublisher) IsHeader() {}
+
 var casesHeader = []struct {
 	name   string
-	header interface{}
+	header Header
 	byts   []byte
 }{
 	{
 		"subscriber",
-		&HeaderSubscriber{
+		&headerSubscriber{
 			Callerid:          "/rostopic_1_1585920221893",
 			Md5sum:            "6a62c6daae103f4ff57a132d6f95cec2",
 			Topic:             "/test_pub",
@@ -49,7 +71,7 @@ var casesHeader = []struct {
 	},
 	{
 		"publisher",
-		&HeaderPublisher{
+		&headerPublisher{
 			Callerid: ptrString("/testing_1_2_3"),
 			Md5sum:   ptrString("6a62c6daae1as3f4ff57a132d6f95cec2"),
 			Topic:    ptrString("/test_topic"),
@@ -67,7 +89,7 @@ var casesHeader = []struct {
 	},
 	{
 		"publisher with error",
-		&HeaderPublisher{
+		&headerPublisher{
 			Error: ptrString("test error"),
 		},
 		[]byte("\x14\x00\x00\x00\x10\x00\x00\x00\x65\x72\x72\x6f\x72\x3d\x74\x65\x73" +
@@ -78,10 +100,10 @@ var casesHeader = []struct {
 func TestHeaderDecode(t *testing.T) {
 	for _, c := range casesHeader {
 		t.Run(c.name, func(t *testing.T) {
-			header := reflect.New(reflect.TypeOf(c.header).Elem()).Interface()
-			raw, err := headerDecodeRaw(bytes.NewBuffer(c.byts))
+			header := reflect.New(reflect.TypeOf(c.header).Elem()).Interface().(Header)
+			raw, err := HeaderDecodeRaw(bytes.NewBuffer(c.byts))
 			require.NoError(t, err)
-			err = headerDecode(raw, header)
+			err = HeaderDecode(raw, header)
 			require.NoError(t, err)
 			require.Equal(t, c.header, header)
 		})
@@ -92,7 +114,7 @@ func TestHeaderEncode(t *testing.T) {
 	for _, c := range casesHeader {
 		t.Run(c.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := headerEncode(&buf, c.header)
+			err := HeaderEncode(&buf, c.header)
 			require.NoError(t, err)
 			require.Equal(t, c.byts, buf.Bytes())
 		})

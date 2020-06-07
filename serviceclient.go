@@ -6,7 +6,7 @@ import (
 
 	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/msg-utils"
-	"github.com/aler9/goroslib/tcpros"
+	"github.com/aler9/goroslib/proto-tcp"
 )
 
 // ServiceClientConf is the configuration of a ServiceClient.
@@ -28,7 +28,7 @@ type ServiceClientConf struct {
 // providers with requests and receive replies.
 type ServiceClient struct {
 	conf ServiceClientConf
-	conn *tcpros.Conn
+	conn *proto_tcp.Conn
 }
 
 // NewServiceClient allocates a ServiceClient. See ServiceClientConf for the options.
@@ -57,7 +57,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Res must be a pointer to a struct")
 	}
 
-	ur, err := conf.Node.apiMasterClient.LookupService(api_master.RequestLookup{
+	res, err := conf.Node.apiMasterClient.LookupService(api_master.RequestLookup{
 		Name: conf.Service,
 	})
 	if err != nil {
@@ -69,17 +69,17 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
-	host, port, err := parseUrl(ur)
+	host, port, err := parseUrl(res.Uri)
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := tcpros.NewClient(host, port)
+	conn, err := proto_tcp.NewClient(host, port)
 	if err != nil {
 		return nil, err
 	}
 
-	err = conn.WriteHeader(&tcpros.HeaderServiceClient{
+	err = conn.WriteHeader(&proto_tcp.HeaderServiceClient{
 		Callerid:   conf.Node.conf.Name,
 		Md5sum:     srvMd5,
 		Persistent: 1,
@@ -90,26 +90,17 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
-	var outHeader tcpros.HeaderServiceProvider
+	var outHeader proto_tcp.HeaderServiceProvider
 	err = conn.ReadHeader(&outHeader)
 	if err != nil {
 		conn.Close()
 		return nil, err
 	}
 
-	if outHeader.Error != nil {
-		conn.Close()
-		return nil, fmt.Errorf(*outHeader.Error)
-	}
-
-	if outHeader.Md5sum == nil {
-		return nil, fmt.Errorf("missing md5sum")
-	}
-
-	if *outHeader.Md5sum != srvMd5 {
+	if outHeader.Md5sum != srvMd5 {
 		conn.Close()
 		return nil, fmt.Errorf("wrong md5sum: expected %s, got %s",
-			srvMd5, *outHeader.Md5sum)
+			srvMd5, outHeader.Md5sum)
 	}
 
 	return &ServiceClient{

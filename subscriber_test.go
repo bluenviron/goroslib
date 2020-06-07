@@ -188,6 +188,64 @@ func TestSubscriberReadFromCppBeforePub(t *testing.T) {
 	require.Equal(t, &expected, recv)
 }
 
+func TestSubscriberReadFromCppUdp(t *testing.T) {
+	recv := func() *TestMessage {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		p, err := newContainer("node-pub", m.Ip())
+		require.NoError(t, err)
+		defer p.close()
+
+		n, err := NewNode(NodeConf{
+			Name:       "/goroslib",
+			MasterHost: m.Ip(),
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		recv := make(chan *TestMessage, 10)
+
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:  n,
+			Topic: "/test_pub",
+			Callback: func(msg *TestMessage) {
+				recv <- msg
+			},
+			Protocol: UDP,
+		})
+		require.NoError(t, err)
+		defer sub.Close()
+
+		return <-recv
+	}()
+
+	expected := TestMessage{
+		A: 1,
+		B: []TestParent{
+			{
+				A: "other test",
+				B: time.Unix(1500, 1345).UTC(),
+				C: true,
+				D: 27,
+				E: 23,
+				F: 2345500 * time.Millisecond,
+			},
+		},
+		C: [2]TestParent{
+			{
+				A: "AA",
+			},
+			{
+				A: "BB",
+			},
+		},
+		D: [2]uint32{222, 333},
+	}
+	require.Equal(t, &expected, recv)
+}
+
 func TestSubscriberReadFromRostopicPub(t *testing.T) {
 	recv := func() *sensor_msgs.Imu {
 		m, err := newContainerMaster()

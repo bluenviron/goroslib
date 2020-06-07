@@ -70,7 +70,7 @@ func (ResponsePublisherUpdate) isResponse() {}
 type RequestRequestTopic struct {
 	CallerId  string
 	Topic     string
-	Protocols [][]string
+	Protocols [][]interface{}
 }
 
 func (RequestRequestTopic) isRequest() {}

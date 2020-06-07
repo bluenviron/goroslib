@@ -50,7 +50,9 @@ test-nodocker:
 	docker build -q test-images/$(IMG) -t goroslib-test-$(IMG)$(NL))
 	$(eval export CGO_ENABLED = 0)
 	go test -v ./msg-utils
-	go test -v ./tcpros
+	go test -v ./proto-common
+	go test -v ./proto-tcp
+	go test -v ./proto-udp
 	go test -v ./xmlrpc
 	go test -v ./msgs/...
 	go test -v .

@@ -18,7 +18,7 @@ func NewClient(host string, port uint16, callerId string) *Client {
 	}
 }
 
-func (c *Client) GetPid() (int, error) {
+func (c *Client) GetPid() (*ResponseGetPid, error) {
 	req := RequestGetPid{
 		CallerId: c.callerId,
 	}
@@ -26,14 +26,14 @@ func (c *Client) GetPid() (int, error) {
 	var res ResponseGetPid
 	err := c.xc.Do("getPid", req, &res)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if res.Code != 1 {
-		return 0, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Pid, nil
+	return &res, nil
 }
 
 func (c *Client) Shutdown(req RequestShutdown) error {
@@ -52,7 +52,7 @@ func (c *Client) Shutdown(req RequestShutdown) error {
 	return nil
 }
 
-func (c *Client) RequestTopic(req RequestRequestTopic) ([]interface{}, error) {
+func (c *Client) RequestTopic(req RequestRequestTopic) (*ResponseRequestTopic, error) {
 	req.CallerId = c.callerId
 
 	var res ResponseRequestTopic
@@ -65,5 +65,5 @@ func (c *Client) RequestTopic(req RequestRequestTopic) ([]interface{}, error) {
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return res.Protocol, nil
+	return &res, nil
 }
