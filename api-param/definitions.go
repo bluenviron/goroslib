@@ -1,4 +1,6 @@
-// api_param implements the Parameter API, documented here: https://wiki.ros.org/ROS/Parameter%20Server%20API
+// api_param implements the Parameter API
+//
+// https://wiki.ros.org/ROS/Parameter%20Server%20API
 package api_param
 
 type RequestDeleteParam struct {
