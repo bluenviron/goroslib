@@ -26,6 +26,8 @@ func main() {
 	defer n.Close()
 
 	// create a subscriber, use the UDPROS protocol
+	// the publisher must be based on roscpp or on another implementation that
+	// supports the protocol. Currently, rospython does not support it.
 	sub, err := goroslib.NewSubscriber(goroslib.SubscriberConf{
 		Node:     n,
 		Topic:    "/test_pub",
