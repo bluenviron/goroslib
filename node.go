@@ -47,6 +47,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/aler9/goroslib/api-master"
@@ -58,7 +59,7 @@ import (
 	"github.com/aler9/goroslib/xmlrpc"
 )
 
-func getOwnIp() string {
+func getOwnIp(sameNetAs net.IP) string {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return ""
@@ -68,14 +69,17 @@ func getOwnIp() string {
 		if (i.Flags & net.FlagLoopback) != 0 {
 			continue
 		}
+
 		addrs, err := i.Addrs()
 		if err != nil {
 			continue
 		}
+
 		for _, addr := range addrs {
-			switch v := addr.(type) {
-			case *net.IPNet:
-				return v.IP.String()
+			if v, ok := addr.(*net.IPNet); ok {
+				if v.Contains(sameNetAs) {
+					return v.IP.String()
+				}
 			}
 		}
 	}
@@ -260,15 +264,23 @@ func NewNode(conf NodeConf) (*Node, error) {
 	if conf.MasterPort == 0 {
 		conf.MasterPort = 11311
 	}
+
+	// solve master address once
+	masterAddr, err := net.ResolveTCPAddr("tcp", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
+	if err != nil {
+		return nil, fmt.Errorf("unable to solve MasterHost: %s", err)
+	}
+
+	// find an ip in the same subnet of the master
 	if conf.Host == "" {
-		conf.Host = getOwnIp()
+		conf.Host = getOwnIp(masterAddr.IP)
 		if conf.Host == "" {
 			return nil, fmt.Errorf("unable to set Host automatically")
 		}
 	}
 
-	apiMasterClient := api_master.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
-	apiParamClient := api_param.NewClient(conf.MasterHost, conf.MasterPort, conf.Name)
+	apiMasterClient := api_master.NewClient(masterAddr.IP.String(), conf.MasterPort, conf.Name)
+	apiParamClient := api_param.NewClient(masterAddr.IP.String(), conf.MasterPort, conf.Name)
 
 	apiSlaveServer, err := api_slave.NewServer(conf.ApislavePort)
 	if err != nil {
