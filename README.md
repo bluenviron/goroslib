@@ -9,13 +9,14 @@ goroslib is a library in pure Go that allows to build clients (nodes) for the Ro
 
 The Robot Operating System (ROS) is a project that provides a protocol specification to make multiple programs communicate with each other over time, exchanging structured data through topics, services and parameters. It was conceived for linking sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
 
-The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes.
+The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of cross-compiling nodes for all the Golang supported operating systems (Linux, Windows, Darwin, etc) and architectures.
 
 Features:
 * Subscribe and publish to topics, via TCP or UDP
 * Call and provide services
 * Get and set parameters
 * Get infos about other nodes, topics, services
+* Compile or cross-compile ROS nodes for all Golang supported OS and architectures
 * Compilation of `.msg` files is not necessary, message definitions are deducted from code
 * Standard messages are available in folder `msgs/`
 * Examples provided for every feature, comprehensive test suite, continuous integration
@@ -24,34 +25,40 @@ The library provides its features by implementing in pure Go all the ROS protoco
 
 ## Installation
 
-Go &ge; 1.12 is required, and modules must be enabled (there must be a `go.mod` file in your project folder, that can be created with the command `go mod init main`). To install the library, it is enough to write its name in the import section of the source files that will use it. Go will take care of downloading the needed files:
-```go
-import (
-    "github.com/aler9/goroslib"
-)
-```
+1. Install Go &ge; 1.12.
 
-## Examples
+2. Create an empty folder, open a terminal in it and initialize the Go dependency system:
+   ```
+   go mod init main
+   ```
 
-* [subscriber-standard](examples/subscriber-standard.go)
-* [subscriber-custom](examples/subscriber-custom.go)
-* [subscriber-udp](examples/subscriber-udp.go)
-* [publisher-standard](examples/publisher-standard.go)
-* [publisher-custom](examples/publisher-custom.go)
-* [serviceclient](examples/serviceclient.go)
-* [serviceprovider](examples/serviceprovider.go)
-* [param-set-get](examples/param-set-get.go)
-* [cluster-info](examples/cluster-info.go)
+3. Download one of the example files and place it in the folder:
+   * [subscriber-standard](examples/subscriber-standard.go)
+   * [subscriber-custom](examples/subscriber-custom.go)
+   * [subscriber-udp](examples/subscriber-udp.go)
+   * [publisher-standard](examples/publisher-standard.go)
+   * [publisher-custom](examples/publisher-custom.go)
+   * [serviceclient](examples/serviceclient.go)
+   * [serviceprovider](examples/serviceprovider.go)
+   * [param-set-get](examples/param-set-get.go)
+   * [cluster-info](examples/cluster-info.go)
+
+4. Compile and run
+   ```
+   go run node name-of-the-go-file.go
+   ```
 
 ## Documentation
 
 https://godoc.org/github.com/aler9/goroslib
 
-## Standard messages
+## FAQs
+
+##### Where can i find the standard messages?
 
 Standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
 
-## Custom messages
+#### How can i define a custom message?
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
 ```
@@ -96,7 +103,14 @@ go get github.com/aler9/goroslib/commands/msg-import
 msg-import --rospackage=my_package mymessage.msg
 ```
 
-## Testing
+#### How can i compile nodes for another OS?
+
+To compile a node for another OS, it's enough to follow the standard Golang procedure for cross-compiling, that consists in setting the `GOOS` and `GOARCH` architecture according to the target machine. For instance, to build a node for Windows from another OS, run:
+```
+GOOS=windows GOARCH=amd64 go build -o node.exe name-of-source-file.go
+```
+
+#### How can i edit the library?
 
 If you want to hack the library and test the results, unit tests can be launched with:
 
