@@ -59,33 +59,6 @@ import (
 	"github.com/aler9/goroslib/xmlrpc"
 )
 
-func getOwnIp(sameNetAs net.IP) string {
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		return ""
-	}
-
-	for _, i := range ifaces {
-		if (i.Flags & net.FlagLoopback) != 0 {
-			continue
-		}
-
-		addrs, err := i.Addrs()
-		if err != nil {
-			continue
-		}
-
-		for _, addr := range addrs {
-			if v, ok := addr.(*net.IPNet); ok {
-				if v.Contains(sameNetAs) {
-					return v.IP.String()
-				}
-			}
-		}
-	}
-	return ""
-}
-
 type nodeEvent interface {
 	isNodeEvent()
 }
@@ -273,7 +246,28 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	// find an ip in the same subnet of the master
 	if conf.Host == "" {
-		conf.Host = getOwnIp(masterAddr.IP)
+		conf.Host = func() string {
+			ifaces, err := net.Interfaces()
+			if err != nil {
+				return ""
+			}
+
+			for _, i := range ifaces {
+				addrs, err := i.Addrs()
+				if err != nil {
+					continue
+				}
+
+				for _, addr := range addrs {
+					if v, ok := addr.(*net.IPNet); ok {
+						if v.Contains(masterAddr.IP) {
+							return v.IP.String()
+						}
+					}
+				}
+			}
+			return ""
+		}()
 		if conf.Host == "" {
 			return nil, fmt.Errorf("unable to set Host automatically")
 		}
