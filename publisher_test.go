@@ -484,9 +484,12 @@ func TestPublisherWriteToRostopicHz(t *testing.T) {
 		return rt.waitOutput()
 	}()
 
-	re := regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: (.+?)\nmin: 0.200s max: 0.200s std dev: (.+?)s window: [0-9]\n$")
+	re := regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: (.+?)\nmin: (.+?)s max: (.+?)s std dev: (.+?)s window: [0-9]\n$")
 	matches := re.FindStringSubmatch(recv)
-	require.NotNil(t, matches)
+	if matches == nil {
+		t.Errorf("string does not match. String:\n%s", recv)
+		return
+	}
 
 	v, _ := strconv.ParseFloat(matches[1], 64)
 	require.Greater(t, v, 4.9)
