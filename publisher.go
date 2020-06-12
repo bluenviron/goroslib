@@ -12,7 +12,6 @@ import (
 	"github.com/aler9/goroslib/proto-common"
 	"github.com/aler9/goroslib/proto-tcp"
 	"github.com/aler9/goroslib/proto-udp"
-	"github.com/aler9/goroslib/xmlrpc"
 )
 
 type publisherEvent interface {
@@ -163,8 +162,8 @@ outer:
 						StatusMessage: "",
 						Protocol: []interface{}{
 							"TCPROS",
-							p.conf.Node.conf.Host,
-							p.conf.Node.conf.TcprosPort,
+							p.conf.Node.nodeIp.String(),
+							p.conf.Node.tcprosServerPort,
 						},
 					})
 					return nil
@@ -229,8 +228,8 @@ outer:
 						StatusMessage: "",
 						Protocol: []interface{}{
 							"UDPROS",
-							p.conf.Node.conf.Host,
-							p.conf.Node.conf.UdprosPort,
+							p.conf.Node.nodeIp.String(),
+							p.conf.Node.udprosServerPort,
 							p.id,
 							1500,
 							func() []byte {
@@ -332,7 +331,7 @@ outer:
 
 	p.conf.Node.apiMasterClient.UnregisterPublisher(api_master.RequestUnregister{
 		Topic:     p.conf.Topic[1:],
-		CallerUrl: xmlrpc.ServerUrl(p.conf.Node.conf.Host, p.conf.Node.conf.ApislavePort),
+		CallerUrl: p.conf.Node.apiSlaveServerUrl,
 	})
 
 	for _, c := range p.subscribers {

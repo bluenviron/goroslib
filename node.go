@@ -206,11 +206,17 @@ type NodeConf struct {
 // and service clients.
 type Node struct {
 	conf                NodeConf
+	masterIp            net.IP
+	nodeIp              net.IP
 	apiMasterClient     *api_master.Client
 	apiParamClient      *api_param.Client
 	apiSlaveServer      *api_slave.Server
+	apiSlaveServerUrl   string
 	tcprosServer        *proto_tcp.Server
+	tcprosServerPort    int
+	tcprosServerUrl     string
 	udprosServer        *proto_udp.Server
+	udprosServerPort    int
 	tcprosClients       map[*proto_tcp.Conn]struct{}
 	udprosSubPublishers map[*subscriberPublisher]chan *proto_udp.Frame
 	subscribers         map[string]*Subscriber
@@ -238,10 +244,16 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.MasterPort = 11311
 	}
 
-	// solve master address once
-	masterAddr, err := net.ResolveTCPAddr("tcp", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
+	// solve master ip once
+	masterIp, err := func() (net.IP, error) {
+		addr, err := net.ResolveTCPAddr("tcp", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
+		if err != nil {
+			return nil, fmt.Errorf("unable to solve master host: %s", err)
+		}
+		return addr.IP, nil
+	}()
 	if err != nil {
-		return nil, fmt.Errorf("unable to solve MasterHost: %s", err)
+		return nil, err
 	}
 
 	// find an ip in the same subnet of the master
@@ -260,7 +272,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 				for _, addr := range addrs {
 					if v, ok := addr.(*net.IPNet); ok {
-						if v.Contains(masterAddr.IP) {
+						if v.Contains(masterIp) {
 							return v.IP.String()
 						}
 					}
@@ -273,21 +285,31 @@ func NewNode(conf NodeConf) (*Node, error) {
 		}
 	}
 
-	apiMasterClient := api_master.NewClient(masterAddr.IP.String(), conf.MasterPort, conf.Name)
-	apiParamClient := api_param.NewClient(masterAddr.IP.String(), conf.MasterPort, conf.Name)
+	// solve node ip once
+	nodeIp, err := func() (net.IP, error) {
+		addr, err := net.ResolveTCPAddr("tcp", conf.Host+":0")
+		if err != nil {
+			return nil, fmt.Errorf("unable to solve node host: %s", err)
+		}
+		return addr.IP, nil
+	}()
+
+	apiMasterClient := api_master.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
+	apiParamClient := api_param.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
 
 	apiSlaveServer, err := api_slave.NewServer(conf.ApislavePort)
 	if err != nil {
 		return nil, err
 	}
-	conf.ApislavePort = apiSlaveServer.Port() // get port in case it has not been set
+	apiSlaveServerUrl := xmlrpc.ServerUrl(nodeIp.String(), apiSlaveServer.Port()) // get port in case it has been set automatically
 
 	tcprosServer, err := proto_tcp.NewServer(conf.TcprosPort)
 	if err != nil {
 		apiSlaveServer.Close()
 		return nil, err
 	}
-	conf.TcprosPort = tcprosServer.Port() // get port in case it has not been set
+	tcprosServerPort := tcprosServer.Port() // get port in case it has been set automatically
+	tcprosServerUrl := proto_tcp.ServerUrl(nodeIp.String(), tcprosServerPort)
 
 	udprosServer, err := proto_udp.NewServer(conf.UdprosPort)
 	if err != nil {
@@ -295,15 +317,21 @@ func NewNode(conf NodeConf) (*Node, error) {
 		apiSlaveServer.Close()
 		return nil, err
 	}
-	conf.UdprosPort = udprosServer.Port() // get port in case it has not been set
+	udprosServerPort := udprosServer.Port() // get port in case it has been set automatically
 
 	n := &Node{
 		conf:                conf,
+		masterIp:            masterIp,
+		nodeIp:              nodeIp,
 		apiMasterClient:     apiMasterClient,
 		apiParamClient:      apiParamClient,
 		apiSlaveServer:      apiSlaveServer,
+		apiSlaveServerUrl:   apiSlaveServerUrl,
 		tcprosServer:        tcprosServer,
+		tcprosServerPort:    tcprosServerPort,
+		tcprosServerUrl:     tcprosServerUrl,
 		udprosServer:        udprosServer,
+		udprosServerPort:    udprosServerPort,
 		tcprosClients:       make(map[*proto_tcp.Conn]struct{}),
 		udprosSubPublishers: make(map[*subscriberPublisher]chan *proto_udp.Frame),
 		subscribers:         make(map[string]*Subscriber),
@@ -455,7 +483,7 @@ outer:
 			res, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
 				Topic:     evt.sub.conf.Topic[1:],
 				TopicType: evt.sub.msgType,
-				CallerUrl: xmlrpc.ServerUrl(n.conf.Host, n.conf.ApislavePort),
+				CallerUrl: n.apiSlaveServerUrl,
 			})
 			if err != nil {
 				evt.err <- err
@@ -482,7 +510,7 @@ outer:
 			_, err := n.apiMasterClient.RegisterPublisher(api_master.RequestRegister{
 				Topic:     evt.pub.conf.Topic[1:],
 				TopicType: evt.pub.msgType,
-				CallerUrl: xmlrpc.ServerUrl(n.conf.Host, n.conf.ApislavePort),
+				CallerUrl: n.apiSlaveServerUrl,
 			})
 			if err != nil {
 				evt.err <- err
@@ -507,8 +535,8 @@ outer:
 
 			err := n.apiMasterClient.RegisterService(api_master.RequestRegisterService{
 				Service:    evt.sp.conf.Service[1:],
-				ServiceUrl: proto_tcp.ServerUrl(n.conf.Host, n.conf.TcprosPort),
-				CallerUrl:  xmlrpc.ServerUrl(n.conf.Host, n.conf.ApislavePort),
+				ServiceUrl: n.tcprosServerUrl,
+				CallerUrl:  n.apiSlaveServerUrl,
 			})
 			if err != nil {
 				evt.err <- err

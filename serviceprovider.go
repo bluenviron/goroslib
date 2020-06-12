@@ -214,7 +214,7 @@ outer:
 
 	sp.conf.Node.apiMasterClient.UnregisterService(api_master.RequestUnregisterService{
 		Service:    sp.conf.Service[1:],
-		ServiceUrl: proto_tcp.ServerUrl(sp.conf.Node.conf.Host, sp.conf.Node.conf.TcprosPort),
+		ServiceUrl: sp.conf.Node.tcprosServerUrl,
 	})
 
 	for _, c := range sp.clients {

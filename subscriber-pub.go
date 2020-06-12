@@ -98,8 +98,8 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 						})
 						return buf.Bytes()[4:]
 					}(),
-					sp.sub.conf.Node.conf.Host,
-					sp.sub.conf.Node.conf.UdprosPort,
+					sp.sub.conf.Node.nodeIp.String(),
+					sp.sub.conf.Node.udprosServerPort,
 					1500,
 				}}
 			}(),
