@@ -262,7 +262,7 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 	}
 
 	// solve host and port
-	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", protoHost, protoPort))
+	addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:%d", protoHost, protoPort))
 	if err != nil {
 		return fmt.Errorf("unable to solve host")
 	}

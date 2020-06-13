@@ -246,7 +246,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	// solve master ip once
 	masterIp, err := func() (net.IP, error) {
-		addr, err := net.ResolveTCPAddr("tcp", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
+		addr, err := net.ResolveTCPAddr("tcp4", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
 		if err != nil {
 			return nil, fmt.Errorf("unable to solve master host: %s", err)
 		}
@@ -287,7 +287,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	// solve node ip once
 	nodeIp, err := func() (net.IP, error) {
-		addr, err := net.ResolveTCPAddr("tcp", conf.Host+":0")
+		addr, err := net.ResolveTCPAddr("tcp4", conf.Host+":0")
 		if err != nil {
 			return nil, fmt.Errorf("unable to solve node host: %s", err)
 		}

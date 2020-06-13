@@ -40,7 +40,7 @@ func newContainerMaster() (*containerMaster, error) {
 	address := ip + ":" + strconv.FormatInt(11311, 10)
 	for {
 		time.Sleep(1 * time.Second)
-		conn, err := net.DialTimeout("tcp", address, 5*time.Second)
+		conn, err := net.DialTimeout("tcp4", address, 5*time.Second)
 		if err != nil {
 			continue
 		}

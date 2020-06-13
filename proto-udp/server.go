@@ -14,7 +14,7 @@ type Server struct {
 }
 
 func NewServer(port int) (*Server, error) {
-	ln, err := net.ListenPacket("udp", fmt.Sprintf(":%d", port))
+	ln, err := net.ListenPacket("udp4", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err
 	}

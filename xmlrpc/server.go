@@ -26,7 +26,7 @@ type Server struct {
 func NewServer(port int) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	ln, err := net.Listen("tcp4", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err
 	}
