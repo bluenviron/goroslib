@@ -6,10 +6,11 @@ import (
 )
 
 type DiagnosticStatus struct {
-	msgs.Package `ros:"diagnostic_msgs"`
-	Level        int8 `ros:"byte"`
-	Name         string
-	Message      string
-	HardwareId   string
-	Values       []KeyValue
+	msgs.Package     `ros:"diagnostic_msgs"`
+	msgs.Definitions `ros:"byte OK=0,byte WARN=1,byte ERROR=2,byte STALE=3"`
+	Level            int8 `ros:"byte"`
+	Name             string
+	Message          string
+	HardwareId       string
+	Values           []KeyValue
 }

@@ -8,6 +8,7 @@ import (
 
 type NavSatFix struct {
 	msgs.Package           `ros:"sensor_msgs"`
+	msgs.Definitions       `ros:"uint8 COVARIANCE_TYPE_UNKNOWN=0,uint8 COVARIANCE_TYPE_APPROXIMATED=1,uint8 COVARIANCE_TYPE_DIAGONAL_KNOWN=2,uint8 COVARIANCE_TYPE_KNOWN=3"`
 	Header                 std_msgs.Header
 	Status                 NavSatStatus
 	Latitude               float64

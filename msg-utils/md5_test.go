@@ -13,6 +13,26 @@ type Parent struct {
 	A string
 }
 
+type Header struct {
+	msgs.Package `ros:"std_msgs"`
+	Seq          uint32
+	Stamp        time.Time
+	FrameId      string
+}
+
+type Log struct {
+	msgs.Package     `ros:"rosgraph_msgs"`
+	msgs.Definitions `ros:"byte DEBUG=1,byte INFO=2,byte WARN=4,byte ERROR=8,byte FATAL=16"`
+	Header           Header
+	Level            int8 `ros:"byte"`
+	Name             string
+	Msg              string
+	File             string
+	Function         string
+	Line             uint32
+	Topics           []string
+}
+
 var casesMd5Message = []struct {
 	name string
 	msg  interface{}
@@ -96,6 +116,11 @@ var casesMd5Message = []struct {
 			B [2]Parent
 		}{},
 		"e8c99bd7177c56d5ef9104809bae67a1",
+	},
+	{
+		"definitions",
+		&Log{},
+		"acffd30cd6b6de30f120938c17c593fb",
 	},
 }
 

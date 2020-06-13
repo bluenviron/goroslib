@@ -8,14 +8,15 @@ import (
 )
 
 type InteractiveMarkerFeedback struct {
-	msgs.Package    `ros:"visualization_msgs"`
-	Header          std_msgs.Header
-	ClientId        string
-	MarkerName      string
-	ControlName     string
-	EventType       uint8
-	Pose            geometry_msgs.Pose
-	MenuEntryId     uint32
-	MousePoint      geometry_msgs.Point
-	MousePointValid bool
+	msgs.Package     `ros:"visualization_msgs"`
+	msgs.Definitions `ros:"uint8 KEEP_ALIVE=0,uint8 POSE_UPDATE=1,uint8 MENU_SELECT=2,uint8 BUTTON_CLICK=3,uint8 MOUSE_DOWN=4,uint8 MOUSE_UP=5"`
+	Header           std_msgs.Header
+	ClientId         string
+	MarkerName       string
+	ControlName      string
+	EventType        uint8
+	Pose             geometry_msgs.Pose
+	MenuEntryId      uint32
+	MousePoint       geometry_msgs.Point
+	MousePointValid  bool
 }

@@ -10,6 +10,7 @@ import (
 
 type Marker struct {
 	msgs.Package             `ros:"visualization_msgs"`
+	msgs.Definitions         `ros:"uint8 ARROW=0,uint8 CUBE=1,uint8 SPHERE=2,uint8 CYLINDER=3,uint8 LINE_STRIP=4,uint8 LINE_LIST=5,uint8 CUBE_LIST=6,uint8 SPHERE_LIST=7,uint8 POINTS=8,uint8 TEXT_VIEW_FACING=9,uint8 MESH_RESOURCE=10,uint8 TRIANGLE_LIST=11,uint8 ADD=0,uint8 MODIFY=0,uint8 DELETE=2,uint8 DELETEALL=3"`
 	Header                   std_msgs.Header
 	Ns                       string
 	Id                       int32

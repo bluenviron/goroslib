@@ -126,12 +126,19 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 		return text + "[" + strconv.FormatInt(int64(rt.Len()), 10) + "]", false, nil
 
 	case reflect.Struct:
-		var tmp []string
+		ret := ""
 		nf := rt.NumField()
 		for i := 0; i < nf; i++ {
 			ft := rt.Field(i)
 
-			if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+			if ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+				continue
+			}
+
+			if ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Definitions(0)) {
+				for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
+					ret += def + "\n"
+				}
 				continue
 			}
 
@@ -146,9 +153,9 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 				text = md5Sum(text)
 			}
 
-			tmp = append(tmp, text+" "+name)
+			ret += text + " " + name + "\n"
 		}
-		return strings.Join(tmp, "\n"), true, nil
+		return ret[:len(ret)-1], true, nil
 	}
 
 	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
