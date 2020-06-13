@@ -13,6 +13,6 @@ stdbuf -oL -eL rostopic hz /test_pub | while read L; do
 
     C=$(($C + 1))
     if [ $C -ge 3 ]; then
-        killall rostopic
+        killall -9 rostopic
     fi
 done
