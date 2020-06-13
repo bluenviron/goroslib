@@ -2,7 +2,6 @@ package goroslib
 
 import (
 	"bytes"
-	"fmt"
 	"net"
 
 	"github.com/aler9/goroslib/proto-common"
@@ -22,12 +21,7 @@ type publisherSubscriber struct {
 }
 
 func newPublisherSubscriber(pub *Publisher, callerid string, tcpClient *proto_tcp.Conn,
-	udpHost string, udpPort int) *publisherSubscriber {
-
-	var udpAddr *net.UDPAddr
-	if tcpClient == nil {
-		udpAddr, _ = net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", udpHost, udpPort))
-	}
+	udpAddr *net.UDPAddr) *publisherSubscriber {
 
 	ps := &publisherSubscriber{
 		pub:       pub,

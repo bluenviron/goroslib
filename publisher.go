@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"net"
 	"reflect"
+	"strconv"
 
 	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/api-slave"
@@ -220,15 +222,55 @@ outer:
 							p.msgMd5, header.Md5sum)
 					}
 
+					udpAddr, err := net.ResolveUDPAddr("udp4", protoHost+":"+strconv.FormatInt(int64(protoPort), 10))
+					if err != nil {
+						return fmt.Errorf("unable to solve udp address)")
+					}
+
+					// if subscriber is in localhost, send packets from localhost to localhost
+					// this avoids a bug in which the source ip is randomly chosen
+					// from all available interfaces, making ip-based filtering unpractical
+					isLocalhost := func() bool {
+						ifaces, err := net.Interfaces()
+						if err != nil {
+							return false
+						}
+
+						for _, i := range ifaces {
+							addrs, err := i.Addrs()
+							if err != nil {
+								continue
+							}
+
+							for _, addr := range addrs {
+								if v, ok := addr.(*net.IPNet); ok {
+									if v.IP.Equal(udpAddr.IP) {
+										return true
+									}
+								}
+							}
+						}
+						return false
+					}()
+
+					if isLocalhost {
+						udpAddr.IP = net.IPv4(127, 0, 0, 1)
+					}
+
 					p.subscribers[header.Callerid] = newPublisherSubscriber(p,
-						header.Callerid, nil, protoHost, protoPort)
+						header.Callerid, nil, udpAddr)
 
 					p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
 							"UDPROS",
-							p.conf.Node.nodeIp.String(),
+							func() string {
+								if isLocalhost {
+									return "127.0.0.1"
+								}
+								return p.conf.Node.nodeIp.String()
+							}(),
 							p.conf.Node.udprosServerPort,
 							p.id,
 							1500,
@@ -290,7 +332,7 @@ outer:
 				}
 
 				p.subscribers[evt.header.Callerid] = newPublisherSubscriber(p,
-					evt.header.Callerid, evt.client, "", 0)
+					evt.header.Callerid, evt.client, nil)
 
 				if p.conf.Latch && p.lastMessage != nil {
 					p.subscribers[evt.header.Callerid].writeMessage(p.lastMessage)
