@@ -53,6 +53,7 @@ import (
 	"github.com/aler9/goroslib/api-master"
 	"github.com/aler9/goroslib/api-param"
 	"github.com/aler9/goroslib/api-slave"
+	"github.com/aler9/goroslib/msgs/rosgraph_msgs"
 	"github.com/aler9/goroslib/proto-common"
 	"github.com/aler9/goroslib/proto-tcp"
 	"github.com/aler9/goroslib/proto-udp"
@@ -223,6 +224,7 @@ type Node struct {
 	publishers          map[string]*Publisher
 	serviceProviders    map[string]*ServiceProvider
 	publisherLastId     int
+	rosoutPublisher     *Publisher
 
 	events    chan nodeEvent
 	terminate chan struct{}
@@ -344,35 +346,15 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	go n.run()
 
-	// request tcp_keepalive as in
-	// http://docs.ros.org/melodic/api/roscpp/html/init_8cpp_source.html
-	/*_, err = n.apiParamClient.HasParam("/tcp_keepalive")
-	if err != nil {
-		n.Close()
-		return nil, err
-	}*/
-
-	/*type TempMsg struct {
-		A uint8
-		B []TestParent
-	}*/
-
-	// this is needed to check whether a node with the same name already exists
-	/*n.rosoutPub, err = NewPublisher(PublisherConf{
+	n.rosoutPublisher, err = NewPublisher(PublisherConf{
 		Node:  n,
 		Topic: "/rosout",
-		Msg:   &TempMsg{},
+		Msg:   &rosgraph_msgs.Log{},
 	})
 	if err != nil {
 		n.Close()
 		return nil, err
-	}*/
-
-	// NewServiceProvider(n, "/[nodename]/get_loggers")
-
-	// NewServiceProvider(n, "/[nodename]/set_logger_level")
-
-	// HasParam("/use_sim_time")
+	}
 
 	return n, nil
 }
@@ -612,6 +594,8 @@ outer:
 		close(sp.nodeDone)
 	}
 	clientsWg.Wait()
+
+	n.rosoutPublisher.Close()
 
 	// wait Close()
 	<-n.terminate

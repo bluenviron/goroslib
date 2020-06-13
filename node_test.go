@@ -122,17 +122,23 @@ func TestNodeGetNodes(t *testing.T) {
 	require.NoError(t, err)
 	defer p.close()
 
-	n, err := NewNode(NodeConf{
+	n1, err := NewNode(NodeConf{
 		Name:       "/goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
-	defer n.Close()
+	defer n1.Close()
 
-	res, err := n.GetNodes()
+	n2, err := NewNode(NodeConf{
+		Name:       "/goroslib2",
+		MasterHost: m.Ip(),
+	})
 	require.NoError(t, err)
 
-	require.Equal(t, 2, len(res))
+	res, err := n1.GetNodes()
+	require.NoError(t, err)
+
+	require.Equal(t, 4, len(res))
 
 	node, ok := res["/nodegen"]
 	require.True(t, ok)
@@ -145,6 +151,13 @@ func TestNodeGetNodes(t *testing.T) {
 
 	_, ok = node.ProvidedServices["/nodegen/get_loggers"]
 	require.True(t, ok)
+
+	n2.Close()
+
+	res, err = n1.GetNodes()
+	require.NoError(t, err)
+
+	require.Equal(t, 3, len(res))
 }
 
 func TestNodeGetMachines(t *testing.T) {
@@ -166,7 +179,7 @@ func TestNodeGetMachines(t *testing.T) {
 	res, err := n.GetMachines()
 	require.NoError(t, err)
 
-	require.Equal(t, 2, len(res))
+	require.Equal(t, 3, len(res))
 }
 
 func TestNodeGetTopics(t *testing.T) {
@@ -296,7 +309,7 @@ func TestNodeKillCppNode(t *testing.T) {
 	res, err := n.GetNodes()
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 2, len(res))
 }
 
 func TestNodeKillGoNode(t *testing.T) {
@@ -334,7 +347,7 @@ func TestNodeKillGoNode(t *testing.T) {
 	res, err := n2.GetNodes()
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 2, len(res))
 }
 
 func TestNodeGetParam(t *testing.T) {
@@ -453,6 +466,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	require.Regexp(t, regexp.MustCompile("^--------------------------------------------------------------------------------\n"+
 		"Node \\[/goroslib\\]\n"+
 		"Publications: \n"+
+		"* \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
 		" \\* /test_pub \\[std_msgs/Float64\\]\n"+
 		"\n"+
 		"Subscriptions: \n"+
