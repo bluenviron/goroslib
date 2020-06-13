@@ -4,6 +4,10 @@ import (
 	"github.com/aler9/goroslib/xmlrpc"
 )
 
+type ErrorRes xmlrpc.ErrorRes
+
+func (ErrorRes) isResponse() {}
+
 type Server struct {
 	xs *xmlrpc.Server
 }
@@ -29,13 +33,8 @@ func (s *Server) Close() error {
 	return s.xs.Close()
 }
 
-func (s *Server) Read() (Request, error) {
-	for {
-		raw, err := s.xs.Read()
-		if err != nil {
-			return nil, err
-		}
-
+func (s *Server) Handle(cb func(req Request) Response) {
+	s.xs.Handle(func(raw *xmlrpc.RequestRaw) interface{} {
 		req := func() Request {
 			switch raw.Method {
 			case "getBusInfo":
@@ -59,20 +58,14 @@ func (s *Server) Read() (Request, error) {
 			return nil
 		}()
 		if req == nil {
-			s.xs.Write(xmlrpc.ErrorRes{})
-			continue
+			return xmlrpc.ErrorRes{}
 		}
 
-		err = raw.Decode(req)
+		err := raw.Decode(req)
 		if err != nil {
-			s.xs.Write(xmlrpc.ErrorRes{})
-			continue
+			return xmlrpc.ErrorRes{}
 		}
 
-		return req, nil
-	}
-}
-
-func (s *Server) Write(res Response) {
-	s.xs.Write(res)
+		return cb(req)
+	})
 }

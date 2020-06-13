@@ -26,6 +26,7 @@ func (publisherEventClose) isPublisherEvent() {}
 
 type publisherEventRequestTopic struct {
 	req *api_slave.RequestRequestTopic
+	res chan api_slave.ResponseRequestTopic
 }
 
 func (publisherEventRequestTopic) isPublisherEvent() {}
@@ -137,8 +138,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 
 func (p *Publisher) run() {
 outer:
-	for {
-		rawEvt := <-p.events
+	for rawEvt := range p.events {
 		switch evt := rawEvt.(type) {
 		case publisherEventRequestTopic:
 			err := func() error {
@@ -159,7 +159,7 @@ outer:
 
 				switch protoName {
 				case "TCPROS":
-					p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+					evt.res <- api_slave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
@@ -167,7 +167,7 @@ outer:
 							p.conf.Node.nodeIp.String(),
 							p.conf.Node.tcprosServerPort,
 						},
-					})
+					}
 					return nil
 
 				case "UDPROS":
@@ -260,7 +260,7 @@ outer:
 					p.subscribers[header.Callerid] = newPublisherSubscriber(p,
 						header.Callerid, nil, udpAddr)
 
-					p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+					evt.res <- api_slave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
@@ -285,7 +285,7 @@ outer:
 								return buf.Bytes()[4:]
 							}(),
 						},
-					})
+					}
 
 					return nil
 				}
@@ -293,10 +293,10 @@ outer:
 				return fmt.Errorf("invalid protocol")
 			}()
 			if err != nil {
-				p.conf.Node.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+				evt.res <- api_slave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: err.Error(),
-				})
+				}
 				continue
 			}
 
@@ -367,7 +367,14 @@ outer:
 
 	// consume queue
 	go func() {
-		for range p.events {
+		for rawEvt := range p.events {
+			switch evt := rawEvt.(type) {
+			case publisherEventRequestTopic:
+				evt.res <- api_slave.ResponseRequestTopic{
+					Code:          0,
+					StatusMessage: "terminating",
+				}
+			}
 		}
 	}()
 

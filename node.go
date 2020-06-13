@@ -130,6 +130,7 @@ func (nodeEventGetPublications) isNodeEvent() {}
 
 type nodeEventSubscriberRequestTopic struct {
 	req *api_slave.RequestRequestTopic
+	res chan api_slave.ResponseRequestTopic
 }
 
 func (nodeEventSubscriberRequestTopic) isNodeEvent() {}
@@ -446,14 +447,14 @@ outer:
 		case nodeEventSubscriberRequestTopic:
 			pub, ok := n.publishers[evt.req.Topic]
 			if !ok {
-				n.apiSlaveServer.Write(api_slave.ResponseRequestTopic{
+				evt.res <- api_slave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "topic not found",
-				})
+				}
 				continue
 			}
 
-			pub.events <- publisherEventRequestTopic{evt.req}
+			pub.events <- publisherEventRequestTopic{evt.req, evt.res}
 
 		case nodeEventSubscriberNew:
 			_, ok := n.subscribers[evt.sub.conf.Topic]
@@ -545,10 +546,16 @@ outer:
 		for rawEvt := range n.events {
 			switch evt := rawEvt.(type) {
 			case nodeEventGetPublications:
-				evt.res <- nil
+				evt.res <- [][]string{}
 
 			case nodeEventUdpSubPublisherClose:
 				close(evt.done)
+
+			case nodeEventSubscriberRequestTopic:
+				evt.res <- api_slave.ResponseRequestTopic{
+					Code:          0,
+					StatusMessage: "terminating",
+				}
 
 			case nodeEventSubscriberNew:
 				evt.err <- fmt.Errorf("terminated")
@@ -614,15 +621,10 @@ func (n *Node) Close() error {
 }
 
 func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
-	for {
-		rawReq, err := n.apiSlaveServer.Read()
-		if err != nil {
-			break
-		}
-
+	n.apiSlaveServer.Handle(func(rawReq api_slave.Request) api_slave.Response {
 		switch req := rawReq.(type) {
 		case *api_slave.RequestGetBusInfo:
-			n.apiSlaveServer.Write(api_slave.ResponseGetBusInfo{
+			return api_slave.ResponseGetBusInfo{
 				Code:          1,
 				StatusMessage: "bus info",
 				// TODO: provide bus infos in this format:
@@ -630,25 +632,25 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 				// {"1", "/rosout", "o", "tcpros", "/rosout", "1"}
 				// [ 1, /rosout, o, tcpros, /rosout, 1, TCPROS connection on port 46477 to [127.0.0.1:51790 on socket 8] ]
 				BusInfo: [][]string{},
-			})
+			}
 
 		case *api_slave.RequestGetPid:
-			n.apiSlaveServer.Write(api_slave.ResponseGetPid{
+			return api_slave.ResponseGetPid{
 				Code:          1,
 				StatusMessage: "",
 				Pid:           os.Getpid(),
-			})
+			}
 
 		case *api_slave.RequestGetPublications:
-			publications := make(chan [][]string)
-			n.events <- nodeEventGetPublications{publications}
-			res := <-publications
+			resChan := make(chan [][]string)
+			n.events <- nodeEventGetPublications{resChan}
+			res := <-resChan
 
-			n.apiSlaveServer.Write(api_slave.ResponseGetPublications{
+			return api_slave.ResponseGetPublications{
 				Code:          1,
 				StatusMessage: "",
 				TopicList:     res,
-			})
+			}
 
 		case *api_slave.RequestPublisherUpdate:
 			n.events <- nodeEventPublisherUpdate{
@@ -656,23 +658,29 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 				urls:  req.PublisherUrls,
 			}
 
-			n.apiSlaveServer.Write(api_slave.ResponsePublisherUpdate{
+			return api_slave.ResponsePublisherUpdate{
 				Code:          1,
 				StatusMessage: "",
-			})
+			}
 
 		case *api_slave.RequestRequestTopic:
-			n.events <- nodeEventSubscriberRequestTopic{req}
+			resChan := make(chan api_slave.ResponseRequestTopic)
+			n.events <- nodeEventSubscriberRequestTopic{req, resChan}
+			res := <-resChan
+
+			return res
 
 		case *api_slave.RequestShutdown:
-			n.apiSlaveServer.Write(api_slave.ResponseShutdown{
+			n.events <- nodeEventClose{}
+
+			return api_slave.ResponseShutdown{
 				Code:          1,
 				StatusMessage: "",
-			})
-
-			n.events <- nodeEventClose{}
+			}
 		}
-	}
+
+		return api_slave.ErrorRes{}
+	})
 
 	wg.Done()
 }

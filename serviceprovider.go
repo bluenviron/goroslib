@@ -154,8 +154,7 @@ func (sp *ServiceProvider) run() {
 	cbv := reflect.ValueOf(sp.conf.Callback)
 
 outer:
-	for {
-		rawEvt := <-sp.events
+	for rawEvt := range sp.events {
 		switch evt := rawEvt.(type) {
 		case serviceProviderEventClientNew:
 			_, ok := sp.clients[evt.header.Callerid]

@@ -140,8 +140,7 @@ func (s *Subscriber) run() {
 	cbv := reflect.ValueOf(s.conf.Callback)
 
 outer:
-	for {
-		rawEvt := <-s.events
+	for rawEvt := range s.events {
 		switch evt := rawEvt.(type) {
 		case subscriberEventPublisherUpdate:
 			validPublishers := make(map[string]struct{})

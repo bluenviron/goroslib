@@ -2,7 +2,6 @@ package xmlrpc
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -68,11 +67,7 @@ func (s *Server) run() {
 			}
 
 			s.read <- raw
-
-			res, ok := <-s.write
-			if !ok {
-				return
-			}
+			res := <-s.write
 
 			if _, ok := res.(ErrorRes); ok {
 				w.WriteHeader(http.StatusBadRequest)
@@ -83,12 +78,6 @@ func (s *Server) run() {
 	}
 
 	hs.Serve(s.ln)
-
-	// consume read
-	go func() {
-		for range s.read {
-		}
-	}()
 
 	// wait for all handlers to return
 	hs.Shutdown(context.Background())
@@ -105,14 +94,8 @@ func (s *Server) Close() error {
 	return nil
 }
 
-func (s *Server) Read() (*RequestRaw, error) {
-	raw, ok := <-s.read
-	if !ok {
-		return nil, fmt.Errorf("closed")
+func (s *Server) Handle(cb func(*RequestRaw) interface{}) {
+	for rawReq := range s.read {
+		s.write <- cb(rawReq)
 	}
-	return raw, nil
-}
-
-func (s *Server) Write(res interface{}) {
-	s.write <- res
 }
