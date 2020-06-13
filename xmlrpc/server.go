@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 )
 
 // ErrorRes is a special response that sends status code 400.
@@ -13,7 +14,7 @@ import (
 type ErrorRes struct{}
 
 func ServerUrl(host string, port int) string {
-	return fmt.Sprintf("http://%s:%d", host, port)
+	return "http://" + host + ":" + strconv.FormatInt(int64(port), 10)
 }
 
 type Server struct {
@@ -26,7 +27,7 @@ type Server struct {
 func NewServer(port int) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
-	ln, err := net.Listen("tcp4", fmt.Sprintf(":%d", port))
+	ln, err := net.Listen("tcp4", ":"+strconv.FormatInt(int64(port), 10))
 	if err != nil {
 		return nil, err
 	}

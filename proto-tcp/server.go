@@ -1,12 +1,12 @@
 package proto_tcp
 
 import (
-	"fmt"
 	"net"
+	"strconv"
 )
 
 func ServerUrl(host string, port int) string {
-	return fmt.Sprintf("rosrpc://%s:%d", host, port)
+	return "rosrpc://" + host + ":" + strconv.FormatInt(int64(port), 10)
 }
 
 type Server struct {
@@ -14,7 +14,7 @@ type Server struct {
 }
 
 func NewServer(port int) (*Server, error) {
-	ln, err := net.Listen("tcp4", fmt.Sprintf(":%d", port))
+	ln, err := net.Listen("tcp4", ":"+strconv.FormatInt(int64(port), 10))
 	if err != nil {
 		return nil, err
 	}

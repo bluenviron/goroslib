@@ -1,8 +1,8 @@
 package proto_tcp
 
 import (
-	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -11,7 +11,7 @@ const (
 )
 
 func NewClient(host string, port int) (*Conn, error) {
-	nconn, err := net.DialTimeout("tcp4", fmt.Sprintf("%s:%d", host, port), _DIAL_TIMEOUT)
+	nconn, err := net.DialTimeout("tcp4", host+":"+strconv.FormatInt(int64(port), 10), _DIAL_TIMEOUT)
 	if err != nil {
 		return nil, err
 	}

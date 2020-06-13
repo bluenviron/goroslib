@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/aler9/goroslib/api-slave"
@@ -262,7 +263,7 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 	}
 
 	// solve host and port
-	addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:%d", protoHost, protoPort))
+	addr, err := net.ResolveUDPAddr("udp4", protoHost+":"+strconv.FormatInt(int64(protoPort), 10))
 	if err != nil {
 		return fmt.Errorf("unable to solve host")
 	}

@@ -1,8 +1,8 @@
 package proto_udp
 
 import (
-	"fmt"
 	"net"
+	"strconv"
 )
 
 const (
@@ -14,7 +14,7 @@ type Server struct {
 }
 
 func NewServer(port int) (*Server, error) {
-	ln, err := net.ListenPacket("udp4", fmt.Sprintf(":%d", port))
+	ln, err := net.ListenPacket("udp4", ":"+strconv.FormatInt(int64(port), 10))
 	if err != nil {
 		return nil, err
 	}
