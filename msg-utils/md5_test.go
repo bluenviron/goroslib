@@ -36,8 +36,10 @@ var casesMd5Message = []struct {
 			L            string
 			M            time.Time
 			N            time.Duration
+			O            int8  `ros:"byte"`
+			P            uint8 `ros:"char"`
 		}{},
-		"1fe19d9a049a663e9b521bf584177015",
+		"7fee3a6254fc0562bf1632f0fe8f05c8",
 	},
 	{
 		"variable array",

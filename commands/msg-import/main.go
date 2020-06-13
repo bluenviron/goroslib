@@ -187,8 +187,11 @@ func run() error {
 				imports["time"] = struct{}{}
 				return "time." + strings.Title(f.Type)
 
-			case "byte", "char":
-				return "DEPRECATED"
+			case "byte":
+				return "int8 `ros:\"byte\"`"
+
+			case "char":
+				return "uint8 `ros:\"char\"`"
 			}
 
 			return f.Type

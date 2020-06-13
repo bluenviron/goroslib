@@ -45,7 +45,7 @@ func md5Sum(text string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func md5Text(rt reflect.Type) (string, bool, error) {
+func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
@@ -55,9 +55,15 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 		return "bool", false, nil
 
 	case reflect.TypeOf(int8(0)):
+		if rosTag == "byte" {
+			return "byte", false, nil
+		}
 		return "int8", false, nil
 
 	case reflect.TypeOf(uint8(0)):
+		if rosTag == "char" {
+			return "char", false, nil
+		}
 		return "uint8", false, nil
 
 	case reflect.TypeOf(int16(0)):
@@ -96,7 +102,7 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 
 	switch rt.Kind() {
 	case reflect.Slice:
-		text, isstruct, err := md5Text(rt.Elem())
+		text, isstruct, err := md5Text(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -108,7 +114,7 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 		return text + "[]", false, nil
 
 	case reflect.Array:
-		text, isstruct, err := md5Text(rt.Elem())
+		text, isstruct, err := md5Text(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -131,7 +137,7 @@ func md5Text(rt reflect.Type) (string, bool, error) {
 
 			name := camelToSnake(ft.Name)
 
-			text, isstruct, err := md5Text(ft.Type)
+			text, isstruct, err := md5Text(ft.Type, ft.Tag.Get("ros"))
 			if err != nil {
 				return "", false, err
 			}
@@ -158,7 +164,7 @@ func Md5Message(msg interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
 	}
 
-	text, _, err := md5Text(rt)
+	text, _, err := md5Text(rt, "")
 	if err != nil {
 		return "", err
 	}
@@ -176,7 +182,7 @@ func Md5Service(req interface{}, res interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported message type '%s'", reqt.String())
 	}
 
-	text1, _, err := md5Text(reqt)
+	text1, _, err := md5Text(reqt, "")
 	if err != nil {
 		return "", err
 	}
@@ -189,7 +195,7 @@ func Md5Service(req interface{}, res interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported message type '%s'", rest.String())
 	}
 
-	text2, _, err := md5Text(rest)
+	text2, _, err := md5Text(rest, "")
 	if err != nil {
 		return "", err
 	}
