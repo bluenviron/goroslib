@@ -9,7 +9,7 @@ goroslib is a library in pure Go that allows to build clients (nodes) for the Ro
 
 The Robot Operating System (ROS) is a project that provides a protocol specification to make multiple programs communicate with each other over time, exchanging structured data through topics, services and parameters. It was conceived for linking sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
 
-The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of cross-compiling nodes for all the Golang supported operating systems (Linux, Windows, Darwin, etc) and architectures.
+The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of compiling nodes for all the Golang supported operating systems (Linux, Windows, Darwin, etc) and architectures.
 
 Features:
 * Subscribe and publish to topics, via TCP or UDP
