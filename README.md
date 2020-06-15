@@ -27,7 +27,7 @@ The library provides its features by implementing in pure Go all the ROS protoco
 
 1. Install Go &ge; 1.12.
 
-2. Create an empty folder, open a terminal in it and initialize the Go dependency system:
+2. Create an empty folder, open a terminal in it and initialize the Go modules system:
    ```
    go mod init main
    ```
