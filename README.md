@@ -105,7 +105,7 @@ msg-import --rospackage=my_package mymessage.msg
 
 #### How can i compile nodes for another OS?
 
-To compile a node for another OS, it's enough to follow the standard Golang procedure for cross-compiling, that consists in setting the `GOOS` and `GOARCH` architecture according to the target machine. For instance, to build a node for Windows from another OS, run:
+To compile a node for another OS, it's enough to follow the standard Golang procedure for cross-compiling, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
 ```
 GOOS=windows GOARCH=amd64 go build -o node.exe name-of-source-file.go
 ```
