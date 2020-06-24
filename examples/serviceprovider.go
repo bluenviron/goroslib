@@ -56,6 +56,5 @@ func main() {
 	defer sp.Close()
 
 	// freeze main loop
-	infty := make(chan int)
-	<-infty
+	select {}
 }

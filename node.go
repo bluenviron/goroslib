@@ -36,8 +36,7 @@ Basic example (more are available at https://github.com/aler9/goroslib/tree/mast
       }
       defer sub.Close()
 
-      infty := make(chan int)
-      <-infty
+      select {}
   }
 
 */
