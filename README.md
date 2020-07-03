@@ -45,7 +45,7 @@ The library provides its features by implementing in pure Go all the ROS protoco
 
 4. Compile and run
    ```
-   go run node name-of-the-go-file.go
+   go run name-of-the-go-file.go
    ```
 
 ## Documentation
