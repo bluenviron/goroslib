@@ -113,6 +113,15 @@ func TestNodeOpen(t *testing.T) {
 	defer n.Close()
 }
 
+func TestNodeNoMaster(t *testing.T) {
+	n, err := NewNode(NodeConf{
+		Name:       "/goroslib",
+		MasterHost: "127.0.0.1",
+	})
+	require.Error(t, err)
+	defer n.Close()
+}
+
 func TestNodeGetNodes(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
