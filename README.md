@@ -43,7 +43,7 @@ The library provides its features by implementing in pure Go all the ROS protoco
    * [param-set-get](examples/param-set-get.go)
    * [cluster-info](examples/cluster-info.go)
 
-4. Compile and run
+4. Compile and run (a ROS master must be already running in the background)
    ```
    go run name-of-the-go-file.go
    ```
