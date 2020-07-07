@@ -1,9 +1,9 @@
 
 # goroslib
 
-[![GoDoc](https://godoc.org/github.com/aler9/goroslib?status.svg)](https://godoc.org/github.com/aler9/goroslib)
-[![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
 [![Build Status](https://travis-ci.org/aler9/goroslib.svg?branch=master)](https://travis-ci.org/aler9/goroslib)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue)](https://pkg.go.dev/github.com/aler9/goroslib?tab=doc)
 
 goroslib is a library in pure Go that allows to build clients (nodes) for the Robot Operating System (ROS).
 
@@ -50,13 +50,13 @@ The library provides its features by implementing in pure Go all the ROS protoco
 
 ## Documentation
 
-https://godoc.org/github.com/aler9/goroslib
+https://pkg.go.dev/github.com/aler9/goroslib
 
 ## FAQs
 
 ##### Where can i find the standard messages?
 
-Standard messages are [listed in the documentation](https://godoc.org/github.com/aler9/goroslib/msgs).
+Standard messages are [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/msgs?tab=subdirectories).
 
 #### How can i define a custom message?
 
