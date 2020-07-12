@@ -122,6 +122,12 @@ var casesMd5Message = []struct {
 		&Log{},
 		"acffd30cd6b6de30f120938c17c593fb",
 	},
+	{
+		"empty struct",
+		&struct {
+		}{},
+		"d41d8cd98f00b204e9800998ecf8427e",
+	},
 }
 
 func TestMd5Message(t *testing.T) {
