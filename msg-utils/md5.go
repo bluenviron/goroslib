@@ -155,7 +155,13 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 
 			ret += text + " " + name + "\n"
 		}
-		return ret[:len(ret)-1], true, nil
+
+		// Remove trailing newline
+		if len(ret) > 0 {
+			ret = ret[:len(ret)-1]
+		}
+
+		return ret, true, nil
 	}
 
 	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
