@@ -28,23 +28,22 @@ var casesMessage = []struct {
 	{
 		"base types",
 		&struct {
-			msgs.Package `ros:"testing"`
-			A            bool
-			D            int8
-			E            uint8
-			F            int16
-			G            uint16
-			H            int32
-			I            uint32
-			J            int64
-			K            uint64
-			L            float32
-			M            float64
-			N            string
-			O            time.Time
-			P            time.Duration
+			A bool
+			D int8
+			E uint8
+			F int16
+			G uint16
+			H int32
+			I uint32
+			J int64
+			K uint64
+			L float32
+			M float64
+			N string
+			O time.Time
+			P time.Duration
 		}{
-			0, true, -1, 2, -3, 4, -5, 6, -7, 8, 9, 10, "abc",
+			true, -1, 2, -3, 4, -5, 6, -7, 8, 9, 10, "abc",
 			time.Date(2010, 11, 12, 13, 14, 15, 16, time.UTC),
 			time.Duration(5 * time.Second),
 		},
@@ -148,6 +147,26 @@ var casesMessage = []struct {
 			0x0f, 0x00, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00,
 			0x00, 0x61, 0x62, 0x63, 0x03, 0x00, 0x00, 0x00,
 			0x64, 0x65, 0x66,
+		},
+	},
+	{
+		"with custom package",
+		&struct {
+			msgs.Package `ros:"testing"`
+			A            int32
+		}{0, 123},
+		[]byte{
+			0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00,
+		},
+	},
+	{
+		"with definition",
+		&struct {
+			msgs.Definitions `ros:"uint8 A=0,uint8 B=1"`
+			A                int32
+		}{0, 123},
+		[]byte{
+			0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00,
 		},
 	},
 }

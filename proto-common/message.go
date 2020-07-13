@@ -249,6 +249,10 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 					continue
 				}
 
+				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Definitions(0)) {
+					continue
+				}
+
 				if f.Kind() == reflect.Ptr {
 					// allocate if is pointer and null
 					if f.IsNil() {
@@ -501,6 +505,10 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 				ft := val.Elem().Type().Field(i)
 
 				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+					continue
+				}
+
+				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Definitions(0)) {
 					continue
 				}
 
