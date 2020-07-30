@@ -15,13 +15,13 @@ type Parent struct {
 	A string
 }
 
-type CaseMessage struct {
+type caseMessage struct {
 	name string
 	msg  interface{}
 	byts []byte
 }
 
-var casesMessage = []CaseMessage{
+var casesMessage = []caseMessage{
 	{
 		"empty",
 		&struct{}{},
@@ -220,7 +220,7 @@ func TestMessageEncode(t *testing.T) {
 }
 
 // generate some big messages dynamically
-func benchmarkCases(b *testing.B) []CaseMessage {
+func benchmarkCases(b *testing.B) []caseMessage {
 	const size = 2 << 20
 
 	var arrayUint8 [size]uint8
@@ -228,7 +228,7 @@ func benchmarkCases(b *testing.B) []CaseMessage {
 		arrayUint8[i] = uint8(i)
 	}
 
-	cases := []CaseMessage{
+	cases := []caseMessage{
 		{
 			"big variable array",
 			&struct {
