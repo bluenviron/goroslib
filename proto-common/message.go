@@ -172,6 +172,29 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 
 		*cv = (time.Second * time.Duration(secs)) + (time.Nanosecond * time.Duration(nano))
 
+	case *[]uint8: // special case for performance
+		// slice length
+		_, err := io.ReadFull(r, buf[:4])
+		if err != nil {
+			return err
+		}
+		*mlen -= 4
+		le := binary.LittleEndian.Uint32(buf)
+		if le > *mlen {
+			return fmt.Errorf("invalid slice length")
+		}
+
+		// use preallocated slice if possible, allocate if too small
+		if cap(*cv) < int(le) {
+			*cv = make([]uint8, le)
+		}
+
+		_, err = io.ReadFull(r, (*cv)[:le])
+		if err != nil {
+			return err
+		}
+		*mlen -= le
+
 	default:
 		switch val.Elem().Kind() {
 		case reflect.Slice:

@@ -15,11 +15,13 @@ type Parent struct {
 	A string
 }
 
-var casesMessage = []struct {
+type CaseMessage struct {
 	name string
 	msg  interface{}
 	byts []byte
-}{
+}
+
+var casesMessage = []CaseMessage{
 	{
 		"empty",
 		&struct{}{},
@@ -122,6 +124,30 @@ var casesMessage = []struct {
 		},
 	},
 	{
+		"variable array of pointers",
+		&struct {
+			A []*uint32
+		}{
+			[]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]},
+		},
+		[]byte{
+			0x0c, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+			0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+		},
+	},
+	{
+		"fixed array of pointers",
+		&struct {
+			A [2]*uint32
+		}{
+			[2]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]},
+		},
+		[]byte{
+			0x08, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+			0x03, 0x00, 0x00, 0x00,
+		},
+	},
+	{
 		"variable array of parent",
 		&struct {
 			A uint8
@@ -189,6 +215,69 @@ func TestMessageEncode(t *testing.T) {
 			err := MessageEncode(&buf, c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.byts, buf.Bytes())
+		})
+	}
+}
+
+// generate some big messages dynamically
+func benchmarkCases(b *testing.B) []CaseMessage {
+	const size = 2 << 20
+
+	var arrayUint8 [size]uint8
+	for i := range arrayUint8 {
+		arrayUint8[i] = uint8(i)
+	}
+
+	cases := []CaseMessage{
+		{
+			"big variable array",
+			&struct {
+				A []uint8
+			}{arrayUint8[:]},
+			nil,
+		},
+		{
+			"big fixed array",
+			&struct {
+				A [size]uint8
+			}{arrayUint8},
+			nil,
+		},
+	}
+
+	for i := range cases {
+		var buf bytes.Buffer
+		if err := MessageEncode(&buf, cases[i].msg); err != nil {
+			b.Fatal(err)
+		}
+		cases[i].byts = buf.Bytes()
+	}
+
+	return cases
+}
+
+func BenchmarkMessageDecode(b *testing.B) {
+	cases := append(benchmarkCases(b), casesMessage...)
+	for _, c := range cases {
+		b.Run(c.name, func(b *testing.B) {
+			// reuse message in loop to test benefit from preallocated fields
+			msg := reflect.New(reflect.TypeOf(c.msg).Elem()).Interface()
+			for i := 0; i < b.N; i++ {
+				MessageDecode(bytes.NewBuffer(c.byts), msg)
+			}
+		})
+	}
+}
+
+func BenchmarkMessageEncode(b *testing.B) {
+	cases := append(benchmarkCases(b), casesMessage...)
+	for _, c := range cases {
+		b.Run(c.name, func(b *testing.B) {
+			var buf bytes.Buffer
+			for i := 0; i < b.N; i++ {
+				MessageEncode(&buf, c.msg)
+				buf.Reset()
+			}
 		})
 	}
 }
