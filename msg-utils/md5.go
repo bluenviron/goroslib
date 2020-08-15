@@ -90,7 +90,7 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 	case reflect.TypeOf(float64(0)):
 		return "float64", false, nil
 
-	case reflect.TypeOf(string(0)):
+	case reflect.TypeOf(string("")):
 		return "string", false, nil
 
 	case reflect.TypeOf(time.Time{}):
