@@ -9,33 +9,15 @@ import (
 	"github.com/aler9/goroslib/proto-tcp"
 )
 
-type serviceProviderEvent interface {
-	isServiceProviderEvent()
-}
-
-type serviceProviderEventClose struct{}
-
-func (serviceProviderEventClose) isServiceProviderEvent() {}
-
-type serviceProviderEventClientNew struct {
+type serviceProviderClientNewReq struct {
 	client *proto_tcp.Conn
 	header *proto_tcp.HeaderServiceClient
 }
 
-func (serviceProviderEventClientNew) isServiceProviderEvent() {}
-
-type serviceProviderEventClientClose struct {
-	spc *serviceProviderClient
-}
-
-func (serviceProviderEventClientClose) isServiceProviderEvent() {}
-
-type serviceProviderEventRequest struct {
+type serviceProviderClientRequestReq struct {
 	callerid string
 	req      interface{}
 }
-
-func (serviceProviderEventRequest) isServiceProviderEvent() {}
 
 // ServiceProviderConf is the configuration of a ServiceProvider.
 type ServiceProviderConf struct {
@@ -61,10 +43,13 @@ type ServiceProvider struct {
 	srvMd5  string
 	clients map[string]*serviceProviderClient
 
-	events    chan serviceProviderEvent
-	terminate chan struct{}
-	nodeDone  chan struct{}
-	done      chan struct{}
+	clientNew     chan serviceProviderClientNewReq
+	clientClose   chan *serviceProviderClient
+	clientRequest chan serviceProviderClientRequestReq
+	shutdown      chan struct{}
+	terminate     chan struct{}
+	nodeTerminate chan struct{}
+	done          chan struct{}
 }
 
 // NewServiceProvider allocates a ServiceProvider. See ServiceProviderConf for the options.
@@ -122,21 +107,24 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	}
 
 	sp := &ServiceProvider{
-		conf:      conf,
-		reqMsg:    reqMsg.Elem(),
-		resMsg:    resMsg.Elem(),
-		reqType:   reqType,
-		resType:   resType,
-		srvMd5:    srvMd5,
-		clients:   make(map[string]*serviceProviderClient),
-		events:    make(chan serviceProviderEvent),
-		terminate: make(chan struct{}),
-		nodeDone:  make(chan struct{}),
-		done:      make(chan struct{}),
+		conf:          conf,
+		reqMsg:        reqMsg.Elem(),
+		resMsg:        resMsg.Elem(),
+		reqType:       reqType,
+		resType:       resType,
+		srvMd5:        srvMd5,
+		clients:       make(map[string]*serviceProviderClient),
+		clientNew:     make(chan serviceProviderClientNewReq),
+		clientClose:   make(chan *serviceProviderClient),
+		clientRequest: make(chan serviceProviderClientRequestReq),
+		shutdown:      make(chan struct{}),
+		terminate:     make(chan struct{}),
+		nodeTerminate: make(chan struct{}),
+		done:          make(chan struct{}),
 	}
 
 	chanErr := make(chan error)
-	conf.Node.events <- nodeEventServiceProviderNew{
+	conf.Node.serviceProviderNew <- serviceProviderNewReq{
 		sp:  sp,
 		err: chanErr,
 	}
@@ -150,25 +138,33 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	return sp, nil
 }
 
+// Close closes a ServiceProvider and shuts down all its operations.
+func (sp *ServiceProvider) Close() error {
+	sp.shutdown <- struct{}{}
+	close(sp.terminate)
+	<-sp.done
+	return nil
+}
+
 func (sp *ServiceProvider) run() {
 	cbv := reflect.ValueOf(sp.conf.Callback)
 
 outer:
-	for rawEvt := range sp.events {
-		switch evt := rawEvt.(type) {
-		case serviceProviderEventClientNew:
-			_, ok := sp.clients[evt.header.Callerid]
+	for {
+		select {
+		case req := <-sp.clientNew:
+			_, ok := sp.clients[req.header.Callerid]
 			if ok {
-				evt.client.Close()
+				req.client.Close()
 				continue
 			}
 
-			if evt.header.Md5sum != sp.srvMd5 {
-				evt.client.Close()
+			if req.header.Md5sum != sp.srvMd5 {
+				req.client.Close()
 				continue
 			}
 
-			err := evt.client.WriteHeader(&proto_tcp.HeaderServiceProvider{
+			err := req.client.WriteHeader(&proto_tcp.HeaderServiceProvider{
 				Callerid:     sp.conf.Node.conf.Name,
 				Md5sum:       sp.srvMd5,
 				RequestType:  sp.reqType,
@@ -176,19 +172,20 @@ outer:
 				Type:         "goroslib/Service",
 			})
 			if err != nil {
-				evt.client.Close()
+				req.client.Close()
 				continue
 			}
 
-			sp.clients[evt.header.Callerid] = newServiceProviderClient(sp, evt.header.Callerid, evt.client)
+			sp.clients[req.header.Callerid] = newServiceProviderClient(sp, req.header.Callerid, req.client)
 
-		case serviceProviderEventClientClose:
-			delete(sp.clients, evt.spc.callerid)
+		case spc := <-sp.clientClose:
+			delete(sp.clients, spc.callerid)
+			spc.client.Close()
 
-		case serviceProviderEventRequest:
-			res := cbv.Call([]reflect.Value{reflect.ValueOf(evt.req)})
+		case req := <-sp.clientRequest:
+			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
 
-			conn, ok := sp.clients[evt.callerid]
+			conn, ok := sp.clients[req.callerid]
 			if !ok {
 				continue
 			}
@@ -200,14 +197,22 @@ outer:
 
 			conn.client.WriteMessage(res[0].Interface())
 
-		case serviceProviderEventClose:
+		case <-sp.shutdown:
 			break outer
 		}
 	}
 
-	// consume queue
 	go func() {
-		for range sp.events {
+		for {
+			select {
+			case _, ok := <-sp.clientNew:
+				if !ok {
+					return
+				}
+			case <-sp.clientClose:
+			case <-sp.clientRequest:
+			case <-sp.shutdown:
+			}
 		}
 	}()
 
@@ -216,25 +221,19 @@ outer:
 		ServiceUrl: sp.conf.Node.tcprosServerUrl,
 	})
 
-	for _, c := range sp.clients {
-		c.close()
+	for _, spc := range sp.clients {
+		spc.client.Close()
+		<-spc.done
 	}
 
-	sp.conf.Node.events <- nodeEventServiceProviderClose{sp}
-	<-sp.nodeDone
+	sp.conf.Node.serviceProviderClose <- sp
 
-	// wait Close()
+	<-sp.nodeTerminate
 	<-sp.terminate
 
-	close(sp.events)
-
+	close(sp.clientNew)
+	close(sp.clientClose)
+	close(sp.clientRequest)
+	close(sp.shutdown)
 	close(sp.done)
-}
-
-// Close closes a ServiceProvider and shuts down all its operations.
-func (sp *ServiceProvider) Close() error {
-	sp.events <- serviceProviderEventClose{}
-	close(sp.terminate)
-	<-sp.done
-	return nil
 }

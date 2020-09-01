@@ -36,20 +36,13 @@ outer:
 			break outer
 		}
 
-		spc.sp.events <- serviceProviderEventRequest{
+		spc.sp.clientRequest <- serviceProviderClientRequestReq{
 			callerid: spc.callerid,
 			req:      req,
 		}
 	}
 
-	spc.client.Close()
-
-	spc.sp.events <- serviceProviderEventClientClose{spc}
+	spc.sp.clientClose <- spc
 
 	close(spc.done)
-}
-
-func (sp *serviceProviderClient) close() {
-	sp.client.Close()
-	<-sp.done
 }

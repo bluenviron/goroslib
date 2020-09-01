@@ -39,32 +39,41 @@ func newPublisherSubscriber(pub *Publisher, callerid string, tcpClient *proto_tc
 
 func (ps *publisherSubscriber) run() {
 	if ps.tcpClient != nil {
-	outer:
-		for {
-			_, err := ps.tcpClient.ReadHeaderRaw()
-			if err != nil {
-				break outer
-			}
-		}
-
-		ps.tcpClient.Close()
-
-		ps.pub.events <- publisherEventSubscriberTcpClose{ps}
-
+		ps.runTcp()
 	} else {
-		<-ps.terminate
+		ps.runUdp()
 	}
 
 	close(ps.done)
 }
 
-func (ps *publisherSubscriber) close() {
-	if ps.tcpClient != nil {
+func (ps *publisherSubscriber) runTcp() {
+	readDone := make(chan struct{})
+	go func() {
+		defer close(readDone)
+
+		for {
+			_, err := ps.tcpClient.ReadHeaderRaw()
+			if err != nil {
+				return
+			}
+		}
+	}()
+
+	select {
+	case <-readDone:
 		ps.tcpClient.Close()
-	} else {
-		close(ps.terminate)
+		ps.pub.subscriberTcpClose <- ps
+		<-ps.terminate
+
+	case <-ps.terminate:
+		ps.tcpClient.Close()
+		<-readDone
 	}
-	<-ps.done
+}
+
+func (ps *publisherSubscriber) runUdp() {
+	<-ps.terminate
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {

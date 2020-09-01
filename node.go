@@ -59,119 +59,59 @@ import (
 	"github.com/aler9/goroslib/xmlrpc"
 )
 
-type nodeEvent interface {
-	isNodeEvent()
-}
-
-type nodeEventClose struct{}
-
-func (nodeEventClose) isNodeEvent() {}
-
-type nodeEventTcpClientNew struct {
-	client *proto_tcp.Conn
-}
-
-func (nodeEventTcpClientNew) isNodeEvent() {}
-
-type nodeEventTcpClientClose struct {
-	client *proto_tcp.Conn
-}
-
-func (nodeEventTcpClientClose) isNodeEvent() {}
-
-type nodeEventTcpClientSubscriber struct {
+type tcpClientSubscriberReq struct {
 	client *proto_tcp.Conn
 	header *proto_tcp.HeaderSubscriber
 }
 
-func (nodeEventTcpClientSubscriber) isNodeEvent() {}
-
-type nodeEventTcpClientServiceClient struct {
+type tcpClientServiceClientReq struct {
 	client *proto_tcp.Conn
 	header *proto_tcp.HeaderServiceClient
 }
 
-func (nodeEventTcpClientServiceClient) isNodeEvent() {}
-
-type nodeEventUdpSubPublisherNew struct {
+type udpSubPublisherNewReq struct {
 	sp        *subscriberPublisher
 	chanFrame chan *proto_udp.Frame
 }
 
-func (nodeEventUdpSubPublisherNew) isNodeEvent() {}
-
-type nodeEventUdpSubPublisherClose struct {
+type udpSubPublisherCloseReq struct {
 	sp   *subscriberPublisher
 	done chan struct{}
 }
 
-func (nodeEventUdpSubPublisherClose) isNodeEvent() {}
-
-type nodeEventUdpFrame struct {
+type udpFrameReq struct {
 	frame  *proto_udp.Frame
 	source *net.UDPAddr
 }
 
-func (nodeEventUdpFrame) isNodeEvent() {}
-
-type nodeEventPublisherUpdate struct {
+type publisherUpdateReq struct {
 	topic string
 	urls  []string
 }
 
-func (nodeEventPublisherUpdate) isNodeEvent() {}
-
-type nodeEventGetPublications struct {
+type getPublicationsReq struct {
 	res chan [][]string
 }
 
-func (nodeEventGetPublications) isNodeEvent() {}
-
-type nodeEventSubscriberRequestTopic struct {
+type subscriberRequestTopicReq struct {
 	req *api_slave.RequestRequestTopic
 	res chan api_slave.ResponseRequestTopic
 }
 
-func (nodeEventSubscriberRequestTopic) isNodeEvent() {}
-
-type nodeEventSubscriberNew struct {
+type subscriberNewReq struct {
 	sub *Subscriber
 	err chan error
 }
 
-func (nodeEventSubscriberNew) isNodeEvent() {}
-
-type nodeEventSubscriberClose struct {
-	sub *Subscriber
-}
-
-func (nodeEventSubscriberClose) isNodeEvent() {}
-
-type nodeEventPublisherNew struct {
+type publisherNewReq struct {
 	pub *Publisher
 	err chan error
 }
 
-func (nodeEventPublisherNew) isNodeEvent() {}
-
-type nodeEventPublisherClose struct {
-	pub *Publisher
-}
-
-func (nodeEventPublisherClose) isNodeEvent() {}
-
-type nodeEventServiceProviderNew struct {
+type serviceProviderNewReq struct {
 	sp  *ServiceProvider
 	err chan error
 }
-
-func (nodeEventServiceProviderNew) isNodeEvent() {}
-
-type nodeEventServiceProviderClose struct {
-	sp *ServiceProvider
-}
-
-func (nodeEventServiceProviderClose) isNodeEvent() {}
 
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
@@ -226,9 +166,25 @@ type Node struct {
 	publisherLastId     int
 	rosoutPublisher     *Publisher
 
-	events    chan nodeEvent
-	terminate chan struct{}
-	done      chan struct{}
+	tcpClientNew           chan *proto_tcp.Conn
+	tcpClientClose         chan *proto_tcp.Conn
+	tcpClientSubscriber    chan tcpClientSubscriberReq
+	tcpClientServiceClient chan tcpClientServiceClientReq
+	udpSubPublisherNew     chan udpSubPublisherNewReq
+	udpSubPublisherClose   chan udpSubPublisherCloseReq
+	udpFrame               chan udpFrameReq
+	publisherUpdate        chan publisherUpdateReq
+	getPublications        chan getPublicationsReq
+	subscriberRequestTopic chan subscriberRequestTopicReq
+	subscriberNew          chan subscriberNewReq
+	subscriberClose        chan *Subscriber
+	publisherNew           chan publisherNewReq
+	publisherClose         chan *Publisher
+	serviceProviderNew     chan serviceProviderNewReq
+	serviceProviderClose   chan *ServiceProvider
+	shutdown               chan struct{}
+	terminate              chan struct{}
+	done                   chan struct{}
 }
 
 // NewNode allocates a Node. See NodeConf for the options.
@@ -322,26 +278,42 @@ func NewNode(conf NodeConf) (*Node, error) {
 	udprosServerPort := udprosServer.Port() // get port in case it has been set automatically
 
 	n := &Node{
-		conf:                conf,
-		masterIp:            masterIp,
-		nodeIp:              nodeIp,
-		apiMasterClient:     apiMasterClient,
-		apiParamClient:      apiParamClient,
-		apiSlaveServer:      apiSlaveServer,
-		apiSlaveServerUrl:   apiSlaveServerUrl,
-		tcprosServer:        tcprosServer,
-		tcprosServerPort:    tcprosServerPort,
-		tcprosServerUrl:     tcprosServerUrl,
-		udprosServer:        udprosServer,
-		udprosServerPort:    udprosServerPort,
-		tcprosClients:       make(map[*proto_tcp.Conn]struct{}),
-		udprosSubPublishers: make(map[*subscriberPublisher]chan *proto_udp.Frame),
-		subscribers:         make(map[string]*Subscriber),
-		publishers:          make(map[string]*Publisher),
-		serviceProviders:    make(map[string]*ServiceProvider),
-		events:              make(chan nodeEvent),
-		terminate:           make(chan struct{}),
-		done:                make(chan struct{}),
+		conf:                   conf,
+		masterIp:               masterIp,
+		nodeIp:                 nodeIp,
+		apiMasterClient:        apiMasterClient,
+		apiParamClient:         apiParamClient,
+		apiSlaveServer:         apiSlaveServer,
+		apiSlaveServerUrl:      apiSlaveServerUrl,
+		tcprosServer:           tcprosServer,
+		tcprosServerPort:       tcprosServerPort,
+		tcprosServerUrl:        tcprosServerUrl,
+		udprosServer:           udprosServer,
+		udprosServerPort:       udprosServerPort,
+		tcprosClients:          make(map[*proto_tcp.Conn]struct{}),
+		udprosSubPublishers:    make(map[*subscriberPublisher]chan *proto_udp.Frame),
+		subscribers:            make(map[string]*Subscriber),
+		publishers:             make(map[string]*Publisher),
+		serviceProviders:       make(map[string]*ServiceProvider),
+		tcpClientNew:           make(chan *proto_tcp.Conn),
+		tcpClientClose:         make(chan *proto_tcp.Conn),
+		tcpClientSubscriber:    make(chan tcpClientSubscriberReq),
+		tcpClientServiceClient: make(chan tcpClientServiceClientReq),
+		udpSubPublisherNew:     make(chan udpSubPublisherNewReq),
+		udpSubPublisherClose:   make(chan udpSubPublisherCloseReq),
+		udpFrame:               make(chan udpFrameReq),
+		publisherUpdate:        make(chan publisherUpdateReq),
+		getPublications:        make(chan getPublicationsReq),
+		subscriberRequestTopic: make(chan subscriberRequestTopicReq),
+		subscriberNew:          make(chan subscriberNewReq),
+		subscriberClose:        make(chan *Subscriber),
+		publisherNew:           make(chan publisherNewReq),
+		publisherClose:         make(chan *Publisher),
+		serviceProviderNew:     make(chan serviceProviderNewReq),
+		serviceProviderClose:   make(chan *ServiceProvider),
+		shutdown:               make(chan struct{}),
+		terminate:              make(chan struct{}),
+		done:                   make(chan struct{}),
 	}
 
 	go n.run()
@@ -371,252 +343,279 @@ func (n *Node) run() {
 	var clientsWg sync.WaitGroup
 
 outer:
-	for rawEvt := range n.events {
-		switch evt := rawEvt.(type) {
-		case nodeEventTcpClientNew:
-			n.tcprosClients[evt.client] = struct{}{}
+	for {
+		select {
+		case client := <-n.tcpClientNew:
+			n.tcprosClients[client] = struct{}{}
 			clientsWg.Add(1)
-			go n.runTcprosClient(&clientsWg, evt.client)
+			go n.runTcprosClient(&clientsWg, client)
 
-		case nodeEventTcpClientClose:
-			delete(n.tcprosClients, evt.client)
+		case client := <-n.tcpClientClose:
+			delete(n.tcprosClients, client)
 
-		case nodeEventTcpClientSubscriber:
+		case req := <-n.tcpClientSubscriber:
 			// pass client ownership to publisher, if exists
-			delete(n.tcprosClients, evt.client)
+			delete(n.tcprosClients, req.client)
 
-			pub, ok := n.publishers[evt.header.Topic]
+			pub, ok := n.publishers[req.header.Topic]
 			if !ok {
-				evt.client.Close()
+				req.client.Close()
 				continue
 			}
 
-			pub.events <- publisherEventSubscriberTcpNew{
-				client: evt.client,
-				header: evt.header,
+			pub.subscriberTcpNew <- publisherSubscriberTcpNewReq{
+				client: req.client,
+				header: req.header,
 			}
 
-		case nodeEventTcpClientServiceClient:
+		case req := <-n.tcpClientServiceClient:
 			// pass client ownership to service provider, if exists
-			delete(n.tcprosClients, evt.client)
+			delete(n.tcprosClients, req.client)
 
-			sp, ok := n.serviceProviders[evt.header.Service]
+			sp, ok := n.serviceProviders[req.header.Service]
 			if !ok {
-				evt.client.Close()
+				req.client.Close()
 				continue
 			}
 
-			sp.events <- serviceProviderEventClientNew{
-				client: evt.client,
-				header: evt.header,
+			sp.clientNew <- serviceProviderClientNewReq{
+				client: req.client,
+				header: req.header,
 			}
 
-		case nodeEventUdpSubPublisherNew:
-			n.udprosSubPublishers[evt.sp] = evt.chanFrame
+		case req := <-n.udpSubPublisherNew:
+			n.udprosSubPublishers[req.sp] = req.chanFrame
 
-		case nodeEventUdpSubPublisherClose:
-			delete(n.udprosSubPublishers, evt.sp)
-			close(evt.done)
+		case req := <-n.udpSubPublisherClose:
+			delete(n.udprosSubPublishers, req.sp)
+			close(req.done)
 
-		case nodeEventUdpFrame:
+		case req := <-n.udpFrame:
 			for sp, chanFrame := range n.udprosSubPublishers {
-				if evt.frame.ConnectionId == sp.udprosId &&
-					evt.source.IP.Equal(sp.udprosIp) {
-					chanFrame <- evt.frame
+				if req.frame.ConnectionId == sp.udprosId &&
+					req.source.IP.Equal(sp.udprosIp) {
+					chanFrame <- req.frame
 					break
 				}
 			}
 
-		case nodeEventPublisherUpdate:
-			sub, ok := n.subscribers[evt.topic]
+		case req := <-n.publisherUpdate:
+			sub, ok := n.subscribers[req.topic]
 			if !ok {
 				continue
 			}
 
-			sub.events <- subscriberEventPublisherUpdate{evt.urls}
+			sub.publisherUpdate <- req.urls
 
-		case nodeEventGetPublications:
+		case req := <-n.getPublications:
 			res := [][]string{}
 
 			for _, pub := range n.publishers {
 				res = append(res, []string{pub.conf.Topic, pub.msgType})
 			}
 
-			evt.res <- res
+			req.res <- res
 
-		case nodeEventSubscriberRequestTopic:
-			pub, ok := n.publishers[evt.req.Topic]
+		case req := <-n.subscriberRequestTopic:
+			pub, ok := n.publishers[req.req.Topic]
 			if !ok {
-				evt.res <- api_slave.ResponseRequestTopic{
+				req.res <- api_slave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "topic not found",
 				}
 				continue
 			}
 
-			pub.events <- publisherEventRequestTopic{evt.req, evt.res}
+			pub.requestTopic <- publisherRequestTopicReq{req.req, req.res}
 
-		case nodeEventSubscriberNew:
-			_, ok := n.subscribers[evt.sub.conf.Topic]
+		case req := <-n.subscriberNew:
+			_, ok := n.subscribers[req.sub.conf.Topic]
 			if ok {
-				evt.err <- fmt.Errorf("Topic %s already subscribed", evt.sub.conf.Topic)
+				req.err <- fmt.Errorf("Topic %s already subscribed", req.sub.conf.Topic)
 				continue
 			}
 
 			res, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
-				Topic:     evt.sub.conf.Topic[1:],
-				TopicType: evt.sub.msgType,
+				Topic:     req.sub.conf.Topic[1:],
+				TopicType: req.sub.msgType,
 				CallerUrl: n.apiSlaveServerUrl,
 			})
 			if err != nil {
-				evt.err <- err
+				req.err <- err
 				continue
 			}
 
-			n.subscribers[evt.sub.conf.Topic] = evt.sub
-			evt.err <- nil
+			n.subscribers[req.sub.conf.Topic] = req.sub
+			req.err <- nil
 
 			// send initial publishers list to subscriber
-			evt.sub.events <- subscriberEventPublisherUpdate{res.Uris}
+			req.sub.publisherUpdate <- res.Uris
 
-		case nodeEventSubscriberClose:
-			delete(n.subscribers, evt.sub.conf.Topic)
-			close(evt.sub.nodeDone)
+		case sub := <-n.subscriberClose:
+			delete(n.subscribers, sub.conf.Topic)
+			close(sub.nodeTerminate)
 
-		case nodeEventPublisherNew:
-			_, ok := n.publishers[evt.pub.conf.Topic]
+		case req := <-n.publisherNew:
+			_, ok := n.publishers[req.pub.conf.Topic]
 			if ok {
-				evt.err <- fmt.Errorf("Topic %s already published", evt.pub.conf.Topic)
+				req.err <- fmt.Errorf("Topic %s already published", req.pub.conf.Topic)
 				continue
 			}
 
 			_, err := n.apiMasterClient.RegisterPublisher(api_master.RequestRegister{
-				Topic:     evt.pub.conf.Topic[1:],
-				TopicType: evt.pub.msgType,
+				Topic:     req.pub.conf.Topic[1:],
+				TopicType: req.pub.msgType,
 				CallerUrl: n.apiSlaveServerUrl,
 			})
 			if err != nil {
-				evt.err <- err
+				req.err <- err
 				continue
 			}
 
 			n.publisherLastId += 1
-			evt.pub.id = n.publisherLastId
-			n.publishers[evt.pub.conf.Topic] = evt.pub
-			evt.err <- nil
+			req.pub.id = n.publisherLastId
+			n.publishers[req.pub.conf.Topic] = req.pub
+			req.err <- nil
 
-		case nodeEventPublisherClose:
-			delete(n.publishers, evt.pub.conf.Topic)
-			close(evt.pub.nodeDone)
+		case pub := <-n.publisherClose:
+			delete(n.publishers, pub.conf.Topic)
+			close(pub.nodeTerminate)
 
-		case nodeEventServiceProviderNew:
-			_, ok := n.serviceProviders[evt.sp.conf.Service]
+		case req := <-n.serviceProviderNew:
+			_, ok := n.serviceProviders[req.sp.conf.Service]
 			if ok {
-				evt.err <- fmt.Errorf("Service %s already provided", evt.sp.conf.Service)
+				req.err <- fmt.Errorf("Service %s already provided", req.sp.conf.Service)
 				continue
 			}
 
 			err := n.apiMasterClient.RegisterService(api_master.RequestRegisterService{
-				Service:    evt.sp.conf.Service[1:],
+				Service:    req.sp.conf.Service[1:],
 				ServiceUrl: n.tcprosServerUrl,
 				CallerUrl:  n.apiSlaveServerUrl,
 			})
 			if err != nil {
-				evt.err <- err
+				req.err <- err
 				continue
 			}
 
-			n.serviceProviders[evt.sp.conf.Service] = evt.sp
-			evt.err <- nil
+			n.serviceProviders[req.sp.conf.Service] = req.sp
+			req.err <- nil
 
-		case nodeEventServiceProviderClose:
-			delete(n.serviceProviders, evt.sp.conf.Service)
-			close(evt.sp.nodeDone)
+		case sp := <-n.serviceProviderClose:
+			delete(n.serviceProviders, sp.conf.Service)
+			close(sp.nodeTerminate)
 
-		case nodeEventClose:
+		case <-n.shutdown:
 			break outer
 		}
 	}
 
-	// use clientsWg for all remaining subscribers, publishers, service providers
-	clientsWg.Add(len(n.subscribers) + len(n.publishers) + len(n.serviceProviders))
-
 	// consume queue
 	go func() {
-		for rawEvt := range n.events {
-			switch evt := rawEvt.(type) {
-			case nodeEventGetPublications:
-				evt.res <- [][]string{}
+		for {
+			select {
+			case <-n.tcpClientNew:
 
-			case nodeEventUdpSubPublisherClose:
-				close(evt.done)
+			case <-n.tcpClientClose:
 
-			case nodeEventSubscriberRequestTopic:
-				evt.res <- api_slave.ResponseRequestTopic{
+			case <-n.tcpClientSubscriber:
+
+			case <-n.tcpClientServiceClient:
+
+			case <-n.udpSubPublisherNew:
+
+			case req, ok := <-n.udpSubPublisherClose:
+				if !ok {
+					return
+				}
+				close(req.done)
+
+			case <-n.udpFrame:
+
+			case <-n.publisherUpdate:
+
+			case req := <-n.getPublications:
+				req.res <- [][]string{}
+
+			case req := <-n.subscriberRequestTopic:
+				req.res <- api_slave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "terminating",
 				}
 
-			case nodeEventSubscriberNew:
-				evt.err <- fmt.Errorf("terminated")
+			case req := <-n.subscriberNew:
+				req.err <- fmt.Errorf("terminated")
 
-			case nodeEventSubscriberClose:
-				clientsWg.Done()
+			case <-n.subscriberClose:
 
-			case nodeEventPublisherNew:
-				evt.err <- fmt.Errorf("terminated")
+			case req := <-n.publisherNew:
+				req.err <- fmt.Errorf("terminated")
 
-			case nodeEventPublisherClose:
-				clientsWg.Done()
+			case <-n.publisherClose:
 
-			case nodeEventServiceProviderNew:
-				evt.err <- fmt.Errorf("terminated")
+			case req := <-n.serviceProviderNew:
+				req.err <- fmt.Errorf("terminated")
 
-			case nodeEventServiceProviderClose:
-				clientsWg.Done()
+			case <-n.serviceProviderClose:
+
+			case <-n.shutdown:
 			}
 		}
 	}()
 
-	// close all servers and wait
+	// close all servers
 	n.apiSlaveServer.Close()
 	n.tcprosServer.Close()
 	n.udprosServer.Close()
 	serversWg.Wait()
 
-	// close all clients and wait
+	// close all clients
 	for c := range n.tcprosClients {
 		c.Close()
 	}
+	clientsWg.Wait()
 	for _, sub := range n.subscribers {
-		sub.events <- subscriberEventClose{}
-		close(sub.nodeDone)
+		sub.shutdown <- struct{}{}
+		close(sub.nodeTerminate)
 	}
 	for _, pub := range n.publishers {
-		pub.events <- publisherEventClose{}
-		close(pub.nodeDone)
+		pub.shutdown <- struct{}{}
+		close(pub.nodeTerminate)
 	}
 	for _, sp := range n.serviceProviders {
-		sp.events <- serviceProviderEventClose{}
-		close(sp.nodeDone)
+		sp.shutdown <- struct{}{}
+		close(sp.nodeTerminate)
 	}
-	clientsWg.Wait()
 
 	if n.rosoutPublisher != nil {
 		n.rosoutPublisher.Close()
 	}
 
-	// wait Close()
 	<-n.terminate
 
-	close(n.events)
-
+	close(n.tcpClientNew)
+	close(n.tcpClientClose)
+	close(n.tcpClientSubscriber)
+	close(n.tcpClientServiceClient)
+	close(n.udpSubPublisherNew)
+	close(n.udpSubPublisherClose)
+	close(n.udpFrame)
+	close(n.publisherUpdate)
+	close(n.getPublications)
+	close(n.subscriberRequestTopic)
+	close(n.subscriberNew)
+	close(n.subscriberClose)
+	close(n.publisherNew)
+	close(n.publisherClose)
+	close(n.serviceProviderNew)
+	close(n.serviceProviderClose)
+	close(n.shutdown)
 	close(n.done)
 }
 
 // Close closes a Node and shuts down all its operations.
 func (n *Node) Close() error {
-	n.events <- nodeEventClose{}
+	n.shutdown <- struct{}{}
 	close(n.terminate)
 	<-n.done
 	return nil
@@ -645,7 +644,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 
 		case *api_slave.RequestGetPublications:
 			resChan := make(chan [][]string)
-			n.events <- nodeEventGetPublications{resChan}
+			n.getPublications <- getPublicationsReq{resChan}
 			res := <-resChan
 
 			return api_slave.ResponseGetPublications{
@@ -655,7 +654,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 			}
 
 		case *api_slave.RequestPublisherUpdate:
-			n.events <- nodeEventPublisherUpdate{
+			n.publisherUpdate <- publisherUpdateReq{
 				topic: req.Topic,
 				urls:  req.PublisherUrls,
 			}
@@ -667,13 +666,12 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 
 		case *api_slave.RequestRequestTopic:
 			resChan := make(chan api_slave.ResponseRequestTopic)
-			n.events <- nodeEventSubscriberRequestTopic{req, resChan}
+			n.subscriberRequestTopic <- subscriberRequestTopicReq{req, resChan}
 			res := <-resChan
-
 			return res
 
 		case *api_slave.RequestShutdown:
-			n.events <- nodeEventClose{}
+			n.shutdown <- struct{}{}
 
 			return api_slave.ResponseShutdown{
 				Code:          1,
@@ -694,7 +692,7 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 			break
 		}
 
-		n.events <- nodeEventTcpClientNew{client}
+		n.tcpClientNew <- client
 	}
 
 	wg.Done()
@@ -707,7 +705,7 @@ func (n *Node) runUdprosServer(wg *sync.WaitGroup) {
 			break
 		}
 
-		n.events <- nodeEventUdpFrame{frame, source}
+		n.udpFrame <- udpFrameReq{frame, source}
 	}
 
 	wg.Done()
@@ -727,7 +725,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
 				return false
 			}
 
-			n.events <- nodeEventTcpClientSubscriber{
+			n.tcpClientSubscriber <- tcpClientSubscriberReq{
 				client: client,
 				header: &header,
 			}
@@ -740,7 +738,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
 				return false
 			}
 
-			n.events <- nodeEventTcpClientServiceClient{
+			n.tcpClientServiceClient <- tcpClientServiceClientReq{
 				client: client,
 				header: &header,
 			}
@@ -751,7 +749,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
 	}()
 	if !ok {
 		client.Close()
-		n.events <- nodeEventTcpClientClose{client}
+		n.tcpClientClose <- client
 	}
 
 	wg.Done()

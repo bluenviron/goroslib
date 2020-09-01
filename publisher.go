@@ -16,39 +16,15 @@ import (
 	"github.com/aler9/goroslib/proto-udp"
 )
 
-type publisherEvent interface {
-	isPublisherEvent()
-}
-
-type publisherEventClose struct{}
-
-func (publisherEventClose) isPublisherEvent() {}
-
-type publisherEventRequestTopic struct {
+type publisherRequestTopicReq struct {
 	req *api_slave.RequestRequestTopic
 	res chan api_slave.ResponseRequestTopic
 }
 
-func (publisherEventRequestTopic) isPublisherEvent() {}
-
-type publisherEventSubscriberTcpNew struct {
+type publisherSubscriberTcpNewReq struct {
 	client *proto_tcp.Conn
 	header *proto_tcp.HeaderSubscriber
 }
-
-func (publisherEventSubscriberTcpNew) isPublisherEvent() {}
-
-type publisherEventSubscriberTcpClose struct {
-	sub *publisherSubscriber
-}
-
-func (publisherEventSubscriberTcpClose) isPublisherEvent() {}
-
-type publisherEventWrite struct {
-	msg interface{}
-}
-
-func (publisherEventWrite) isPublisherEvent() {}
 
 // PublisherConf is the configuration of a Publisher.
 type PublisherConf struct {
@@ -76,10 +52,14 @@ type Publisher struct {
 	lastMessage interface{}
 	id          int
 
-	events    chan publisherEvent
-	terminate chan struct{}
-	nodeDone  chan struct{}
-	done      chan struct{}
+	requestTopic       chan publisherRequestTopicReq
+	subscriberTcpNew   chan publisherSubscriberTcpNewReq
+	subscriberTcpClose chan *publisherSubscriber
+	write              chan interface{}
+	shutdown           chan struct{}
+	nodeTerminate      chan struct{}
+	terminate          chan struct{}
+	done               chan struct{}
 }
 
 // NewPublisher allocates a Publisher. See PublisherConf for the options.
@@ -111,18 +91,22 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	}
 
 	p := &Publisher{
-		conf:        conf,
-		msgType:     msgType,
-		msgMd5:      msgMd5,
-		subscribers: make(map[string]*publisherSubscriber),
-		events:      make(chan publisherEvent),
-		terminate:   make(chan struct{}),
-		nodeDone:    make(chan struct{}),
-		done:        make(chan struct{}),
+		conf:               conf,
+		msgType:            msgType,
+		msgMd5:             msgMd5,
+		subscribers:        make(map[string]*publisherSubscriber),
+		requestTopic:       make(chan publisherRequestTopicReq),
+		subscriberTcpNew:   make(chan publisherSubscriberTcpNewReq),
+		subscriberTcpClose: make(chan *publisherSubscriber),
+		write:              make(chan interface{}),
+		shutdown:           make(chan struct{}),
+		nodeTerminate:      make(chan struct{}),
+		terminate:          make(chan struct{}),
+		done:               make(chan struct{}),
 	}
 
 	chanErr := make(chan error)
-	conf.Node.events <- nodeEventPublisherNew{
+	conf.Node.publisherNew <- publisherNewReq{
 		pub: p,
 		err: chanErr,
 	}
@@ -136,17 +120,25 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	return p, nil
 }
 
+// Close closes a Publisher and shuts down all its operations.
+func (p *Publisher) Close() error {
+	p.shutdown <- struct{}{}
+	close(p.terminate)
+	<-p.done
+	return nil
+}
+
 func (p *Publisher) run() {
 outer:
-	for rawEvt := range p.events {
-		switch evt := rawEvt.(type) {
-		case publisherEventRequestTopic:
+	for {
+		select {
+		case req := <-p.requestTopic:
 			err := func() error {
-				if len(evt.req.Protocols) < 1 {
+				if len(req.req.Protocols) < 1 {
 					return fmt.Errorf("invalid protocol")
 				}
 
-				proto := evt.req.Protocols[0]
+				proto := req.req.Protocols[0]
 
 				if len(proto) < 1 {
 					return fmt.Errorf("invalid protocol")
@@ -159,7 +151,7 @@ outer:
 
 				switch protoName {
 				case "TCPROS":
-					evt.res <- api_slave.ResponseRequestTopic{
+					req.res <- api_slave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
@@ -260,7 +252,7 @@ outer:
 					p.subscribers[header.Callerid] = newPublisherSubscriber(p,
 						header.Callerid, nil, udpAddr)
 
-					evt.res <- api_slave.ResponseRequestTopic{
+					req.res <- api_slave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
@@ -293,28 +285,28 @@ outer:
 				return fmt.Errorf("invalid protocol")
 			}()
 			if err != nil {
-				evt.res <- api_slave.ResponseRequestTopic{
+				req.res <- api_slave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: err.Error(),
 				}
 				continue
 			}
 
-		case publisherEventSubscriberTcpNew:
+		case req := <-p.subscriberTcpNew:
 			err := func() error {
-				_, ok := p.subscribers[evt.header.Callerid]
+				_, ok := p.subscribers[req.header.Callerid]
 				if ok {
 					return fmt.Errorf("topic '%s' is already subscribed by '%s'",
-						p.conf.Topic, evt.header.Callerid)
+						p.conf.Topic, req.header.Callerid)
 				}
 
 				// wildcard is used by rostopic hz
-				if evt.header.Md5sum != "*" && evt.header.Md5sum != p.msgMd5 {
+				if req.header.Md5sum != "*" && req.header.Md5sum != p.msgMd5 {
 					return fmt.Errorf("wrong md5: expected '%s', got '%s'",
-						p.msgMd5, evt.header.Md5sum)
+						p.msgMd5, req.header.Md5sum)
 				}
 
-				err := evt.client.WriteHeader(&proto_tcp.HeaderPublisher{
+				err := req.client.WriteHeader(&proto_tcp.HeaderPublisher{
 					Callerid: p.conf.Node.conf.Name,
 					Md5sum:   p.msgMd5,
 					Topic:    p.conf.Topic,
@@ -327,53 +319,62 @@ outer:
 					}(),
 				})
 				if err != nil {
-					evt.client.Close()
+					req.client.Close()
 					return nil
 				}
 
-				p.subscribers[evt.header.Callerid] = newPublisherSubscriber(p,
-					evt.header.Callerid, evt.client, nil)
+				p.subscribers[req.header.Callerid] = newPublisherSubscriber(p,
+					req.header.Callerid, req.client, nil)
 
 				if p.conf.Latch && p.lastMessage != nil {
-					p.subscribers[evt.header.Callerid].writeMessage(p.lastMessage)
+					p.subscribers[req.header.Callerid].writeMessage(p.lastMessage)
 				}
 
 				return nil
 			}()
 			if err != nil {
-				evt.client.WriteHeader(&proto_tcp.HeaderError{
+				req.client.WriteHeader(&proto_tcp.HeaderError{
 					Error: err.Error(),
 				})
-				evt.client.Close()
+				req.client.Close()
 				continue
 			}
 
-		case publisherEventSubscriberTcpClose:
-			delete(p.subscribers, evt.sub.callerid)
+		case sub := <-p.subscriberTcpClose:
+			delete(p.subscribers, sub.callerid)
+			close(sub.terminate)
 
-		case publisherEventWrite:
+		case msg := <-p.write:
 			if p.conf.Latch {
-				p.lastMessage = evt.msg
+				p.lastMessage = msg
 			}
 
 			for _, s := range p.subscribers {
-				s.writeMessage(evt.msg)
+				s.writeMessage(msg)
 			}
 
-		case publisherEventClose:
+		case <-p.shutdown:
 			break outer
 		}
 	}
 
-	// consume queue
 	go func() {
-		for rawEvt := range p.events {
-			switch evt := rawEvt.(type) {
-			case publisherEventRequestTopic:
-				evt.res <- api_slave.ResponseRequestTopic{
+		for {
+			select {
+			case req, ok := <-p.requestTopic:
+				if !ok {
+					return
+				}
+
+				req.res <- api_slave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "terminating",
 				}
+
+			case <-p.subscriberTcpNew:
+			case <-p.subscriberTcpClose:
+			case <-p.write:
+			case <-p.shutdown:
 			}
 		}
 	}()
@@ -383,33 +384,29 @@ outer:
 		CallerUrl: p.conf.Node.apiSlaveServerUrl,
 	})
 
-	for _, c := range p.subscribers {
-		c.close()
+	for _, ps := range p.subscribers {
+		close(ps.terminate)
+		<-ps.done
 	}
 
-	p.conf.Node.events <- nodeEventPublisherClose{p}
-	<-p.nodeDone
+	p.conf.Node.publisherClose <- p
 
-	// wait Close()
+	<-p.nodeTerminate
 	<-p.terminate
 
-	close(p.events)
-
+	close(p.requestTopic)
+	close(p.subscriberTcpNew)
+	close(p.subscriberTcpClose)
+	close(p.write)
+	close(p.shutdown)
 	close(p.done)
 }
 
-// Close closes a Publisher and shuts down all its operations.
-func (p *Publisher) Close() error {
-	p.events <- publisherEventClose{}
-	close(p.terminate)
-	<-p.done
-	return nil
-}
-
+// Write writes a message into the publisher.
 func (p *Publisher) Write(msg interface{}) {
 	if reflect.TypeOf(msg) != reflect.TypeOf(p.conf.Msg) {
 		panic("wrong message type")
 	}
 
-	p.events <- publisherEventWrite{msg}
+	p.write <- msg
 }

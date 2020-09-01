@@ -41,35 +41,30 @@ func newSubscriberPublisher(sub *Subscriber, url string) *subscriberPublisher {
 	return sp
 }
 
+func (sp *subscriberPublisher) close() {
+	delete(sp.sub.publishers, sp.url)
+	close(sp.terminate)
+}
+
 func (sp *subscriberPublisher) run() {
 	host, port, _ := parseUrl(sp.url)
-	firstTime := true
 
 outer:
 	for {
-		if firstTime {
-			firstTime = false
-		} else {
-			t := time.NewTimer(5 * time.Second)
-			select {
-			case <-t.C:
-			case <-sp.terminate:
-				break outer
-			}
-		}
-
 		err := sp.do(host, port)
 		if err == errSubscriberPubTerminate {
+			break outer
+		}
+
+		t := time.NewTimer(5 * time.Second)
+		select {
+		case <-t.C:
+		case <-sp.terminate:
 			break outer
 		}
 	}
 
 	close(sp.done)
-}
-
-func (sp *subscriberPublisher) close() {
-	close(sp.terminate)
-	<-sp.done
 }
 
 func (sp *subscriberPublisher) do(host string, port int) error {
@@ -218,7 +213,7 @@ func (sp *subscriberPublisher) doTcp(res *api_slave.ResponseRequestTopic) error 
 				return
 			}
 
-			sp.sub.events <- subscriberEventMessage{msg}
+			sp.sub.message <- msg
 		}
 	}()
 
@@ -273,11 +268,11 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 	sp.udprosId = uint32(protoId)
 
 	chanFrame := make(chan *proto_udp.Frame)
-	sp.sub.conf.Node.events <- nodeEventUdpSubPublisherNew{sp, chanFrame}
+	sp.sub.conf.Node.udpSubPublisherNew <- udpSubPublisherNewReq{sp, chanFrame}
 
 	defer func() {
 		done := make(chan struct{})
-		sp.sub.conf.Node.events <- nodeEventUdpSubPublisherClose{sp, done}
+		sp.sub.conf.Node.udpSubPublisherClose <- udpSubPublisherCloseReq{sp, done}
 		<-done
 		close(chanFrame)
 	}()
@@ -310,7 +305,7 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 					continue
 				}
 
-				sp.sub.events <- subscriberEventMessage{msg}
+				sp.sub.message <- msg
 			}
 
 		case <-sp.terminate:

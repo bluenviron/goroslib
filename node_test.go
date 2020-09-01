@@ -340,6 +340,16 @@ func TestNodeKillGoNode(t *testing.T) {
 	require.NoError(t, err)
 	defer pub.Close()
 
+	sp, err := NewServiceProvider(ServiceProviderConf{
+		Node:    n1,
+		Service: "/test_srv",
+		Callback: func(req *TestServiceReq) *TestServiceRes {
+			return &TestServiceRes{}
+		},
+	})
+	require.NoError(t, err)
+	defer sp.Close()
+
 	n2, err := NewNode(NodeConf{
 		Name:       "/goroslib2",
 		MasterHost: m.Ip(),

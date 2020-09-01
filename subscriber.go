@@ -19,26 +19,6 @@ const (
 	UDP
 )
 
-type subscriberEvent interface {
-	isSubscriberEvent()
-}
-
-type subscriberEventClose struct{}
-
-func (subscriberEventClose) isSubscriberEvent() {}
-
-type subscriberEventPublisherUpdate struct {
-	urls []string
-}
-
-func (subscriberEventPublisherUpdate) isSubscriberEvent() {}
-
-type subscriberEventMessage struct {
-	msg interface{}
-}
-
-func (subscriberEventMessage) isSubscriberEvent() {}
-
 // SubscriberConf is the configuration of a Subscriber.
 type SubscriberConf struct {
 	// node which the subscriber belongs to
@@ -64,10 +44,12 @@ type Subscriber struct {
 	msgMd5     string
 	publishers map[string]*subscriberPublisher
 
-	events    chan subscriberEvent
-	terminate chan struct{}
-	nodeDone  chan struct{}
-	done      chan struct{}
+	publisherUpdate chan []string
+	message         chan interface{}
+	shutdown        chan struct{}
+	terminate       chan struct{}
+	nodeTerminate   chan struct{}
+	done            chan struct{}
 }
 
 // NewSubscriber allocates a Subscriber. See SubscriberConf for the options.
@@ -110,19 +92,21 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	}
 
 	s := &Subscriber{
-		conf:       conf,
-		msgMsg:     msgMsg.Elem(),
-		msgType:    msgType,
-		msgMd5:     msgMd5,
-		publishers: make(map[string]*subscriberPublisher),
-		events:     make(chan subscriberEvent),
-		terminate:  make(chan struct{}),
-		nodeDone:   make(chan struct{}),
-		done:       make(chan struct{}),
+		conf:            conf,
+		msgMsg:          msgMsg.Elem(),
+		msgType:         msgType,
+		msgMd5:          msgMd5,
+		publishers:      make(map[string]*subscriberPublisher),
+		publisherUpdate: make(chan []string),
+		message:         make(chan interface{}),
+		shutdown:        make(chan struct{}),
+		terminate:       make(chan struct{}),
+		nodeTerminate:   make(chan struct{}),
+		done:            make(chan struct{}),
 	}
 
 	chanErr := make(chan error)
-	conf.Node.events <- nodeEventSubscriberNew{
+	conf.Node.subscriberNew <- subscriberNewReq{
 		sub: s,
 		err: chanErr,
 	}
@@ -136,17 +120,25 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	return s, nil
 }
 
+// Close closes a Subscriber and shuts down all its operations.
+func (s *Subscriber) Close() error {
+	s.shutdown <- struct{}{}
+	close(s.terminate)
+	<-s.done
+	return nil
+}
+
 func (s *Subscriber) run() {
 	cbv := reflect.ValueOf(s.conf.Callback)
 
 outer:
-	for rawEvt := range s.events {
-		switch evt := rawEvt.(type) {
-		case subscriberEventPublisherUpdate:
+	for {
+		select {
+		case urls := <-s.publisherUpdate:
 			validPublishers := make(map[string]struct{})
 
 			// add new publishers
-			for _, url := range evt.urls {
+			for _, url := range urls {
 				validPublishers[url] = struct{}{}
 
 				if _, ok := s.publishers[url]; !ok {
@@ -158,23 +150,30 @@ outer:
 			for url, pub := range s.publishers {
 				if _, ok := validPublishers[url]; !ok {
 					pub.close()
-					delete(s.publishers, url)
 				}
 			}
 
 		// messages are received through events
 		// in order to avoid mutexes in the user side
-		case subscriberEventMessage:
-			cbv.Call([]reflect.Value{reflect.ValueOf(evt.msg)})
+		case msg := <-s.message:
+			cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
 
-		case subscriberEventClose:
+		case <-s.shutdown:
 			break outer
 		}
 	}
 
-	// consume queue
 	go func() {
-		for range s.events {
+		for {
+			select {
+			case _, ok := <-s.publisherUpdate:
+				if !ok {
+					return
+				}
+
+			case <-s.message:
+			case <-s.shutdown:
+			}
 		}
 	}()
 
@@ -183,25 +182,18 @@ outer:
 		CallerUrl: s.conf.Node.apiSlaveServerUrl,
 	})
 
-	for _, pub := range s.publishers {
-		pub.close()
+	for _, sp := range s.publishers {
+		sp.close()
+		<-sp.done
 	}
 
-	s.conf.Node.events <- nodeEventSubscriberClose{s}
-	<-s.nodeDone
+	s.conf.Node.subscriberClose <- s
 
-	// wait Close()
+	<-s.nodeTerminate
 	<-s.terminate
 
-	close(s.events)
-
+	close(s.publisherUpdate)
+	close(s.message)
+	close(s.shutdown)
 	close(s.done)
-}
-
-// Close closes a Subscriber and shuts down all its operations.
-func (s *Subscriber) Close() error {
-	s.events <- subscriberEventClose{}
-	close(s.terminate)
-	<-s.done
-	return nil
 }
