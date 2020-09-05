@@ -30,7 +30,7 @@ format:
 
 define DOCKERFILE_TEST
 FROM $(BASE_IMAGE)
-RUN apk add --no-cache make docker-cli git
+RUN apk add --no-cache make docker-cli git gcc musl-dev
 WORKDIR /s
 COPY go.mod go.sum ./
 RUN go mod download
@@ -48,14 +48,13 @@ test:
 test-nodocker:
 	$(foreach IMG,$(shell echo test-images/*/ | xargs -n1 basename), \
 	docker build -q test-images/$(IMG) -t goroslib-test-$(IMG)$(NL))
-	$(eval export CGO_ENABLED = 0)
-	go test -v ./msg-utils
-	go test -v ./proto-common
-	go test -v ./proto-tcp
-	go test -v ./proto-udp
-	go test -v ./xmlrpc
-	go test -v ./msgs/...
-	go test -v .
+	go test -race -v ./msg-utils
+	go test -race -v ./proto-common
+	go test -race -v ./proto-tcp
+	go test -race -v ./proto-udp
+	go test -race -v ./xmlrpc
+	go test -race -v ./msgs/...
+	go test -race -v .
 	go build -o /dev/null ./commands/...
 	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
 
