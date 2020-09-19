@@ -7,7 +7,7 @@ import (
 	"net"
 	"unicode"
 
-	"github.com/aler9/goroslib/proto-common"
+	"github.com/aler9/goroslib/protocommon"
 )
 
 const (

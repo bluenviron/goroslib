@@ -49,13 +49,13 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/aler9/goroslib/api-master"
-	"github.com/aler9/goroslib/api-param"
-	"github.com/aler9/goroslib/api-slave"
+	"github.com/aler9/goroslib/apimaster"
+	"github.com/aler9/goroslib/apiparam"
+	"github.com/aler9/goroslib/apislave"
 	"github.com/aler9/goroslib/msgs/rosgraph_msgs"
-	"github.com/aler9/goroslib/proto-common"
-	"github.com/aler9/goroslib/proto-tcp"
-	"github.com/aler9/goroslib/proto-udp"
+	"github.com/aler9/goroslib/protocommon"
+	"github.com/aler9/goroslib/prototcp"
+	"github.com/aler9/goroslib/protoudp"
 	"github.com/aler9/goroslib/xmlrpc"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/api-master"
-	"github.com/aler9/goroslib/msg-utils"
+	"github.com/aler9/goroslib/apimaster"
+	"github.com/aler9/goroslib/msgutils"
 )
 
 // Protocol is a ROS stream protocol.

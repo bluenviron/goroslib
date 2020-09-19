@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/api-master"
-	"github.com/aler9/goroslib/msg-utils"
-	"github.com/aler9/goroslib/proto-tcp"
+	"github.com/aler9/goroslib/apimaster"
+	"github.com/aler9/goroslib/msgutils"
+	"github.com/aler9/goroslib/prototcp"
 )
 
 type serviceProviderClientNewReq struct {
