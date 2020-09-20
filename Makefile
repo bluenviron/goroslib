@@ -46,8 +46,8 @@ test:
 	make test-nodocker
 
 test-nodocker:
-	$(foreach IMG,$(shell echo test-images/*/ | xargs -n1 basename), \
-	docker build -q test-images/$(IMG) -t goroslib-test-$(IMG)$(NL))
+	$(foreach IMG,$(shell echo testimages/*/ | xargs -n1 basename), \
+	docker build -q testimages/$(IMG) -t goroslib-test-$(IMG)$(NL))
 	go test -race -v ./msgutils
 	go test -race -v ./protocommon
 	go test -race -v ./prototcp
