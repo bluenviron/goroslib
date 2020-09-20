@@ -7,16 +7,16 @@
 
 goroslib is a library in pure Go that allows to build clients (nodes) for the Robot Operating System (ROS).
 
-The Robot Operating System (ROS) is a project that provides a protocol specification to make multiple programs communicate with each other over time, exchanging structured data through topics, services and parameters. It was conceived for linking sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
+The Robot Operating System (ROS) is a project that provides a protocol specification to make multiple programs communicate with each other over time, exchanging structured data through topics, services and parameters. It was conceived to link sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
 
-The official project provides libraries for writing nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of compiling nodes for all the Golang supported operating systems (Linux, Windows, Darwin, etc) and architectures.
+The official project provides libraries to write nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of compiling nodes for all the Golang supported operating systems (Linux, Windows, Mac OS X, etc) and architectures.
 
 Features:
 * Subscribe and publish to topics, via TCP or UDP
 * Call and provide services
 * Get and set parameters
 * Get infos about other nodes, topics, services
-* Compile or cross-compile ROS nodes for all Golang supported OS and architectures
+* Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
 * Compilation of `.msg` files is not necessary, message definitions are deducted from code
 * Standard messages are available in folder `msgs/`
 * Examples provided for every feature, comprehensive test suite, continuous integration
@@ -54,11 +54,11 @@ https://pkg.go.dev/github.com/aler9/goroslib
 
 ## FAQs
 
-##### Where can i find the standard messages?
+### Where can i find the standard messages?
 
 Standard messages are [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/msgs?tab=subdirectories).
 
-#### How can i define a custom message?
+### How can i define a custom message?
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
 ```
@@ -103,14 +103,14 @@ go get github.com/aler9/goroslib/commands/msg-import
 msg-import --rospackage=my_package mymessage.msg
 ```
 
-#### How can i compile nodes for another OS?
+### How can i compile nodes for another operating system?
 
-To compile a node for another OS, it's enough to follow the standard Golang procedure for cross-compiling, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
+To compile a node for another OS, it's enough to follow the standard Golang procedure to cross-compile, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
 ```
 GOOS=windows GOARCH=amd64 go build -o node.exe name-of-source-file.go
 ```
 
-#### How can i edit the library?
+### How can i edit the library?
 
 If you want to hack the library and test the results, unit tests can be launched with:
 
