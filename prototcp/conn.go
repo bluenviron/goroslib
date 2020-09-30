@@ -1,4 +1,4 @@
-package proto_tcp
+package prototcp
 
 import (
 	"bufio"

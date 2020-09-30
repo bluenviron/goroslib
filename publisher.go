@@ -10,20 +10,20 @@ import (
 
 	"github.com/aler9/goroslib/apimaster"
 	"github.com/aler9/goroslib/apislave"
-	"github.com/aler9/goroslib/msgutils"
+	"github.com/aler9/goroslib/msg"
 	"github.com/aler9/goroslib/protocommon"
 	"github.com/aler9/goroslib/prototcp"
 	"github.com/aler9/goroslib/protoudp"
 )
 
 type publisherRequestTopicReq struct {
-	req *api_slave.RequestRequestTopic
-	res chan api_slave.ResponseRequestTopic
+	req *apislave.RequestRequestTopic
+	res chan apislave.ResponseRequestTopic
 }
 
 type publisherSubscriberTcpNewReq struct {
-	client *proto_tcp.Conn
-	header *proto_tcp.HeaderSubscriber
+	client *prototcp.Conn
+	header *prototcp.HeaderSubscriber
 }
 
 // PublisherConf is the configuration of a Publisher.
@@ -80,12 +80,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg must be a pointer to a struct")
 	}
 
-	msgType, err := msg_utils.Type(conf.Msg)
+	msgType, err := msg.Type(conf.Msg)
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msg_utils.Md5Message(conf.Msg)
+	msgMd5, err := msg.Md5Message(conf.Msg)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ outer:
 
 				switch protoName {
 				case "TCPROS":
-					req.res <- api_slave.ResponseRequestTopic{
+					req.res <- apislave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
@@ -197,7 +197,7 @@ outer:
 						return err
 					}
 
-					var header proto_udp.HeaderSubscriber
+					var header protoudp.HeaderSubscriber
 					err = proto_common.HeaderDecode(raw, &header)
 					if err != nil {
 						return err
@@ -252,7 +252,7 @@ outer:
 					p.subscribers[header.Callerid] = newPublisherSubscriber(p,
 						header.Callerid, nil, udpAddr)
 
-					req.res <- api_slave.ResponseRequestTopic{
+					req.res <- apislave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
@@ -268,7 +268,7 @@ outer:
 							1500,
 							func() []byte {
 								buf := bytes.NewBuffer(nil)
-								proto_common.HeaderEncode(buf, &proto_udp.HeaderPublisher{
+								proto_common.HeaderEncode(buf, &protoudp.HeaderPublisher{
 									Callerid: p.conf.Node.conf.Name,
 									Md5sum:   p.msgMd5,
 									Topic:    p.conf.Topic,
@@ -285,7 +285,7 @@ outer:
 				return fmt.Errorf("invalid protocol")
 			}()
 			if err != nil {
-				req.res <- api_slave.ResponseRequestTopic{
+				req.res <- apislave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: err.Error(),
 				}
@@ -306,7 +306,7 @@ outer:
 						p.msgMd5, req.header.Md5sum)
 				}
 
-				err := req.client.WriteHeader(&proto_tcp.HeaderPublisher{
+				err := req.client.WriteHeader(&prototcp.HeaderPublisher{
 					Callerid: p.conf.Node.conf.Name,
 					Md5sum:   p.msgMd5,
 					Topic:    p.conf.Topic,
@@ -333,7 +333,7 @@ outer:
 				return nil
 			}()
 			if err != nil {
-				req.client.WriteHeader(&proto_tcp.HeaderError{
+				req.client.WriteHeader(&prototcp.HeaderError{
 					Error: err.Error(),
 				})
 				req.client.Close()
@@ -366,7 +366,7 @@ outer:
 					return
 				}
 
-				req.res <- api_slave.ResponseRequestTopic{
+				req.res <- apislave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "terminating",
 				}
@@ -379,7 +379,7 @@ outer:
 		}
 	}()
 
-	p.conf.Node.apiMasterClient.UnregisterPublisher(api_master.RequestUnregister{
+	p.conf.Node.apiMasterClient.UnregisterPublisher(apimaster.RequestUnregister{
 		Topic:     p.conf.Topic[1:],
 		CallerUrl: p.conf.Node.apiSlaveServerUrl,
 	})

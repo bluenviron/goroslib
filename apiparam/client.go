@@ -1,4 +1,4 @@
-package api_param
+package apiparam
 
 import (
 	"fmt"

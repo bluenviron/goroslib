@@ -60,18 +60,18 @@ import (
 )
 
 type tcpClientSubscriberReq struct {
-	client *proto_tcp.Conn
-	header *proto_tcp.HeaderSubscriber
+	client *prototcp.Conn
+	header *prototcp.HeaderSubscriber
 }
 
 type tcpClientServiceClientReq struct {
-	client *proto_tcp.Conn
-	header *proto_tcp.HeaderServiceClient
+	client *prototcp.Conn
+	header *prototcp.HeaderServiceClient
 }
 
 type udpSubPublisherNewReq struct {
 	sp        *subscriberPublisher
-	chanFrame chan *proto_udp.Frame
+	chanFrame chan *protoudp.Frame
 }
 
 type udpSubPublisherCloseReq struct {
@@ -80,7 +80,7 @@ type udpSubPublisherCloseReq struct {
 }
 
 type udpFrameReq struct {
-	frame  *proto_udp.Frame
+	frame  *protoudp.Frame
 	source *net.UDPAddr
 }
 
@@ -94,8 +94,8 @@ type getPublicationsReq struct {
 }
 
 type subscriberRequestTopicReq struct {
-	req *api_slave.RequestRequestTopic
-	res chan api_slave.ResponseRequestTopic
+	req *apislave.RequestRequestTopic
+	res chan apislave.ResponseRequestTopic
 }
 
 type subscriberNewReq struct {
@@ -149,25 +149,25 @@ type Node struct {
 	conf                NodeConf
 	masterIp            net.IP
 	nodeIp              net.IP
-	apiMasterClient     *api_master.Client
-	apiParamClient      *api_param.Client
-	apiSlaveServer      *api_slave.Server
+	apiMasterClient     *apimaster.Client
+	apiParamClient      *apiparam.Client
+	apiSlaveServer      *apislave.Server
 	apiSlaveServerUrl   string
-	tcprosServer        *proto_tcp.Server
+	tcprosServer        *prototcp.Server
 	tcprosServerPort    int
 	tcprosServerUrl     string
-	udprosServer        *proto_udp.Server
+	udprosServer        *protoudp.Server
 	udprosServerPort    int
-	tcprosClients       map[*proto_tcp.Conn]struct{}
-	udprosSubPublishers map[*subscriberPublisher]chan *proto_udp.Frame
+	tcprosClients       map[*prototcp.Conn]struct{}
+	udprosSubPublishers map[*subscriberPublisher]chan *protoudp.Frame
 	subscribers         map[string]*Subscriber
 	publishers          map[string]*Publisher
 	serviceProviders    map[string]*ServiceProvider
 	publisherLastId     int
 	rosoutPublisher     *Publisher
 
-	tcpClientNew           chan *proto_tcp.Conn
-	tcpClientClose         chan *proto_tcp.Conn
+	tcpClientNew           chan *prototcp.Conn
+	tcpClientClose         chan *prototcp.Conn
 	tcpClientSubscriber    chan tcpClientSubscriberReq
 	tcpClientServiceClient chan tcpClientServiceClientReq
 	udpSubPublisherNew     chan udpSubPublisherNewReq
@@ -252,24 +252,24 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return addr.IP, nil
 	}()
 
-	apiMasterClient := api_master.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
-	apiParamClient := api_param.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
+	apiMasterClient := apimaster.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
+	apiParamClient := apiparam.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
 
-	apiSlaveServer, err := api_slave.NewServer(conf.ApislavePort)
+	apiSlaveServer, err := apislave.NewServer(conf.ApislavePort)
 	if err != nil {
 		return nil, err
 	}
 	apiSlaveServerUrl := xmlrpc.ServerUrl(nodeIp.String(), apiSlaveServer.Port()) // get port in case it has been set automatically
 
-	tcprosServer, err := proto_tcp.NewServer(conf.TcprosPort)
+	tcprosServer, err := prototcp.NewServer(conf.TcprosPort)
 	if err != nil {
 		apiSlaveServer.Close()
 		return nil, err
 	}
 	tcprosServerPort := tcprosServer.Port() // get port in case it has been set automatically
-	tcprosServerUrl := proto_tcp.ServerUrl(nodeIp.String(), tcprosServerPort)
+	tcprosServerUrl := prototcp.ServerUrl(nodeIp.String(), tcprosServerPort)
 
-	udprosServer, err := proto_udp.NewServer(conf.UdprosPort)
+	udprosServer, err := protoudp.NewServer(conf.UdprosPort)
 	if err != nil {
 		tcprosServer.Close()
 		apiSlaveServer.Close()
@@ -290,13 +290,13 @@ func NewNode(conf NodeConf) (*Node, error) {
 		tcprosServerUrl:        tcprosServerUrl,
 		udprosServer:           udprosServer,
 		udprosServerPort:       udprosServerPort,
-		tcprosClients:          make(map[*proto_tcp.Conn]struct{}),
-		udprosSubPublishers:    make(map[*subscriberPublisher]chan *proto_udp.Frame),
+		tcprosClients:          make(map[*prototcp.Conn]struct{}),
+		udprosSubPublishers:    make(map[*subscriberPublisher]chan *protoudp.Frame),
 		subscribers:            make(map[string]*Subscriber),
 		publishers:             make(map[string]*Publisher),
 		serviceProviders:       make(map[string]*ServiceProvider),
-		tcpClientNew:           make(chan *proto_tcp.Conn),
-		tcpClientClose:         make(chan *proto_tcp.Conn),
+		tcpClientNew:           make(chan *prototcp.Conn),
+		tcpClientClose:         make(chan *prototcp.Conn),
 		tcpClientSubscriber:    make(chan tcpClientSubscriberReq),
 		tcpClientServiceClient: make(chan tcpClientServiceClientReq),
 		udpSubPublisherNew:     make(chan udpSubPublisherNewReq),
@@ -419,7 +419,7 @@ outer:
 		case req := <-n.subscriberRequestTopic:
 			pub, ok := n.publishers[req.req.Topic]
 			if !ok {
-				req.res <- api_slave.ResponseRequestTopic{
+				req.res <- apislave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "topic not found",
 				}
@@ -435,7 +435,7 @@ outer:
 				continue
 			}
 
-			res, err := n.apiMasterClient.RegisterSubscriber(api_master.RequestRegister{
+			res, err := n.apiMasterClient.RegisterSubscriber(apimaster.RequestRegister{
 				Topic:     req.sub.conf.Topic[1:],
 				TopicType: req.sub.msgType,
 				CallerUrl: n.apiSlaveServerUrl,
@@ -462,7 +462,7 @@ outer:
 				continue
 			}
 
-			_, err := n.apiMasterClient.RegisterPublisher(api_master.RequestRegister{
+			_, err := n.apiMasterClient.RegisterPublisher(apimaster.RequestRegister{
 				Topic:     req.pub.conf.Topic[1:],
 				TopicType: req.pub.msgType,
 				CallerUrl: n.apiSlaveServerUrl,
@@ -488,7 +488,7 @@ outer:
 				continue
 			}
 
-			err := n.apiMasterClient.RegisterService(api_master.RequestRegisterService{
+			err := n.apiMasterClient.RegisterService(apimaster.RequestRegisterService{
 				Service:    req.sp.conf.Service[1:],
 				ServiceUrl: n.tcprosServerUrl,
 				CallerUrl:  n.apiSlaveServerUrl,
@@ -538,7 +538,7 @@ outer:
 				req.res <- [][]string{}
 
 			case req := <-n.subscriberRequestTopic:
-				req.res <- api_slave.ResponseRequestTopic{
+				req.res <- apislave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: "terminating",
 				}
@@ -622,10 +622,10 @@ func (n *Node) Close() error {
 }
 
 func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
-	n.apiSlaveServer.Handle(func(rawReq api_slave.Request) api_slave.Response {
+	n.apiSlaveServer.Handle(func(rawReq apislave.Request) apislave.Response {
 		switch req := rawReq.(type) {
-		case *api_slave.RequestGetBusInfo:
-			return api_slave.ResponseGetBusInfo{
+		case *apislave.RequestGetBusInfo:
+			return apislave.ResponseGetBusInfo{
 				Code:          1,
 				StatusMessage: "bus info",
 				// TODO: provide bus infos in this format:
@@ -635,51 +635,51 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 				BusInfo: [][]string{},
 			}
 
-		case *api_slave.RequestGetPid:
-			return api_slave.ResponseGetPid{
+		case *apislave.RequestGetPid:
+			return apislave.ResponseGetPid{
 				Code:          1,
 				StatusMessage: "",
 				Pid:           os.Getpid(),
 			}
 
-		case *api_slave.RequestGetPublications:
+		case *apislave.RequestGetPublications:
 			resChan := make(chan [][]string)
 			n.getPublications <- getPublicationsReq{resChan}
 			res := <-resChan
 
-			return api_slave.ResponseGetPublications{
+			return apislave.ResponseGetPublications{
 				Code:          1,
 				StatusMessage: "",
 				TopicList:     res,
 			}
 
-		case *api_slave.RequestPublisherUpdate:
+		case *apislave.RequestPublisherUpdate:
 			n.publisherUpdate <- publisherUpdateReq{
 				topic: req.Topic,
 				urls:  req.PublisherUrls,
 			}
 
-			return api_slave.ResponsePublisherUpdate{
+			return apislave.ResponsePublisherUpdate{
 				Code:          1,
 				StatusMessage: "",
 			}
 
-		case *api_slave.RequestRequestTopic:
-			resChan := make(chan api_slave.ResponseRequestTopic)
+		case *apislave.RequestRequestTopic:
+			resChan := make(chan apislave.ResponseRequestTopic)
 			n.subscriberRequestTopic <- subscriberRequestTopicReq{req, resChan}
 			res := <-resChan
 			return res
 
-		case *api_slave.RequestShutdown:
+		case *apislave.RequestShutdown:
 			n.shutdown <- struct{}{}
 
-			return api_slave.ResponseShutdown{
+			return apislave.ResponseShutdown{
 				Code:          1,
 				StatusMessage: "",
 			}
 		}
 
-		return api_slave.ErrorRes{}
+		return apislave.ErrorRes{}
 	})
 
 	wg.Done()
@@ -711,7 +711,7 @@ func (n *Node) runUdprosServer(wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
+func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *prototcp.Conn) {
 	ok := func() bool {
 		rawHeader, err := client.ReadHeaderRaw()
 		if err != nil {
@@ -719,7 +719,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
 		}
 
 		if _, ok := rawHeader["topic"]; ok {
-			var header proto_tcp.HeaderSubscriber
+			var header prototcp.HeaderSubscriber
 			err = proto_common.HeaderDecode(rawHeader, &header)
 			if err != nil {
 				return false
@@ -732,7 +732,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *proto_tcp.Conn) {
 			return true
 
 		} else if _, ok := rawHeader["service"]; ok {
-			var header proto_tcp.HeaderServiceClient
+			var header prototcp.HeaderServiceClient
 			err = proto_common.HeaderDecode(rawHeader, &header)
 			if err != nil {
 				return false

@@ -1,4 +1,4 @@
-package api_master
+package apimaster
 
 import (
 	"fmt"

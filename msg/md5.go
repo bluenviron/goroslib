@@ -1,5 +1,5 @@
-// msg_utils contains utilities to examine messages.
-package msg_utils
+// msg contains utilities to examine messages.
+package msg
 
 import (
 	"crypto/md5"

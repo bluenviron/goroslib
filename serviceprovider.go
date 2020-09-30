@@ -5,13 +5,13 @@ import (
 	"reflect"
 
 	"github.com/aler9/goroslib/apimaster"
-	"github.com/aler9/goroslib/msgutils"
+	"github.com/aler9/goroslib/msg"
 	"github.com/aler9/goroslib/prototcp"
 )
 
 type serviceProviderClientNewReq struct {
-	client *proto_tcp.Conn
-	header *proto_tcp.HeaderServiceClient
+	client *prototcp.Conn
+	header *prototcp.HeaderServiceClient
 }
 
 type serviceProviderClientRequestReq struct {
@@ -89,17 +89,17 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Response must be a pointer to a struct")
 	}
 
-	reqType, err := msg_utils.Type(reflect.New(reqMsg.Elem()).Interface())
+	reqType, err := msg.Type(reflect.New(reqMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	resType, err := msg_utils.Type(reflect.New(resMsg.Elem()).Interface())
+	resType, err := msg.Type(reflect.New(resMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	srvMd5, err := msg_utils.Md5Service(
+	srvMd5, err := msg.Md5Service(
 		reflect.New(reqMsg.Elem()).Interface(),
 		reflect.New(resMsg.Elem()).Interface())
 	if err != nil {
@@ -164,7 +164,7 @@ outer:
 				continue
 			}
 
-			err := req.client.WriteHeader(&proto_tcp.HeaderServiceProvider{
+			err := req.client.WriteHeader(&prototcp.HeaderServiceProvider{
 				Callerid:     sp.conf.Node.conf.Name,
 				Md5sum:       sp.srvMd5,
 				RequestType:  sp.reqType,
@@ -216,7 +216,7 @@ outer:
 		}
 	}()
 
-	sp.conf.Node.apiMasterClient.UnregisterService(api_master.RequestUnregisterService{
+	sp.conf.Node.apiMasterClient.UnregisterService(apimaster.RequestUnregisterService{
 		Service:    sp.conf.Service[1:],
 		ServiceUrl: sp.conf.Node.tcprosServerUrl,
 	})

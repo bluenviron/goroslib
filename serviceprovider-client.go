@@ -9,12 +9,12 @@ import (
 type serviceProviderClient struct {
 	sp       *ServiceProvider
 	callerid string
-	client   *proto_tcp.Conn
+	client   *prototcp.Conn
 
 	done chan struct{}
 }
 
-func newServiceProviderClient(sp *ServiceProvider, callerid string, client *proto_tcp.Conn) *serviceProviderClient {
+func newServiceProviderClient(sp *ServiceProvider, callerid string, client *prototcp.Conn) *serviceProviderClient {
 	spc := &serviceProviderClient{
 		sp:       sp,
 		callerid: callerid,

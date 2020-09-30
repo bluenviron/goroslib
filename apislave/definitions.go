@@ -1,7 +1,7 @@
-// api_slave implements the Slave API.
+// apislave implements the Slave API.
 //
 // https://wiki.ros.org/ROS/Slave_API
-package api_slave
+package apislave
 
 type Request interface {
 	isRequest()

@@ -68,14 +68,14 @@ outer:
 }
 
 func (sp *subscriberPublisher) do(host string, port int) error {
-	xcs := api_slave.NewClient(host, port, sp.sub.conf.Node.conf.Name)
+	xcs := apislave.NewClient(host, port, sp.sub.conf.Node.conf.Name)
 
 	subDone := make(chan struct{})
-	var res *api_slave.ResponseRequestTopic
+	var res *apislave.ResponseRequestTopic
 	var err error
 	go func() {
 		defer close(subDone)
-		res, err = xcs.RequestTopic(api_slave.RequestRequestTopic{
+		res, err = xcs.RequestTopic(apislave.RequestRequestTopic{
 			Topic: sp.sub.conf.Topic,
 			Protocols: func() [][]interface{} {
 				if sp.sub.conf.Protocol == TCP {
@@ -86,7 +86,7 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 					"UDPROS",
 					func() []byte {
 						buf := bytes.NewBuffer(nil)
-						proto_common.HeaderEncode(buf, &proto_udp.HeaderSubscriber{
+						proto_common.HeaderEncode(buf, &protoudp.HeaderSubscriber{
 							Callerid: sp.sub.conf.Node.conf.Name,
 							Md5sum:   sp.sub.msgMd5,
 							Topic:    sp.sub.conf.Topic,
@@ -119,7 +119,7 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 	return sp.doUdp(res)
 }
 
-func (sp *subscriberPublisher) doTcp(res *api_slave.ResponseRequestTopic) error {
+func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 	if len(res.Protocol) != 3 {
 		return fmt.Errorf("wrong protocol length")
 	}
@@ -144,11 +144,11 @@ func (sp *subscriberPublisher) doTcp(res *api_slave.ResponseRequestTopic) error 
 	}
 
 	subDone := make(chan struct{})
-	var conn *proto_tcp.Conn
+	var conn *prototcp.Conn
 	var err error
 	go func() {
 		defer close(subDone)
-		conn, err = proto_tcp.NewClient(protoHost, protoPort)
+		conn, err = prototcp.NewClient(protoHost, protoPort)
 	}()
 
 	select {
@@ -164,11 +164,11 @@ func (sp *subscriberPublisher) doTcp(res *api_slave.ResponseRequestTopic) error 
 	defer conn.Close()
 
 	subDone = make(chan struct{})
-	var outHeader proto_tcp.HeaderPublisher
+	var outHeader prototcp.HeaderPublisher
 	go func() {
 		defer close(subDone)
 
-		err = conn.WriteHeader(&proto_tcp.HeaderSubscriber{
+		err = conn.WriteHeader(&prototcp.HeaderSubscriber{
 			Callerid:   sp.sub.conf.Node.conf.Name,
 			Md5sum:     sp.sub.msgMd5,
 			Topic:      sp.sub.conf.Topic,
@@ -228,7 +228,7 @@ func (sp *subscriberPublisher) doTcp(res *api_slave.ResponseRequestTopic) error 
 	}
 }
 
-func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error {
+func (sp *subscriberPublisher) doUdp(res *apislave.ResponseRequestTopic) error {
 	if len(res.Protocol) != 6 {
 		return fmt.Errorf("wrong protocol length")
 	}
@@ -267,7 +267,7 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 	sp.udprosPort = addr.Port
 	sp.udprosId = uint32(protoId)
 
-	chanFrame := make(chan *proto_udp.Frame)
+	chanFrame := make(chan *protoudp.Frame)
 	sp.sub.conf.Node.udpSubPublisherNew <- udpSubPublisherNewReq{sp, chanFrame}
 
 	defer func() {
@@ -285,12 +285,12 @@ func (sp *subscriberPublisher) doUdp(res *api_slave.ResponseRequestTopic) error 
 		select {
 		case frame := <-chanFrame:
 			switch frame.Opcode {
-			case proto_udp.Data0:
+			case protoudp.Data0:
 				curMsg = append([]byte{}, frame.Content...)
 				curFieldId = 0
 				curFieldCount = int(frame.BlockId)
 
-			case proto_udp.DataN:
+			case protoudp.DataN:
 				if int(frame.BlockId) != (curFieldId + 1) {
 					continue
 				}

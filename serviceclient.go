@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/aler9/goroslib/apimaster"
-	"github.com/aler9/goroslib/msgutils"
+	"github.com/aler9/goroslib/msg"
 	"github.com/aler9/goroslib/prototcp"
 )
 
@@ -28,7 +28,7 @@ type ServiceClientConf struct {
 // providers with requests and receive replies.
 type ServiceClient struct {
 	conf ServiceClientConf
-	conn *proto_tcp.Conn
+	conn *prototcp.Conn
 }
 
 // NewServiceClient allocates a ServiceClient. See ServiceClientConf for the options.
@@ -57,14 +57,14 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Res must be a pointer to a struct")
 	}
 
-	res, err := conf.Node.apiMasterClient.LookupService(api_master.RequestLookup{
+	res, err := conf.Node.apiMasterClient.LookupService(apimaster.RequestLookup{
 		Name: conf.Service,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("lookupService: %v", err)
 	}
 
-	srvMd5, err := msg_utils.Md5Service(conf.Req, conf.Res)
+	srvMd5, err := msg.Md5Service(conf.Req, conf.Res)
 	if err != nil {
 		return nil, err
 	}
@@ -74,12 +74,12 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
-	conn, err := proto_tcp.NewClient(host, port)
+	conn, err := prototcp.NewClient(host, port)
 	if err != nil {
 		return nil, err
 	}
 
-	err = conn.WriteHeader(&proto_tcp.HeaderServiceClient{
+	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
 		Callerid:   conf.Node.conf.Name,
 		Md5sum:     srvMd5,
 		Persistent: 1,
@@ -90,7 +90,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
-	var outHeader proto_tcp.HeaderServiceProvider
+	var outHeader prototcp.HeaderServiceProvider
 	err = conn.ReadHeader(&outHeader)
 	if err != nil {
 		conn.Close()

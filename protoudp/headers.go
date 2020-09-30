@@ -1,5 +1,5 @@
-// proto_udp implements the UDPROS protocol.
-package proto_udp
+// protoudp implements the UDPROS protocol.
+package protoudp
 
 type HeaderSubscriber struct {
 	Callerid string

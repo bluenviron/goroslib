@@ -1,4 +1,4 @@
-package proto_udp
+package protoudp
 
 import (
 	"encoding/binary"

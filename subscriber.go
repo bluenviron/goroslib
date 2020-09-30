@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/aler9/goroslib/apimaster"
-	"github.com/aler9/goroslib/msgutils"
+	"github.com/aler9/goroslib/msg"
 )
 
 // Protocol is a ROS stream protocol.
@@ -81,12 +81,12 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Message must be a pointer to a struct")
 	}
 
-	msgType, err := msg_utils.Type(reflect.New(msgMsg.Elem()).Interface())
+	msgType, err := msg.Type(reflect.New(msgMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msg_utils.Md5Message(reflect.New(msgMsg.Elem()).Interface())
+	msgMd5, err := msg.Md5Message(reflect.New(msgMsg.Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ outer:
 		}
 	}()
 
-	s.conf.Node.apiMasterClient.UnregisterSubscriber(api_master.RequestUnregister{
+	s.conf.Node.apiMasterClient.UnregisterSubscriber(apimaster.RequestUnregister{
 		Topic:     s.conf.Topic[1:],
 		CallerUrl: s.conf.Node.apiSlaveServerUrl,
 	})

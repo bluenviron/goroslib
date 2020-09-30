@@ -12,7 +12,7 @@ import (
 type publisherSubscriber struct {
 	pub          *Publisher
 	callerid     string
-	tcpClient    *proto_tcp.Conn
+	tcpClient    *prototcp.Conn
 	udpAddr      *net.UDPAddr
 	curMessageId uint8
 
@@ -20,7 +20,7 @@ type publisherSubscriber struct {
 	done      chan struct{}
 }
 
-func newPublisherSubscriber(pub *Publisher, callerid string, tcpClient *proto_tcp.Conn,
+func newPublisherSubscriber(pub *Publisher, callerid string, tcpClient *prototcp.Conn,
 	udpAddr *net.UDPAddr) *publisherSubscriber {
 
 	ps := &publisherSubscriber{
@@ -91,31 +91,31 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 		byts := rawMessage.Bytes()
 		lbyts := len(byts)
 
-		for i := 0; i < lbyts; i += proto_udp.MAX_CONTENT_LENGTH {
-			ps.pub.conf.Node.udprosServer.WriteFrame(&proto_udp.Frame{
+		for i := 0; i < lbyts; i += protoudp.MAX_CONTENT_LENGTH {
+			ps.pub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
 				ConnectionId: uint32(ps.pub.id),
-				Opcode: func() proto_udp.Opcode {
+				Opcode: func() protoudp.Opcode {
 					if i == 0 {
-						return proto_udp.Data0
+						return protoudp.Data0
 					}
 
-					return proto_udp.DataN
+					return protoudp.DataN
 				}(),
 				MessageId: ps.curMessageId,
 				BlockId: func() uint16 {
 					// return block count
 					if i == 0 {
-						if (lbyts % proto_udp.MAX_CONTENT_LENGTH) == 0 {
-							return uint16(lbyts / proto_udp.MAX_CONTENT_LENGTH)
+						if (lbyts % protoudp.MAX_CONTENT_LENGTH) == 0 {
+							return uint16(lbyts / protoudp.MAX_CONTENT_LENGTH)
 						}
-						return uint16((lbyts / proto_udp.MAX_CONTENT_LENGTH) + 1)
+						return uint16((lbyts / protoudp.MAX_CONTENT_LENGTH) + 1)
 					}
 
 					// return current block id
-					return uint16(i / proto_udp.MAX_CONTENT_LENGTH)
+					return uint16(i / protoudp.MAX_CONTENT_LENGTH)
 				}(),
 				Content: func() []byte {
-					j := i + proto_udp.MAX_CONTENT_LENGTH
+					j := i + protoudp.MAX_CONTENT_LENGTH
 					if j > lbyts {
 						j = lbyts
 					}

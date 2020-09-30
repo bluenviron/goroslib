@@ -1,4 +1,4 @@
-package api_slave
+package apislave
 
 import (
 	"fmt"

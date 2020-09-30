@@ -1,7 +1,7 @@
-// api_param implements the Parameter API.
+// apiparam implements the Parameter API.
 //
 // https://wiki.ros.org/ROS/Parameter%20Server%20API
-package api_param
+package apiparam
 
 type RequestDeleteParam struct {
 	CallerId string

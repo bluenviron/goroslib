@@ -59,7 +59,7 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	}
 
 	for node, info := range ret {
-		res, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
+		res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
 			Name: node,
 		})
 		if err != nil {
@@ -173,7 +173,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			ret[entry.Name].Providers[node] = struct{}{}
 		}
 
-		res2, err := n.apiMasterClient.LookupService(api_master.RequestLookup{
+		res2, err := n.apiMasterClient.LookupService(apimaster.RequestLookup{
 			Name: entry.Name,
 		})
 		if err != nil {
@@ -195,7 +195,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 // PingNode send a ping request to a given node, wait for the reply and returns
 // the elapsed time.
 func (n *Node) PingNode(name string) (time.Duration, error) {
-	res, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
+	res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
 		Name: name,
 	})
 	if err != nil {
@@ -207,7 +207,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 		return 0, err
 	}
 
-	xcs := api_slave.NewClient(hostname, port, n.conf.Name)
+	xcs := apislave.NewClient(hostname, port, n.conf.Name)
 
 	start := time.Now()
 
@@ -221,7 +221,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 
 // KillNode send a kill request to a given node.
 func (n *Node) KillNode(name string) error {
-	res, err := n.apiMasterClient.LookupNode(api_master.RequestLookup{
+	res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
 		Name: name,
 	})
 	if err != nil {
@@ -233,9 +233,9 @@ func (n *Node) KillNode(name string) error {
 		return err
 	}
 
-	xcs := api_slave.NewClient(hostname, port, n.conf.Name)
+	xcs := apislave.NewClient(hostname, port, n.conf.Name)
 
-	err = xcs.Shutdown(api_slave.RequestShutdown{
+	err = xcs.Shutdown(apislave.RequestShutdown{
 		Reason: "",
 	})
 	if err != nil {
@@ -247,7 +247,7 @@ func (n *Node) KillNode(name string) error {
 
 // GetParamBool returns a bool parameter from the master.
 func (n *Node) GetParamBool(key string) (bool, error) {
-	res, err := n.apiParamClient.GetParamBool(api_param.RequestGetParam{
+	res, err := n.apiParamClient.GetParamBool(apiparam.RequestGetParam{
 		Key: key,
 	})
 	if err != nil {
@@ -258,7 +258,7 @@ func (n *Node) GetParamBool(key string) (bool, error) {
 
 // GetParamInt returns an int parameter from the master.
 func (n *Node) GetParamInt(key string) (int, error) {
-	res, err := n.apiParamClient.GetParamInt(api_param.RequestGetParam{
+	res, err := n.apiParamClient.GetParamInt(apiparam.RequestGetParam{
 		Key: key,
 	})
 	if err != nil {
@@ -269,7 +269,7 @@ func (n *Node) GetParamInt(key string) (int, error) {
 
 // GetParamString returns a string parameter from the master.
 func (n *Node) GetParamString(key string) (string, error) {
-	res, err := n.apiParamClient.GetParamString(api_param.RequestGetParam{
+	res, err := n.apiParamClient.GetParamString(apiparam.RequestGetParam{
 		Key: key,
 	})
 	if err != nil {
@@ -280,7 +280,7 @@ func (n *Node) GetParamString(key string) (string, error) {
 
 // SetParamBool sets a bool parameter in the master.
 func (n *Node) SetParamBool(key string, val bool) error {
-	return n.apiParamClient.SetParamBool(api_param.RequestSetParamBool{
+	return n.apiParamClient.SetParamBool(apiparam.RequestSetParamBool{
 		Key: key,
 		Val: val,
 	})
@@ -288,7 +288,7 @@ func (n *Node) SetParamBool(key string, val bool) error {
 
 // SetParamInt sets an int parameter in the master.
 func (n *Node) SetParamInt(key string, val int) error {
-	return n.apiParamClient.SetParamInt(api_param.RequestSetParamInt{
+	return n.apiParamClient.SetParamInt(apiparam.RequestSetParamInt{
 		Key: key,
 		Val: val,
 	})
@@ -296,7 +296,7 @@ func (n *Node) SetParamInt(key string, val int) error {
 
 // SetParamString sets a string parameter in the master.
 func (n *Node) SetParamString(key string, val string) error {
-	return n.apiParamClient.SetParamString(api_param.RequestSetParamString{
+	return n.apiParamClient.SetParamString(apiparam.RequestSetParamString{
 		Key: key,
 		Val: val,
 	})
