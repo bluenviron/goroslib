@@ -1,4 +1,4 @@
-// msg_utils contains functions to process messages
+// msg_utils contains utilities to examine messages.
 package msg_utils
 
 import (

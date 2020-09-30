@@ -1,4 +1,4 @@
-// api_master implements the Master API
+// api_master implements the Master API.
 //
 // https://wiki.ros.org/ROS/Master_API
 package api_master

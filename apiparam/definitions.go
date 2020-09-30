@@ -1,4 +1,4 @@
-// api_param implements the Parameter API
+// api_param implements the Parameter API.
 //
 // https://wiki.ros.org/ROS/Parameter%20Server%20API
 package api_param
