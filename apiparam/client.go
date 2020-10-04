@@ -6,11 +6,13 @@ import (
 	"github.com/aler9/goroslib/xmlrpc"
 )
 
+// Client is a Parameter API client.
 type Client struct {
 	xc       *xmlrpc.Client
 	callerId string
 }
 
+// NewClient allocates a Client.
 func NewClient(host string, port int, callerId string) *Client {
 	return &Client{
 		xc:       xmlrpc.NewClient(host, port),
