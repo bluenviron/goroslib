@@ -192,13 +192,13 @@ outer:
 					newProtoDef = append(newProtoDef, protoDef...)
 					buf := bytes.NewBuffer(newProtoDef)
 
-					raw, err := proto_common.HeaderDecodeRaw(buf)
+					raw, err := protocommon.HeaderDecodeRaw(buf)
 					if err != nil {
 						return err
 					}
 
 					var header protoudp.HeaderSubscriber
-					err = proto_common.HeaderDecode(raw, &header)
+					err = protocommon.HeaderDecode(raw, &header)
 					if err != nil {
 						return err
 					}
@@ -268,7 +268,7 @@ outer:
 							1500,
 							func() []byte {
 								buf := bytes.NewBuffer(nil)
-								proto_common.HeaderEncode(buf, &protoudp.HeaderPublisher{
+								protocommon.HeaderEncode(buf, &protoudp.HeaderPublisher{
 									Callerid: p.conf.Node.conf.Name,
 									Md5sum:   p.msgMd5,
 									Topic:    p.conf.Topic,

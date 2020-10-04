@@ -720,7 +720,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *prototcp.Conn) {
 
 		if _, ok := rawHeader["topic"]; ok {
 			var header prototcp.HeaderSubscriber
-			err = proto_common.HeaderDecode(rawHeader, &header)
+			err = protocommon.HeaderDecode(rawHeader, &header)
 			if err != nil {
 				return false
 			}
@@ -733,7 +733,7 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *prototcp.Conn) {
 
 		} else if _, ok := rawHeader["service"]; ok {
 			var header prototcp.HeaderServiceClient
-			err = proto_common.HeaderDecode(rawHeader, &header)
+			err = protocommon.HeaderDecode(rawHeader, &header)
 			if err != nil {
 				return false
 			}

@@ -1,5 +1,5 @@
-// proto_common contains utilities and definitions for both TCPROS and UDPROS.
-package proto_common
+// protocommon contains utilities and definitions for both TCPROS and UDPROS.
+package protocommon
 
 import (
 	"bytes"

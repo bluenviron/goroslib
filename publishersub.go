@@ -84,7 +84,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 		ps.curMessageId += 1
 
 		rawMessage := bytes.NewBuffer(nil)
-		err := proto_common.MessageEncode(rawMessage, msg)
+		err := protocommon.MessageEncode(rawMessage, msg)
 		if err != nil {
 			return
 		}

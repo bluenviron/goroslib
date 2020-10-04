@@ -1,4 +1,4 @@
-package proto_common
+package protocommon
 
 import (
 	"bytes"

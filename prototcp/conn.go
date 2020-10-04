@@ -58,12 +58,12 @@ func (c *Conn) Close() error {
 	return c.closer.Close()
 }
 
-func (c *Conn) ReadHeaderRaw() (proto_common.HeaderRaw, error) {
-	return proto_common.HeaderDecodeRaw(c.readBuf)
+func (c *Conn) ReadHeaderRaw() (protocommon.HeaderRaw, error) {
+	return protocommon.HeaderDecodeRaw(c.readBuf)
 }
 
-func (c *Conn) ReadHeader(header proto_common.Header) error {
-	raw, err := proto_common.HeaderDecodeRaw(c.readBuf)
+func (c *Conn) ReadHeader(header protocommon.Header) error {
+	raw, err := protocommon.HeaderDecodeRaw(c.readBuf)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (c *Conn) ReadHeader(header proto_common.Header) error {
 		return fmt.Errorf(strErr)
 	}
 
-	return proto_common.HeaderDecode(raw, header)
+	return protocommon.HeaderDecode(raw, header)
 }
 
 func (c *Conn) ReadServiceResState() error {
@@ -90,11 +90,11 @@ func (c *Conn) ReadServiceResState() error {
 }
 
 func (c *Conn) ReadMessage(msg interface{}) error {
-	return proto_common.MessageDecode(c.readBuf, msg)
+	return protocommon.MessageDecode(c.readBuf, msg)
 }
 
-func (c *Conn) WriteHeader(header proto_common.Header) error {
-	err := proto_common.HeaderEncode(c.writeBuf, header)
+func (c *Conn) WriteHeader(header protocommon.Header) error {
+	err := protocommon.HeaderEncode(c.writeBuf, header)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (c *Conn) WriteServiceResState() error {
 }
 
 func (c *Conn) WriteMessage(msg interface{}) error {
-	err := proto_common.MessageEncode(c.writeBuf, msg)
+	err := protocommon.MessageEncode(c.writeBuf, msg)
 	if err != nil {
 		return err
 	}

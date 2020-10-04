@@ -86,7 +86,7 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 					"UDPROS",
 					func() []byte {
 						buf := bytes.NewBuffer(nil)
-						proto_common.HeaderEncode(buf, &protoudp.HeaderSubscriber{
+						protocommon.HeaderEncode(buf, &protoudp.HeaderSubscriber{
 							Callerid: sp.sub.conf.Node.conf.Name,
 							Md5sum:   sp.sub.msgMd5,
 							Topic:    sp.sub.conf.Topic,
@@ -300,7 +300,7 @@ func (sp *subscriberPublisher) doUdp(res *apislave.ResponseRequestTopic) error {
 
 			if (curFieldId + 1) == curFieldCount {
 				msg := reflect.New(sp.sub.msgMsg).Interface()
-				err := proto_common.MessageDecode(bytes.NewBuffer(curMsg), msg)
+				err := protocommon.MessageDecode(bytes.NewBuffer(curMsg), msg)
 				if err != nil {
 					continue
 				}
