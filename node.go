@@ -251,6 +251,9 @@ func NewNode(conf NodeConf) (*Node, error) {
 		}
 		return addr.IP, nil
 	}()
+	if err != nil {
+		return nil, err
+	}
 
 	apiMasterClient := apimaster.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
 	apiParamClient := apiparam.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
