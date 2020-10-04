@@ -321,7 +321,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	go n.run()
 
-	rosoutPublisher, err := NewPublisher(PublisherConf{
+	n.rosoutPublisher, err = NewPublisher(PublisherConf{
 		Node:  n,
 		Topic: "/rosout",
 		Msg:   &rosgraph_msgs.Log{},
@@ -330,7 +330,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 		n.Close()
 		return nil, err
 	}
-	n.rosoutPublisher = rosoutPublisher
 
 	return n, nil
 }
