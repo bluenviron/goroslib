@@ -11,7 +11,7 @@ help:
 	@echo "  mod-tidy      run go mod tidy"
 	@echo "  format        format source files"
 	@echo "  test          run available tests"
-	@echo "  msg-gen       generate standard messages"
+	@echo "  msgs          generate standard messages"
 	@echo ""
 
 blank :=
@@ -67,13 +67,13 @@ RUN go mod download
 endef
 export DOCKERFILE_MSGS
 
-msg-gen:
+msgs:
 	echo "$$DOCKERFILE_TEST" | docker build -q . -f - -t temp
 	docker run --rm -it \
 	-v $(PWD):/s \
 	temp \
-	sh -c "cd /s && make msg-gen-nodocker"
+	sh -c "cd /s && make msgs-nodocker"
 
-msg-gen-nodocker:
-	go run ./commands/msg-gen
+msgs-nodocker:
+	go run ./commands/msgs-gen
 	find ./msgs -type f -name '*.go' | xargs gofmt -l -w -s

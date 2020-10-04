@@ -1,4 +1,4 @@
-// apislave implements the Slave API.
+// Package apislave implements the Slave API.
 //
 // https://wiki.ros.org/ROS/Slave_API
 package apislave

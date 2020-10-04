@@ -1,4 +1,4 @@
-// apimaster implements the Master API.
+// Package apimaster implements the Master API.
 //
 // https://wiki.ros.org/ROS/Master_API
 package apimaster

@@ -1,4 +1,4 @@
-// protoudp implements the UDPROS protocol.
+// Package protoudp implements the UDPROS protocol.
 package protoudp
 
 type HeaderSubscriber struct {

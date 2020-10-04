@@ -1,4 +1,4 @@
-// msg contains utilities to examine messages.
+// Package msg contains utilities to process messages.
 package msg
 
 import (

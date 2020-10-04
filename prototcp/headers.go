@@ -1,4 +1,4 @@
-// prototcp implements the TCPROS protocol.
+// Package prototcp implements the TCPROS protocol.
 package prototcp
 
 type HeaderError struct {

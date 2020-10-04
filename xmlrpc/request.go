@@ -1,4 +1,3 @@
-// xmlrpc implements the XML-RPC protocol, in a variant fit for ROS.
 package xmlrpc
 
 import (

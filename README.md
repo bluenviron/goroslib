@@ -79,7 +79,7 @@ type MessageName struct {
 }
 ```
 
-The type of a message field can be one of the following:
+The type of a field can be one of the following:
 * one of the primitive field types:
   * bool
   * int8
@@ -100,7 +100,7 @@ The type of a message field can be one of the following:
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
 ```
 go get github.com/aler9/goroslib/commands/msg-import
-msg-import --rospackage=my_package mymessage.msg
+msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ```
 
 ### How can i compile nodes for another operating system?
