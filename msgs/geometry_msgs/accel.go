@@ -1,11 +1,11 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type Accel struct {
-	msgs.Package `ros:"geometry_msgs"`
-	Linear       Vector3
-	Angular      Vector3
+	msg.Package `ros:"geometry_msgs"`
+	Linear      Vector3
+	Angular     Vector3
 }

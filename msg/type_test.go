@@ -4,13 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/aler9/goroslib/msgs"
 )
 
 type MsgExplicitPackage struct {
-	msgs.Package `ros:"my_package"`
-	Value        uint16
+	Package `ros:"my_package"`
+	Value   uint16
 }
 
 type MsgImplicitPackage struct {

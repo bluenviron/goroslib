@@ -1,10 +1,10 @@
 package shape_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type Plane struct {
-	msgs.Package `ros:"shape_msgs"`
-	Coef         [4]float64
+	msg.Package `ros:"shape_msgs"`
+	Coef        [4]float64
 }

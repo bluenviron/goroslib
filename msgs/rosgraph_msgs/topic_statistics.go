@@ -1,12 +1,12 @@
 package rosgraph_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 	"time"
 )
 
 type TopicStatistics struct {
-	msgs.Package   `ros:"rosgraph_msgs"`
+	msg.Package    `ros:"rosgraph_msgs"`
 	Topic          string
 	NodePub        string
 	NodeSub        string

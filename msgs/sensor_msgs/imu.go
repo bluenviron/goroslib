@@ -1,13 +1,13 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 	"github.com/aler9/goroslib/msgs/geometry_msgs"
 	"github.com/aler9/goroslib/msgs/std_msgs"
 )
 
 type Imu struct {
-	msgs.Package                 `ros:"sensor_msgs"`
+	msg.Package                  `ros:"sensor_msgs"`
 	Header                       std_msgs.Header
 	Orientation                  geometry_msgs.Quaternion
 	OrientationCovariance        [9]float64

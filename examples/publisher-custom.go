@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 // define a custom message.
 // unlike the standard library, a .msg file is not needed.
 // a structure definition is enough.
 type TestMessage struct {
-	msgs.Package `ros:"my_package"`
-	FirstField   uint32
-	SecondField  string
+	msg.Package `ros:"my_package"`
+	FirstField  uint32
+	SecondField string
 }
 
 func main() {

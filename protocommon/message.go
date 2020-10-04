@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte) error {
@@ -268,11 +268,11 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 				f := val.Elem().Field(i)
 				ft := val.Elem().Type().Field(i)
 
-				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
 					continue
 				}
 
-				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Definitions(0)) {
+				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
 					continue
 				}
 
@@ -527,11 +527,11 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 				f := val.Elem().Field(i)
 				ft := val.Elem().Type().Field(i)
 
-				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
 					continue
 				}
 
-				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Definitions(0)) {
+				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
 					continue
 				}
 

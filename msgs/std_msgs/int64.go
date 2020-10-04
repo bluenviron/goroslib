@@ -1,10 +1,10 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type Int64 struct {
-	msgs.Package `ros:"std_msgs"`
-	Data         int64
+	msg.Package `ros:"std_msgs"`
+	Data        int64
 }

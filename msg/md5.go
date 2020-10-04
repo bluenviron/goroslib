@@ -1,4 +1,3 @@
-// Package msg contains utilities to process messages.
 package msg
 
 import (
@@ -10,8 +9,6 @@ import (
 	"strings"
 	"time"
 	"unicode"
-
-	"github.com/aler9/goroslib/msgs"
 )
 
 func camelToSnake(in string) string {
@@ -131,11 +128,11 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 		for i := 0; i < nf; i++ {
 			ft := rt.Field(i)
 
-			if ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Package(0)) {
+			if ft.Anonymous && ft.Type == reflect.TypeOf(Package(0)) {
 				continue
 			}
 
-			if ft.Anonymous && ft.Type == reflect.TypeOf(msgs.Definitions(0)) {
+			if ft.Anonymous && ft.Type == reflect.TypeOf(Definitions(0)) {
 				for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
 					ret += def + "\n"
 				}

@@ -3,8 +3,6 @@ package msg
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/aler9/goroslib/msgs"
 )
 
 // Type returns the type of a message.
@@ -32,7 +30,7 @@ func Type(msg interface{}) (string, error) {
 			return ""
 		}
 
-		if ft.Type != reflect.TypeOf(msgs.Package(0)) {
+		if ft.Type != reflect.TypeOf(Package(0)) {
 			return ""
 		}
 

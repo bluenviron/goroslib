@@ -1,11 +1,11 @@
 package std_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type MultiArrayLayout struct {
-	msgs.Package `ros:"std_msgs"`
-	Dim          []MultiArrayDimension
-	DataOffset   uint32
+	msg.Package `ros:"std_msgs"`
+	Dim         []MultiArrayDimension
+	DataOffset  uint32
 }

@@ -1,12 +1,12 @@
 package trajectory_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 	"time"
 )
 
 type JointTrajectoryPoint struct {
-	msgs.Package  `ros:"trajectory_msgs"`
+	msg.Package   `ros:"trajectory_msgs"`
 	Positions     []float64
 	Velocities    []float64
 	Accelerations []float64

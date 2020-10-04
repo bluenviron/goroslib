@@ -1,11 +1,11 @@
 package rosgraph_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 	"time"
 )
 
 type Clock struct {
-	msgs.Package `ros:"rosgraph_msgs"`
-	Clock        time.Time
+	msg.Package `ros:"rosgraph_msgs"`
+	Clock       time.Time
 }

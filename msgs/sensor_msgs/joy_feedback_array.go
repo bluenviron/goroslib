@@ -1,10 +1,10 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type JoyFeedbackArray struct {
-	msgs.Package `ros:"sensor_msgs"`
-	Array        []JoyFeedback
+	msg.Package `ros:"sensor_msgs"`
+	Array       []JoyFeedback
 }

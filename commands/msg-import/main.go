@@ -36,9 +36,9 @@ import (
 )
 
 type {{ .Name }} struct {
-    msgs.Package ` + "`" + `ros:"{{ .RosPkgName }}"` + "`" + `
+    msg.Package ` + "`" + `ros:"{{ .RosPkgName }}"` + "`" + `
 {{- if .DefinitionsStr }}
-    msgs.Definitions ` + "`" + `ros:"{{ .DefinitionsStr }}"` + "`" + `
+    msg.Definitions ` + "`" + `ros:"{{ .DefinitionsStr }}"` + "`" + `
 {{- end }}
 {{- range .Fields }}
     {{ .Name }} {{ .Type }}
@@ -112,18 +112,19 @@ func run() error {
 
 	str := string(byts)
 	imports := map[string]struct{}{
-		"github.com/aler9/goroslib/msgs": {},
+		"github.com/aler9/goroslib/msg": {},
 	}
 
-	var definitionStr []string
 	type definition struct {
+		Type  string
 		Name  string
 		Value string
 	}
 	var definitions []*definition
+
 	type field struct {
-		Name string
 		Type string
+		Name string
 	}
 	var fields []*field
 
@@ -147,8 +148,7 @@ func run() error {
 			}
 
 			typ, name, val := matches[1], matches[3], matches[6]
-			definitionStr = append(definitionStr, typ+" "+name+"="+val)
-			definitions = append(definitions, &definition{name, val})
+			definitions = append(definitions, &definition{typ, name, val})
 
 			// field
 		} else {
@@ -232,12 +232,20 @@ func run() error {
 		}
 	}
 
+	definitionsStr := func() string {
+		var tmp []string
+		for _, d := range definitions {
+			tmp = append(tmp, d.Type+" "+d.Name+"="+d.Value)
+		}
+		return strings.Join(tmp, ",")
+	}()
+
 	return tpl.Execute(os.Stdout, map[string]interface{}{
 		"GoPkgName":      goPkgName,
 		"RosPkgName":     rosPkgName,
 		"Imports":        imports,
 		"Name":           name,
-		"DefinitionsStr": strings.Join(definitionStr, ","),
+		"DefinitionsStr": definitionsStr,
 		"Definitions":    definitions,
 		"Fields":         fields,
 	})

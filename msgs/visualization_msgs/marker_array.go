@@ -1,10 +1,10 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type MarkerArray struct {
-	msgs.Package `ros:"visualization_msgs"`
-	Markers      []Marker
+	msg.Package `ros:"visualization_msgs"`
+	Markers     []Marker
 }

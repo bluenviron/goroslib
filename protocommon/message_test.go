@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type Parent struct {
@@ -178,8 +178,8 @@ var casesMessage = []caseMessage{
 	{
 		"with custom package",
 		&struct {
-			msgs.Package `ros:"testing"`
-			A            int32
+			msg.Package `ros:"testing"`
+			A           int32
 		}{0, 123},
 		[]byte{
 			0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00,
@@ -188,8 +188,8 @@ var casesMessage = []caseMessage{
 	{
 		"with definition",
 		&struct {
-			msgs.Definitions `ros:"uint8 A=0,uint8 B=1"`
-			A                int32
+			msg.Definitions `ros:"uint8 A=0,uint8 B=1"`
+			A               int32
 		}{0, 123},
 		[]byte{
 			0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00,

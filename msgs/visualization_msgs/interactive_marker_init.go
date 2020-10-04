@@ -1,12 +1,12 @@
 package visualization_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type InteractiveMarkerInit struct {
-	msgs.Package `ros:"visualization_msgs"`
-	ServerId     string
-	SeqNum       uint64
-	Markers      []InteractiveMarker
+	msg.Package `ros:"visualization_msgs"`
+	ServerId    string
+	SeqNum      uint64
+	Markers     []InteractiveMarker
 }

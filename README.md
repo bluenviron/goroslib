@@ -73,7 +73,7 @@ import (
 )
 
 type MessageName struct {
-    msgs.Package `ros:"my_package"`
+    msg.Package `ros:"my_package"`
     Field1 bool
     Field2 int32
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 // define a custom service.
@@ -15,14 +15,14 @@ import (
 // and the other for the response.
 
 type TestServiceReq struct {
-	msgs.Package `ros:"my_package"`
-	A            float64
-	B            string
+	msg.Package `ros:"my_package"`
+	A           float64
+	B           string
 }
 
 type TestServiceRes struct {
-	msgs.Package `ros:"my_package"`
-	C            float64
+	msg.Package `ros:"my_package"`
+	C           float64
 }
 
 func onService(req *TestServiceReq) *TestServiceRes {

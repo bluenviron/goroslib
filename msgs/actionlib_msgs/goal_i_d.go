@@ -1,12 +1,12 @@
 package actionlib_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 	"time"
 )
 
 type GoalID struct {
-	msgs.Package `ros:"actionlib_msgs"`
-	Stamp        time.Time
-	Id           string
+	msg.Package `ros:"actionlib_msgs"`
+	Stamp       time.Time
+	Id          string
 }

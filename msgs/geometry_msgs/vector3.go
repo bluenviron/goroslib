@@ -1,12 +1,12 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type Vector3 struct {
-	msgs.Package `ros:"geometry_msgs"`
-	X            float64
-	Y            float64
-	Z            float64
+	msg.Package `ros:"geometry_msgs"`
+	X           float64
+	Y           float64
+	Z           float64
 }

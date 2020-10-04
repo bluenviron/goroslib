@@ -1,11 +1,11 @@
 package geometry_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type TwistWithCovariance struct {
-	msgs.Package `ros:"geometry_msgs"`
-	Twist        Twist
-	Covariance   [36]float64
+	msg.Package `ros:"geometry_msgs"`
+	Twist       Twist
+	Covariance  [36]float64
 }

@@ -1,10 +1,10 @@
 package sensor_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type LaserEcho struct {
-	msgs.Package `ros:"sensor_msgs"`
-	Echoes       []float32
+	msg.Package `ros:"sensor_msgs"`
+	Echoes      []float32
 }

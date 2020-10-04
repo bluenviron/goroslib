@@ -1,11 +1,11 @@
 package diagnostic_msgs
 
 import (
-	"github.com/aler9/goroslib/msgs"
+	"github.com/aler9/goroslib/msg"
 )
 
 type KeyValue struct {
-	msgs.Package `ros:"diagnostic_msgs"`
-	Key          string
-	Value        string
+	msg.Package `ros:"diagnostic_msgs"`
+	Key         string
+	Value       string
 }
