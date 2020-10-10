@@ -16,10 +16,7 @@ import (
 )
 
 var tpl = template.Must(template.New("").Parse(
-	`{{- if .Comment -}}
-// {{ .Comment }}
-{{- end }}
-package {{ .GoPkgName }}
+	`package {{ .GoPkgName }}
 
 import (
 {{- range $k, $v := .Imports }}
@@ -27,18 +24,17 @@ import (
 {{- end }}
 )
 {{- if .Definitions }}
+{{- $MsgName := .Name }}
 
 const (
 {{- range .Definitions }}
-    {{ .Name }} {{ .Type }} = {{ .Value }}
+    {{ $MsgName }}_{{ .Name }} {{ .Type }} = {{ .Value }}
 {{- end }}
 )
 {{- end }}
 
-{{- $RosPkgName := .RosPkgName }}
-{{ range .Messages }}
 type {{ .Name }} struct {
-    msg.Package ` + "`" + `ros:"{{ $RosPkgName }}"` + "`" + `
+    msg.Package ` + "`" + `ros:"{{ .RosPkgName }}"` + "`" + `
 {{- if .DefinitionsStr }}
     msg.Definitions ` + "`" + `ros:"{{ .DefinitionsStr }}"` + "`" + `
 {{- end }}
@@ -50,7 +46,6 @@ type {{ .Name }} struct {
 {{- end }}
 {{- end }}
 }
-{{ end }}
 `))
 
 type Definition struct {
@@ -64,13 +59,6 @@ type Field struct {
 	TypeArray string
 	Type      string
 	Name      string
-}
-
-type Message struct {
-	Name           string
-	Fields         []Field
-	Definitions    []Definition
-	DefinitionsStr string
 }
 
 func snakeToCamel(in string) string {
@@ -101,7 +89,19 @@ func download(addr string) ([]byte, error) {
 	return ioutil.ReadAll(res.Body)
 }
 
-func decodeMessage(goPkgName string, u string) (*Message, error) {
+func run() error {
+	kingpin.CommandLine.Help = "Convert ROS messages into Go structs."
+
+	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
+	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
+	argUrl := kingpin.Arg("urls", "paths or urls pointing to ROS messages").Required().String()
+
+	kingpin.Parse()
+
+	goPkgName := *argGoPkgName
+	rosPkgName := *argRosPkgName
+	u := *argUrl
+
 	isRemote := func() bool {
 		_, err := url.ParseRequestURI(u)
 		return err == nil
@@ -123,12 +123,13 @@ func decodeMessage(goPkgName string, u string) (*Message, error) {
 		return string(byts), nil
 	}()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	msg := &Message{}
+	var fields []Field
+	var definitions []Definition
 
-	msg.Name = func() string {
+	name := func() string {
 		if isRemote {
 			ur, _ := url.Parse(u)
 			return strings.TrimSuffix(filepath.Base(ur.Path), ".msg")
@@ -152,7 +153,7 @@ func decodeMessage(goPkgName string, u string) (*Message, error) {
 		if strings.Contains(line, "=") {
 			matches := regexp.MustCompile("^([a-z0-9]+)(\\s|\\t)+([A-Z0-9_]+)(\\s|\\t)*=(\\s|\\t)*(.+?)$").FindStringSubmatch(line)
 			if matches == nil {
-				return nil, fmt.Errorf("line '%s' is not a definition", line)
+				return fmt.Errorf("line '%s' is not a definition", line)
 			}
 
 			d := Definition{
@@ -169,7 +170,7 @@ func decodeMessage(goPkgName string, u string) (*Message, error) {
 				d.Type = "uint8"
 			}
 
-			msg.Definitions = append(msg.Definitions, d)
+			definitions = append(definitions, d)
 
 			// field
 		} else {
@@ -178,7 +179,7 @@ func decodeMessage(goPkgName string, u string) (*Message, error) {
 
 			parts := strings.Split(line, " ")
 			if len(parts) != 2 {
-				return nil, fmt.Errorf("line does not contain 2 fields")
+				return fmt.Errorf("line does not contain 2 fields")
 			}
 
 			f := Field{
@@ -242,105 +243,41 @@ func decodeMessage(goPkgName string, u string) (*Message, error) {
 				return "", f.Type
 			}()
 
-			msg.Fields = append(msg.Fields, f)
+			fields = append(fields, f)
 		}
 	}
 
-	msg.DefinitionsStr = func() string {
+	definitionsStr := func() string {
 		var tmp []string
-		for _, d := range msg.Definitions {
+		for _, d := range definitions {
 			tmp = append(tmp, d.Type+" "+d.Name+"="+d.Value)
 		}
 		return strings.Join(tmp, ",")
 	}()
 
-	return msg, nil
-}
-
-func run() error {
-	kingpin.CommandLine.Help = "Convert ROS messages into Go structs."
-
-	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
-	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
-	argComment := kingpin.Flag("comment", "comment to add before the package name").Default("").String()
-	argUrls := kingpin.Arg("urls", "paths or urls pointing to ROS messages").Required().Strings()
-
-	kingpin.Parse()
-
-	goPkgName := *argGoPkgName
-	rosPkgName := *argRosPkgName
-	comment := *argComment
-	urls := *argUrls
-
-	// gather messages
-	var messages []*Message
-	for _, u := range urls {
-		msg, err := decodeMessage(goPkgName, u)
-		if err != nil {
-			return err
-		}
-		messages = append(messages, msg)
-	}
-
-	// merge definitions
-	var definitions []Definition
-	for _, m := range messages {
-		for _, d := range m.Definitions {
-			definitions = append(definitions, d)
-		}
-	}
-
-	// merge same definitions and remove conflicting definitions
-	for i := 0; i < len(definitions); {
-		delete := false
-
-		for j := i + 1; j < len(definitions); {
-			// same definition
-			if definitions[j].Name == definitions[i].Name {
-				// conflicting definition
-				if definitions[j].Value != definitions[i].Value ||
-					definitions[j].Type != definitions[i].Type {
-					delete = true
-				}
-				definitions = append(definitions[:j], definitions[j+1:]...)
-				continue
-			}
-			j++
-		}
-
-		if delete {
-			definitions = append(definitions[:i], definitions[i+1:]...)
-			continue
-		}
-		i++
-	}
-
-	// generate imports
 	imports := map[string]struct{}{
 		"github.com/aler9/goroslib/msg": {},
 	}
-	for _, m := range messages {
-		for _, f := range m.Fields {
-			switch f.TypePkg {
-			case "":
+	for _, f := range fields {
+		switch f.TypePkg {
+		case "":
 
-			case "time":
-				imports["time"] = struct{}{}
+		case "time":
+			imports["time"] = struct{}{}
 
-			default:
-				imports["github.com/aler9/goroslib/msgs/"+f.TypePkg] = struct{}{}
-			}
+		default:
+			imports["github.com/aler9/goroslib/msgs/"+f.TypePkg] = struct{}{}
 		}
 	}
 
-	// render
 	return tpl.Execute(os.Stdout, map[string]interface{}{
-		"GoPkgName":   goPkgName,
-		"RosPkgName":  rosPkgName,
-		"Comment":     comment,
-		"Messages":    messages,
-		"Definitions": definitions,
-		"Imports":     imports,
+		"GoPkgName":      goPkgName,
+		"RosPkgName":     rosPkgName,
+		"Name":           name,
+		"Fields":         fields,
+		"Definitions":    definitions,
+		"DefinitionsStr": definitionsStr,
+		"Imports":        imports,
 	})
 }
 

@@ -48,13 +48,7 @@ test:
 test-nodocker:
 	$(foreach IMG,$(shell echo testimages/*/ | xargs -n1 basename), \
 	docker build -q testimages/$(IMG) -t goroslib-test-$(IMG)$(NL))
-	go test -race -v ./msg
-	go test -race -v ./protocommon
-	go test -race -v ./prototcp
-	go test -race -v ./protoudp
-	go test -race -v ./xmlrpc
-	go test -race -v ./msgs/...
-	go test -race -v .
+	go test -race -v ./...
 	go build -o /dev/null ./commands/...
 	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
 
