@@ -129,6 +129,8 @@ func (p *Publisher) Close() error {
 }
 
 func (p *Publisher) run() {
+	defer close(p.done)
+
 outer:
 	for {
 		select {
@@ -399,7 +401,6 @@ outer:
 	close(p.subscriberTcpClose)
 	close(p.write)
 	close(p.shutdown)
-	close(p.done)
 }
 
 // Write writes a message into the publisher.

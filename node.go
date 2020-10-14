@@ -333,6 +333,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 }
 
 func (n *Node) run() {
+	defer close(n.done)
+
 	var serversWg sync.WaitGroup
 
 	serversWg.Add(3)
@@ -610,7 +612,6 @@ outer:
 	close(n.serviceProviderNew)
 	close(n.serviceProviderClose)
 	close(n.shutdown)
-	close(n.done)
 }
 
 // Close closes a Node and shuts down all its operations.

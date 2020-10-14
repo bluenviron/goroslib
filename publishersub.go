@@ -38,13 +38,13 @@ func newPublisherSubscriber(pub *Publisher, callerid string, tcpClient *prototcp
 }
 
 func (ps *publisherSubscriber) run() {
+	defer close(ps.done)
+
 	if ps.tcpClient != nil {
 		ps.runTcp()
 	} else {
 		ps.runUdp()
 	}
-
-	close(ps.done)
 }
 
 func (ps *publisherSubscriber) runTcp() {

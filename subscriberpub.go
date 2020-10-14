@@ -47,6 +47,8 @@ func (sp *subscriberPublisher) close() {
 }
 
 func (sp *subscriberPublisher) run() {
+	defer close(sp.done)
+
 	host, port, _ := parseUrl(sp.url)
 
 outer:
@@ -63,8 +65,6 @@ outer:
 			break outer
 		}
 	}
-
-	close(sp.done)
 }
 
 func (sp *subscriberPublisher) do(host string, port int) error {

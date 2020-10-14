@@ -28,6 +28,8 @@ func newServiceProviderClient(sp *ServiceProvider, callerid string, client *prot
 }
 
 func (spc *serviceProviderClient) run() {
+	defer close(spc.done)
+
 outer:
 	for {
 		req := reflect.New(spc.sp.reqMsg).Interface()
@@ -43,6 +45,4 @@ outer:
 	}
 
 	spc.sp.clientClose <- spc
-
-	close(spc.done)
 }

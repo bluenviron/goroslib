@@ -48,6 +48,8 @@ func (s *Server) Port() int {
 }
 
 func (s *Server) run() {
+	defer close(s.done)
+
 	hs := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
@@ -84,8 +86,6 @@ func (s *Server) run() {
 
 	close(s.read)
 	close(s.write)
-
-	close(s.done)
 }
 
 func (s *Server) Close() error {

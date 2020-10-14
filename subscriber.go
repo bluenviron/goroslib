@@ -129,6 +129,8 @@ func (s *Subscriber) Close() error {
 }
 
 func (s *Subscriber) run() {
+	defer close(s.done)
+
 	cbv := reflect.ValueOf(s.conf.Callback)
 
 outer:
@@ -195,5 +197,4 @@ outer:
 	close(s.publisherUpdate)
 	close(s.message)
 	close(s.shutdown)
-	close(s.done)
 }

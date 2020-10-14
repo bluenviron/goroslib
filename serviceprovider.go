@@ -147,6 +147,8 @@ func (sp *ServiceProvider) Close() error {
 }
 
 func (sp *ServiceProvider) run() {
+	defer close(sp.done)
+
 	cbv := reflect.ValueOf(sp.conf.Callback)
 
 outer:
@@ -235,5 +237,4 @@ outer:
 	close(sp.clientClose)
 	close(sp.clientRequest)
 	close(sp.shutdown)
-	close(sp.done)
 }
