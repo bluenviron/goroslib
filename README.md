@@ -79,6 +79,8 @@ type MessageName struct {
 }
 ```
 
+The name of a field must be in CamelCase (and is converted to snake_case when interacting with C++/Python nodes).
+
 The type of a field can be one of the following:
 * one of the primitive field types:
   * bool

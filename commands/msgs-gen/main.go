@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-	"unicode"
 )
 
 var tplPackage = template.Must(template.New("").Parse(
@@ -28,18 +27,6 @@ import (
 func TestCompileOk(t *testing.T) {
 }
 `))
-
-func camelToSnake(in string) string {
-	tmp := []rune(in)
-	tmp[0] = unicode.ToLower(tmp[0])
-	for i := 0; i < len(tmp); i++ {
-		if unicode.IsUpper(tmp[i]) {
-			tmp[i] = unicode.ToLower(tmp[i])
-			tmp = append(tmp[:i], append([]rune{'_'}, tmp[i:]...)...)
-		}
-	}
-	return string(tmp)
-}
 
 func shellCommand(cmdstr string) error {
 	fmt.Fprintf(os.Stderr, "%s\n", cmdstr)
@@ -123,7 +110,8 @@ func processPackage(name string, addr string) error {
 			f.DownloadUrl,
 			filepath.Join("msgs", name, fileName+".go")))
 		if err != nil {
-			return err
+			os.Remove(filepath.Join("msgs", name, fileName+".go"))
+			continue
 		}
 	}
 

@@ -74,6 +74,18 @@ func snakeToCamel(in string) string {
 	return string(tmp)
 }
 
+func camelToSnake(in string) string {
+	tmp := []rune(in)
+	tmp[0] = unicode.ToLower(tmp[0])
+	for i := 0; i < len(tmp); i++ {
+		if unicode.IsUpper(tmp[i]) {
+			tmp[i] = unicode.ToLower(tmp[i])
+			tmp = append(tmp[:i], append([]rune{'_'}, tmp[i:]...)...)
+		}
+	}
+	return string(tmp)
+}
+
 func download(addr string) ([]byte, error) {
 	req, err := http.NewRequest("GET", addr, nil)
 	if err != nil {
@@ -182,8 +194,12 @@ func run() error {
 				return fmt.Errorf("line does not contain 2 fields")
 			}
 
-			f := Field{
-				Name: snakeToCamel(parts[1]),
+			f := Field{}
+
+			f.Name = snakeToCamel(parts[1])
+
+			if camelToSnake(f.Name) != parts[1] {
+				return fmt.Errorf("The field `%s` can't be used, since is not in snake case.", f.Name)
 			}
 
 			f.Type = parts[0]
