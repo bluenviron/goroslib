@@ -1,7 +1,7 @@
 
 # goroslib
 
-[![Build Status](https://travis-ci.org/aler9/goroslib.svg?branch=master)](https://travis-ci.org/aler9/goroslib)
+[![Build Status](https://travis-ci.com/aler9/goroslib.svg?branch=master)](https://travis-ci.com/aler9/goroslib)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue)](https://pkg.go.dev/github.com/aler9/goroslib?tab=doc)
 
