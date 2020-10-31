@@ -51,18 +51,26 @@ func (sp *subscriberPublisher) run() {
 
 	host, port, _ := parseUrl(sp.url)
 
-outer:
 	for {
-		err := sp.do(host, port)
-		if err == errSubscriberPubTerminate {
-			break outer
-		}
+		ok := func() {
+			err := sp.do(host, port)
+			if err == errSubscriberPubTerminate {
+				return false
+			}
 
-		t := time.NewTimer(5 * time.Second)
-		select {
-		case <-t.C:
-		case <-sp.terminate:
-			break outer
+			t := time.NewTimer(5 * time.Second)
+			defer t.Close()
+
+			select {
+			case <-t.C:
+				return true
+
+			case <-sp.terminate:
+				return false
+			}
+		}()
+		if !ok {
+			break
 		}
 	}
 }
