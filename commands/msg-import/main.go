@@ -39,11 +39,9 @@ type {{ .Name }} struct {
     msg.Definitions ` + "`" + `ros:"{{ .DefinitionsStr }}"` + "`" + `
 {{- end }}
 {{- range .Fields }}
-{{- if .TypePkg }}
-    {{ .Name }} {{ .TypeArray }}{{ .TypePkg }}.{{ .Type }}
-{{- else }}
-    {{ .Name }} {{ .TypeArray }}{{ .Type }}
-{{- end }}
+    {{ .Name }} ` +
+		`{{ if .TypePkg -}}{{ .TypeArray }}{{ .TypePkg }}.{{ .Type }}{{- else -}}{{ .TypeArray }}{{ .Type }}{{- end -}}` +
+		`{{ if .NameOverride -}} ` + "`" + `rosname:"{{ .NameOverride }}"` + "`" + `{{- end -}}
 {{- end }}
 }
 `))
@@ -55,10 +53,11 @@ type Definition struct {
 }
 
 type Field struct {
-	TypePkg   string
-	TypeArray string
-	Type      string
-	Name      string
+	TypePkg      string
+	TypeArray    string
+	Type         string
+	Name         string
+	NameOverride string
 }
 
 func snakeToCamel(in string) string {
@@ -199,7 +198,7 @@ func run() error {
 			f.Name = snakeToCamel(parts[1])
 
 			if camelToSnake(f.Name) != parts[1] {
-				return fmt.Errorf("The field `%s` can't be used, since is not in snake case.", f.Name)
+				f.NameOverride = parts[1]
 			}
 
 			f.Type = parts[0]

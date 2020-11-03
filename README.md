@@ -79,8 +79,6 @@ type MessageName struct {
 }
 ```
 
-The name of a field must be in CamelCase (and is converted to snake_case when interacting with C++/Python nodes).
-
 The type of a field can be one of the following:
 * one of the primitive field types:
   * bool
@@ -98,6 +96,14 @@ The type of a field can be one of the following:
   * time.Time
   * time.Duration
 * another standard or custom message
+
+The name of a field must be in CamelCase, and is converted to snake_case when interacting with C++/Python nodes. When this conversion is impossible, the tag `rosname` can be used to override the field name:
+```go
+type MessageName struct {
+    msg.Package `ros:"my_package"`
+    Field bool  `rosname:"FIELD"`
+}
+```
 
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
 ```
