@@ -22,7 +22,7 @@ type Log struct {
 	Package     `ros:"rosgraph_msgs"`
 	Definitions `ros:"byte DEBUG=1,byte INFO=2,byte WARN=4,byte ERROR=8,byte FATAL=16"`
 	Header      Header
-	Level       int8 `ros:"byte"`
+	Level       int8 `rostype:"byte"`
 	Name        string
 	Msg         string
 	File        string
@@ -54,8 +54,8 @@ var casesMd5Message = []struct {
 			L       string
 			M       time.Time
 			N       time.Duration
-			O       int8  `ros:"byte"`
-			P       uint8 `ros:"char"`
+			O       int8  `rostype:"byte"`
+			P       uint8 `rostype:"char"`
 		}{},
 		"7fee3a6254fc0562bf1632f0fe8f05c8",
 	},
@@ -125,6 +125,13 @@ var casesMd5Message = []struct {
 		&struct {
 		}{},
 		"d41d8cd98f00b204e9800998ecf8427e",
+	},
+	{
+		"custom name",
+		&struct {
+			A string `rosname:"A"`
+		}{},
+		"b9fd98954bcc9324b61cf24596e99bae",
 	},
 }
 
