@@ -249,10 +249,10 @@ func run() error {
 					return "time", strings.Title(f.Type)
 
 				case "byte":
-					return "", "int8 `ros:\"byte\"`"
+					return "", "int8 `rostype:\"byte\"`"
 
 				case "char":
-					return "", "uint8 `ros:\"char\"`"
+					return "", "uint8 `rostype:\"char\"`"
 				}
 
 				// implicit package, other message

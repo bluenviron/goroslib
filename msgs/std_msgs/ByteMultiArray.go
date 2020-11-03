@@ -7,5 +7,5 @@ import (
 type ByteMultiArray struct {
 	msg.Package `ros:"std_msgs"`
 	Layout      MultiArrayLayout
-	Data        []int8 `ros:"byte"`
+	Data        []int8 `rostype:"byte"`
 }

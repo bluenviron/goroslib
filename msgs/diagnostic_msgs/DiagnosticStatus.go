@@ -14,7 +14,7 @@ const (
 type DiagnosticStatus struct {
 	msg.Package     `ros:"diagnostic_msgs"`
 	msg.Definitions `ros:"int8 OK=0,int8 WARN=1,int8 ERROR=2,int8 STALE=3"`
-	Level           int8 `ros:"byte"`
+	Level           int8 `rostype:"byte"`
 	Name            string
 	Message         string
 	HardwareId      string

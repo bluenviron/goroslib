@@ -6,5 +6,5 @@ import (
 
 type Byte struct {
 	msg.Package `ros:"std_msgs"`
-	Data        int8 `ros:"byte"`
+	Data        int8 `rostype:"byte"`
 }

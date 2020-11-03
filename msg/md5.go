@@ -141,7 +141,7 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 
 			name := camelToSnake(ft.Name)
 
-			text, isstruct, err := md5Text(ft.Type, ft.Tag.Get("ros"))
+			text, isstruct, err := md5Text(ft.Type, ft.Tag.Get("rostype"))
 			if err != nil {
 				return "", false, err
 			}
