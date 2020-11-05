@@ -104,7 +104,7 @@ func processPackage(name string, addr string) error {
 			return strings.TrimSuffix(filepath.Base(ur.Path), ".msg")
 		}()
 
-		err = shellCommand(fmt.Sprintf("go run ./commands/msg-import --gopackage=%s --rospackage=%s %s > %s",
+		err = shellCommand(fmt.Sprintf("go run ./cmd/msg-import --gopackage=%s --rospackage=%s %s > %s",
 			name,
 			name,
 			f.DownloadUrl,

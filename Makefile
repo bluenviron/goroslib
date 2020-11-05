@@ -49,7 +49,7 @@ test-nodocker:
 	$(foreach IMG,$(shell echo testimages/*/ | xargs -n1 basename), \
 	docker build -q testimages/$(IMG) -t goroslib-test-$(IMG)$(NL))
 	go test -race -v ./...
-	go build -o /dev/null ./commands/...
+	go build -o /dev/null ./cmd/...
 	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
 
 define DOCKERFILE_MSGS
@@ -69,5 +69,5 @@ msgs:
 	sh -c "cd /s && make msgs-nodocker"
 
 msgs-nodocker:
-	go run ./commands/msgs-gen
+	go run ./cmd/msgs-gen
 	find ./msgs -type f -name '*.go' | xargs gofmt -l -w -s
