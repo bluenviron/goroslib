@@ -152,3 +152,6 @@ Other non-Go libraries
 * (v1) [python] https://docs.ros.org/melodic/api/rosnode/html/
 * (v1) [c] https://github.com/ros-industrial/cros
 * (v2) [misc] https://fkromer.github.io/awesome-ros2/
+
+Conventions
+* https://github.com/golang-standards/project-layout
