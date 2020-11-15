@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aler9/goroslib/apimaster"
-	"github.com/aler9/goroslib/apiparam"
-	"github.com/aler9/goroslib/apislave"
+	"github.com/aler9/goroslib/pkg/apimaster"
+	"github.com/aler9/goroslib/pkg/apiparam"
+	"github.com/aler9/goroslib/pkg/apislave"
 )
 
 // InfoNode contains informations about a node.

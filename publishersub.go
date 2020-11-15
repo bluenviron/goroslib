@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"net"
 
-	"github.com/aler9/goroslib/protocommon"
-	"github.com/aler9/goroslib/prototcp"
-	"github.com/aler9/goroslib/protoudp"
+	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
 type publisherSubscriber struct {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/msg"
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
 // define a custom message.

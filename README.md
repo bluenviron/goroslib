@@ -60,7 +60,7 @@ https://pkg.go.dev/github.com/aler9/goroslib
 
 ### Where can i find the standard messages?
 
-Standard messages are [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/msgs?tab=subdirectories).
+Standard messages are [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
 
 ### How can i define a custom message?
 
@@ -75,7 +75,7 @@ This library doesn't require any `.msg` file, it is enough to write Go structure
 
 ```go
 import (
-    "github.com/aler9/goroslib/msgs"
+    "github.com/aler9/goroslib/pkg/msgs"
 )
 
 type MessageName struct {
@@ -122,7 +122,7 @@ go get github.com/aler9/goroslib/cmd/msg-import
 msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ```
 
-### How can i compile nodes for another operating system?
+### How can i compile a node for another operating system?
 
 To compile a node for another OS, it's enough to follow the standard Golang procedure to cross-compile, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
 

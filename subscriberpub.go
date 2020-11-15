@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aler9/goroslib/apislave"
-	"github.com/aler9/goroslib/protocommon"
-	"github.com/aler9/goroslib/prototcp"
-	"github.com/aler9/goroslib/protoudp"
+	"github.com/aler9/goroslib/pkg/apislave"
+	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
 var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")

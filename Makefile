@@ -70,4 +70,4 @@ msgs:
 
 msgs-nodocker:
 	go run ./cmd/msgs-gen
-	find ./msgs -type f -name '*.go' | xargs gofmt -l -w -s
+	find ./pkg/msgs -type f -name '*.go' | xargs gofmt -l -w -s

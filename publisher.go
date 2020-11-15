@@ -8,12 +8,12 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/aler9/goroslib/apimaster"
-	"github.com/aler9/goroslib/apislave"
-	"github.com/aler9/goroslib/msg"
-	"github.com/aler9/goroslib/protocommon"
-	"github.com/aler9/goroslib/prototcp"
-	"github.com/aler9/goroslib/protoudp"
+	"github.com/aler9/goroslib/pkg/apimaster"
+	"github.com/aler9/goroslib/pkg/apislave"
+	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
 type publisherRequestTopicReq struct {

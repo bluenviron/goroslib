@@ -271,7 +271,7 @@ func run() error {
 	}()
 
 	imports := map[string]struct{}{
-		"github.com/aler9/goroslib/msg": {},
+		"github.com/aler9/goroslib/pkg/msg": {},
 	}
 	for _, f := range fields {
 		switch f.TypePkg {
@@ -281,7 +281,7 @@ func run() error {
 			imports["time"] = struct{}{}
 
 		default:
-			imports["github.com/aler9/goroslib/msgs/"+f.TypePkg] = struct{}{}
+			imports["github.com/aler9/goroslib/pkg/msgs/"+f.TypePkg] = struct{}{}
 		}
 	}
 

@@ -3,7 +3,7 @@ package goroslib
 import (
 	"reflect"
 
-	"github.com/aler9/goroslib/prototcp"
+	"github.com/aler9/goroslib/pkg/prototcp"
 )
 
 type serviceProviderClient struct {

@@ -60,10 +60,10 @@ type githubFile struct {
 func processPackage(name string, addr string) error {
 	fmt.Fprintf(os.Stderr, "[%s]\n", name)
 
-	os.Mkdir(filepath.Join("msgs", name), 0755)
+	os.Mkdir(filepath.Join("pkg", "msgs", name), 0755)
 
 	err := func() error {
-		f, err := os.Create(filepath.Join("msgs", name, "package.go"))
+		f, err := os.Create(filepath.Join("pkg", "msgs", name, "package.go"))
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,7 @@ func processPackage(name string, addr string) error {
 	}
 
 	err = func() error {
-		f, err := os.Create(filepath.Join("msgs", name, "package_test.go"))
+		f, err := os.Create(filepath.Join("pkg", "msgs", name, "package_test.go"))
 		if err != nil {
 			return err
 		}
@@ -108,9 +108,9 @@ func processPackage(name string, addr string) error {
 			name,
 			name,
 			f.DownloadUrl,
-			filepath.Join("msgs", name, fileName+".go")))
+			filepath.Join("pkg", "msgs", name, fileName+".go")))
 		if err != nil {
-			os.Remove(filepath.Join("msgs", name, fileName+".go"))
+			os.Remove(filepath.Join("pkg", "msgs", name, fileName+".go"))
 			continue
 		}
 	}
@@ -163,7 +163,7 @@ func processCommonMsgs() error {
 }
 
 func run() error {
-	err := shellCommand("rm -rf msgs/*/")
+	err := shellCommand("rm -rf pkg/msgs/*/")
 	if err != nil {
 		return err
 	}

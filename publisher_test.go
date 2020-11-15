@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/msgs/std_msgs"
+	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
 func TestPublisherRegister(t *testing.T) {

@@ -5,6 +5,8 @@ import (
 )
 
 func (n *Node) runUdprosServer(wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	for {
 		frame, source, err := n.udprosServer.ReadFrame()
 		if err != nil {
@@ -13,6 +15,4 @@ func (n *Node) runUdprosServer(wg *sync.WaitGroup) {
 
 		n.udpFrame <- udpFrameReq{frame, source}
 	}
-
-	wg.Done()
 }

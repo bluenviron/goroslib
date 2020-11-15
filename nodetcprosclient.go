@@ -3,11 +3,13 @@ package goroslib
 import (
 	"sync"
 
-	"github.com/aler9/goroslib/protocommon"
-	"github.com/aler9/goroslib/prototcp"
+	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/aler9/goroslib/pkg/prototcp"
 )
 
 func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *prototcp.Conn) {
+	defer wg.Done()
+
 	ok := func() bool {
 		rawHeader, err := client.ReadHeaderRaw()
 		if err != nil {
@@ -47,6 +49,4 @@ func (n *Node) runTcprosClient(wg *sync.WaitGroup, client *prototcp.Conn) {
 		client.Close()
 		n.tcpClientClose <- client
 	}
-
-	wg.Done()
 }

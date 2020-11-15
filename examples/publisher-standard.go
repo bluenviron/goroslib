@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/msgs/geometry_msgs"
-	"github.com/aler9/goroslib/msgs/sensor_msgs"
+	"github.com/aler9/goroslib/pkg/msgs/geometry_msgs"
+	"github.com/aler9/goroslib/pkg/msgs/sensor_msgs"
 )
 
 func main() {
