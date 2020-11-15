@@ -12,6 +12,7 @@ The Robot Operating System (ROS) is a project that provides a protocol specifica
 The official project provides libraries to write nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of compiling nodes for all the Golang supported operating systems (Linux, Windows, Mac OS X, etc) and architectures.
 
 Features:
+
 * Subscribe and publish to topics, via TCP or UDP
 * Call and provide services
 * Get and set parameters
@@ -28,11 +29,13 @@ The library provides its features by implementing in pure Go all the ROS protoco
 1. Install Go &ge; 1.13.
 
 2. Create an empty folder, open a terminal in it and initialize the Go modules system:
+
    ```
    go mod init main
    ```
 
 3. Download one of the example files and place it in the folder:
+
    * [subscriber-standard](examples/subscriber-standard.go)
    * [subscriber-custom](examples/subscriber-custom.go)
    * [subscriber-udp](examples/subscriber-udp.go)
@@ -44,6 +47,7 @@ The library provides its features by implementing in pure Go all the ROS protoco
    * [cluster-info](examples/cluster-info.go)
 
 4. Compile and run (a ROS master must be already running in the background)
+
    ```
    go run name-of-the-go-file.go
    ```
@@ -61,12 +65,14 @@ Standard messages are [listed in the documentation](https://pkg.go.dev/github.co
 ### How can i define a custom message?
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
+
 ```
 bool field1
 int32 field2
 ```
 
 This library doesn't require any `.msg` file, it is enough to write Go structures in this format:
+
 ```go
 import (
     "github.com/aler9/goroslib/msgs"
@@ -80,7 +86,9 @@ type MessageName struct {
 ```
 
 The type of a field can be one of the following:
+
 * one of the primitive field types:
+
   * bool
   * int8
   * uint8
@@ -95,9 +103,11 @@ The type of a field can be one of the following:
   * string
   * time.Time
   * time.Duration
+
 * another standard or custom message
 
 The name of a field must be in CamelCase, and is converted to snake_case when interacting with C++/Python nodes. When this conversion is impossible, the tag `rosname` can be used to override the field name:
+
 ```go
 type MessageName struct {
     msg.Package `ros:"my_package"`
@@ -106,6 +116,7 @@ type MessageName struct {
 ```
 
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
+
 ```
 go get github.com/aler9/goroslib/cmd/msg-import
 msg-import --rospackage=my_package mymessage.msg > mymessage.go
@@ -114,6 +125,7 @@ msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ### How can i compile nodes for another operating system?
 
 To compile a node for another OS, it's enough to follow the standard Golang procedure to cross-compile, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
+
 ```
 GOOS=windows GOARCH=amd64 go build -o node.exe name-of-source-file.go
 ```
@@ -129,6 +141,7 @@ make test
 ## Links
 
 (v1) Protocol documentation
+
 * https://wiki.ros.org/ROS/Technical%20Overview
 * https://wiki.ros.org/Implementing%20Client%20Libraries
 * https://wiki.ros.org/ROS/Master_API
@@ -140,18 +153,22 @@ make test
 * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
 
 (v1) Messages
+
 * https://github.com/ros/std_msgs
 * https://github.com/ros/common_msgs
 
 Other Go libraries
+
 * (v1) https://github.com/akio/rosgo
 * (v2) https://github.com/juaruipav/rclgo
 
 Other non-Go libraries
+
 * (v1) [cpp] https://github.com/ros/ros_comm/tree/melodic-devel/clients/roscpp/src/libros (https://docs.ros.org/melodic/api/roscpp/html/classros_1_1NodeHandle.html)
 * (v1) [python] https://docs.ros.org/melodic/api/rosnode/html/
 * (v1) [c] https://github.com/ros-industrial/cros
 * (v2) [misc] https://fkromer.github.io/awesome-ros2/
 
 Conventions
+
 * https://github.com/golang-standards/project-layout
