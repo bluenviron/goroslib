@@ -33,7 +33,7 @@ type ServiceProviderConf struct {
 }
 
 // ServiceProvider is a ROS service provider, an entity that can receive requests
-// and send back replies.
+// and send back responses.
 type ServiceProvider struct {
 	conf    ServiceProviderConf
 	reqMsg  reflect.Type

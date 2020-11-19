@@ -192,7 +192,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 	return ret, nil
 }
 
-// PingNode send a ping request to a given node, wait for the reply and returns
+// PingNode send a ping request to a given node, wait for the response and returns
 // the elapsed time.
 func (n *Node) PingNode(name string) (time.Duration, error) {
 	res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
