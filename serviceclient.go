@@ -20,12 +20,12 @@ type ServiceClientConf struct {
 	// an instance of the request that will be sent
 	Req interface{}
 
-	// an instance of the reply that will be received
+	// an instance of the response that will be received
 	Res interface{}
 }
 
-// ServiceClient is a ROS service client, an entity that can query service
-// providers with requests and receive replies.
+// ServiceClient is a ROS service client, an entity that can send requests to
+// service providers and receive responses.
 type ServiceClient struct {
 	conf ServiceClientConf
 	conn *prototcp.Conn
@@ -57,65 +57,20 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Res must be a pointer to a struct")
 	}
 
-	res, err := conf.Node.apiMasterClient.LookupService(apimaster.RequestLookup{
-		Name: conf.Service,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("lookupService: %v", err)
-	}
-
-	srvMd5, err := msg.Md5Service(conf.Req, conf.Res)
-	if err != nil {
-		return nil, err
-	}
-
-	host, port, err := parseUrl(res.Uri)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := prototcp.NewClient(host, port)
-	if err != nil {
-		return nil, err
-	}
-
-	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
-		Callerid:   conf.Node.conf.Name,
-		Md5sum:     srvMd5,
-		Persistent: 1,
-		Service:    conf.Service,
-	})
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-
-	var outHeader prototcp.HeaderServiceProvider
-	err = conn.ReadHeader(&outHeader)
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-
-	if outHeader.Md5sum != srvMd5 {
-		conn.Close()
-		return nil, fmt.Errorf("wrong md5sum: expected %s, got %s",
-			srvMd5, outHeader.Md5sum)
-	}
-
 	return &ServiceClient{
 		conf: conf,
-		conn: conn,
 	}, nil
 }
 
 // Close closes a ServiceClient and shuts down all its operations.
 func (sc *ServiceClient) Close() error {
-	sc.conn.Close()
+	if sc.conn != nil {
+		sc.conn.Close()
+	}
 	return nil
 }
 
-// Call performs the request to the service provider.
+// Call sends a request to a service provider and reads a response.
 func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 	if reflect.TypeOf(req) != reflect.TypeOf(sc.conf.Req) {
 		panic("wrong req")
@@ -124,20 +79,94 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 		panic("wrong res")
 	}
 
+	connCreatedInThisCall := false
+	if sc.conn == nil {
+		err := sc.createConn()
+		if err != nil {
+			return err
+		}
+		connCreatedInThisCall = true
+	}
+
 	err := sc.conn.WriteMessage(req)
 	if err != nil {
+		sc.conn.Close()
+		sc.conn = nil
+
+		// if the connection was created previously, it could be damaged or
+		// linked to an invalid provider.
+		// do another try.
+		if !connCreatedInThisCall {
+			return sc.Call(req, res)
+		}
+
 		return err
 	}
 
 	err = sc.conn.ReadServiceResState()
 	if err != nil {
+		sc.conn.Close()
+		sc.conn = nil
 		return err
 	}
 
 	err = sc.conn.ReadMessage(res)
 	if err != nil {
+		sc.conn.Close()
+		sc.conn = nil
 		return err
 	}
 
+	return nil
+}
+
+func (sc *ServiceClient) createConn() error {
+	res, err := sc.conf.Node.apiMasterClient.LookupService(apimaster.RequestLookup{
+		Name: sc.conf.Service,
+	})
+	if err != nil {
+		return fmt.Errorf("lookupService: %v", err)
+	}
+
+	srvMd5, err := msg.Md5Service(sc.conf.Req, sc.conf.Res)
+	if err != nil {
+		return err
+	}
+
+	host, port, err := parseUrl(res.Uri)
+	if err != nil {
+		return err
+	}
+
+	conn, err := prototcp.NewClient(host, port)
+	if err != nil {
+		return err
+	}
+
+	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
+		Callerid:   sc.conf.Node.conf.Name,
+		Md5sum:     srvMd5,
+		Persistent: 1,
+		Service:    sc.conf.Service,
+	})
+	if err != nil {
+		conn.Close()
+		return err
+	}
+
+	var outHeader prototcp.HeaderServiceProvider
+	err = conn.ReadHeader(&outHeader)
+	if err != nil {
+		conn.Close()
+		return err
+	}
+
+	if outHeader.Md5sum != srvMd5 {
+		conn.Close()
+		return fmt.Errorf("wrong md5sum: expected %s, got %s",
+			srvMd5, outHeader.Md5sum)
+	}
+
+	sc.conn = conn
 	return nil
 }

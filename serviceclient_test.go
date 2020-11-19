@@ -15,7 +15,7 @@ type TestServiceRes struct {
 	C float64
 }
 
-func TestServiceClientReqToCpp(t *testing.T) {
+func TestServiceClientReqToCppAfterProvider(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -54,4 +54,51 @@ func TestServiceClientReqToCpp(t *testing.T) {
 		}
 		require.Equal(t, expected, res)
 	}
+}
+
+func TestServiceClientReqToCppBeforeProvider(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Name:       "/goroslib",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	sc, err := NewServiceClient(ServiceClientConf{
+		Node:    n,
+		Service: "/test_srv",
+		Req:     &TestServiceReq{},
+		Res:     &TestServiceRes{},
+	})
+	require.NoError(t, err)
+	defer sc.Close()
+
+	req := TestServiceReq{
+		A: 123,
+		B: "456",
+	}
+	res := TestServiceRes{}
+	err = sc.Call(&req, &res)
+	require.Error(t, err)
+
+	p, err := newContainer("node-serviceprovider", m.Ip())
+	require.NoError(t, err)
+	defer p.close()
+
+	req = TestServiceReq{
+		A: 123,
+		B: "456",
+	}
+	res = TestServiceRes{}
+	err = sc.Call(&req, &res)
+	require.NoError(t, err)
+
+	expected := TestServiceRes{
+		C: 123,
+	}
+	require.Equal(t, expected, res)
 }
