@@ -107,6 +107,14 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 	if err != nil {
 		sc.conn.Close()
 		sc.conn = nil
+
+		// if the connection was created previously, it could be damaged or
+		// linked to an invalid provider.
+		// do another try.
+		if !connCreatedInThisCall {
+			return sc.Call(req, res)
+		}
+
 		return err
 	}
 

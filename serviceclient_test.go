@@ -22,7 +22,6 @@ func TestServiceClientReqToCppAfterProvider(t *testing.T) {
 
 	p, err := newContainer("node-serviceprovider", m.Ip())
 	require.NoError(t, err)
-	defer p.close()
 
 	n, err := NewNode(NodeConf{
 		Name:       "/goroslib",
@@ -54,6 +53,16 @@ func TestServiceClientReqToCppAfterProvider(t *testing.T) {
 		}
 		require.Equal(t, expected, res)
 	}
+
+	p.close()
+
+	req := TestServiceReq{
+		A: 123,
+		B: "456",
+	}
+	res := TestServiceRes{}
+	err = sc.Call(&req, &res)
+	require.Error(t, err)
 }
 
 func TestServiceClientReqToCppBeforeProvider(t *testing.T) {
