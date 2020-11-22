@@ -1,3 +1,3 @@
-FROM ros:melodic-ros-core-bionic
+FROM ros:noetic-ros-core
 
 CMD [ "roscore" ]

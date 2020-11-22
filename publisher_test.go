@@ -3,6 +3,7 @@ package goroslib
 import (
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -408,53 +409,66 @@ func TestPublisherWriteUdp(t *testing.T) {
 }
 
 func TestPublisherRostopicHz(t *testing.T) {
-	recv := func() string {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
-		defer m.close()
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
 
-		n, err := NewNode(NodeConf{
-			Name:       "/goroslib",
-			MasterHost: m.Ip(),
-		})
-		require.NoError(t, err)
-		defer n.Close()
+	n, err := NewNode(NodeConf{
+		Name:       "/goroslib",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n.Close()
 
-		pub, err := NewPublisher(PublisherConf{
-			Node:  n,
-			Topic: "/test_pub",
-			Msg:   &std_msgs.Float64{},
-		})
-		require.NoError(t, err)
-		defer pub.Close()
+	pub, err := NewPublisher(PublisherConf{
+		Node:  n,
+		Topic: "/test_pub",
+		Msg:   &std_msgs.Float64{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
 
-		ticker := time.NewTicker(200 * time.Millisecond)
-		defer ticker.Stop()
+	pubTerminate := make(chan struct{})
+	defer close(pubTerminate)
 
-		go func() {
-			for range ticker.C {
+	pubDone := make(chan struct{})
+	go func() {
+		defer close(pubDone)
+
+		t := time.NewTicker(200 * time.Millisecond)
+		defer t.Stop()
+
+		for {
+			select {
+			case <-t.C:
 				pub.Write(&std_msgs.Float64{Data: 22.5})
+
+			case <-pubTerminate:
+				return
 			}
-		}()
-
-		rt, err := newContainer("rostopic-hz", m.Ip())
-		require.NoError(t, err)
-
-		return rt.waitOutput()
+		}
 	}()
 
-	re := regexp.MustCompile("^subscribed to \\[/test_pub\\]\naverage rate: (.+?)\nmin: (.+?)s max: (.+?)s std dev: (.+?)s window: [0-9]\n$")
-	matches := re.FindStringSubmatch(recv)
-	if matches == nil {
-		t.Errorf("string does not match. String:\n%s", recv)
+	rt, err := newContainer("rostopic-hz", m.Ip())
+	require.NoError(t, err)
+
+	recv := rt.waitOutput()
+	lines := strings.Split(recv, "\n")
+	line := lines[len(lines)-2]
+	line = strings.TrimSpace(line)
+
+	ma := regexp.MustCompile("^min: (.+?)s max: (.+?)s std dev: (.+?)s window: [0-9]$").
+		FindStringSubmatch(line)
+	if ma == nil {
+		t.Errorf("line does not match (%s)", line)
 		return
 	}
 
-	v, _ := strconv.ParseFloat(matches[1], 64)
-	require.Greater(t, v, 4.9)
-	require.Less(t, v, 5.1)
+	v, _ := strconv.ParseFloat(ma[1], 64)
+	require.Greater(t, v, 0.199)
+	require.Less(t, v, 0.201)
 
-	v, _ = strconv.ParseFloat(matches[2], 64)
-	require.GreaterOrEqual(t, v, 0.0)
-	require.LessOrEqual(t, v, 0.2)
+	v, _ = strconv.ParseFloat(ma[2], 64)
+	require.Greater(t, v, 0.199)
+	require.Less(t, v, 0.201)
 }

@@ -1,7 +1,4 @@
-FROM ros:melodic-ros-core-bionic
-
-RUN apt update && apt install -y --no-install-recommends \
-    psmisc
+FROM ros:melodic-ros-core
 
 COPY start.sh /
 RUN chmod +x /start.sh

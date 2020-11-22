@@ -142,8 +142,8 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 				require.NoError(t, err)
 				defer pub.Close()
 
-				terminate := make(chan struct{})
-				defer close(terminate)
+				pubTerminate := make(chan struct{})
+				defer close(pubTerminate)
 
 				go func() {
 					t := time.NewTicker(1 * time.Second)
@@ -151,7 +151,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 
 					for {
 						select {
-						case <-terminate:
+						case <-pubTerminate:
 							return
 
 						case <-t.C:
@@ -282,8 +282,8 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 				require.NoError(t, err)
 				defer pub.Close()
 
-				terminate := make(chan struct{})
-				defer close(terminate)
+				pubTerminate := make(chan struct{})
+				defer close(pubTerminate)
 
 				go func() {
 					t := time.NewTicker(1 * time.Second)
@@ -291,7 +291,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 					for {
 						select {
-						case <-terminate:
+						case <-pubTerminate:
 							return
 
 						case <-t.C:
@@ -344,8 +344,8 @@ func TestSubscriberReadUdp(t *testing.T) {
 				require.NoError(t, err)
 				defer pub.Close()
 
-				terminate := make(chan struct{})
-				defer close(terminate)
+				pubTerminate := make(chan struct{})
+				defer close(pubTerminate)
 
 				go func() {
 					t := time.NewTicker(1 * time.Second)
@@ -353,7 +353,7 @@ func TestSubscriberReadUdp(t *testing.T) {
 
 					for {
 						select {
-						case <-terminate:
+						case <-pubTerminate:
 							return
 
 						case <-t.C:

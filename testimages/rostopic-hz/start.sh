@@ -3,16 +3,6 @@
 export ROS_MASTER_URI=http://$MASTER_IP:11311/
 export ROS_IP=$(hostname -i)
 
-C=0
-stdbuf -oL -eL rostopic hz /test_pub | while read L; do
-    if [ "$L" = "no new messages" ]; then
-        continue
-    fi
+stdbuf -oL -eL rostopic hz --window=5 /test_pub &
 
-    echo "$L"
-
-    C=$(($C + 1))
-    if [ $C -ge 3 ]; then
-        killall -9 rostopic
-    fi
-done
+sleep 2
