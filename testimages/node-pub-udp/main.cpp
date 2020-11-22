@@ -4,7 +4,6 @@
 
 #include <std_msgs/Int64MultiArray.h>
 
-
 void publisher_run(ros::Publisher* pub) {
     ros::Rate rate(1);
 

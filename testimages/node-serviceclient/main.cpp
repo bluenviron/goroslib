@@ -3,7 +3,6 @@
 
 #include <nodeservice_srv/Mysrv.h>
 
-
 int main(int argc, char **argv) {
     ros::init(argc, argv, "nodeserviceclient");
     ros::NodeHandle node("~");
@@ -15,7 +14,7 @@ int main(int argc, char **argv) {
     req.b = "456";
     nodeservice_srv::Mysrv::Response res;
     client.call(req, res);
+    printf("%f\n", res.c);
 
-    ros::spin();
     return 0;
 }

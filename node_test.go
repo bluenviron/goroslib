@@ -242,130 +242,113 @@ func TestNodeGetServices(t *testing.T) {
 	require.Equal(t, map[string]struct{}{"/nodeserviceprovider": {}}, service.Providers)
 }
 
-func TestNodePingCppNode(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+func TestNodePingNode(t *testing.T) {
+	for _, node := range []string{
+		"cpp",
+		"go",
+	} {
+		t.Run(node, func(t *testing.T) {
+			m, err := newContainerMaster()
+			require.NoError(t, err)
+			defer m.close()
 
-	p, err := newContainer("node-gen", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
+			switch node {
+			case "cpp":
+				p, err := newContainer("node-gen", m.Ip())
+				require.NoError(t, err)
+				defer p.close()
 
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
+			case "go":
+				n1, err := NewNode(NodeConf{
+					Name:       "/nodegen",
+					MasterHost: m.Ip(),
+				})
+				require.NoError(t, err)
+				defer n1.Close()
 
-	_, err = n.PingNode("/nodegen")
-	require.NoError(t, err)
+				pub, err := NewPublisher(PublisherConf{
+					Node:  n1,
+					Topic: "/test_pub",
+					Msg:   &TestMessage{},
+				})
+				require.NoError(t, err)
+				defer pub.Close()
+			}
+
+			n, err := NewNode(NodeConf{
+				Name:       "/goroslib",
+				MasterHost: m.Ip(),
+			})
+			require.NoError(t, err)
+			defer n.Close()
+
+			_, err = n.PingNode("/nodegen")
+			require.NoError(t, err)
+		})
+	}
 }
 
-func TestNodePingGoNode(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+func TestNodeKillNode(t *testing.T) {
+	for _, node := range []string{
+		"cpp",
+		"go",
+	} {
+		t.Run(node, func(t *testing.T) {
+			m, err := newContainerMaster()
+			require.NoError(t, err)
+			defer m.close()
 
-	n1, err := NewNode(NodeConf{
-		Name:       "/goroslib1",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n1.Close()
+			switch node {
+			case "cpp":
+				p, err := newContainer("node-gen", m.Ip())
+				require.NoError(t, err)
+				defer p.close()
 
-	pub, err := NewPublisher(PublisherConf{
-		Node:  n1,
-		Topic: "/test_pub",
-		Msg:   &TestMessage{},
-	})
-	require.NoError(t, err)
-	defer pub.Close()
+			case "go":
+				n1, err := NewNode(NodeConf{
+					Name:       "/nodegen",
+					MasterHost: m.Ip(),
+				})
+				require.NoError(t, err)
+				defer n1.Close()
 
-	n2, err := NewNode(NodeConf{
-		Name:       "/goroslib2",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n2.Close()
+				pub, err := NewPublisher(PublisherConf{
+					Node:  n1,
+					Topic: "/test_pub",
+					Msg:   &TestMessage{},
+				})
+				require.NoError(t, err)
+				defer pub.Close()
 
-	_, err = n2.PingNode("/goroslib1")
-	require.NoError(t, err)
-}
+				sp, err := NewServiceProvider(ServiceProviderConf{
+					Node:    n1,
+					Service: "/test_srv",
+					Callback: func(req *TestServiceReq) *TestServiceRes {
+						return &TestServiceRes{}
+					},
+				})
+				require.NoError(t, err)
+				defer sp.Close()
+			}
 
-func TestNodeKillCppNode(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+			n, err := NewNode(NodeConf{
+				Name:       "/goroslib",
+				MasterHost: m.Ip(),
+			})
+			require.NoError(t, err)
+			defer n.Close()
 
-	p, err := newContainer("node-gen", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
+			err = n.KillNode("/nodegen")
+			require.NoError(t, err)
 
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
+			time.Sleep(1 * time.Second)
 
-	err = n.KillNode("/nodegen")
-	require.NoError(t, err)
+			res, err := n.GetNodes()
+			require.NoError(t, err)
 
-	time.Sleep(1 * time.Second)
-
-	res, err := n.GetNodes()
-	require.NoError(t, err)
-
-	require.Equal(t, 2, len(res))
-}
-
-func TestNodeKillGoNode(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	n1, err := NewNode(NodeConf{
-		Name:       "/goroslib1",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n1.Close()
-
-	pub, err := NewPublisher(PublisherConf{
-		Node:  n1,
-		Topic: "/test_pub",
-		Msg:   &TestMessage{},
-	})
-	require.NoError(t, err)
-	defer pub.Close()
-
-	sp, err := NewServiceProvider(ServiceProviderConf{
-		Node:    n1,
-		Service: "/test_srv",
-		Callback: func(req *TestServiceReq) *TestServiceRes {
-			return &TestServiceRes{}
-		},
-	})
-	require.NoError(t, err)
-	defer sp.Close()
-
-	n2, err := NewNode(NodeConf{
-		Name:       "/goroslib2",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n2.Close()
-
-	err = n2.KillNode("/goroslib1")
-	require.NoError(t, err)
-
-	time.Sleep(1 * time.Second)
-
-	res, err := n2.GetNodes()
-	require.NoError(t, err)
-
-	require.Equal(t, 2, len(res))
+			require.Equal(t, 2, len(res))
+		})
+	}
 }
 
 func TestNodeGetParam(t *testing.T) {
@@ -444,42 +427,38 @@ func TestNodeSetParam(t *testing.T) {
 }
 
 func TestNodeRosnodeInfo(t *testing.T) {
-	recv := func() string {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
-		defer m.close()
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
 
-		n, err := NewNode(NodeConf{
-			Name:       "/goroslib",
-			MasterHost: m.Ip(),
-		})
-		require.NoError(t, err)
-		defer n.Close()
+	n, err := NewNode(NodeConf{
+		Name:       "/goroslib",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer n.Close()
 
-		// a publisher/subscriber is needed for the node to be listed
-		// standard nodes creates some default publishers, subscribers and
-		// services during initialization, while goroslib does not do this yet
-		pub, err := NewPublisher(PublisherConf{
-			Node:  n,
-			Topic: "/test_pub",
-			Msg:   &std_msgs.Float64{},
-		})
-		require.NoError(t, err)
-		defer pub.Close()
+	// a publisher/subscriber is needed for the node to be listed
+	// standard nodes creates some default publishers, subscribers and
+	// services during initialization, while goroslib does not do this yet
+	pub, err := NewPublisher(PublisherConf{
+		Node:  n,
+		Topic: "/test_pub",
+		Msg:   &std_msgs.Float64{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
 
-		sub, err := NewSubscriber(SubscriberConf{
-			Node:     n,
-			Topic:    "/test_pub",
-			Callback: func(msg *sensor_msgs.Imu) {},
-		})
-		require.NoError(t, err)
-		defer sub.Close()
+	sub, err := NewSubscriber(SubscriberConf{
+		Node:     n,
+		Topic:    "/test_pub",
+		Callback: func(msg *sensor_msgs.Imu) {},
+	})
+	require.NoError(t, err)
+	defer sub.Close()
 
-		rt, err := newContainer("rosnode-info", m.Ip())
-		require.NoError(t, err)
-
-		return rt.waitOutput()
-	}()
+	rt, err := newContainer("rosnode-info", m.Ip())
+	require.NoError(t, err)
 
 	require.Regexp(t, regexp.MustCompile("^--------------------------------------------------------------------------------\n"+
 		"Node \\[/goroslib\\]\n"+
@@ -495,5 +474,5 @@ func TestNodeRosnodeInfo(t *testing.T) {
 		"\n"+
 		"contacting node http://.+? ...\n"+
 		"Pid: .+?\n"+
-		"\n$"), recv)
+		"\n$"), rt.waitOutput())
 }

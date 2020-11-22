@@ -4,7 +4,6 @@
 
 #include <std_msgs/Int64MultiArray.h>
 
-
 void on_message(const std_msgs::Int64MultiArray::ConstPtr& in) {
     printf("%d ", in->data.size());
 

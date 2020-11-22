@@ -3,7 +3,6 @@
 
 #include <nodeservice_srv/Mysrv.h>
 
-
 bool test_srv(nodeservice_srv::Mysrv::Request &req,
     nodeservice_srv::Mysrv::Response &res) {
     res.c = 123;
