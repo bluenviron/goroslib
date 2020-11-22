@@ -20,6 +20,7 @@ func NewClient(host string, port int, callerId string) *Client {
 	}
 }
 
+// GetPid writes a getPid request.
 func (c *Client) GetPid() (*ResponseGetPid, error) {
 	req := RequestGetPid{
 		CallerId: c.callerId,
@@ -38,6 +39,7 @@ func (c *Client) GetPid() (*ResponseGetPid, error) {
 	return &res, nil
 }
 
+// Shutdown writes a shutdown request.
 func (c *Client) Shutdown(req RequestShutdown) error {
 	req.CallerId = c.callerId
 
@@ -54,6 +56,7 @@ func (c *Client) Shutdown(req RequestShutdown) error {
 	return nil
 }
 
+// RequestTopic writes a requestTopic request.
 func (c *Client) RequestTopic(req RequestRequestTopic) (*ResponseRequestTopic, error) {
 	req.CallerId = c.callerId
 

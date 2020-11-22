@@ -20,6 +20,7 @@ func NewClient(host string, port int, callerId string) *Client {
 	}
 }
 
+// GetPublishedTopics writes a getPublishedTopics request.
 func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) (*ResponseGetPublishedTopics, error) {
 	req.CallerId = c.callerId
 
@@ -36,6 +37,7 @@ func (c *Client) GetPublishedTopics(req RequestGetPublishedTopics) (*ResponseGet
 	return &res, nil
 }
 
+// GetSystemState writes a getSystemState request.
 func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 	req := RequestGetSystemState{
 		c.callerId,
@@ -54,6 +56,7 @@ func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 	return &res, nil
 }
 
+// GetTopicTypes writes a getTopicTypes request.
 func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 	req := RequestGetTopicTypes{
 		c.callerId,
@@ -72,6 +75,7 @@ func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 	return &res, nil
 }
 
+// GetUri writes a getUri request.
 func (c *Client) GetUri() (*ResponseGetUri, error) {
 	req := RequestGetUri{
 		c.callerId,
@@ -106,10 +110,12 @@ func (c *Client) lookup(method string, req RequestLookup) (*ResponseLookup, erro
 	return &res, nil
 }
 
+// LookupNode writes a lookupNode request.
 func (c *Client) LookupNode(req RequestLookup) (*ResponseLookup, error) {
 	return c.lookup("lookupNode", req)
 }
 
+// LookupService writes a lookupService request.
 func (c *Client) LookupService(req RequestLookup) (*ResponseLookup, error) {
 	return c.lookup("lookupService", req)
 }
@@ -130,10 +136,12 @@ func (c *Client) register(method string, req RequestRegister) (*ResponseRegister
 	return &res, nil
 }
 
+// RegisterSubscriber writes a registerSubscriber request.
 func (c *Client) RegisterSubscriber(req RequestRegister) (*ResponseRegister, error) {
 	return c.register("registerSubscriber", req)
 }
 
+// RegisterPublisher writes a registerPublisher request.
 func (c *Client) RegisterPublisher(req RequestRegister) (*ResponseRegister, error) {
 	return c.register("registerPublisher", req)
 }
@@ -154,14 +162,17 @@ func (c *Client) unregister(method string, req RequestUnregister) error {
 	return nil
 }
 
+// UnregisterSubscriber writes a unregisterSubscriber request.
 func (c *Client) UnregisterSubscriber(req RequestUnregister) error {
 	return c.unregister("unregisterSubscriber", req)
 }
 
+// UnregisterPublisher writes a unregisterPublisher request.
 func (c *Client) UnregisterPublisher(req RequestUnregister) error {
 	return c.unregister("unregisterPublisher", req)
 }
 
+// RegisterService writes a registerService request.
 func (c *Client) RegisterService(req RequestRegisterService) error {
 	req.CallerId = c.callerId
 
@@ -178,6 +189,7 @@ func (c *Client) RegisterService(req RequestRegisterService) error {
 	return nil
 }
 
+// UnregisterService writes a unregisterService request.
 func (c *Client) UnregisterService(req RequestUnregisterService) error {
 	req.CallerId = c.callerId
 

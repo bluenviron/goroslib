@@ -20,6 +20,7 @@ func NewClient(host string, port int, callerId string) *Client {
 	}
 }
 
+// DeleteParam writes a deleteParam request.
 func (c *Client) DeleteParam(req RequestDeleteParam) error {
 	req.CallerId = c.callerId
 
@@ -36,6 +37,7 @@ func (c *Client) DeleteParam(req RequestDeleteParam) error {
 	return nil
 }
 
+// GetParamNames writes a getParamNames request.
 func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 	req := RequestGetParamNames{
 		CallerId: c.callerId,
@@ -54,6 +56,7 @@ func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 	return &res, nil
 }
 
+// GetParamBool writes a getParam request and expects a bool response.
 func (c *Client) GetParamBool(req RequestGetParam) (*ResponseGetParamBool, error) {
 	req.CallerId = c.callerId
 
@@ -70,6 +73,7 @@ func (c *Client) GetParamBool(req RequestGetParam) (*ResponseGetParamBool, error
 	return &res, nil
 }
 
+// GetParamBool writes a getParam request and expects a int response.
 func (c *Client) GetParamInt(req RequestGetParam) (*ResponseGetParamInt, error) {
 	req.CallerId = c.callerId
 
@@ -86,6 +90,7 @@ func (c *Client) GetParamInt(req RequestGetParam) (*ResponseGetParamInt, error) 
 	return &res, nil
 }
 
+// GetParamBool writes a getParam request and expects a string response.
 func (c *Client) GetParamString(req RequestGetParam) (*ResponseGetParamString, error) {
 	req.CallerId = c.callerId
 
@@ -102,6 +107,7 @@ func (c *Client) GetParamString(req RequestGetParam) (*ResponseGetParamString, e
 	return &res, nil
 }
 
+// HasParam writes a hasParam request.
 func (c *Client) HasParam(req RequestHasParam) (*ResponseHasParam, error) {
 	req.CallerId = c.callerId
 
@@ -122,6 +128,7 @@ func (c *Client) HasParam(req RequestHasParam) (*ResponseHasParam, error) {
 	return &res, nil
 }
 
+// SearchParam writes a searchParam request.
 func (c *Client) SearchParam(req RequestSearchParam) (*ResponseSearchParam, error) {
 	req.CallerId = c.callerId
 
@@ -138,6 +145,7 @@ func (c *Client) SearchParam(req RequestSearchParam) (*ResponseSearchParam, erro
 	return &res, nil
 }
 
+// SetParamBool writes a setParam request.
 func (c *Client) SetParamBool(req RequestSetParamBool) error {
 	req.CallerId = c.callerId
 
@@ -154,6 +162,7 @@ func (c *Client) SetParamBool(req RequestSetParamBool) error {
 	return nil
 }
 
+// SetParamInt writes a setParam request.
 func (c *Client) SetParamInt(req RequestSetParamInt) error {
 	req.CallerId = c.callerId
 
@@ -170,6 +179,7 @@ func (c *Client) SetParamInt(req RequestSetParamInt) error {
 	return nil
 }
 
+// SetParamString writes a setParam request.
 func (c *Client) SetParamString(req RequestSetParamString) error {
 	req.CallerId = c.callerId
 

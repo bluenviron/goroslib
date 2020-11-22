@@ -16,6 +16,7 @@ func ServerUrl(host string, port int) string {
 	return "http://" + host + ":" + strconv.FormatInt(int64(port), 10)
 }
 
+// Server is a XML-RPC server.
 type Server struct {
 	ln    net.Listener
 	read  chan *RequestRaw
@@ -23,6 +24,7 @@ type Server struct {
 	done  chan struct{}
 }
 
+// NewServer allocates a server.
 func NewServer(port int) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
@@ -43,6 +45,14 @@ func NewServer(port int) (*Server, error) {
 	return s, nil
 }
 
+// Close closes all the server resources.
+func (s *Server) Close() error {
+	s.ln.Close()
+	<-s.done
+	return nil
+}
+
+// Port returns the server port.
 func (s *Server) Port() int {
 	return s.ln.Addr().(*net.TCPAddr).Port
 }
@@ -88,12 +98,7 @@ func (s *Server) run() {
 	close(s.write)
 }
 
-func (s *Server) Close() error {
-	s.ln.Close()
-	<-s.done
-	return nil
-}
-
+// Handle sets a callback that is called when a request arrives.
 func (s *Server) Handle(cb func(*RequestRaw) interface{}) {
 	for rawReq := range s.read {
 		s.write <- cb(rawReq)
