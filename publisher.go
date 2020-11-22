@@ -382,7 +382,7 @@ outer:
 	}()
 
 	p.conf.Node.apiMasterClient.UnregisterPublisher(apimaster.RequestUnregister{
-		Topic:     p.conf.Topic[1:],
+		Topic:     p.conf.Topic,
 		CallerUrl: p.conf.Node.apiSlaveServerUrl,
 	})
 

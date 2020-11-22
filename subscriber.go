@@ -180,7 +180,7 @@ outer:
 	}()
 
 	s.conf.Node.apiMasterClient.UnregisterSubscriber(apimaster.RequestUnregister{
-		Topic:     s.conf.Topic[1:],
+		Topic:     s.conf.Topic,
 		CallerUrl: s.conf.Node.apiSlaveServerUrl,
 	})
 

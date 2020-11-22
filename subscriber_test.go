@@ -388,3 +388,48 @@ func TestSubscriberReadUdp(t *testing.T) {
 		})
 	}
 }
+
+func TestSubscriberNamespace(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	sn, err := NewNode(NodeConf{
+		Name:       "/mynamespace/sub",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer sn.Close()
+
+	recv := make(chan struct{})
+	sub, err := NewSubscriber(SubscriberConf{
+		Node:  sn,
+		Topic: "/test_pub",
+		Callback: func(msg *std_msgs.Int64) {
+			recv <- struct{}{}
+		},
+	})
+	require.NoError(t, err)
+	defer sub.Close()
+
+	pn, err := NewNode(NodeConf{
+		Name:       "/mynamespace/pub",
+		MasterHost: m.Ip(),
+	})
+	require.NoError(t, err)
+	defer pn.Close()
+
+	pub, err := NewPublisher(PublisherConf{
+		Node:  pn,
+		Topic: "/test_pub",
+		Msg:   &std_msgs.Int64{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
+
+	time.Sleep(time.Second * 1)
+
+	pub.Write(&std_msgs.Int64{Data: 123})
+
+	<-recv
+}

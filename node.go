@@ -200,7 +200,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.MasterPort = 11311
 	}
 
-	// solve master ip once
+	// solve master address once
 	masterIp, err := func() (net.IP, error) {
 		addr, err := net.ResolveTCPAddr("tcp4", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
 		if err != nil {
@@ -438,7 +438,7 @@ outer:
 			}
 
 			res, err := n.apiMasterClient.RegisterSubscriber(apimaster.RequestRegister{
-				Topic:     req.sub.conf.Topic[1:],
+				Topic:     req.sub.conf.Topic,
 				TopicType: req.sub.msgType,
 				CallerUrl: n.apiSlaveServerUrl,
 			})
@@ -465,7 +465,7 @@ outer:
 			}
 
 			_, err := n.apiMasterClient.RegisterPublisher(apimaster.RequestRegister{
-				Topic:     req.pub.conf.Topic[1:],
+				Topic:     req.pub.conf.Topic,
 				TopicType: req.pub.msgType,
 				CallerUrl: n.apiSlaveServerUrl,
 			})
@@ -491,7 +491,7 @@ outer:
 			}
 
 			err := n.apiMasterClient.RegisterService(apimaster.RequestRegisterService{
-				Service:    req.sp.conf.Service[1:],
+				Service:    req.sp.conf.Service,
 				ServiceUrl: n.tcprosServerUrl,
 				CallerUrl:  n.apiSlaveServerUrl,
 			})

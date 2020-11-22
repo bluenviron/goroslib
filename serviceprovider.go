@@ -219,7 +219,7 @@ outer:
 	}()
 
 	sp.conf.Node.apiMasterClient.UnregisterService(apimaster.RequestUnregisterService{
-		Service:    sp.conf.Service[1:],
+		Service:    sp.conf.Service,
 		ServiceUrl: sp.conf.Node.tcprosServerUrl,
 	})
 
