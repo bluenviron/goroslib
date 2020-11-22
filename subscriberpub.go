@@ -78,7 +78,7 @@ func (sp *subscriberPublisher) run() {
 func (sp *subscriberPublisher) do(host string, port int) error {
 	xcs := apislave.NewClient(host, port, sp.sub.conf.Node.conf.Name)
 
-	subDone := make(chan struct{})
+	subDone := make(chan struct{}, 1)
 	var res *apislave.ResponseRequestTopic
 	var err error
 	go func() {
