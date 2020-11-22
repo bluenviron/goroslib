@@ -38,7 +38,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 	}
 
 	if len(conf.Service) < 1 || conf.Service[0] != '/' {
-		return nil, fmt.Errorf("Service must begin with /")
+		return nil, fmt.Errorf("Service must begin with a slash (/)")
 	}
 
 	rt := reflect.TypeOf(conf.Req)

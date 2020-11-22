@@ -69,7 +69,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	}
 
 	if len(conf.Topic) < 1 || conf.Topic[0] != '/' {
-		return nil, fmt.Errorf("Topic must begin with /")
+		return nil, fmt.Errorf("Topic must begin with a slash (/)")
 	}
 
 	msgt := reflect.TypeOf(conf.Msg)

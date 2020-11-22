@@ -59,7 +59,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	}
 
 	if len(conf.Topic) < 1 || conf.Topic[0] != '/' {
-		return nil, fmt.Errorf("Topic must begin with /")
+		return nil, fmt.Errorf("Topic must begin with a slash (/)")
 	}
 
 	cbt := reflect.TypeOf(conf.Callback)

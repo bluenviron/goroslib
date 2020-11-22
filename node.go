@@ -191,7 +191,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, fmt.Errorf("Name not provided")
 	}
 	if conf.Name[0] != '/' {
-		return nil, fmt.Errorf("Name must begin with /")
+		return nil, fmt.Errorf("Name must begin with a slash (/)")
 	}
 	if len(conf.MasterHost) == 0 {
 		return nil, fmt.Errorf("MasterHost not provided")

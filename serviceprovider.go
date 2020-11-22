@@ -59,7 +59,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	}
 
 	if len(conf.Service) < 1 || conf.Service[0] != '/' {
-		return nil, fmt.Errorf("Service must begin with /")
+		return nil, fmt.Errorf("Service must begin with a slash (/)")
 	}
 
 	cbt := reflect.TypeOf(conf.Callback)
