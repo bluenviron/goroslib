@@ -46,14 +46,14 @@ type {{ .Name }} struct {
 }
 `))
 
-type Definition struct {
+type definition struct {
 	RosType string
 	GoType  string
 	Name    string
 	Value   string
 }
 
-type Field struct {
+type field struct {
 	TypeArray    string
 	TypePkg      string
 	Type         string
@@ -138,8 +138,8 @@ func run() error {
 		return err
 	}
 
-	var fields []Field
-	var definitions []Definition
+	var fields []field
+	var definitions []definition
 
 	name := func() string {
 		if isRemote {
@@ -165,25 +165,25 @@ func run() error {
 		if strings.Contains(line, "=") {
 			matches := regexp.MustCompile("^([a-z0-9]+)(\\s|\\t)+([A-Z0-9_]+)(\\s|\\t)*=(\\s|\\t)*(.+?)$").FindStringSubmatch(line)
 			if matches == nil {
-				return fmt.Errorf("line '%s' is not a definition", line)
+				return fmt.Errorf("unable to parse definition (%s)", line)
 			}
 
-			d := Definition{
+			d := definition{
 				RosType: matches[1],
 				Name:    matches[3],
 				Value:   matches[6],
 			}
 
-			switch d.RosType {
-			case "byte":
-				d.GoType = "int8"
+			d.GoType = func() string {
+				switch d.RosType {
+				case "byte":
+					return "int8"
 
-			case "char":
-				d.GoType = "uint8"
-
-			default:
-				d.GoType = d.RosType
-			}
+				case "char":
+					return "uint8"
+				}
+				return d.RosType
+			}()
 
 			definitions = append(definitions, d)
 
@@ -194,13 +194,14 @@ func run() error {
 
 			parts := strings.Split(line, " ")
 			if len(parts) != 2 {
-				return fmt.Errorf("line does not contain 2 fields")
+				return fmt.Errorf("unable to parse field (%s)")
 			}
 
-			f := Field{}
+			f := field{}
 
+			// use NameOverride if a bidirectional conversion between snake and
+			// camel is not possible
 			f.Name = snakeToCamel(parts[1])
-
 			if camelToSnake(f.Name) != parts[1] {
 				f.NameOverride = parts[1]
 			}

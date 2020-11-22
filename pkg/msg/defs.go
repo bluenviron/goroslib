@@ -1,4 +1,4 @@
-// Package msg contains message definitions and utilities to process them.
+// Package msg contains utilities to process messages.
 package msg
 
 // Package is a field that can be added to a message to set the package name.
