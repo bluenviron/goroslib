@@ -48,9 +48,9 @@ func (ps *publisherSubscriber) run() {
 }
 
 func (ps *publisherSubscriber) runTcp() {
-	readDone := make(chan struct{})
+	readerDone := make(chan struct{})
 	go func() {
-		defer close(readDone)
+		defer close(readerDone)
 
 		for {
 			_, err := ps.tcpClient.ReadHeaderRaw()
@@ -61,14 +61,14 @@ func (ps *publisherSubscriber) runTcp() {
 	}()
 
 	select {
-	case <-readDone:
+	case <-readerDone:
 		ps.tcpClient.Close()
 		ps.pub.subscriberTcpClose <- ps
 		<-ps.terminate
 
 	case <-ps.terminate:
 		ps.tcpClient.Close()
-		<-readDone
+		<-readerDone
 	}
 }
 
