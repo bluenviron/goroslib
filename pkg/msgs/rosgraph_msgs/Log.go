@@ -15,7 +15,7 @@ const (
 
 type Log struct {
 	msg.Package     `ros:"rosgraph_msgs"`
-	msg.Definitions `ros:"int8 DEBUG=1,int8 INFO=2,int8 WARN=4,int8 ERROR=8,int8 FATAL=16"`
+	msg.Definitions `ros:"byte DEBUG=1,byte INFO=2,byte WARN=4,byte ERROR=8,byte FATAL=16"`
 	Header          std_msgs.Header
 	Level           int8 `rostype:"byte"`
 	Name            string

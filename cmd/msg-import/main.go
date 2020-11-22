@@ -28,7 +28,7 @@ import (
 
 const (
 {{- range .Definitions }}
-    {{ $MsgName }}_{{ .Name }} {{ .Type }} = {{ .Value }}
+    {{ $MsgName }}_{{ .Name }} {{ .GoType }} = {{ .Value }}
 {{- end }}
 )
 {{- end }}
@@ -47,14 +47,15 @@ type {{ .Name }} struct {
 `))
 
 type Definition struct {
-	Type  string
-	Name  string
-	Value string
+	RosType string
+	GoType  string
+	Name    string
+	Value   string
 }
 
 type Field struct {
-	TypePkg      string
 	TypeArray    string
+	TypePkg      string
 	Type         string
 	Name         string
 	NameOverride string
@@ -168,17 +169,20 @@ func run() error {
 			}
 
 			d := Definition{
-				Type:  matches[1],
-				Name:  matches[3],
-				Value: matches[6],
+				RosType: matches[1],
+				Name:    matches[3],
+				Value:   matches[6],
 			}
 
-			switch d.Type {
+			switch d.RosType {
 			case "byte":
-				d.Type = "int8"
+				d.GoType = "int8"
 
 			case "char":
-				d.Type = "uint8"
+				d.GoType = "uint8"
+
+			default:
+				d.GoType = d.RosType
 			}
 
 			definitions = append(definitions, d)
@@ -265,7 +269,7 @@ func run() error {
 	definitionsStr := func() string {
 		var tmp []string
 		for _, d := range definitions {
-			tmp = append(tmp, d.Type+" "+d.Name+"="+d.Value)
+			tmp = append(tmp, d.RosType+" "+d.Name+"="+d.Value)
 		}
 		return strings.Join(tmp, ",")
 	}()
