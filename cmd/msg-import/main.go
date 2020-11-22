@@ -194,7 +194,7 @@ func run() error {
 
 			parts := strings.Split(line, " ")
 			if len(parts) != 2 {
-				return fmt.Errorf("unable to parse field (%s)")
+				return fmt.Errorf("unable to parse field (%s)", line)
 			}
 
 			f := field{}
