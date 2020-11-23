@@ -247,78 +247,59 @@ func TestNodeKillNode(t *testing.T) {
 }
 
 func TestNodeGetParam(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+	for _, lang := range []string{
+		"cpp",
+		"go",
+	} {
+		t.Run(lang, func(t *testing.T) {
+			m, err := newContainerMaster()
+			require.NoError(t, err)
+			defer m.close()
 
-	p, err := newContainer("node-setparam", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
+			switch lang {
+			case "cpp":
+				p, err := newContainer("node-setparam", m.Ip())
+				require.NoError(t, err)
+				defer p.close()
 
-	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
+			case "go":
+				n, err := NewNode(NodeConf{
+					Namespace:  "/myns",
+					Name:       "goroslib_set",
+					MasterHost: m.Ip(),
+				})
+				require.NoError(t, err)
+				defer n.Close()
 
-	t.Run("bool", func(t *testing.T) {
-		res, err := n.GetParamBool("test_bool")
-		require.NoError(t, err)
-		require.Equal(t, true, res)
-	})
+				err = n.SetParamBool("test_bool", true)
+				require.NoError(t, err)
 
-	t.Run("int", func(t *testing.T) {
-		res, err := n.GetParamInt("test_int")
-		require.NoError(t, err)
-		require.Equal(t, 123, res)
-	})
+				err = n.SetParamInt("test_int", 123)
+				require.NoError(t, err)
 
-	t.Run("string", func(t *testing.T) {
-		res, err := n.GetParamString("test_string")
-		require.NoError(t, err)
-		require.Equal(t, "ABC", res)
-	})
-}
+				err = n.SetParamString("test_string", "ABC")
+				require.NoError(t, err)
+			}
 
-func TestNodeSetParam(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+			n, err := NewNode(NodeConf{
+				Namespace:  "/myns",
+				Name:       "goroslib",
+				MasterHost: m.Ip(),
+			})
+			require.NoError(t, err)
+			defer n.Close()
 
-	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
+			resb, err := n.GetParamBool("test_bool")
+			require.NoError(t, err)
+			require.Equal(t, true, resb)
 
-	t.Run("bool", func(t *testing.T) {
-		err = n.SetParamBool("/test_bool", true)
-		require.NoError(t, err)
+			resi, err := n.GetParamInt("test_int")
+			require.NoError(t, err)
+			require.Equal(t, 123, resi)
 
-		res, err := n.GetParamBool("/test_bool")
-		require.NoError(t, err)
-		require.Equal(t, true, res)
-	})
-
-	t.Run("int", func(t *testing.T) {
-		err = n.SetParamInt("/test_int", 123)
-		require.NoError(t, err)
-
-		res, err := n.GetParamInt("/test_int")
-		require.NoError(t, err)
-		require.Equal(t, 123, res)
-	})
-
-	t.Run("string", func(t *testing.T) {
-		err = n.SetParamString("/test_string", "ABC")
-		require.NoError(t, err)
-
-		res, err := n.GetParamString("/test_string")
-		require.NoError(t, err)
-		require.Equal(t, "ABC", res)
-	})
+			ress, err := n.GetParamString("test_string")
+			require.NoError(t, err)
+			require.Equal(t, "ABC", ress)
+		})
+	}
 }
