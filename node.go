@@ -437,11 +437,10 @@ outer:
 				continue
 			}
 
-			res, err := n.apiMasterClient.RegisterSubscriber(apimaster.RequestRegister{
-				Topic:     req.sub.conf.Topic,
-				TopicType: req.sub.msgType,
-				CallerUrl: n.apiSlaveServerUrl,
-			})
+			res, err := n.apiMasterClient.RegisterSubscriber(
+				req.sub.conf.Topic,
+				req.sub.msgType,
+				n.apiSlaveServerUrl)
 			if err != nil {
 				req.err <- err
 				continue
@@ -464,11 +463,10 @@ outer:
 				continue
 			}
 
-			_, err := n.apiMasterClient.RegisterPublisher(apimaster.RequestRegister{
-				Topic:     req.pub.conf.Topic,
-				TopicType: req.pub.msgType,
-				CallerUrl: n.apiSlaveServerUrl,
-			})
+			_, err := n.apiMasterClient.RegisterPublisher(
+				req.pub.conf.Topic,
+				req.pub.msgType,
+				n.apiSlaveServerUrl)
 			if err != nil {
 				req.err <- err
 				continue
@@ -490,11 +488,10 @@ outer:
 				continue
 			}
 
-			err := n.apiMasterClient.RegisterService(apimaster.RequestRegisterService{
-				Service:    req.sp.conf.Service,
-				ServiceUrl: n.tcprosServerUrl,
-				CallerUrl:  n.apiSlaveServerUrl,
-			})
+			err := n.apiMasterClient.RegisterService(
+				req.sp.conf.Service,
+				n.tcprosServerUrl,
+				n.apiSlaveServerUrl)
 			if err != nil {
 				req.err <- err
 				continue

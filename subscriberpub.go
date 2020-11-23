@@ -83,31 +83,30 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 	var err error
 	go func() {
 		defer close(subDone)
-		res, err = xcs.RequestTopic(apislave.RequestRequestTopic{
-			Topic: sp.sub.conf.Topic,
-			Protocols: func() [][]interface{} {
-				if sp.sub.conf.Protocol == TCP {
-					return [][]interface{}{{"TCPROS"}}
-				}
 
-				return [][]interface{}{{
-					"UDPROS",
-					func() []byte {
-						buf := bytes.NewBuffer(nil)
-						protocommon.HeaderEncode(buf, &protoudp.HeaderSubscriber{
-							Callerid: sp.sub.conf.Node.conf.Name,
-							Md5sum:   sp.sub.msgMd5,
-							Topic:    sp.sub.conf.Topic,
-							Type:     sp.sub.msgType,
-						})
-						return buf.Bytes()[4:]
-					}(),
-					sp.sub.conf.Node.nodeIp.String(),
-					sp.sub.conf.Node.udprosServerPort,
-					1500,
-				}}
-			}(),
-		})
+		protocols := func() [][]interface{} {
+			if sp.sub.conf.Protocol == TCP {
+				return [][]interface{}{{"TCPROS"}}
+			}
+
+			return [][]interface{}{{
+				"UDPROS",
+				func() []byte {
+					buf := bytes.NewBuffer(nil)
+					protocommon.HeaderEncode(buf, &protoudp.HeaderSubscriber{
+						Callerid: sp.sub.conf.Node.conf.Name,
+						Md5sum:   sp.sub.msgMd5,
+						Topic:    sp.sub.conf.Topic,
+						Type:     sp.sub.msgType,
+					})
+					return buf.Bytes()[4:]
+				}(),
+				sp.sub.conf.Node.nodeIp.String(),
+				sp.sub.conf.Node.udprosServerPort,
+				1500,
+			}}
+		}()
+		res, err = xcs.RequestTopic(sp.sub.conf.Topic, protocols)
 	}()
 
 	select {

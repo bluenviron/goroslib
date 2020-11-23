@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/pkg/apimaster"
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/prototcp"
 )
@@ -218,10 +217,9 @@ outer:
 		}
 	}()
 
-	sp.conf.Node.apiMasterClient.UnregisterService(apimaster.RequestUnregisterService{
-		Service:    sp.conf.Service,
-		ServiceUrl: sp.conf.Node.tcprosServerUrl,
-	})
+	sp.conf.Node.apiMasterClient.UnregisterService(
+		sp.conf.Service,
+		sp.conf.Node.tcprosServerUrl)
 
 	for _, spc := range sp.clients {
 		spc.client.Close()

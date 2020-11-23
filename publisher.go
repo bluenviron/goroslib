@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/aler9/goroslib/pkg/apimaster"
 	"github.com/aler9/goroslib/pkg/apislave"
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/protocommon"
@@ -381,10 +380,9 @@ outer:
 		}
 	}()
 
-	p.conf.Node.apiMasterClient.UnregisterPublisher(apimaster.RequestUnregister{
-		Topic:     p.conf.Topic,
-		CallerUrl: p.conf.Node.apiSlaveServerUrl,
-	})
+	p.conf.Node.apiMasterClient.UnregisterPublisher(
+		p.conf.Topic,
+		p.conf.Node.apiSlaveServerUrl)
 
 	for _, ps := range p.subscribers {
 		close(ps.terminate)

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/apimaster"
-	"github.com/aler9/goroslib/pkg/apiparam"
 	"github.com/aler9/goroslib/pkg/apislave"
 )
 
@@ -59,9 +57,7 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	}
 
 	for node, info := range ret {
-		res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
-			Name: node,
-		})
+		res, err := n.apiMasterClient.LookupNode(node)
 		if err != nil {
 			return nil, fmt.Errorf("lookupNode: %v", err)
 		}
@@ -173,9 +169,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			ret[entry.Name].Providers[node] = struct{}{}
 		}
 
-		res2, err := n.apiMasterClient.LookupService(apimaster.RequestLookup{
-			Name: entry.Name,
-		})
+		res2, err := n.apiMasterClient.LookupService(entry.Name)
 		if err != nil {
 			return nil, fmt.Errorf("lookupService: %v", err)
 		}
@@ -195,9 +189,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 // PingNode send a ping request to a given node, wait for the response and returns
 // the elapsed time.
 func (n *Node) PingNode(name string) (time.Duration, error) {
-	res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
-		Name: name,
-	})
+	res, err := n.apiMasterClient.LookupNode(name)
 	if err != nil {
 		return 0, err
 	}
@@ -221,9 +213,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 
 // KillNode send a kill request to a given node.
 func (n *Node) KillNode(name string) error {
-	res, err := n.apiMasterClient.LookupNode(apimaster.RequestLookup{
-		Name: name,
-	})
+	res, err := n.apiMasterClient.LookupNode(name)
 	if err != nil {
 		return err
 	}
@@ -235,9 +225,7 @@ func (n *Node) KillNode(name string) error {
 
 	xcs := apislave.NewClient(hostname, port, n.conf.Name)
 
-	err = xcs.Shutdown(apislave.RequestShutdown{
-		Reason: "",
-	})
+	err = xcs.Shutdown("")
 	if err != nil {
 		return err
 	}
@@ -247,9 +235,7 @@ func (n *Node) KillNode(name string) error {
 
 // GetParamBool returns a bool parameter from the master.
 func (n *Node) GetParamBool(key string) (bool, error) {
-	res, err := n.apiParamClient.GetParamBool(apiparam.RequestGetParam{
-		Key: key,
-	})
+	res, err := n.apiParamClient.GetParamBool(key)
 	if err != nil {
 		return false, err
 	}
@@ -258,9 +244,7 @@ func (n *Node) GetParamBool(key string) (bool, error) {
 
 // GetParamInt returns an int parameter from the master.
 func (n *Node) GetParamInt(key string) (int, error) {
-	res, err := n.apiParamClient.GetParamInt(apiparam.RequestGetParam{
-		Key: key,
-	})
+	res, err := n.apiParamClient.GetParamInt(key)
 	if err != nil {
 		return 0, err
 	}
@@ -269,9 +253,7 @@ func (n *Node) GetParamInt(key string) (int, error) {
 
 // GetParamString returns a string parameter from the master.
 func (n *Node) GetParamString(key string) (string, error) {
-	res, err := n.apiParamClient.GetParamString(apiparam.RequestGetParam{
-		Key: key,
-	})
+	res, err := n.apiParamClient.GetParamString(key)
 	if err != nil {
 		return "", err
 	}
@@ -280,24 +262,15 @@ func (n *Node) GetParamString(key string) (string, error) {
 
 // SetParamBool sets a bool parameter in the master.
 func (n *Node) SetParamBool(key string, val bool) error {
-	return n.apiParamClient.SetParamBool(apiparam.RequestSetParamBool{
-		Key: key,
-		Val: val,
-	})
+	return n.apiParamClient.SetParamBool(key, val)
 }
 
 // SetParamInt sets an int parameter in the master.
 func (n *Node) SetParamInt(key string, val int) error {
-	return n.apiParamClient.SetParamInt(apiparam.RequestSetParamInt{
-		Key: key,
-		Val: val,
-	})
+	return n.apiParamClient.SetParamInt(key, val)
 }
 
 // SetParamString sets a string parameter in the master.
 func (n *Node) SetParamString(key string, val string) error {
-	return n.apiParamClient.SetParamString(apiparam.RequestSetParamString{
-		Key: key,
-		Val: val,
-	})
+	return n.apiParamClient.SetParamString(key, val)
 }

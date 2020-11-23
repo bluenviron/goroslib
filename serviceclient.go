@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/pkg/apimaster"
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/prototcp"
 )
@@ -129,9 +128,8 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 }
 
 func (sc *ServiceClient) createConn() error {
-	res, err := sc.conf.Node.apiMasterClient.LookupService(apimaster.RequestLookup{
-		Name: sc.conf.Service,
-	})
+	res, err := sc.conf.Node.apiMasterClient.LookupService(
+		sc.conf.Service)
 	if err != nil {
 		return fmt.Errorf("lookupService: %v", err)
 	}

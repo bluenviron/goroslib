@@ -57,8 +57,11 @@ func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 }
 
 // GetParamBool writes a getParam request and expects a bool response.
-func (c *Client) GetParamBool(req RequestGetParam) (*ResponseGetParamBool, error) {
-	req.CallerId = c.callerId
+func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
+	req := RequestGetParam{
+		CallerId: c.callerId,
+		Key:      key,
+	}
 
 	var res ResponseGetParamBool
 	err := c.xc.Do("getParam", req, &res)
@@ -74,8 +77,11 @@ func (c *Client) GetParamBool(req RequestGetParam) (*ResponseGetParamBool, error
 }
 
 // GetParamBool writes a getParam request and expects a int response.
-func (c *Client) GetParamInt(req RequestGetParam) (*ResponseGetParamInt, error) {
-	req.CallerId = c.callerId
+func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
+	req := RequestGetParam{
+		CallerId: c.callerId,
+		Key:      key,
+	}
 
 	var res ResponseGetParamInt
 	err := c.xc.Do("getParam", req, &res)
@@ -91,8 +97,11 @@ func (c *Client) GetParamInt(req RequestGetParam) (*ResponseGetParamInt, error) 
 }
 
 // GetParamBool writes a getParam request and expects a string response.
-func (c *Client) GetParamString(req RequestGetParam) (*ResponseGetParamString, error) {
-	req.CallerId = c.callerId
+func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
+	req := RequestGetParam{
+		CallerId: c.callerId,
+		Key:      key,
+	}
 
 	var res ResponseGetParamString
 	err := c.xc.Do("getParam", req, &res)
@@ -108,8 +117,11 @@ func (c *Client) GetParamString(req RequestGetParam) (*ResponseGetParamString, e
 }
 
 // HasParam writes a hasParam request.
-func (c *Client) HasParam(req RequestHasParam) (*ResponseHasParam, error) {
-	req.CallerId = c.callerId
+func (c *Client) HasParam(key string) (*ResponseHasParam, error) {
+	req := RequestHasParam{
+		CallerId: c.callerId,
+		Key:      key,
+	}
 
 	var res ResponseHasParam
 	err := c.xc.Do("hasParam", req, &res)
@@ -129,8 +141,11 @@ func (c *Client) HasParam(req RequestHasParam) (*ResponseHasParam, error) {
 }
 
 // SearchParam writes a searchParam request.
-func (c *Client) SearchParam(req RequestSearchParam) (*ResponseSearchParam, error) {
-	req.CallerId = c.callerId
+func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
+	req := RequestSearchParam{
+		CallerId: c.callerId,
+		Key:      key,
+	}
 
 	var res ResponseSearchParam
 	err := c.xc.Do("searchParam", req, &res)
@@ -146,8 +161,12 @@ func (c *Client) SearchParam(req RequestSearchParam) (*ResponseSearchParam, erro
 }
 
 // SetParamBool writes a setParam request.
-func (c *Client) SetParamBool(req RequestSetParamBool) error {
-	req.CallerId = c.callerId
+func (c *Client) SetParamBool(key string, val bool) error {
+	req := RequestSetParamBool{
+		CallerId: c.callerId,
+		Key:      key,
+		Val:      val,
+	}
 
 	var res ResponseSetParam
 	err := c.xc.Do("setParam", req, &res)
@@ -163,8 +182,12 @@ func (c *Client) SetParamBool(req RequestSetParamBool) error {
 }
 
 // SetParamInt writes a setParam request.
-func (c *Client) SetParamInt(req RequestSetParamInt) error {
-	req.CallerId = c.callerId
+func (c *Client) SetParamInt(key string, val int) error {
+	req := RequestSetParamInt{
+		CallerId: c.callerId,
+		Key:      key,
+		Val:      val,
+	}
 
 	var res ResponseSetParam
 	err := c.xc.Do("setParam", req, &res)
@@ -180,8 +203,12 @@ func (c *Client) SetParamInt(req RequestSetParamInt) error {
 }
 
 // SetParamString writes a setParam request.
-func (c *Client) SetParamString(req RequestSetParamString) error {
-	req.CallerId = c.callerId
+func (c *Client) SetParamString(key string, val string) error {
+	req := RequestSetParamString{
+		CallerId: c.callerId,
+		Key:      key,
+		Val:      val,
+	}
 
 	var res ResponseSetParam
 	err := c.xc.Do("setParam", req, &res)

@@ -40,8 +40,11 @@ func (c *Client) GetPid() (*ResponseGetPid, error) {
 }
 
 // Shutdown writes a shutdown request.
-func (c *Client) Shutdown(req RequestShutdown) error {
-	req.CallerId = c.callerId
+func (c *Client) Shutdown(reason string) error {
+	req := RequestShutdown{
+		CallerId: c.callerId,
+		Reason:   reason,
+	}
 
 	var res ResponseShutdown
 	err := c.xc.Do("shutdown", req, &res)
@@ -57,8 +60,12 @@ func (c *Client) Shutdown(req RequestShutdown) error {
 }
 
 // RequestTopic writes a requestTopic request.
-func (c *Client) RequestTopic(req RequestRequestTopic) (*ResponseRequestTopic, error) {
-	req.CallerId = c.callerId
+func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (*ResponseRequestTopic, error) {
+	req := RequestRequestTopic{
+		CallerId:  c.callerId,
+		Topic:     topic,
+		Protocols: protocols,
+	}
 
 	var res ResponseRequestTopic
 	err := c.xc.Do("requestTopic", req, &res)

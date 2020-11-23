@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/pkg/apimaster"
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
@@ -179,10 +178,9 @@ outer:
 		}
 	}()
 
-	s.conf.Node.apiMasterClient.UnregisterSubscriber(apimaster.RequestUnregister{
-		Topic:     s.conf.Topic,
-		CallerUrl: s.conf.Node.apiSlaveServerUrl,
-	})
+	s.conf.Node.apiMasterClient.UnregisterSubscriber(
+		s.conf.Topic,
+		s.conf.Node.apiSlaveServerUrl)
 
 	for _, sp := range s.publishers {
 		sp.close()
