@@ -36,10 +36,6 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
-	if len(conf.Service) < 1 || conf.Service[0] != '/' {
-		return nil, fmt.Errorf("Service must begin with a slash (/)")
-	}
-
 	rt := reflect.TypeOf(conf.Req)
 	if rt.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("Req must be a pointer")
@@ -129,7 +125,7 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 
 func (sc *ServiceClient) createConn() error {
 	res, err := sc.conf.Node.apiMasterClient.LookupService(
-		sc.conf.Service)
+		sc.conf.Node.absoluteTopicName(sc.conf.Service))
 	if err != nil {
 		return fmt.Errorf("lookupService: %v", err)
 	}
@@ -150,10 +146,10 @@ func (sc *ServiceClient) createConn() error {
 	}
 
 	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
-		Callerid:   sc.conf.Node.conf.Name,
+		Callerid:   sc.conf.Node.absoluteName(),
 		Md5sum:     srvMd5,
 		Persistent: 1,
-		Service:    sc.conf.Service,
+		Service:    sc.conf.Node.absoluteTopicName(sc.conf.Service),
 	})
 	if err != nil {
 		conn.Close()

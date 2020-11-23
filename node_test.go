@@ -106,7 +106,8 @@ func TestNodeOpen(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
@@ -115,315 +116,11 @@ func TestNodeOpen(t *testing.T) {
 
 func TestNodeNoMaster(t *testing.T) {
 	_, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: "127.0.0.1",
 	})
 	require.Error(t, err)
-}
-
-func TestNodeGetNodes(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	p, err := newContainer("node-gen", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
-
-	n1, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n1.Close()
-
-	n2, err := NewNode(NodeConf{
-		Name:       "/goroslib2",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-
-	res, err := n1.GetNodes()
-	require.NoError(t, err)
-
-	require.Equal(t, 4, len(res))
-
-	node, ok := res["/nodegen"]
-	require.True(t, ok)
-
-	_, ok = node.PublishedTopics["/rosout"]
-	require.True(t, ok)
-
-	_, ok = node.ProvidedServices["/nodegen/set_logger_level"]
-	require.True(t, ok)
-
-	_, ok = node.ProvidedServices["/nodegen/get_loggers"]
-	require.True(t, ok)
-
-	n2.Close()
-
-	res, err = n1.GetNodes()
-	require.NoError(t, err)
-
-	require.Equal(t, 3, len(res))
-}
-
-func TestNodeGetMachines(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	p, err := newContainer("node-gen", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
-
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
-
-	res, err := n.GetMachines()
-	require.NoError(t, err)
-
-	require.Equal(t, 3, len(res))
-}
-
-func TestNodeGetTopics(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	p, err := newContainer("node-pub", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
-
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
-
-	res, err := n.GetTopics()
-	require.NoError(t, err)
-
-	topic, ok := res["/test_pub"]
-	require.True(t, ok)
-
-	require.Equal(t, "nodepub/Mymsg", topic.Type)
-
-	require.Equal(t, map[string]struct{}{"/nodepub": {}}, topic.Publishers)
-}
-
-func TestNodeGetServices(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	p, err := newContainer("node-serviceprovider", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
-
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
-
-	res, err := n.GetServices()
-	require.NoError(t, err)
-
-	service, ok := res["/test_srv"]
-	require.True(t, ok)
-
-	require.Equal(t, map[string]struct{}{"/nodeserviceprovider": {}}, service.Providers)
-}
-
-func TestNodePingNode(t *testing.T) {
-	for _, node := range []string{
-		"cpp",
-		"go",
-	} {
-		t.Run(node, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
-			defer m.close()
-
-			switch node {
-			case "cpp":
-				p, err := newContainer("node-gen", m.Ip())
-				require.NoError(t, err)
-				defer p.close()
-
-			case "go":
-				n1, err := NewNode(NodeConf{
-					Name:       "/nodegen",
-					MasterHost: m.Ip(),
-				})
-				require.NoError(t, err)
-				defer n1.Close()
-
-				pub, err := NewPublisher(PublisherConf{
-					Node:  n1,
-					Topic: "/test_pub",
-					Msg:   &TestMessage{},
-				})
-				require.NoError(t, err)
-				defer pub.Close()
-			}
-
-			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
-				MasterHost: m.Ip(),
-			})
-			require.NoError(t, err)
-			defer n.Close()
-
-			_, err = n.PingNode("/nodegen")
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestNodeKillNode(t *testing.T) {
-	for _, node := range []string{
-		"cpp",
-		"go",
-	} {
-		t.Run(node, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
-			defer m.close()
-
-			switch node {
-			case "cpp":
-				p, err := newContainer("node-gen", m.Ip())
-				require.NoError(t, err)
-				defer p.close()
-
-			case "go":
-				n1, err := NewNode(NodeConf{
-					Name:       "/nodegen",
-					MasterHost: m.Ip(),
-				})
-				require.NoError(t, err)
-				defer n1.Close()
-
-				pub, err := NewPublisher(PublisherConf{
-					Node:  n1,
-					Topic: "/test_pub",
-					Msg:   &TestMessage{},
-				})
-				require.NoError(t, err)
-				defer pub.Close()
-
-				sp, err := NewServiceProvider(ServiceProviderConf{
-					Node:    n1,
-					Service: "/test_srv",
-					Callback: func(req *TestServiceReq) *TestServiceRes {
-						return &TestServiceRes{}
-					},
-				})
-				require.NoError(t, err)
-				defer sp.Close()
-			}
-
-			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
-				MasterHost: m.Ip(),
-			})
-			require.NoError(t, err)
-			defer n.Close()
-
-			err = n.KillNode("/nodegen")
-			require.NoError(t, err)
-
-			time.Sleep(1 * time.Second)
-
-			res, err := n.GetNodes()
-			require.NoError(t, err)
-
-			require.Equal(t, 2, len(res))
-		})
-	}
-}
-
-func TestNodeGetParam(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	p, err := newContainer("node-setparam", m.Ip())
-	require.NoError(t, err)
-	defer p.close()
-
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
-
-	t.Run("bool", func(t *testing.T) {
-		res, err := n.GetParamBool("/test_bool")
-		require.NoError(t, err)
-		require.Equal(t, true, res)
-	})
-
-	t.Run("int", func(t *testing.T) {
-		res, err := n.GetParamInt("/test_int")
-		require.NoError(t, err)
-		require.Equal(t, 123, res)
-	})
-
-	t.Run("string", func(t *testing.T) {
-		res, err := n.GetParamString("/test_string")
-		require.NoError(t, err)
-		require.Equal(t, "ABC", res)
-	})
-}
-
-func TestNodeSetParam(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer n.Close()
-
-	t.Run("bool", func(t *testing.T) {
-		err = n.SetParamBool("/test_bool", true)
-		require.NoError(t, err)
-
-		res, err := n.GetParamBool("/test_bool")
-		require.NoError(t, err)
-		require.Equal(t, true, res)
-	})
-
-	t.Run("int", func(t *testing.T) {
-		err = n.SetParamInt("/test_int", 123)
-		require.NoError(t, err)
-
-		res, err := n.GetParamInt("/test_int")
-		require.NoError(t, err)
-		require.Equal(t, 123, res)
-	})
-
-	t.Run("string", func(t *testing.T) {
-		err = n.SetParamString("/test_string", "ABC")
-		require.NoError(t, err)
-
-		res, err := n.GetParamString("/test_string")
-		require.NoError(t, err)
-		require.Equal(t, "ABC", res)
-	})
 }
 
 func TestNodeRosnodeInfo(t *testing.T) {
@@ -432,7 +129,8 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
@@ -443,7 +141,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	// services during initialization, while goroslib does not do this yet
 	pub, err := NewPublisher(PublisherConf{
 		Node:  n,
-		Topic: "/test_pub",
+		Topic: "test_topic",
 		Msg:   &std_msgs.Float64{},
 	})
 	require.NoError(t, err)
@@ -451,28 +149,39 @@ func TestNodeRosnodeInfo(t *testing.T) {
 
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:     n,
-		Topic:    "/test_pub",
+		Topic:    "test_topic",
 		Callback: func(msg *sensor_msgs.Imu) {},
 	})
 	require.NoError(t, err)
 	defer sub.Close()
 
+	sp, err := NewServiceProvider(ServiceProviderConf{
+		Node:    n,
+		Service: "test_srv",
+		Callback: func(req *TestServiceReq) *TestServiceRes {
+			return &TestServiceRes{}
+		},
+	})
+	require.NoError(t, err)
+	defer sp.Close()
+
 	rt, err := newContainer("rosnode-info", m.Ip())
 	require.NoError(t, err)
 
 	require.Regexp(t, regexp.MustCompile("^--------------------------------------------------------------------------------\n"+
-		"Node \\[/goroslib\\]\n"+
+		"Node \\[/myns/goroslib\\]\n"+
 		"Publications: \n"+
-		"* \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
-		" \\* /test_pub \\[std_msgs/Float64\\]\n"+
+		" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
+		" \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
 		"\n"+
 		"Subscriptions: \n"+
-		" \\* /test_pub \\[std_msgs/Float64\\]\n"+
+		" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
 		"\n"+
-		"Services: None\n"+
+		"Services: \n"+
+		" \\* /myns/test_srv\n"+
 		"\n"+
 		"\n"+
 		"contacting node http://.+? ...\n"+
-		"Pid: .+?\n"+
+		"Pid: [0-9]+\n"+
 		"\n$"), rt.waitOutput())
 }

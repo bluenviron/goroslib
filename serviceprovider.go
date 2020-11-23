@@ -62,10 +62,6 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
-	if len(conf.Service) < 1 || conf.Service[0] != '/' {
-		return nil, fmt.Errorf("Service must begin with a slash (/)")
-	}
-
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")
@@ -171,7 +167,7 @@ outer:
 			}
 
 			err := req.client.WriteHeader(&prototcp.HeaderServiceProvider{
-				Callerid:     sp.conf.Node.conf.Name,
+				Callerid:     sp.conf.Node.absoluteName(),
 				Md5sum:       sp.srvMd5,
 				RequestType:  sp.reqType,
 				ResponseType: sp.resType,
@@ -222,7 +218,7 @@ outer:
 	}()
 
 	sp.conf.Node.apiMasterClient.UnregisterService(
-		sp.conf.Service,
+		sp.conf.Node.absoluteTopicName(sp.conf.Service),
 		sp.conf.Node.tcprosServerUrl)
 
 	for _, spc := range sp.clients {

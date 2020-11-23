@@ -11,9 +11,9 @@ bool test_srv(nodeservice_srv::Mysrv::Request &req,
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "nodeserviceprovider");
-    ros::NodeHandle node("~");
+    ros::NodeHandle node;
 
-    auto srv = node.advertiseService("/test_srv", test_srv);
+    auto srv = node.advertiseService("test_srv", test_srv);
 
     ros::spin();
     return 0;

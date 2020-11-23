@@ -17,7 +17,7 @@ func main() {
 	// create a node with given name and linked to given master.
 	// master can be reached with an ip or hostname.
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:       "/goroslib-sub",
+		Name:       "goroslib_sub",
 		MasterHost: "127.0.0.1",
 	})
 	if err != nil {
@@ -30,7 +30,7 @@ func main() {
 	// supports the protocol. Currently, rospy (python) does not support it.
 	sub, err := goroslib.NewSubscriber(goroslib.SubscriberConf{
 		Node:     n,
-		Topic:    "/test_pub",
+		Topic:    "test_topic",
 		Callback: onMessage,
 		Protocol: goroslib.UDP,
 	})

@@ -17,6 +17,7 @@ Features:
 * Call and provide services
 * Get and set parameters
 * Get infos about other nodes, topics, services
+* Use namespaces and relative topics
 * Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
 * Compilation of `.msg` files is not necessary, message definitions are deducted from code
 * Standard messages are available in folder `msgs/`
@@ -140,22 +141,24 @@ make test
 
 ## Links
 
-(v1) Protocol documentation
+(v1) ROS Documentation
 
-* https://wiki.ros.org/ROS/Technical%20Overview
-* https://wiki.ros.org/Implementing%20Client%20Libraries
-* https://wiki.ros.org/ROS/Master_API
-* https://wiki.ros.org/ROS/Parameter%20Server%20API
-* https://wiki.ros.org/ROS/Slave_API
-* https://wiki.ros.org/ROS/Connection%20Header
-* https://wiki.ros.org/ROS/TCPROS
-* https://wiki.ros.org/ROS/UDPROS
-* https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
-
-(v1) Messages
-
-* https://github.com/ros/std_msgs
-* https://github.com/ros/common_msgs
+* Conventions
+  * https://wiki.ros.org/ROS/Technical%20Overview
+  * https://wiki.ros.org/Implementing%20Client%20Libraries
+  * http://wiki.ros.org/Names
+* APIs
+  * https://wiki.ros.org/ROS/Master_API
+  * https://wiki.ros.org/ROS/Parameter%20Server%20API
+  * https://wiki.ros.org/ROS/Slave_API
+* Protocols
+  * https://wiki.ros.org/ROS/Connection%20Header
+  * https://wiki.ros.org/ROS/TCPROS
+  * https://wiki.ros.org/ROS/UDPROS
+  * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
+* Messages
+  * https://github.com/ros/std_msgs
+  * https://github.com/ros/common_msgs
 
 Other Go libraries
 

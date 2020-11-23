@@ -36,7 +36,7 @@ func main() {
 	// create a node with given name and linked to given master.
 	// master can be reached with an ip or hostname.
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:       "/goroslib-sp",
+		Name:       "goroslib_sp",
 		MasterHost: "127.0.0.1",
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func main() {
 	// create a service provider
 	sp, err := goroslib.NewServiceProvider(goroslib.ServiceProviderConf{
 		Node:     n,
-		Service:  "/test_srv",
+		Service:  "test_srv",
 		Callback: onService,
 	})
 	if err != nil {

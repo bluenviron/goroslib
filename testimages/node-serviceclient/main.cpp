@@ -5,9 +5,9 @@
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "nodeserviceclient");
-    ros::NodeHandle node("~");
+    ros::NodeHandle node;
 
-    auto client = node.serviceClient<nodeservice_srv::Mysrv>("/test_srv");
+    auto client = node.serviceClient<nodeservice_srv::Mysrv>("test_srv");
 
     nodeservice_srv::Mysrv::Request req;
     req.a = 123;

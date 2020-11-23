@@ -17,9 +17,9 @@ void on_message(const std_msgs::Int64MultiArray::ConstPtr& in) {
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "nodesub");
-    ros::NodeHandle node("~");
+    ros::NodeHandle node;
 
-    auto sub = node.subscribe("/test_pub", 100, on_message, ros::TransportHints().udp());
+    auto sub = node.subscribe("test_topic", 100, on_message, ros::TransportHints().udp());
 
     ros::spin();
     return 0;

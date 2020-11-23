@@ -199,7 +199,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 		return 0, err
 	}
 
-	xcs := apislave.NewClient(hostname, port, n.conf.Name)
+	xcs := apislave.NewClient(hostname, port, n.absoluteName())
 
 	start := time.Now()
 
@@ -223,7 +223,7 @@ func (n *Node) KillNode(name string) error {
 		return err
 	}
 
-	xcs := apislave.NewClient(hostname, port, n.conf.Name)
+	xcs := apislave.NewClient(hostname, port, n.absoluteName())
 
 	err = xcs.Shutdown("")
 	if err != nil {

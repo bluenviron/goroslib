@@ -72,10 +72,6 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
-	if len(conf.Topic) < 1 || conf.Topic[0] != '/' {
-		return nil, fmt.Errorf("Topic must begin with a slash (/)")
-	}
-
 	msgt := reflect.TypeOf(conf.Msg)
 	if msgt.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("Msg must be a pointer")
@@ -275,9 +271,9 @@ outer:
 							func() []byte {
 								buf := bytes.NewBuffer(nil)
 								protocommon.HeaderEncode(buf, &protoudp.HeaderPublisher{
-									Callerid: p.conf.Node.conf.Name,
+									Callerid: p.conf.Node.absoluteName(),
 									Md5sum:   p.msgMd5,
-									Topic:    p.conf.Topic,
+									Topic:    p.conf.Node.absoluteTopicName(p.conf.Topic),
 									Type:     p.msgType,
 								})
 								return buf.Bytes()[4:]
@@ -313,9 +309,9 @@ outer:
 				}
 
 				err := req.client.WriteHeader(&prototcp.HeaderPublisher{
-					Callerid: p.conf.Node.conf.Name,
+					Callerid: p.conf.Node.absoluteName(),
 					Md5sum:   p.msgMd5,
-					Topic:    p.conf.Topic,
+					Topic:    p.conf.Node.absoluteTopicName(p.conf.Topic),
 					Type:     p.msgType,
 					Latching: func() int {
 						if p.conf.Latch {
@@ -385,7 +381,7 @@ outer:
 	}()
 
 	p.conf.Node.apiMasterClient.UnregisterPublisher(
-		p.conf.Topic,
+		p.conf.Node.absoluteTopicName(p.conf.Topic),
 		p.conf.Node.apiSlaveServerUrl)
 
 	for _, ps := range p.subscribers {

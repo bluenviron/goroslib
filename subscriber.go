@@ -62,10 +62,6 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
-	if len(conf.Topic) < 1 || conf.Topic[0] != '/' {
-		return nil, fmt.Errorf("Topic must begin with a slash (/)")
-	}
-
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")
@@ -184,7 +180,7 @@ outer:
 	}()
 
 	s.conf.Node.apiMasterClient.UnregisterSubscriber(
-		s.conf.Topic,
+		s.conf.Node.absoluteTopicName(s.conf.Topic),
 		s.conf.Node.apiSlaveServerUrl)
 
 	for _, sp := range s.publishers {

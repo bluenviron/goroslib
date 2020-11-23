@@ -18,7 +18,8 @@ func TestPublisherRegister(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
@@ -26,7 +27,7 @@ func TestPublisherRegister(t *testing.T) {
 
 	pub, err := NewPublisher(PublisherConf{
 		Node:  n,
-		Topic: "/test_pub",
+		Topic: "test_topic",
 		Msg:   &TestMessage{},
 	})
 	require.NoError(t, err)
@@ -38,10 +39,10 @@ func TestPublisherRegister(t *testing.T) {
 	topics, err := n.GetTopics()
 	require.NoError(t, err)
 
-	topic, ok := topics["/test_pub"]
+	topic, ok := topics["/myns/test_topic"]
 	require.Equal(t, true, ok)
 
-	_, ok = topic.Publishers["/goroslib"]
+	_, ok = topic.Publishers["/myns/goroslib"]
 	require.Equal(t, true, ok)
 
 	// test un-registration
@@ -52,10 +53,10 @@ func TestPublisherRegister(t *testing.T) {
 	topics, err = n.GetTopics()
 	require.NoError(t, err)
 
-	topic, ok = topics["/test_pub"]
+	topic, ok = topics["/myns/test_topic"]
 	require.Equal(t, true, ok)
 
-	_, ok = topic.Publishers["/goroslib"]
+	_, ok = topic.Publishers["/myns/goroslib"]
 	require.Equal(t, false, ok)
 }
 
@@ -90,7 +91,8 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 
 			case "go":
 				ns, err := NewNode(NodeConf{
-					Name:       "/goroslibsub",
+					Namespace:  "/myns",
+					Name:       "goroslibsub",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -99,7 +101,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 				recv = make(chan *TestMessage)
 				sub, err := NewSubscriber(SubscriberConf{
 					Node:  ns,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Callback: func(msg *TestMessage) {
 						recv <- msg
 					},
@@ -109,7 +111,8 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -117,7 +120,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 
 			pub, err := NewPublisher(PublisherConf{
 				Node:  n,
-				Topic: "/test_pub",
+				Topic: "test_topic",
 				Msg:   &TestMessage{},
 			})
 			require.NoError(t, err)
@@ -162,7 +165,8 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -180,7 +184,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 			pub, err := NewPublisher(PublisherConf{
 				Node:  n,
-				Topic: "/test_pub",
+				Topic: "test_topic",
 				Msg:   expected,
 			})
 			require.NoError(t, err)
@@ -197,7 +201,8 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 			case "go":
 				ns, err := NewNode(NodeConf{
-					Name:       "/goroslibsub",
+					Namespace:  "/myns",
+					Name:       "goroslibsub",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -207,7 +212,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 				sub, err := NewSubscriber(SubscriberConf{
 					Node:  ns,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Callback: func(msg *TestMessage) {
 						recv <- msg
 					},
@@ -263,7 +268,8 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -281,7 +287,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 
 			pub, err := NewPublisher(PublisherConf{
 				Node:  n,
-				Topic: "/test_pub",
+				Topic: "test_topic",
 				Msg:   expected,
 				Latch: true,
 			})
@@ -291,7 +297,8 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 			pub.Write(expected)
 
 			ns, err := NewNode(NodeConf{
-				Name:       "/goroslibsub",
+				Namespace:  "/myns",
+				Name:       "goroslibsub",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -308,7 +315,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 
 				sub, err := NewSubscriber(SubscriberConf{
 					Node:  ns,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Callback: func(msg *TestMessage) {
 						recv <- msg
 					},
@@ -343,7 +350,8 @@ func TestPublisherWriteUdp(t *testing.T) {
 			defer m.close()
 
 			ns, err := NewNode(NodeConf{
-				Name:       "/goroslibsub",
+				Namespace:  "/myns",
+				Name:       "goroslibsub",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -363,7 +371,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 
 				sub, err := NewSubscriber(SubscriberConf{
 					Node:  ns,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Callback: func(msg *std_msgs.Int64MultiArray) {
 						recv <- msg
 					},
@@ -374,7 +382,8 @@ func TestPublisherWriteUdp(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -382,7 +391,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 
 			pub, err := NewPublisher(PublisherConf{
 				Node:  n,
-				Topic: "/test_pub",
+				Topic: "test_topic",
 				Msg:   &std_msgs.Int64MultiArray{},
 			})
 			require.NoError(t, err)
@@ -414,7 +423,8 @@ func TestPublisherRostopicHz(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
@@ -422,7 +432,7 @@ func TestPublisherRostopicHz(t *testing.T) {
 
 	pub, err := NewPublisher(PublisherConf{
 		Node:  n,
-		Topic: "/test_pub",
+		Topic: "test_topic",
 		Msg:   &std_msgs.Float64{},
 	})
 	require.NoError(t, err)

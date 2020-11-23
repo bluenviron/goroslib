@@ -76,7 +76,7 @@ func (sp *subscriberPublisher) run() {
 }
 
 func (sp *subscriberPublisher) do(host string, port int) error {
-	xcs := apislave.NewClient(host, port, sp.sub.conf.Node.conf.Name)
+	xcs := apislave.NewClient(host, port, sp.sub.conf.Node.absoluteName())
 
 	subDone := make(chan struct{}, 1)
 	var res *apislave.ResponseRequestTopic
@@ -94,9 +94,9 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 				func() []byte {
 					buf := bytes.NewBuffer(nil)
 					protocommon.HeaderEncode(buf, &protoudp.HeaderSubscriber{
-						Callerid: sp.sub.conf.Node.conf.Name,
+						Callerid: sp.sub.conf.Node.absoluteName(),
 						Md5sum:   sp.sub.msgMd5,
-						Topic:    sp.sub.conf.Topic,
+						Topic:    sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
 						Type:     sp.sub.msgType,
 					})
 					return buf.Bytes()[4:]
@@ -106,7 +106,7 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 				1500,
 			}}
 		}()
-		res, err = xcs.RequestTopic(sp.sub.conf.Topic, protocols)
+		res, err = xcs.RequestTopic(sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic), protocols)
 	}()
 
 	select {
@@ -176,9 +176,9 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 		defer close(subDone)
 
 		err = conn.WriteHeader(&prototcp.HeaderSubscriber{
-			Callerid:   sp.sub.conf.Node.conf.Name,
+			Callerid:   sp.sub.conf.Node.absoluteName(),
 			Md5sum:     sp.sub.msgMd5,
-			Topic:      sp.sub.conf.Topic,
+			Topic:      sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
 			Type:       sp.sub.msgType,
 			TcpNodelay: 0,
 		})
@@ -201,7 +201,7 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 		return err
 	}
 
-	if outHeader.Topic != sp.sub.conf.Topic {
+	if outHeader.Topic != sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic) {
 		return fmt.Errorf("wrong topic")
 	}
 

@@ -32,7 +32,8 @@ func TestSubscriberRegister(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
@@ -40,7 +41,7 @@ func TestSubscriberRegister(t *testing.T) {
 
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:  n,
-		Topic: "/test_pub",
+		Topic: "test_topic",
 		Callback: func(msg *TestMessage) {
 		},
 	})
@@ -53,10 +54,10 @@ func TestSubscriberRegister(t *testing.T) {
 	topics, err := n.GetTopics()
 	require.NoError(t, err)
 
-	topic, ok := topics["/test_pub"]
+	topic, ok := topics["/myns/test_topic"]
 	require.Equal(t, true, ok)
 
-	_, ok = topic.Subscribers["/goroslib"]
+	_, ok = topic.Subscribers["/myns/goroslib"]
 	require.Equal(t, true, ok)
 
 	// test un-registration
@@ -67,10 +68,10 @@ func TestSubscriberRegister(t *testing.T) {
 	topics, err = n.GetTopics()
 	require.NoError(t, err)
 
-	topic, ok = topics["/test_pub"]
+	topic, ok = topics["/myns/test_topic"]
 	require.Equal(t, true, ok)
 
-	_, ok = topic.Subscribers["/goroslib"]
+	_, ok = topic.Subscribers["/myns/goroslib"]
 	require.Equal(t, false, ok)
 }
 
@@ -128,7 +129,8 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 			case "go":
 				expected = expected1
 				p, err := NewNode(NodeConf{
-					Name:       "/goroslib_pub",
+					Namespace:  "/myns",
+					Name:       "goroslib_pub",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -136,7 +138,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 
 				pub, err := NewPublisher(PublisherConf{
 					Node:  p,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Msg:   &TestMessage{},
 				})
 				require.NoError(t, err)
@@ -168,7 +170,8 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib_sub",
+				Namespace:  "/myns",
+				Name:       "goroslib_sub",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -179,7 +182,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 
 				sub, err := NewSubscriber(SubscriberConf{
 					Node:  n,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Callback: func(msg *TestMessage) {
 						recv <- msg
 					},
@@ -194,7 +197,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 
 				sub, err := NewSubscriber(SubscriberConf{
 					Node:  n,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Callback: func(msg *sensor_msgs.Imu) {
 						recv <- msg
 					},
@@ -242,7 +245,8 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -252,7 +256,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 			sub, err := NewSubscriber(SubscriberConf{
 				Node:  n,
-				Topic: "/test_pub",
+				Topic: "test_topic",
 				Callback: func(msg *TestMessage) {
 					recv <- msg
 				},
@@ -268,7 +272,8 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 			case "go":
 				p, err := NewNode(NodeConf{
-					Name:       "/goroslib_pub",
+					Namespace:  "/myns",
+					Name:       "goroslib_pub",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -276,7 +281,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 				pub, err := NewPublisher(PublisherConf{
 					Node:  p,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Msg:   &TestMessage{},
 				})
 				require.NoError(t, err)
@@ -330,7 +335,8 @@ func TestSubscriberReadUdp(t *testing.T) {
 
 			case "go":
 				p, err := NewNode(NodeConf{
-					Name:       "/goroslib_pub",
+					Namespace:  "/myns",
+					Name:       "goroslib_pub",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -338,7 +344,7 @@ func TestSubscriberReadUdp(t *testing.T) {
 
 				pub, err := NewPublisher(PublisherConf{
 					Node:  p,
-					Topic: "/test_pub",
+					Topic: "test_topic",
 					Msg:   &std_msgs.Int64MultiArray{},
 				})
 				require.NoError(t, err)
@@ -364,7 +370,8 @@ func TestSubscriberReadUdp(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -374,7 +381,7 @@ func TestSubscriberReadUdp(t *testing.T) {
 
 			sub, err := NewSubscriber(SubscriberConf{
 				Node:  n,
-				Topic: "/test_pub",
+				Topic: "test_topic",
 				Callback: func(msg *std_msgs.Int64MultiArray) {
 					recv <- msg
 				},
@@ -387,49 +394,4 @@ func TestSubscriberReadUdp(t *testing.T) {
 			require.Equal(t, &expected, res)
 		})
 	}
-}
-
-func TestSubscriberNamespace(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	sn, err := NewNode(NodeConf{
-		Name:       "/mynamespace/sub",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer sn.Close()
-
-	recv := make(chan struct{})
-	sub, err := NewSubscriber(SubscriberConf{
-		Node:  sn,
-		Topic: "/test_pub",
-		Callback: func(msg *std_msgs.Int64) {
-			recv <- struct{}{}
-		},
-	})
-	require.NoError(t, err)
-	defer sub.Close()
-
-	pn, err := NewNode(NodeConf{
-		Name:       "/mynamespace/pub",
-		MasterHost: m.Ip(),
-	})
-	require.NoError(t, err)
-	defer pn.Close()
-
-	pub, err := NewPublisher(PublisherConf{
-		Node:  pn,
-		Topic: "/test_pub",
-		Msg:   &std_msgs.Int64{},
-	})
-	require.NoError(t, err)
-	defer pub.Close()
-
-	time.Sleep(time.Second * 1)
-
-	pub.Write(&std_msgs.Int64{Data: 123})
-
-	<-recv
 }

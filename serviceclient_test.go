@@ -37,14 +37,15 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 
 			case "go":
 				nsp, err = NewNode(NodeConf{
-					Name:       "/goroslib_sp",
+					Namespace:  "/myns",
+					Name:       "goroslib_sp",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
 
 				sp, err = NewServiceProvider(ServiceProviderConf{
 					Node:    nsp,
-					Service: "/test_srv",
+					Service: "test_srv",
 					Callback: func(req *TestServiceReq) *TestServiceRes {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {
@@ -57,7 +58,8 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -65,7 +67,7 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 
 			sc, err := NewServiceClient(ServiceClientConf{
 				Node:    n,
-				Service: "/test_srv",
+				Service: "test_srv",
 				Req:     &TestServiceReq{},
 				Res:     &TestServiceRes{},
 			})
@@ -114,7 +116,8 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Name:       "/goroslib",
+				Namespace:  "/myns",
+				Name:       "goroslib",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -122,7 +125,7 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 
 			sc, err := NewServiceClient(ServiceClientConf{
 				Node:    n,
-				Service: "/test_srv",
+				Service: "test_srv",
 				Req:     &TestServiceReq{},
 				Res:     &TestServiceRes{},
 			})
@@ -145,7 +148,8 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 
 			case "go":
 				nsp, err := NewNode(NodeConf{
-					Name:       "/goroslib_sp",
+					Namespace:  "/myns",
+					Name:       "goroslib_sp",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -153,7 +157,7 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 
 				sp, err := NewServiceProvider(ServiceProviderConf{
 					Node:    nsp,
-					Service: "/test_srv",
+					Service: "test_srv",
 					Callback: func(req *TestServiceReq) *TestServiceRes {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {

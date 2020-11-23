@@ -13,7 +13,8 @@ func TestServiceProviderRegister(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Name:       "/goroslib",
+		Namespace:  "/myns",
+		Name:       "goroslib",
 		MasterHost: m.Ip(),
 	})
 	require.NoError(t, err)
@@ -21,7 +22,7 @@ func TestServiceProviderRegister(t *testing.T) {
 
 	sp, err := NewServiceProvider(ServiceProviderConf{
 		Node:    n,
-		Service: "/test_srv",
+		Service: "test_srv",
 		Callback: func(req *TestServiceReq) *TestServiceRes {
 			c := float64(0)
 			if req.A == 123 && req.B == "456" {
@@ -40,10 +41,10 @@ func TestServiceProviderRegister(t *testing.T) {
 	services, err := n.GetServices()
 	require.NoError(t, err)
 
-	service, ok := services["/test_srv"]
+	service, ok := services["/myns/test_srv"]
 	require.Equal(t, true, ok)
 
-	_, ok = service.Providers["/goroslib"]
+	_, ok = service.Providers["/myns/goroslib"]
 	require.Equal(t, true, ok)
 
 	// test un-registration
@@ -54,7 +55,7 @@ func TestServiceProviderRegister(t *testing.T) {
 	services, err = n.GetServices()
 	require.NoError(t, err)
 
-	service, ok = services["/test_srv"]
+	service, ok = services["/myns/test_srv"]
 	require.Equal(t, false, ok)
 }
 
@@ -69,7 +70,8 @@ func TestServiceProviderResponse(t *testing.T) {
 			defer m.close()
 
 			nsp, err := NewNode(NodeConf{
-				Name:       "/goroslib_sp",
+				Namespace:  "/myns",
+				Name:       "goroslib_sp",
 				MasterHost: m.Ip(),
 			})
 			require.NoError(t, err)
@@ -77,7 +79,7 @@ func TestServiceProviderResponse(t *testing.T) {
 
 			sp, err := NewServiceProvider(ServiceProviderConf{
 				Node:    nsp,
-				Service: "/test_srv",
+				Service: "test_srv",
 				Callback: func(req *TestServiceReq) *TestServiceRes {
 					c := float64(0)
 					if req.A == 123 && req.B == "456" {
@@ -97,7 +99,8 @@ func TestServiceProviderResponse(t *testing.T) {
 
 			case "go":
 				nsc, err := NewNode(NodeConf{
-					Name:       "/goroslib_sc",
+					Namespace:  "/myns",
+					Name:       "goroslib_sc",
 					MasterHost: m.Ip(),
 				})
 				require.NoError(t, err)
@@ -105,7 +108,7 @@ func TestServiceProviderResponse(t *testing.T) {
 
 				sc, err := NewServiceClient(ServiceClientConf{
 					Node:    nsc,
-					Service: "/test_srv",
+					Service: "test_srv",
 					Req:     &TestServiceReq{},
 					Res:     &TestServiceRes{},
 				})

@@ -18,7 +18,7 @@ Basic example (more are available at https://github.com/aler9/goroslib/tree/mast
 
   func main() {
       n, err := goroslib.NewNode(goroslib.NodeConf{
-          Name:       "/goroslib",
+          Name:       "goroslib",
           MasterHost: "127.0.0.1",
       })
       if err != nil {
@@ -28,7 +28,7 @@ Basic example (more are available at https://github.com/aler9/goroslib/tree/mast
 
       sub, err := goroslib.NewSubscriber(goroslib.SubscriberConf{
           Node:     n,
-          Topic:    "/test_pub",
+          Topic:    "test_topic",
           Callback: onMessage,
       })
       if err != nil {
@@ -46,6 +46,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/aler9/goroslib/pkg/apimaster"
@@ -113,31 +114,35 @@ type serviceProviderNewReq struct {
 
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
-	// hostname or ip of the master node
+	// hostname or ip of the master node.
 	MasterHost string
 
-	// (optional) port of the HTTP API of the master node
-	// if not provided, it will be set to 11311
+	// (optional) port of the HTTP API of the master node.
+	// It defaults to 11311.
 	MasterPort int
 
-	// name of this node
+	// (optional) namespace of the node.
+	// It defaults to '/' (global namespace).
+	Namespace string
+
+	// name of this node.
 	Name string
 
 	// (optional) hostname or ip of this node, needed by other nodes
 	// in order to communicate with it it.
-	// if not provided, it will be set automatically
+	// if not provided, it will be set automatically.
 	Host string
 
 	// (optional) port of the Slave API server of this node.
-	// if not provided, it will be chosen by the OS
+	// if not provided, it will be chosen by the OS.
 	ApislavePort int
 
 	// (optional) port of the TCPROS server of this node.
-	// if not provided, it will be chosen by the OS
+	// if not provided, it will be chosen by the OS.
 	TcprosPort int
 
 	// (optional) port of the UDPROS server of this node.
-	// if not provided, it will be chosen by the OS
+	// if not provided, it will be chosen by the OS.
 	UdprosPort int
 }
 
@@ -190,15 +195,27 @@ type Node struct {
 
 // NewNode allocates a Node. See NodeConf for the options.
 func NewNode(conf NodeConf) (*Node, error) {
-	if len(conf.Name) == 0 {
+	if conf.Namespace == "" {
+		conf.Namespace = "/"
+	}
+	if conf.Namespace[0] != '/' {
+		return nil, fmt.Errorf("Namespace must begin with a slash (/)")
+	}
+	if conf.Namespace != "/" && conf.Namespace[len(conf.Namespace)-1] == '/' {
+		return nil, fmt.Errorf("Namespace can't end with a slash (/)")
+	}
+
+	if conf.Name == "" {
 		return nil, fmt.Errorf("Name not provided")
 	}
-	if conf.Name[0] != '/' {
-		return nil, fmt.Errorf("Name must begin with a slash (/)")
+	if strings.ContainsRune(conf.Name, '/') {
+		return nil, fmt.Errorf("Name cannot contain slashes (/), use Namespace to set a namespace")
 	}
+
 	if len(conf.MasterHost) == 0 {
 		return nil, fmt.Errorf("MasterHost not provided")
 	}
+
 	if conf.MasterPort == 0 {
 		conf.MasterPort = 11311
 	}
@@ -256,44 +273,10 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, err
 	}
 
-	apiMasterClient := apimaster.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
-	apiParamClient := apiparam.NewClient(masterIp.String(), conf.MasterPort, conf.Name)
-
-	apiSlaveServer, err := apislave.NewServer(conf.ApislavePort)
-	if err != nil {
-		return nil, err
-	}
-	apiSlaveServerUrl := xmlrpc.ServerUrl(nodeIp.String(), apiSlaveServer.Port()) // get port in case it has been set automatically
-
-	tcprosServer, err := prototcp.NewServer(conf.TcprosPort)
-	if err != nil {
-		apiSlaveServer.Close()
-		return nil, err
-	}
-	tcprosServerPort := tcprosServer.Port() // get port in case it has been set automatically
-	tcprosServerUrl := prototcp.ServerUrl(nodeIp.String(), tcprosServerPort)
-
-	udprosServer, err := protoudp.NewServer(conf.UdprosPort)
-	if err != nil {
-		tcprosServer.Close()
-		apiSlaveServer.Close()
-		return nil, err
-	}
-	udprosServerPort := udprosServer.Port() // get port in case it has been set automatically
-
 	n := &Node{
 		conf:                   conf,
 		masterIp:               masterIp,
 		nodeIp:                 nodeIp,
-		apiMasterClient:        apiMasterClient,
-		apiParamClient:         apiParamClient,
-		apiSlaveServer:         apiSlaveServer,
-		apiSlaveServerUrl:      apiSlaveServerUrl,
-		tcprosServer:           tcprosServer,
-		tcprosServerPort:       tcprosServerPort,
-		tcprosServerUrl:        tcprosServerUrl,
-		udprosServer:           udprosServer,
-		udprosServerPort:       udprosServerPort,
 		tcprosClients:          make(map[*prototcp.Conn]struct{}),
 		udprosSubPublishers:    make(map[*subscriberPublisher]chan *protoudp.Frame),
 		subscribers:            make(map[string]*Subscriber),
@@ -320,6 +303,37 @@ func NewNode(conf NodeConf) (*Node, error) {
 		done:                   make(chan struct{}),
 	}
 
+	n.apiMasterClient = apimaster.NewClient(masterIp.String(), conf.MasterPort,
+		n.absoluteName())
+
+	n.apiParamClient = apiparam.NewClient(masterIp.String(), conf.MasterPort,
+		n.absoluteName())
+
+	n.apiSlaveServer, err = apislave.NewServer(conf.ApislavePort)
+	if err != nil {
+		return nil, err
+	}
+	// get port in case it has been set automatically
+	n.apiSlaveServerUrl = xmlrpc.ServerUrl(nodeIp.String(), n.apiSlaveServer.Port())
+
+	n.tcprosServer, err = prototcp.NewServer(conf.TcprosPort)
+	if err != nil {
+		n.apiSlaveServer.Close()
+		return nil, err
+	}
+	// get port in case it has been set automatically
+	n.tcprosServerPort = n.tcprosServer.Port()
+	n.tcprosServerUrl = prototcp.ServerUrl(nodeIp.String(), n.tcprosServerPort)
+
+	n.udprosServer, err = protoudp.NewServer(conf.UdprosPort)
+	if err != nil {
+		n.tcprosServer.Close()
+		n.apiSlaveServer.Close()
+		return nil, err
+	}
+	// get port in case it has been set automatically
+	n.udprosServerPort = n.udprosServer.Port()
+
 	go n.run()
 
 	n.rosoutPublisher, err = NewPublisher(PublisherConf{
@@ -333,6 +347,34 @@ func NewNode(conf NodeConf) (*Node, error) {
 	}
 
 	return n, nil
+}
+
+// Close closes a Node and all its resources.
+func (n *Node) Close() error {
+	n.shutdown <- struct{}{}
+	close(n.terminate)
+	<-n.done
+	return nil
+}
+
+func (n *Node) absoluteTopicName(topic string) string {
+	// topic is absolute
+	if topic[0] == '/' {
+		return topic
+	}
+
+	// topic is relative
+	if n.conf.Namespace == "/" {
+		return "/" + topic
+	}
+	return n.conf.Namespace + "/" + topic
+}
+
+func (n *Node) absoluteName() string {
+	if n.conf.Namespace == "/" {
+		return "/" + n.conf.Name
+	}
+	return n.conf.Namespace + "/" + n.conf.Name
 }
 
 func (n *Node) run() {
@@ -434,14 +476,14 @@ outer:
 			pub.requestTopic <- publisherRequestTopicReq{req.req, req.res}
 
 		case req := <-n.subscriberNew:
-			_, ok := n.subscribers[req.sub.conf.Topic]
+			_, ok := n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)]
 			if ok {
 				req.err <- fmt.Errorf("Topic %s already subscribed", req.sub.conf.Topic)
 				continue
 			}
 
 			res, err := n.apiMasterClient.RegisterSubscriber(
-				req.sub.conf.Topic,
+				n.absoluteTopicName(req.sub.conf.Topic),
 				req.sub.msgType,
 				n.apiSlaveServerUrl)
 			if err != nil {
@@ -449,25 +491,25 @@ outer:
 				continue
 			}
 
-			n.subscribers[req.sub.conf.Topic] = req.sub
+			n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)] = req.sub
 			req.err <- nil
 
 			// send initial publishers list to subscriber
 			req.sub.publisherUpdate <- res.Uris
 
 		case sub := <-n.subscriberClose:
-			delete(n.subscribers, sub.conf.Topic)
+			delete(n.subscribers, n.absoluteTopicName(sub.conf.Topic))
 			close(sub.nodeTerminate)
 
 		case req := <-n.publisherNew:
-			_, ok := n.publishers[req.pub.conf.Topic]
+			_, ok := n.publishers[n.absoluteTopicName(req.pub.conf.Topic)]
 			if ok {
 				req.err <- fmt.Errorf("Topic %s already published", req.pub.conf.Topic)
 				continue
 			}
 
 			_, err := n.apiMasterClient.RegisterPublisher(
-				req.pub.conf.Topic,
+				n.absoluteTopicName(req.pub.conf.Topic),
 				req.pub.msgType,
 				n.apiSlaveServerUrl)
 			if err != nil {
@@ -477,22 +519,22 @@ outer:
 
 			n.publisherLastId += 1
 			req.pub.id = n.publisherLastId
-			n.publishers[req.pub.conf.Topic] = req.pub
+			n.publishers[n.absoluteTopicName(req.pub.conf.Topic)] = req.pub
 			req.err <- nil
 
 		case pub := <-n.publisherClose:
-			delete(n.publishers, pub.conf.Topic)
+			delete(n.publishers, n.absoluteTopicName(pub.conf.Topic))
 			close(pub.nodeTerminate)
 
 		case req := <-n.serviceProviderNew:
-			_, ok := n.serviceProviders[req.sp.conf.Service]
+			_, ok := n.serviceProviders[n.absoluteTopicName(req.sp.conf.Service)]
 			if ok {
 				req.err <- fmt.Errorf("Service %s already provided", req.sp.conf.Service)
 				continue
 			}
 
 			err := n.apiMasterClient.RegisterService(
-				req.sp.conf.Service,
+				n.absoluteTopicName(req.sp.conf.Service),
 				n.tcprosServerUrl,
 				n.apiSlaveServerUrl)
 			if err != nil {
@@ -500,11 +542,11 @@ outer:
 				continue
 			}
 
-			n.serviceProviders[req.sp.conf.Service] = req.sp
+			n.serviceProviders[n.absoluteTopicName(req.sp.conf.Service)] = req.sp
 			req.err <- nil
 
 		case sp := <-n.serviceProviderClose:
-			delete(n.serviceProviders, sp.conf.Service)
+			delete(n.serviceProviders, n.absoluteTopicName(sp.conf.Service))
 			close(sp.nodeTerminate)
 
 		case <-n.shutdown:
@@ -613,12 +655,4 @@ outer:
 	close(n.serviceProviderNew)
 	close(n.serviceProviderClose)
 	close(n.shutdown)
-}
-
-// Close closes a Node and shuts down all its operations.
-func (n *Node) Close() error {
-	n.shutdown <- struct{}{}
-	close(n.terminate)
-	<-n.done
-	return nil
 }

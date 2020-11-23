@@ -2,8 +2,9 @@
 
 export ROS_MASTER_URI=http://$MASTER_IP:11311/
 export ROS_IP=$(hostname -i)
+export ROS_NAMESPACE=/myns
 
-rostopic pub -r 1 /test_pub sensor_msgs/Imu "header:
+rostopic pub -r 1 test_topic sensor_msgs/Imu "header:
   seq: 13
   stamp: {secs: 0, nsecs: 0}
   frame_id: ''

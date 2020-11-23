@@ -15,7 +15,7 @@ func main() {
 	// create a node with given name and linked to given master.
 	// master can be reached with an ip or hostname.
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:       "/goroslib-pub",
+		Name:       "goroslib_pub",
 		MasterHost: "127.0.0.1",
 	})
 	if err != nil {
@@ -26,7 +26,7 @@ func main() {
 	// create a publisher
 	pub, err := goroslib.NewPublisher(goroslib.PublisherConf{
 		Node:  n,
-		Topic: "/test_pub",
+		Topic: "test_topic",
 		Msg:   &sensor_msgs.Imu{},
 	})
 	if err != nil {
