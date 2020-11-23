@@ -3,6 +3,7 @@ package goroslib
 import (
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/prototcp"
@@ -14,7 +15,7 @@ type serviceProviderClientNewReq struct {
 }
 
 type serviceProviderClientRequestReq struct {
-	callerid string
+	callerId string
 	req      interface{}
 }
 
@@ -34,21 +35,25 @@ type ServiceProviderConf struct {
 // ServiceProvider is a ROS service provider, an entity that can receive requests
 // and send back responses.
 type ServiceProvider struct {
-	conf    ServiceProviderConf
-	reqMsg  reflect.Type
-	resMsg  reflect.Type
-	reqType string
-	resType string
-	srvMd5  string
-	clients map[string]*serviceProviderClient
+	conf      ServiceProviderConf
+	reqMsg    reflect.Type
+	resMsg    reflect.Type
+	reqType   string
+	resType   string
+	srvMd5    string
+	clients   map[string]*serviceProviderClient
+	clientsWg sync.WaitGroup
 
+	// in
 	clientNew     chan serviceProviderClientNewReq
 	clientClose   chan *serviceProviderClient
 	clientRequest chan serviceProviderClientRequestReq
 	shutdown      chan struct{}
 	terminate     chan struct{}
 	nodeTerminate chan struct{}
-	done          chan struct{}
+
+	// out
+	done chan struct{}
 }
 
 // NewServiceProvider allocates a ServiceProvider. See ServiceProviderConf for the options.
@@ -177,16 +182,15 @@ outer:
 				continue
 			}
 
-			sp.clients[req.header.Callerid] = newServiceProviderClient(sp, req.header.Callerid, req.client)
+			newServiceProviderClient(sp, req.header.Callerid, req.client)
 
 		case spc := <-sp.clientClose:
-			delete(sp.clients, spc.callerid)
-			spc.client.Close()
+			spc.close()
 
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
 
-			conn, ok := sp.clients[req.callerid]
+			conn, ok := sp.clients[req.callerId]
 			if !ok {
 				continue
 			}
@@ -222,9 +226,9 @@ outer:
 		sp.conf.Node.tcprosServerUrl)
 
 	for _, spc := range sp.clients {
-		spc.client.Close()
-		<-spc.done
+		spc.close()
 	}
+	sp.clientsWg.Wait()
 
 	sp.conf.Node.serviceProviderClose <- sp
 

@@ -8,27 +8,30 @@ import (
 
 type serviceProviderClient struct {
 	sp       *ServiceProvider
-	callerid string
+	callerId string
 	client   *prototcp.Conn
-
-	done chan struct{}
 }
 
-func newServiceProviderClient(sp *ServiceProvider, callerid string, client *prototcp.Conn) *serviceProviderClient {
+func newServiceProviderClient(sp *ServiceProvider, callerId string, client *prototcp.Conn) {
 	spc := &serviceProviderClient{
 		sp:       sp,
-		callerid: callerid,
+		callerId: callerId,
 		client:   client,
-		done:     make(chan struct{}),
 	}
 
-	go spc.run()
+	sp.clients[callerId] = spc
 
-	return spc
+	sp.clientsWg.Add(1)
+	go spc.run()
+}
+
+func (spc *serviceProviderClient) close() {
+	delete(spc.sp.clients, spc.callerId)
+	spc.client.Close()
 }
 
 func (spc *serviceProviderClient) run() {
-	defer close(spc.done)
+	defer spc.sp.clientsWg.Done()
 
 outer:
 	for {
@@ -39,7 +42,7 @@ outer:
 		}
 
 		spc.sp.clientRequest <- serviceProviderClientRequestReq{
-			callerid: spc.callerid,
+			callerId: spc.callerId,
 			req:      req,
 		}
 	}

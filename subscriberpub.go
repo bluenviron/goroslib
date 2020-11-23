@@ -24,21 +24,21 @@ type subscriberPublisher struct {
 	udprosPort int
 	udprosId   uint32
 
+	// in
 	terminate chan struct{}
-	done      chan struct{}
 }
 
-func newSubscriberPublisher(sub *Subscriber, url string) *subscriberPublisher {
+func newSubscriberPublisher(sub *Subscriber, url string) {
 	sp := &subscriberPublisher{
 		sub:       sub,
 		url:       url,
 		terminate: make(chan struct{}),
-		done:      make(chan struct{}),
 	}
 
-	go sp.run()
+	sub.publishers[url] = sp
 
-	return sp
+	sub.publishersWg.Add(1)
+	go sp.run()
 }
 
 func (sp *subscriberPublisher) close() {
@@ -47,7 +47,7 @@ func (sp *subscriberPublisher) close() {
 }
 
 func (sp *subscriberPublisher) run() {
-	defer close(sp.done)
+	defer sp.sub.publishersWg.Done()
 
 	host, port, _ := parseUrl(sp.url)
 

@@ -11,34 +11,39 @@ import (
 
 type publisherSubscriber struct {
 	pub          *Publisher
-	callerid     string
+	callerId     string
 	tcpClient    *prototcp.Conn
 	udpAddr      *net.UDPAddr
 	curMessageId uint8
 
+	// in
 	terminate chan struct{}
-	done      chan struct{}
 }
 
-func newPublisherSubscriber(pub *Publisher, callerid string, tcpClient *prototcp.Conn,
-	udpAddr *net.UDPAddr) *publisherSubscriber {
+func newPublisherSubscriber(pub *Publisher, callerId string,
+	tcpClient *prototcp.Conn, udpAddr *net.UDPAddr) {
 
 	ps := &publisherSubscriber{
 		pub:       pub,
-		callerid:  callerid,
+		callerId:  callerId,
 		tcpClient: tcpClient,
 		udpAddr:   udpAddr,
 		terminate: make(chan struct{}),
-		done:      make(chan struct{}),
 	}
 
-	go ps.run()
+	pub.subscribers[callerId] = ps
 
-	return ps
+	pub.subscribersWg.Add(1)
+	go ps.run()
+}
+
+func (ps *publisherSubscriber) close() {
+	delete(ps.pub.subscribers, ps.callerId)
+	close(ps.terminate)
 }
 
 func (ps *publisherSubscriber) run() {
-	defer close(ps.done)
+	defer ps.pub.subscribersWg.Done()
 
 	if ps.tcpClient != nil {
 		ps.runTcp()

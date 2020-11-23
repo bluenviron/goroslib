@@ -3,6 +3,7 @@ package goroslib
 import (
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/aler9/goroslib/pkg/msg"
 )
@@ -37,18 +38,22 @@ type SubscriberConf struct {
 
 // Subscriber is a ROS subscriber, an entity that can receive messages from a named channel.
 type Subscriber struct {
-	conf       SubscriberConf
-	msgMsg     reflect.Type
-	msgType    string
-	msgMd5     string
-	publishers map[string]*subscriberPublisher
+	conf         SubscriberConf
+	msgMsg       reflect.Type
+	msgType      string
+	msgMd5       string
+	publishers   map[string]*subscriberPublisher
+	publishersWg sync.WaitGroup
 
+	// in
 	publisherUpdate chan []string
 	message         chan interface{}
 	shutdown        chan struct{}
 	terminate       chan struct{}
 	nodeTerminate   chan struct{}
-	done            chan struct{}
+
+	// out
+	done chan struct{}
 }
 
 // NewSubscriber allocates a Subscriber. See SubscriberConf for the options.
@@ -143,7 +148,7 @@ outer:
 				validPublishers[url] = struct{}{}
 
 				if _, ok := s.publishers[url]; !ok {
-					s.publishers[url] = newSubscriberPublisher(s, url)
+					newSubscriberPublisher(s, url)
 				}
 			}
 
@@ -184,8 +189,8 @@ outer:
 
 	for _, sp := range s.publishers {
 		sp.close()
-		<-sp.done
 	}
+	s.publishersWg.Wait()
 
 	s.conf.Node.subscriberClose <- s
 

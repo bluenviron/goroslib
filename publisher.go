@@ -7,6 +7,7 @@ import (
 	"net"
 	"reflect"
 	"strconv"
+	"sync"
 
 	"github.com/aler9/goroslib/pkg/apislave"
 	"github.com/aler9/goroslib/pkg/msg"
@@ -44,13 +45,15 @@ type PublisherConf struct {
 
 // Publisher is a ROS publisher, an entity that can publish messages in a named channel.
 type Publisher struct {
-	conf        PublisherConf
-	msgType     string
-	msgMd5      string
-	subscribers map[string]*publisherSubscriber
-	lastMessage interface{}
-	id          int
+	conf          PublisherConf
+	msgType       string
+	msgMd5        string
+	subscribers   map[string]*publisherSubscriber
+	subscribersWg sync.WaitGroup
+	lastMessage   interface{}
+	id            int
 
+	// in
 	requestTopic       chan publisherRequestTopicReq
 	subscriberTcpNew   chan publisherSubscriberTcpNewReq
 	subscriberTcpClose chan *publisherSubscriber
@@ -58,7 +61,9 @@ type Publisher struct {
 	shutdown           chan struct{}
 	nodeTerminate      chan struct{}
 	terminate          chan struct{}
-	done               chan struct{}
+
+	// out
+	done chan struct{}
 }
 
 // NewPublisher allocates a Publisher. See PublisherConf for the options.
@@ -250,7 +255,7 @@ outer:
 						udpAddr.IP = net.IPv4(127, 0, 0, 1)
 					}
 
-					p.subscribers[header.Callerid] = newPublisherSubscriber(p,
+					newPublisherSubscriber(p,
 						header.Callerid, nil, udpAddr)
 
 					req.res <- apislave.ResponseRequestTopic{
@@ -324,7 +329,7 @@ outer:
 					return nil
 				}
 
-				p.subscribers[req.header.Callerid] = newPublisherSubscriber(p,
+				newPublisherSubscriber(p,
 					req.header.Callerid, req.client, nil)
 
 				if p.conf.Latch && p.lastMessage != nil {
@@ -342,8 +347,7 @@ outer:
 			}
 
 		case sub := <-p.subscriberTcpClose:
-			delete(p.subscribers, sub.callerid)
-			close(sub.terminate)
+			sub.close()
 
 		case msg := <-p.write:
 			if p.conf.Latch {
@@ -385,9 +389,9 @@ outer:
 		p.conf.Node.apiSlaveServerUrl)
 
 	for _, ps := range p.subscribers {
-		close(ps.terminate)
-		<-ps.done
+		ps.close()
 	}
+	p.subscribersWg.Wait()
 
 	p.conf.Node.publisherClose <- p
 

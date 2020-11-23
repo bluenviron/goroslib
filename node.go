@@ -164,6 +164,7 @@ type Node struct {
 	publisherLastId     int
 	rosoutPublisher     *Publisher
 
+	// in
 	tcpClientNew           chan *prototcp.Conn
 	tcpClientClose         chan *prototcp.Conn
 	tcpClientSubscriber    chan tcpClientSubscriberReq
@@ -182,7 +183,9 @@ type Node struct {
 	serviceProviderClose   chan *ServiceProvider
 	shutdown               chan struct{}
 	terminate              chan struct{}
-	done                   chan struct{}
+
+	// out
+	done chan struct{}
 }
 
 // NewNode allocates a Node. See NodeConf for the options.
@@ -562,25 +565,26 @@ outer:
 		}
 	}()
 
-	// close all servers
 	n.apiSlaveServer.Close()
 	n.tcprosServer.Close()
 	n.udprosServer.Close()
 	serversWg.Wait()
 
-	// close all clients
 	for c := range n.tcprosClients {
 		c.Close()
 	}
 	clientsWg.Wait()
+
 	for _, sub := range n.subscribers {
 		sub.shutdown <- struct{}{}
 		close(sub.nodeTerminate)
 	}
+
 	for _, pub := range n.publishers {
 		pub.shutdown <- struct{}{}
 		close(pub.nodeTerminate)
 	}
+
 	for _, sp := range n.serviceProviders {
 		sp.shutdown <- struct{}{}
 		close(sp.nodeTerminate)
