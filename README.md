@@ -37,10 +37,10 @@ The library provides its features by implementing in pure Go all the ROS protoco
 
 3. Download one of the example files and place it in the folder:
 
-   * [subscriber-standard](examples/subscriber-standard.go)
+   * [subscriber](examples/subscriber.go)
    * [subscriber-custom](examples/subscriber-custom.go)
    * [subscriber-udp](examples/subscriber-udp.go)
-   * [publisher-standard](examples/publisher-standard.go)
+   * [publisher](examples/publisher.go)
    * [publisher-custom](examples/publisher-custom.go)
    * [serviceclient](examples/serviceclient.go)
    * [serviceprovider](examples/serviceprovider.go)
