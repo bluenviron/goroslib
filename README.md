@@ -13,7 +13,7 @@ The official project provides libraries to write nodes in C++ and Python, but th
 
 Features:
 
-* Subscribe and publish to topics, via TCP or UDP
+* Subscribe and publish to topics, with TCP or UDP
 * Call and provide services
 * Get and set parameters
 * Get infos about other nodes, topics, services
@@ -107,7 +107,7 @@ The type of a field can be one of the following:
 
 * another standard or custom message
 
-The name of a field must be in CamelCase, and is converted to snake_case when interacting with C++/Python nodes. When this conversion is impossible, the tag `rosname` can be used to override the field name:
+The name of a field must be in CamelCase, and is converted to snake_case when interacting with C++/Python nodes. If this conversion is impossible, the tag `rosname` can be used to override the field name:
 
 ```go
 type MessageName struct {
@@ -122,6 +122,20 @@ A command-line utility is provided to convert existing `.msg` files into their e
 go get github.com/aler9/goroslib/cmd/msg-import
 msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ```
+
+### How can i set the namespace?
+
+There's a field `Namespace` in the `Node` configuration:
+
+```go
+goroslib.NewNode(goroslib.NodeConf{
+    Namespace:  "/mynamespace",
+    Name:       "goroslib",
+    MasterHost: "127.0.0.1",
+})
+```
+
+The default namespace is `/` (global namespace).
 
 ### How can i compile a node for another operating system?
 
