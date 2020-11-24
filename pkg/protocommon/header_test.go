@@ -98,7 +98,7 @@ func TestHeaderDecode(t *testing.T) {
 	for _, c := range casesHeader {
 		t.Run(c.name, func(t *testing.T) {
 			header := reflect.New(reflect.TypeOf(c.header).Elem()).Interface().(Header)
-			raw, err := HeaderDecodeRaw(bytes.NewBuffer(c.byts))
+			raw, err := HeaderRawDecode(bytes.NewBuffer(c.byts))
 			require.NoError(t, err)
 			err = HeaderDecode(raw, header)
 			require.NoError(t, err)

@@ -59,11 +59,11 @@ func (c *Conn) Close() error {
 }
 
 func (c *Conn) ReadHeaderRaw() (protocommon.HeaderRaw, error) {
-	return protocommon.HeaderDecodeRaw(c.readBuf)
+	return protocommon.HeaderRawDecode(c.readBuf)
 }
 
 func (c *Conn) ReadHeader(header protocommon.Header) error {
-	raw, err := protocommon.HeaderDecodeRaw(c.readBuf)
+	raw, err := protocommon.HeaderRawDecode(c.readBuf)
 	if err != nil {
 		return err
 	}

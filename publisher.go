@@ -194,7 +194,7 @@ outer:
 					newProtoDef = append(newProtoDef, protoDef...)
 					buf := bytes.NewBuffer(newProtoDef)
 
-					raw, err := protocommon.HeaderDecodeRaw(buf)
+					raw, err := protocommon.HeaderRawDecode(buf)
 					if err != nil {
 						return err
 					}
