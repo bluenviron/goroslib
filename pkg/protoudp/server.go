@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	_BUFFER_SIZE = 2048
+	bufferSize = 2048
 )
 
 type Server struct {
@@ -33,7 +33,7 @@ func (s *Server) Port() int {
 }
 
 func (s *Server) ReadFrame() (*Frame, *net.UDPAddr, error) {
-	buf := make([]byte, _BUFFER_SIZE)
+	buf := make([]byte, bufferSize)
 
 	n, source, err := s.ln.ReadFrom(buf)
 	if err != nil {

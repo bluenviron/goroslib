@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	_BUFFER_SIZE = 2048
+	bufferSize = 2048
 )
 
 func camelToSnake(in string) string {
@@ -48,8 +48,8 @@ type Conn struct {
 // NewConn allocates a Conn, that takes ownership of the input net.Conn.
 func NewConn(in net.Conn) *Conn {
 	return &Conn{
-		readBuf:  bufio.NewReaderSize(in, _BUFFER_SIZE),
-		writeBuf: bufio.NewWriterSize(in, _BUFFER_SIZE),
+		readBuf:  bufio.NewReaderSize(in, bufferSize),
+		writeBuf: bufio.NewWriterSize(in, bufferSize),
 		closer:   in,
 	}
 }

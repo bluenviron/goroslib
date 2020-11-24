@@ -5,7 +5,9 @@ import (
 	"fmt"
 )
 
-const MAX_CONTENT_LENGTH = 1492
+const (
+	MaxPayloadSize = 1492
+)
 
 type Opcode uint8
 

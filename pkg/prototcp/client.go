@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	_DIAL_TIMEOUT = 10 * time.Second
+	dialTimeout = 10 * time.Second
 )
 
 func NewClient(host string, port int) (*Conn, error) {
-	nconn, err := net.DialTimeout("tcp4", host+":"+strconv.FormatInt(int64(port), 10), _DIAL_TIMEOUT)
+	nconn, err := net.DialTimeout("tcp4", host+":"+strconv.FormatInt(int64(port), 10), dialTimeout)
 	if err != nil {
 		return nil, err
 	}
