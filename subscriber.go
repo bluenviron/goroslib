@@ -12,10 +12,13 @@ import (
 type Protocol int
 
 const (
-	// TCP is the TCPROS protocol
-	TCP Protocol = iota
+	// TCPNoDelay is the TCPROS protocol, with the TCP_NODELAY flag set.
+	TCPNoDelay Protocol = iota
 
-	// UDP is the UDPROS protocol
+	// TCP is the TCPROS protocol, without the TCP_NODELAY flag set.
+	TCP
+
+	// UDP is the UDPROS protocol.
 	UDP
 )
 
@@ -32,7 +35,7 @@ type SubscriberConf struct {
 	Callback interface{}
 
 	// (optional) protocol that will be used to receive messages
-	// it defaults to TCPROS
+	// it defaults to TCPNoDelay
 	Protocol Protocol
 }
 

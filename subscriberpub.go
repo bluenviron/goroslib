@@ -85,7 +85,7 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 		defer close(subDone)
 
 		protocols := func() [][]interface{} {
-			if sp.sub.conf.Protocol == TCP {
+			if sp.sub.conf.Protocol == TCPNoDelay || sp.sub.conf.Protocol == TCP {
 				return [][]interface{}{{"TCPROS"}}
 			}
 
@@ -120,7 +120,7 @@ func (sp *subscriberPublisher) do(host string, port int) error {
 		return err
 	}
 
-	if sp.sub.conf.Protocol == TCP {
+	if sp.sub.conf.Protocol == TCPNoDelay || sp.sub.conf.Protocol == TCP {
 		return sp.doTcp(res)
 	}
 	return sp.doUdp(res)
@@ -150,7 +150,7 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 		return fmt.Errorf("wrong protoName")
 	}
 
-	subDone := make(chan struct{})
+	subDone := make(chan struct{}, 1)
 	var conn *prototcp.Conn
 	var err error
 	go func() {
@@ -176,11 +176,16 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 		defer close(subDone)
 
 		err = conn.WriteHeader(&prototcp.HeaderSubscriber{
-			Callerid:   sp.sub.conf.Node.absoluteName(),
-			Md5sum:     sp.sub.msgMd5,
-			Topic:      sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
-			Type:       sp.sub.msgType,
-			TcpNodelay: 0,
+			Callerid: sp.sub.conf.Node.absoluteName(),
+			Md5sum:   sp.sub.msgMd5,
+			Topic:    sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+			Type:     sp.sub.msgType,
+			TcpNodelay: func() int {
+				if sp.sub.conf.Protocol == TCPNoDelay {
+					return 1
+				}
+				return 0
+			}(),
 		})
 		if err != nil {
 			return
@@ -207,6 +212,13 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 
 	if outHeader.Md5sum != sp.sub.msgMd5 {
 		return fmt.Errorf("wrong md5")
+	}
+
+	if sp.sub.conf.Protocol == TCP {
+		err := conn.RemoveNoDelay()
+		if err != nil {
+			return err
+		}
 	}
 
 	subDone = make(chan struct{})

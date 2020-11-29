@@ -325,6 +325,10 @@ outer:
 					return nil
 				}
 
+				if req.header.TcpNodelay == 0 {
+					req.client.RemoveNoDelay()
+				}
+
 				newPublisherSubscriber(p,
 					req.header.Callerid, req.client, nil)
 
