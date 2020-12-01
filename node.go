@@ -113,11 +113,11 @@ type serviceProviderNewReq struct {
 
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
-	// (optional) (hostname or ip):port of the master node.
+	// (optional) hostname (or ip) and port of the master node.
 	// It defaults to 127.0.0.1:11311
 	MasterAddress string
 
-	// (optional) namespace of the node.
+	// (optional) namespace of this node.
 	// It defaults to '/' (global namespace).
 	Namespace string
 
@@ -125,7 +125,7 @@ type NodeConf struct {
 	Name string
 
 	// (optional) hostname or ip of this node, needed by other nodes
-	// in order to communicate with it it.
+	// in order to communicate with it.
 	// if not provided, it will be set automatically.
 	Host string
 
