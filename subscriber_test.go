@@ -32,9 +32,9 @@ func TestSubscriberRegister(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.Ip() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -129,9 +129,9 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 			case "go":
 				expected = expected1
 				p, err := NewNode(NodeConf{
-					Namespace:  "/myns",
-					Name:       "goroslib_pub",
-					MasterHost: m.Ip(),
+					Namespace:     "/myns",
+					Name:          "goroslib_pub",
+					MasterAddress: m.Ip() + ":11311",
 				})
 				require.NoError(t, err)
 				defer p.Close()
@@ -170,9 +170,9 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib_sub",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib_sub",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -245,9 +245,9 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -272,9 +272,9 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 			case "go":
 				p, err := NewNode(NodeConf{
-					Namespace:  "/myns",
-					Name:       "goroslib_pub",
-					MasterHost: m.Ip(),
+					Namespace:     "/myns",
+					Name:          "goroslib_pub",
+					MasterAddress: m.Ip() + ":11311",
 				})
 				require.NoError(t, err)
 				defer p.Close()
@@ -335,9 +335,9 @@ func TestSubscriberReadUdp(t *testing.T) {
 
 			case "go":
 				p, err := NewNode(NodeConf{
-					Namespace:  "/myns",
-					Name:       "goroslib_pub",
-					MasterHost: m.Ip(),
+					Namespace:     "/myns",
+					Name:          "goroslib_pub",
+					MasterAddress: m.Ip() + ":11311",
 				})
 				require.NoError(t, err)
 				defer p.Close()
@@ -370,9 +370,9 @@ func TestSubscriberReadUdp(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()

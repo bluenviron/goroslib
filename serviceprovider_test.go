@@ -13,9 +13,9 @@ func TestServiceProviderRegister(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.Ip() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -70,9 +70,9 @@ func TestServiceProviderResponse(t *testing.T) {
 			defer m.close()
 
 			nsp, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib_sp",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib_sp",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer nsp.Close()
@@ -99,9 +99,9 @@ func TestServiceProviderResponse(t *testing.T) {
 
 			case "go":
 				nsc, err := NewNode(NodeConf{
-					Namespace:  "/myns",
-					Name:       "goroslib_sc",
-					MasterHost: m.Ip(),
+					Namespace:     "/myns",
+					Name:          "goroslib_sc",
+					MasterAddress: m.Ip() + ":11311",
 				})
 				require.NoError(t, err)
 				defer nsc.Close()

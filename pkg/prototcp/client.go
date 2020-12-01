@@ -2,7 +2,6 @@ package prototcp
 
 import (
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -11,8 +10,8 @@ const (
 )
 
 // NewClient connects to a TCPROS server and returns a Conn.
-func NewClient(host string, port int) (*Conn, error) {
-	nconn, err := net.DialTimeout("tcp4", host+":"+strconv.FormatInt(int64(port), 10), dialTimeout)
+func NewClient(address string) (*Conn, error) {
+	nconn, err := net.DialTimeout("tcp4", address, dialTimeout)
 	if err != nil {
 		return nil, err
 	}

@@ -131,7 +131,7 @@ There's a field `Namespace` in the `Node` configuration:
 goroslib.NewNode(goroslib.NodeConf{
     Namespace:  "/mynamespace",
     Name:       "goroslib",
-    MasterHost: "127.0.0.1",
+    MasterAddress: "127.0.0.1:11311",
 })
 ```
 

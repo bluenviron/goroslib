@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/aler9/goroslib/pkg/apislave"
@@ -12,8 +13,7 @@ type InfoNode struct {
 	PublishedTopics  map[string]struct{}
 	SubscribedTopics map[string]struct{}
 	ProvidedServices map[string]struct{}
-	Hostname         string
-	Port             int
+	Address          string
 }
 
 // GetNodes returns all the nodes connected to the master.
@@ -62,13 +62,12 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 			return nil, fmt.Errorf("lookupNode: %v", err)
 		}
 
-		hostname, port, err := parseUrl(res.Uri)
+		address, err := urlToAddress(res.Uri)
 		if err != nil {
 			return nil, err
 		}
 
-		info.Hostname = hostname
-		info.Port = port
+		info.Address = address
 	}
 
 	return ret, nil
@@ -86,7 +85,11 @@ func (n *Node) GetMachines() (map[string]struct{}, error) {
 
 	ret := make(map[string]struct{})
 	for _, info := range nodes {
-		ret[info.Hostname] = struct{}{}
+		host, _, err := net.SplitHostPort(info.Address)
+		if err != nil {
+			continue
+		}
+		ret[host] = struct{}{}
 	}
 
 	return ret, nil
@@ -145,8 +148,7 @@ func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
 // InfoService contains informations about a service.
 type InfoService struct {
 	Providers map[string]struct{}
-	Hostname  string
-	Port      int
+	Address   string
 }
 
 // GetServices returns all the services provided by nodes connected to the server.
@@ -174,13 +176,12 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			return nil, fmt.Errorf("lookupService: %v", err)
 		}
 
-		hostname, port, err := parseUrl(res2.Uri)
+		address, err := urlToAddress(res2.Uri)
 		if err != nil {
 			return nil, err
 		}
 
-		ret[entry.Name].Hostname = hostname
-		ret[entry.Name].Port = port
+		ret[entry.Name].Address = address
 	}
 
 	return ret, nil
@@ -194,12 +195,12 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 		return 0, err
 	}
 
-	hostname, port, err := parseUrl(res.Uri)
+	address, err := urlToAddress(res.Uri)
 	if err != nil {
 		return 0, err
 	}
 
-	xcs := apislave.NewClient(hostname, port, n.absoluteName())
+	xcs := apislave.NewClient(address, n.absoluteName())
 
 	start := time.Now()
 
@@ -218,12 +219,12 @@ func (n *Node) KillNode(name string) error {
 		return err
 	}
 
-	hostname, port, err := parseUrl(res.Uri)
+	address, err := urlToAddress(res.Uri)
 	if err != nil {
 		return err
 	}
 
-	xcs := apislave.NewClient(hostname, port, n.absoluteName())
+	xcs := apislave.NewClient(address, n.absoluteName())
 
 	err = xcs.Shutdown("")
 	if err != nil {

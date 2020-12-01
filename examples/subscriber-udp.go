@@ -15,10 +15,9 @@ func onMessage(msg *sensor_msgs.Imu) {
 
 func main() {
 	// create a node with given name and linked to given master.
-	// master can be reached with an ip or hostname.
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:       "goroslib_sub",
-		MasterHost: "127.0.0.1",
+		Name:          "goroslib_sub",
+		MasterAddress: "127.0.0.1:11311",
 	})
 	if err != nil {
 		panic(err)

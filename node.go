@@ -18,8 +18,8 @@ Basic example (more are available at https://github.com/aler9/goroslib/tree/mast
 
   func main() {
       n, err := goroslib.NewNode(goroslib.NodeConf{
-          Name:       "goroslib",
-          MasterHost: "127.0.0.1",
+          Name:          "goroslib",
+          MasterAddress: "127.0.0.1:11311",
       })
       if err != nil {
           panic(err)
@@ -45,7 +45,6 @@ package goroslib
 import (
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -114,12 +113,9 @@ type serviceProviderNewReq struct {
 
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
-	// hostname or ip of the master node.
-	MasterHost string
-
-	// (optional) port of the HTTP API of the master node.
-	// It defaults to 11311.
-	MasterPort int
+	// (optional) (hostname or ip):port of the master node.
+	// It defaults to 127.0.0.1:11311
+	MasterAddress string
 
 	// (optional) namespace of the node.
 	// It defaults to '/' (global namespace).
@@ -150,7 +146,6 @@ type NodeConf struct {
 // and service clients.
 type Node struct {
 	conf                NodeConf
-	masterIp            net.IP
 	nodeIp              net.IP
 	apiMasterClient     *apimaster.Client
 	apiParamClient      *apiparam.Client
@@ -212,24 +207,14 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, fmt.Errorf("Name cannot contain slashes (/), use Namespace to set a namespace")
 	}
 
-	if len(conf.MasterHost) == 0 {
-		return nil, fmt.Errorf("MasterHost not provided")
-	}
-
-	if conf.MasterPort == 0 {
-		conf.MasterPort = 11311
+	if len(conf.MasterAddress) == 0 {
+		conf.MasterAddress = "127.0.0.1:11311"
 	}
 
 	// solve master address once
-	masterIp, err := func() (net.IP, error) {
-		addr, err := net.ResolveTCPAddr("tcp4", conf.MasterHost+":"+strconv.FormatInt(int64(conf.MasterPort), 10))
-		if err != nil {
-			return nil, fmt.Errorf("unable to solve master host: %s", err)
-		}
-		return addr.IP, nil
-	}()
+	masterAddress, err := net.ResolveTCPAddr("tcp4", conf.MasterAddress)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to solve master host: %s", err)
 	}
 
 	// find an ip in the same subnet of the master
@@ -248,7 +233,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 				for _, addr := range addrs {
 					if v, ok := addr.(*net.IPNet); ok {
-						if v.Contains(masterIp) {
+						if v.Contains(masterAddress.IP) {
 							return v.IP.String()
 						}
 					}
@@ -275,7 +260,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n := &Node{
 		conf:                   conf,
-		masterIp:               masterIp,
 		nodeIp:                 nodeIp,
 		tcprosClients:          make(map[*prototcp.Conn]struct{}),
 		udprosSubPublishers:    make(map[*subscriberPublisher]chan *protoudp.Frame),
@@ -303,11 +287,9 @@ func NewNode(conf NodeConf) (*Node, error) {
 		done:                   make(chan struct{}),
 	}
 
-	n.apiMasterClient = apimaster.NewClient(masterIp.String(), conf.MasterPort,
-		n.absoluteName())
+	n.apiMasterClient = apimaster.NewClient(masterAddress.String(), n.absoluteName())
 
-	n.apiParamClient = apiparam.NewClient(masterIp.String(), conf.MasterPort,
-		n.absoluteName())
+	n.apiParamClient = apiparam.NewClient(masterAddress.String(), n.absoluteName())
 
 	n.apiSlaveServer, err = apislave.NewServer(conf.ApislavePort)
 	if err != nil {
@@ -440,7 +422,7 @@ outer:
 		case req := <-n.udpFrame:
 			for sp, chanFrame := range n.udprosSubPublishers {
 				if req.frame.ConnectionId == sp.udprosId &&
-					req.source.IP.Equal(sp.udprosIp) {
+					req.source.IP.Equal(sp.udprosAddr.IP) {
 					chanFrame <- req.frame
 					break
 				}

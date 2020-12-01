@@ -135,12 +135,12 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
-	host, port, err := parseUrl(res.Uri)
+	address, err := urlToAddress(res.Uri)
 	if err != nil {
 		return err
 	}
 
-	conn, err := prototcp.NewClient(host, port)
+	conn, err := prototcp.NewClient(address)
 	if err != nil {
 		return err
 	}

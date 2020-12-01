@@ -10,10 +10,9 @@ import (
 
 func main() {
 	// create a node with given name and linked to given master.
-	// master can be reached with an ip or hostname.
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:       "goroslib_info",
-		MasterHost: "127.0.0.1",
+		Name:          "goroslib_info",
+		MasterAddress: "127.0.0.1:11311",
 	})
 	if err != nil {
 		panic(err)

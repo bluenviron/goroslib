@@ -106,9 +106,9 @@ func TestNodeOpen(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.Ip() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -116,9 +116,9 @@ func TestNodeOpen(t *testing.T) {
 
 func TestNodeNoMaster(t *testing.T) {
 	_, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: "127.0.0.1",
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: "127.0.0.1:11311",
 	})
 	require.Error(t, err)
 }
@@ -129,9 +129,9 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.Ip() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()

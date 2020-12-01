@@ -20,8 +20,7 @@ var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")
 type subscriberPublisher struct {
 	sub        *Subscriber
 	url        string
-	udprosIp   net.IP
-	udprosPort int
+	udprosAddr *net.UDPAddr
 	udprosId   uint32
 
 	// in
@@ -49,11 +48,11 @@ func (sp *subscriberPublisher) close() {
 func (sp *subscriberPublisher) run() {
 	defer sp.sub.publishersWg.Done()
 
-	host, port, _ := parseUrl(sp.url)
+	address, _ := urlToAddress(sp.url)
 
 	for {
 		ok := func() bool {
-			err := sp.do(host, port)
+			err := sp.do(address)
 			if err == errSubscriberPubTerminate {
 				return false
 			}
@@ -75,8 +74,8 @@ func (sp *subscriberPublisher) run() {
 	}
 }
 
-func (sp *subscriberPublisher) do(host string, port int) error {
-	xcs := apislave.NewClient(host, port, sp.sub.conf.Node.absoluteName())
+func (sp *subscriberPublisher) do(address string) error {
+	xcs := apislave.NewClient(address, sp.sub.conf.Node.absoluteName())
 
 	subDone := make(chan struct{}, 1)
 	var res *apislave.ResponseRequestTopic
@@ -155,7 +154,7 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 	var err error
 	go func() {
 		defer close(subDone)
-		conn, err = prototcp.NewClient(protoHost, protoPort)
+		conn, err = prototcp.NewClient(protoHost + ":" + strconv.FormatInt(int64(protoPort), 10))
 	}()
 
 	select {
@@ -282,8 +281,7 @@ func (sp *subscriberPublisher) doUdp(res *apislave.ResponseRequestTopic) error {
 		return fmt.Errorf("unable to solve host")
 	}
 
-	sp.udprosIp = addr.IP
-	sp.udprosPort = addr.Port
+	sp.udprosAddr = addr
 	sp.udprosId = uint32(protoId)
 
 	chanFrame := make(chan *protoudp.Frame)

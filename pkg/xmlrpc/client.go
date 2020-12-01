@@ -4,7 +4,7 @@ package xmlrpc
 import (
 	"bytes"
 	"net/http"
-	"strconv"
+	"net/url"
 )
 
 // Client is a XML-RPC client.
@@ -13,9 +13,13 @@ type Client struct {
 }
 
 // NewClient allocates a Client.
-func NewClient(host string, port int) *Client {
+func NewClient(address string) *Client {
 	return &Client{
-		url: "http://" + host + ":" + strconv.FormatUint(uint64(port), 10) + "/RPC2",
+		url: (&url.URL{
+			Scheme: "http",
+			Host:   address,
+			Path:   "/RPC2",
+		}).String(),
 	}
 }
 

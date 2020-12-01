@@ -18,9 +18,9 @@ func TestPublisherRegister(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.Ip() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -91,9 +91,9 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 
 			case "go":
 				ns, err := NewNode(NodeConf{
-					Namespace:  "/myns",
-					Name:       "goroslibsub",
-					MasterHost: m.Ip(),
+					Namespace:     "/myns",
+					Name:          "goroslibsub",
+					MasterAddress: m.Ip() + ":11311",
 				})
 				require.NoError(t, err)
 				defer ns.Close()
@@ -111,9 +111,9 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -165,9 +165,9 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -201,9 +201,9 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 			case "go":
 				ns, err := NewNode(NodeConf{
-					Namespace:  "/myns",
-					Name:       "goroslibsub",
-					MasterHost: m.Ip(),
+					Namespace:     "/myns",
+					Name:          "goroslibsub",
+					MasterAddress: m.Ip() + ":11311",
 				})
 				require.NoError(t, err)
 				defer ns.Close()
@@ -268,9 +268,9 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -297,9 +297,9 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 			pub.Write(expected)
 
 			ns, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslibsub",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslibsub",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer ns.Close()
@@ -350,9 +350,9 @@ func TestPublisherWriteUdp(t *testing.T) {
 			defer m.close()
 
 			ns, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslibsub",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslibsub",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer ns.Close()
@@ -382,9 +382,9 @@ func TestPublisherWriteUdp(t *testing.T) {
 			}
 
 			n, err := NewNode(NodeConf{
-				Namespace:  "/myns",
-				Name:       "goroslib",
-				MasterHost: m.Ip(),
+				Namespace:     "/myns",
+				Name:          "goroslib",
+				MasterAddress: m.Ip() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -423,9 +423,9 @@ func TestPublisherRostopicHz(t *testing.T) {
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
-		Namespace:  "/myns",
-		Name:       "goroslib",
-		MasterHost: m.Ip(),
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.Ip() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()

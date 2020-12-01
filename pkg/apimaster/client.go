@@ -13,9 +13,9 @@ type Client struct {
 }
 
 // NewClient allocates a Client.
-func NewClient(host string, port int, callerId string) *Client {
+func NewClient(address string, callerId string) *Client {
 	return &Client{
-		xc:       xmlrpc.NewClient(host, port),
+		xc:       xmlrpc.NewClient(address),
 		callerId: callerId,
 	}
 }
