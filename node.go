@@ -146,7 +146,8 @@ type NodeConf struct {
 // and service clients.
 type Node struct {
 	conf                NodeConf
-	nodeIp              net.IP
+	masterAddr          *net.TCPAddr
+	nodeAddr            *net.TCPAddr
 	apiMasterClient     *apimaster.Client
 	apiParamClient      *apiparam.Client
 	apiSlaveServer      *apislave.Server
@@ -212,9 +213,12 @@ func NewNode(conf NodeConf) (*Node, error) {
 	}
 
 	// solve master address once
-	masterAddress, err := net.ResolveTCPAddr("tcp4", conf.MasterAddress)
+	masterAddr, err := net.ResolveTCPAddr("tcp", conf.MasterAddress)
 	if err != nil {
-		return nil, fmt.Errorf("unable to solve master host: %s", err)
+		return nil, fmt.Errorf("unable to solve master address: %s", err)
+	}
+	if masterAddr.Zone != "" {
+		return nil, fmt.Errorf("the master address has a stateless IPv6, which is not supported")
 	}
 
 	// find an ip in the same subnet of the master
@@ -233,7 +237,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 				for _, addr := range addrs {
 					if v, ok := addr.(*net.IPNet); ok {
-						if v.Contains(masterAddress.IP) {
+						if v.Contains(masterAddr.IP) {
 							return v.IP.String()
 						}
 					}
@@ -246,21 +250,19 @@ func NewNode(conf NodeConf) (*Node, error) {
 		}
 	}
 
-	// solve node ip once
-	nodeIp, err := func() (net.IP, error) {
-		addr, err := net.ResolveTCPAddr("tcp4", conf.Host+":0")
-		if err != nil {
-			return nil, fmt.Errorf("unable to solve node host: %s", err)
-		}
-		return addr.IP, nil
-	}()
+	// solve node host once
+	nodeAddr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(conf.Host, "0"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to solve node host: %s", err)
+	}
+	if nodeAddr.Zone != "" {
+		return nil, fmt.Errorf("the node IP is a stateless IPv6, which is not supported")
 	}
 
 	n := &Node{
 		conf:                   conf,
-		nodeIp:                 nodeIp,
+		masterAddr:             masterAddr,
+		nodeAddr:               nodeAddr,
 		tcprosClients:          make(map[*prototcp.Conn]struct{}),
 		udprosSubPublishers:    make(map[*subscriberPublisher]chan *protoudp.Frame),
 		subscribers:            make(map[string]*Subscriber),
@@ -287,16 +289,16 @@ func NewNode(conf NodeConf) (*Node, error) {
 		done:                   make(chan struct{}),
 	}
 
-	n.apiMasterClient = apimaster.NewClient(masterAddress.String(), n.absoluteName())
+	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName())
 
-	n.apiParamClient = apiparam.NewClient(masterAddress.String(), n.absoluteName())
+	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
 
 	n.apiSlaveServer, err = apislave.NewServer(conf.ApislavePort)
 	if err != nil {
 		return nil, err
 	}
 	// get port in case it has been set automatically
-	n.apiSlaveServerUrl = xmlrpc.ServerUrl(nodeIp.String(), n.apiSlaveServer.Port())
+	n.apiSlaveServerUrl = xmlrpc.ServerUrl(nodeAddr, n.apiSlaveServer.Port())
 
 	n.tcprosServer, err = prototcp.NewServer(conf.TcprosPort)
 	if err != nil {
@@ -305,7 +307,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 	}
 	// get port in case it has been set automatically
 	n.tcprosServerPort = n.tcprosServer.Port()
-	n.tcprosServerUrl = prototcp.ServerUrl(nodeIp.String(), n.tcprosServerPort)
+	n.tcprosServerUrl = prototcp.ServerUrl(nodeAddr, n.tcprosServerPort)
 
 	n.udprosServer, err = protoudp.NewServer(conf.UdprosPort)
 	if err != nil {

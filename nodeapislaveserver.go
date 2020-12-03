@@ -8,8 +8,10 @@ import (
 )
 
 func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
-	n.apiSlaveServer.Handle(func(rawReq apislave.Request) apislave.Response {
-		switch req := rawReq.(type) {
+	defer wg.Done()
+
+	n.apiSlaveServer.Handle(func(req apislave.Request) apislave.Response {
+		switch reqt := req.(type) {
 		case *apislave.RequestGetBusInfo:
 			return apislave.ResponseGetBusInfo{
 				Code:          1,
@@ -41,8 +43,8 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 
 		case *apislave.RequestPublisherUpdate:
 			n.publisherUpdate <- publisherUpdateReq{
-				topic: req.Topic,
-				urls:  req.PublisherUrls,
+				topic: reqt.Topic,
+				urls:  reqt.PublisherUrls,
 			}
 
 			return apislave.ResponsePublisherUpdate{
@@ -52,7 +54,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 
 		case *apislave.RequestRequestTopic:
 			resChan := make(chan apislave.ResponseRequestTopic)
-			n.subscriberRequestTopic <- subscriberRequestTopicReq{req, resChan}
+			n.subscriberRequestTopic <- subscriberRequestTopicReq{reqt, resChan}
 			res := <-resChan
 			return res
 
@@ -67,6 +69,4 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 
 		return apislave.ErrorRes{}
 	})
-
-	wg.Done()
 }

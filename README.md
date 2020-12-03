@@ -18,9 +18,10 @@ Features:
 * Get and set parameters
 * Get infos about other nodes, topics, services
 * Use namespaces and relative topics
-* Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
-* Compilation of `.msg` files is not necessary, message definitions are deducted from code
+* IPv6 support (only stateful addresses, since stateless are not supported by the ROS master)
+* Compilation of `.msg` files is not necessary, message definitions are extracted from code
 * Standard messages are available in folder `msgs/`
+* Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
 * Examples provided for every feature, comprehensive test suite, continuous integration
 
 The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API).
@@ -40,6 +41,7 @@ The library provides its features by implementing in pure Go all the ROS protoco
    * [subscriber](examples/subscriber.go)
    * [subscriber-custom](examples/subscriber-custom.go)
    * [subscriber-udp](examples/subscriber-udp.go)
+   * [subscriber-ipv6](examples/subscriber-ipv6.go)
    * [publisher](examples/publisher.go)
    * [publisher-custom](examples/publisher-custom.go)
    * [serviceclient](examples/serviceclient.go)
@@ -129,8 +131,8 @@ There's a field `Namespace` in the `Node` configuration:
 
 ```go
 goroslib.NewNode(goroslib.NodeConf{
-    Namespace:  "/mynamespace",
-    Name:       "goroslib",
+    Namespace:     "/mynamespace",
+    Name:          "goroslib",
     MasterAddress: "127.0.0.1:11311",
 })
 ```

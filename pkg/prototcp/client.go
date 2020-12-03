@@ -11,7 +11,7 @@ const (
 
 // NewClient connects to a TCPROS server and returns a Conn.
 func NewClient(address string) (*Conn, error) {
-	nconn, err := net.DialTimeout("tcp4", address, dialTimeout)
+	nconn, err := net.DialTimeout("tcp", address, dialTimeout)
 	if err != nil {
 		return nil, err
 	}

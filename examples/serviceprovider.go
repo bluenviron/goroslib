@@ -33,7 +33,7 @@ func onService(req *TestServiceReq) *TestServiceRes {
 }
 
 func main() {
-	// create a node with given name and linked to given master.
+	// create a node and connects to the master
 	n, err := goroslib.NewNode(goroslib.NodeConf{
 		Name:          "goroslib_sp",
 		MasterAddress: "127.0.0.1:11311",

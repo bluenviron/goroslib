@@ -2,11 +2,19 @@ package prototcp
 
 import (
 	"net"
+	"net/url"
 	"strconv"
 )
 
-func ServerUrl(host string, port int) string {
-	return "rosrpc://" + host + ":" + strconv.FormatInt(int64(port), 10)
+func ServerUrl(address *net.TCPAddr, port int) string {
+	return (&url.URL{
+		Scheme: "rosrpc",
+		Host: (&net.TCPAddr{
+			IP:   address.IP,
+			Port: port,
+			Zone: address.Zone,
+		}).String(),
+	}).String()
 }
 
 // Server is a TCPROS server.
@@ -16,7 +24,7 @@ type Server struct {
 
 // NewServer allocates a Server.
 func NewServer(port int) (*Server, error) {
-	ln, err := net.Listen("tcp4", ":"+strconv.FormatInt(int64(port), 10))
+	ln, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(port), 10))
 	if err != nil {
 		return nil, err
 	}

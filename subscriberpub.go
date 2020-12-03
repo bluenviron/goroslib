@@ -19,7 +19,7 @@ var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")
 
 type subscriberPublisher struct {
 	sub        *Subscriber
-	url        string
+	address    string
 	udprosAddr *net.UDPAddr
 	udprosId   uint32
 
@@ -27,32 +27,30 @@ type subscriberPublisher struct {
 	terminate chan struct{}
 }
 
-func newSubscriberPublisher(sub *Subscriber, url string) {
+func newSubscriberPublisher(sub *Subscriber, address string) {
 	sp := &subscriberPublisher{
 		sub:       sub,
-		url:       url,
+		address:   address,
 		terminate: make(chan struct{}),
 	}
 
-	sub.publishers[url] = sp
+	sub.publishers[address] = sp
 
 	sub.publishersWg.Add(1)
 	go sp.run()
 }
 
 func (sp *subscriberPublisher) close() {
-	delete(sp.sub.publishers, sp.url)
+	delete(sp.sub.publishers, sp.address)
 	close(sp.terminate)
 }
 
 func (sp *subscriberPublisher) run() {
 	defer sp.sub.publishersWg.Done()
 
-	address, _ := urlToAddress(sp.url)
-
 	for {
 		ok := func() bool {
-			err := sp.do(address)
+			err := sp.runInner()
 			if err == errSubscriberPubTerminate {
 				return false
 			}
@@ -74,8 +72,8 @@ func (sp *subscriberPublisher) run() {
 	}
 }
 
-func (sp *subscriberPublisher) do(address string) error {
-	xcs := apislave.NewClient(address, sp.sub.conf.Node.absoluteName())
+func (sp *subscriberPublisher) runInner() error {
+	xcs := apislave.NewClient(sp.address, sp.sub.conf.Node.absoluteName())
 
 	subDone := make(chan struct{}, 1)
 	var res *apislave.ResponseRequestTopic
@@ -88,6 +86,7 @@ func (sp *subscriberPublisher) do(address string) error {
 				return [][]interface{}{{"TCPROS"}}
 			}
 
+			nodeIp, _, _ := net.SplitHostPort(sp.sub.conf.Node.nodeAddr.String())
 			return [][]interface{}{{
 				"UDPROS",
 				func() []byte {
@@ -100,7 +99,7 @@ func (sp *subscriberPublisher) do(address string) error {
 					})
 					return buf.Bytes()[4:]
 				}(),
-				sp.sub.conf.Node.nodeIp.String(),
+				nodeIp,
 				sp.sub.conf.Node.udprosServerPort,
 				1500,
 			}}
@@ -120,12 +119,12 @@ func (sp *subscriberPublisher) do(address string) error {
 	}
 
 	if sp.sub.conf.Protocol == TCPNoDelay || sp.sub.conf.Protocol == TCP {
-		return sp.doTcp(res)
+		return sp.runInnerTcp(res)
 	}
-	return sp.doUdp(res)
+	return sp.runInnerUdp(res)
 }
 
-func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
+func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) error {
 	if len(res.Protocol) != 3 {
 		return fmt.Errorf("wrong protocol length")
 	}
@@ -149,12 +148,14 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 		return fmt.Errorf("wrong protoName")
 	}
 
+	addr := net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10))
+
 	subDone := make(chan struct{}, 1)
 	var conn *prototcp.Conn
 	var err error
 	go func() {
 		defer close(subDone)
-		conn, err = prototcp.NewClient(protoHost + ":" + strconv.FormatInt(int64(protoPort), 10))
+		conn, err = prototcp.NewClient(addr)
 	}()
 
 	select {
@@ -246,7 +247,7 @@ func (sp *subscriberPublisher) doTcp(res *apislave.ResponseRequestTopic) error {
 	}
 }
 
-func (sp *subscriberPublisher) doUdp(res *apislave.ResponseRequestTopic) error {
+func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) error {
 	if len(res.Protocol) != 6 {
 		return fmt.Errorf("wrong protocol length")
 	}
@@ -276,7 +277,7 @@ func (sp *subscriberPublisher) doUdp(res *apislave.ResponseRequestTopic) error {
 	}
 
 	// solve host and port
-	addr, err := net.ResolveUDPAddr("udp4", protoHost+":"+strconv.FormatInt(int64(protoPort), 10))
+	addr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10)))
 	if err != nil {
 		return fmt.Errorf("unable to solve host")
 	}

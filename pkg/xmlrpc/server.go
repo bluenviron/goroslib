@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -12,8 +13,15 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
-func ServerUrl(host string, port int) string {
-	return "http://" + host + ":" + strconv.FormatInt(int64(port), 10)
+func ServerUrl(address *net.TCPAddr, port int) string {
+	return (&url.URL{
+		Scheme: "http",
+		Host: (&net.TCPAddr{
+			IP:   address.IP,
+			Port: port,
+			Zone: address.Zone,
+		}).String(),
+	}).String()
 }
 
 // Server is a XML-RPC server.
@@ -28,7 +36,7 @@ type Server struct {
 func NewServer(port int) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
-	ln, err := net.Listen("tcp4", ":"+strconv.FormatInt(int64(port), 10))
+	ln, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(port), 10))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +108,7 @@ func (s *Server) run() {
 
 // Handle sets a callback that is called when a request arrives.
 func (s *Server) Handle(cb func(*RequestRaw) interface{}) {
-	for rawReq := range s.read {
-		s.write <- cb(rawReq)
+	for req := range s.read {
+		s.write <- cb(req)
 	}
 }

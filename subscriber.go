@@ -140,20 +140,30 @@ outer:
 	for {
 		select {
 		case urls := <-s.publisherUpdate:
+			var addresses []string
+			for _, u := range urls {
+				addr, err := urlToAddress(u)
+				if err != nil {
+					continue
+				}
+
+				addresses = append(addresses, addr)
+			}
+
 			validPublishers := make(map[string]struct{})
 
 			// add new publishers
-			for _, url := range urls {
-				validPublishers[url] = struct{}{}
+			for _, addr := range addresses {
+				validPublishers[addr] = struct{}{}
 
-				if _, ok := s.publishers[url]; !ok {
-					newSubscriberPublisher(s, url)
+				if _, ok := s.publishers[addr]; !ok {
+					newSubscriberPublisher(s, addr)
 				}
 			}
 
 			// remove outdated publishers
-			for url, pub := range s.publishers {
-				if _, ok := validPublishers[url]; !ok {
+			for addr, pub := range s.publishers {
+				if _, ok := validPublishers[addr]; !ok {
 					pub.close()
 				}
 			}

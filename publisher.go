@@ -153,12 +153,13 @@ outer:
 
 				switch protoName {
 				case "TCPROS":
+					nodeIp, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
 					req.res <- apislave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
 							"TCPROS",
-							p.conf.Node.nodeIp.String(),
+							nodeIp,
 							p.conf.Node.tcprosServerPort,
 						},
 					}
@@ -216,7 +217,7 @@ outer:
 							p.msgMd5, header.Md5sum)
 					}
 
-					udpAddr, err := net.ResolveUDPAddr("udp4", protoHost+":"+strconv.FormatInt(int64(protoPort), 10))
+					udpAddr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10)))
 					if err != nil {
 						return fmt.Errorf("unable to solve udp address)")
 					}
@@ -263,7 +264,8 @@ outer:
 								if isLocalhost {
 									return "127.0.0.1"
 								}
-								return p.conf.Node.nodeIp.String()
+								nodeIp, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
+								return nodeIp
 							}(),
 							p.conf.Node.udprosServerPort,
 							p.id,
