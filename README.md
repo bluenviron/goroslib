@@ -1,7 +1,7 @@
 
 # goroslib
 
-[![Build Status](https://travis-ci.com/aler9/goroslib.svg?branch=master)](https://travis-ci.com/aler9/goroslib)
+[![Test](https://github.com/aler9/goroslib/workflows/test/badge.svg)](https://github.com/aler9/goroslib/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/aler9/goroslib)](https://pkg.go.dev/github.com/aler9/goroslib)
 
