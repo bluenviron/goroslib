@@ -170,6 +170,18 @@ func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) e
 
 	defer conn.Close()
 
+	if sp.sub.conf.EnableKeepAlive {
+		conn.NetConn().SetKeepAlive(true)
+		conn.NetConn().SetKeepAlivePeriod(60 * time.Second)
+	}
+
+	if sp.sub.conf.DisableNoDelay {
+		err := conn.NetConn().SetNoDelay(false)
+		if err != nil {
+			return err
+		}
+	}
+
 	subDone = make(chan struct{})
 	var outHeader prototcp.HeaderPublisher
 	go func() {
@@ -212,13 +224,6 @@ func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) e
 
 	if outHeader.Md5sum != sp.sub.msgMd5 {
 		return fmt.Errorf("wrong md5")
-	}
-
-	if sp.sub.conf.DisableNoDelay {
-		err := conn.RemoveNoDelay()
-		if err != nil {
-			return err
-		}
 	}
 
 	subDone = make(chan struct{})

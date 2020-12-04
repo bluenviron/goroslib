@@ -35,6 +35,10 @@ type SubscriberConf struct {
 	// it defaults to TCP.
 	Protocol Protocol
 
+	// (optional) enable keep-alive packets, that are
+	// useful when there's a firewall between nodes.
+	EnableKeepAlive bool
+
 	// (optional) if protocol is TCP, disables the TCP_NODELAY flag, which
 	// is enabled by default.
 	// It defaults to false.

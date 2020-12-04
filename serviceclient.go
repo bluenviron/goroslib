@@ -3,6 +3,7 @@ package goroslib
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/prototcp"
@@ -21,6 +22,10 @@ type ServiceClientConf struct {
 
 	// an instance of the response that will be received
 	Res interface{}
+
+	// (optional) enable keep-alive packets, that are
+	// useful when there's a firewall between nodes.
+	EnableKeepAlive bool
 }
 
 // ServiceClient is a ROS service client, an entity that can send requests to
@@ -143,6 +148,11 @@ func (sc *ServiceClient) createConn() error {
 	conn, err := prototcp.NewClient(address)
 	if err != nil {
 		return err
+	}
+
+	if sc.conf.EnableKeepAlive {
+		conn.NetConn().SetKeepAlive(true)
+		conn.NetConn().SetKeepAlivePeriod(60 * time.Second)
 	}
 
 	err = conn.WriteHeader(&prototcp.HeaderServiceClient{

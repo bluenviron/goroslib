@@ -61,12 +61,12 @@ func (c *Conn) Close() error {
 	return c.nconn.Close()
 }
 
-// RemoveNoDelay removes the TCP_NODELAY flag from the connection.
-func (c *Conn) RemoveNoDelay() error {
-	return c.nconn.SetNoDelay(false)
+// NetConn returns the underlying *net.TCPConn.
+func (c *Conn) NetConn() *net.TCPConn {
+	return c.nconn
 }
 
-// ReadHeaderRaw reads a HeaderRaw.
+// ReadHeaderRaw reads an HeaderRaw.
 func (c *Conn) ReadHeaderRaw() (protocommon.HeaderRaw, error) {
 	return protocommon.HeaderRawDecode(c.readBuf)
 }
