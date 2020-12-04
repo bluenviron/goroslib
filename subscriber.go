@@ -12,11 +12,8 @@ import (
 type Protocol int
 
 const (
-	// TCPNoDelay is the TCPROS protocol, with the TCP_NODELAY flag set.
-	TCPNoDelay Protocol = iota
-
-	// TCP is the TCPROS protocol, without the TCP_NODELAY flag set.
-	TCP
+	// TCP is the TCPROS protocol.
+	TCP Protocol = iota
 
 	// UDP is the UDPROS protocol.
 	UDP
@@ -31,12 +28,17 @@ type SubscriberConf struct {
 	Topic string
 
 	// function in the form func(msg *NameOfMessage){} that will be called
-	// whenever a message arrives
+	// whenever a message arrives.
 	Callback interface{}
 
 	// (optional) protocol that will be used to receive messages
-	// it defaults to TCPNoDelay
+	// it defaults to TCP.
 	Protocol Protocol
+
+	// (optional) if protocol is TCP, disables the TCP_NODELAY flag, which
+	// is enabled by default.
+	// It defaults to false.
+	DisableNoDelay bool
 }
 
 // Subscriber is a ROS subscriber, an entity that can receive messages from a named channel.

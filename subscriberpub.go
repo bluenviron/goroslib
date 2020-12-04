@@ -82,7 +82,7 @@ func (sp *subscriberPublisher) runInner() error {
 		defer close(subDone)
 
 		protocols := func() [][]interface{} {
-			if sp.sub.conf.Protocol == TCPNoDelay || sp.sub.conf.Protocol == TCP {
+			if sp.sub.conf.Protocol == TCP {
 				return [][]interface{}{{"TCPROS"}}
 			}
 
@@ -118,7 +118,7 @@ func (sp *subscriberPublisher) runInner() error {
 		return err
 	}
 
-	if sp.sub.conf.Protocol == TCPNoDelay || sp.sub.conf.Protocol == TCP {
+	if sp.sub.conf.Protocol == TCP {
 		return sp.runInnerTcp(res)
 	}
 	return sp.runInnerUdp(res)
@@ -181,10 +181,10 @@ func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) e
 			Topic:    sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
 			Type:     sp.sub.msgType,
 			TcpNodelay: func() int {
-				if sp.sub.conf.Protocol == TCPNoDelay {
-					return 1
+				if sp.sub.conf.DisableNoDelay {
+					return 0
 				}
-				return 0
+				return 1
 			}(),
 		})
 		if err != nil {
@@ -214,7 +214,7 @@ func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) e
 		return fmt.Errorf("wrong md5")
 	}
 
-	if sp.sub.conf.Protocol == TCP {
+	if sp.sub.conf.DisableNoDelay {
 		err := conn.RemoveNoDelay()
 		if err != nil {
 			return err
