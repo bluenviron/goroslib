@@ -26,6 +26,12 @@ Features:
 
 The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API).
 
+All the official [client libraries requirements](https://wiki.ros.org/Implementing%20Client%20Libraries) are satisfied, except for the following ones:
+
+* parse command-line Remapping Arguments
+* Subscribe to a simulated Clock
+* publish debugging messages to rosout
+
 ## Installation
 
 1. Install Go &ge; 1.13.
