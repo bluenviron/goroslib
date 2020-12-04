@@ -18,12 +18,13 @@ import (
 var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")
 
 type subscriberPublisher struct {
-	sub        *Subscriber
-	address    string
-	udprosAddr *net.UDPAddr
-	udprosId   uint32
+	sub     *Subscriber
+	address string
+	udpAddr *net.UDPAddr
+	udpId   uint32
 
 	// in
+	udpFrame  chan *protoudp.Frame
 	terminate chan struct{}
 }
 
@@ -287,18 +288,46 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 		return fmt.Errorf("unable to solve host")
 	}
 
-	sp.udprosAddr = addr
-	sp.udprosId = uint32(protoId)
+	sp.udpAddr = addr
+	sp.udpId = uint32(protoId)
+	sp.udpFrame = make(chan *protoudp.Frame)
 
-	chanFrame := make(chan *protoudp.Frame)
-	sp.sub.conf.Node.udpSubPublisherNew <- udpSubPublisherNewReq{sp, chanFrame}
+	sp.sub.conf.Node.udpSubPublisherNew <- sp
 
 	defer func() {
 		done := make(chan struct{})
 		sp.sub.conf.Node.udpSubPublisherClose <- udpSubPublisherCloseReq{sp, done}
 		<-done
-		close(chanFrame)
+		close(sp.udpFrame)
 	}()
+
+	readerClose := make(chan struct{})
+	readerDone := make(chan struct{})
+	if sp.sub.conf.EnableKeepAlive {
+		go func() {
+			defer close(readerDone)
+
+			curMessageId := uint8(0)
+
+			t := time.NewTicker(60 * time.Second)
+			defer t.Stop()
+
+			for {
+				select {
+				case <-t.C:
+					sp.sub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
+						ConnectionId: uint32(sp.udpId),
+						Opcode:       protoudp.Ping,
+						MessageId:    curMessageId,
+					}, sp.udpAddr)
+					curMessageId++
+
+				case <-readerClose:
+					return
+				}
+			}
+		}()
+	}
 
 	var curMsg []byte
 	curFieldId := 0
@@ -306,7 +335,7 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 
 	for {
 		select {
-		case frame := <-chanFrame:
+		case frame := <-sp.udpFrame:
 			switch frame.Opcode {
 			case protoudp.Data0:
 				curMsg = append([]byte{}, frame.Content...)
@@ -332,6 +361,11 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 			}
 
 		case <-sp.terminate:
+			if sp.sub.conf.EnableKeepAlive {
+				close(readerClose)
+				<-readerDone
+			}
+
 			return errSubscriberPubTerminate
 		}
 	}

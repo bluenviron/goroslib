@@ -67,11 +67,6 @@ type tcpClientServiceClientReq struct {
 	header *prototcp.HeaderServiceClient
 }
 
-type udpSubPublisherNewReq struct {
-	sp        *subscriberPublisher
-	chanFrame chan *protoudp.Frame
-}
-
 type udpSubPublisherCloseReq struct {
 	sp   *subscriberPublisher
 	done chan struct{}
@@ -158,7 +153,7 @@ type Node struct {
 	udprosServer        *protoudp.Server
 	udprosServerPort    int
 	tcprosClients       map[*prototcp.Conn]struct{}
-	udprosSubPublishers map[*subscriberPublisher]chan *protoudp.Frame
+	udprosSubPublishers map[*subscriberPublisher]struct{}
 	subscribers         map[string]*Subscriber
 	publishers          map[string]*Publisher
 	serviceProviders    map[string]*ServiceProvider
@@ -170,7 +165,7 @@ type Node struct {
 	tcpClientClose         chan *prototcp.Conn
 	tcpClientSubscriber    chan tcpClientSubscriberReq
 	tcpClientServiceClient chan tcpClientServiceClientReq
-	udpSubPublisherNew     chan udpSubPublisherNewReq
+	udpSubPublisherNew     chan *subscriberPublisher
 	udpSubPublisherClose   chan udpSubPublisherCloseReq
 	udpFrame               chan udpFrameReq
 	publisherUpdate        chan publisherUpdateReq
@@ -264,7 +259,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		masterAddr:             masterAddr,
 		nodeAddr:               nodeAddr,
 		tcprosClients:          make(map[*prototcp.Conn]struct{}),
-		udprosSubPublishers:    make(map[*subscriberPublisher]chan *protoudp.Frame),
+		udprosSubPublishers:    make(map[*subscriberPublisher]struct{}),
 		subscribers:            make(map[string]*Subscriber),
 		publishers:             make(map[string]*Publisher),
 		serviceProviders:       make(map[string]*ServiceProvider),
@@ -272,7 +267,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		tcpClientClose:         make(chan *prototcp.Conn),
 		tcpClientSubscriber:    make(chan tcpClientSubscriberReq),
 		tcpClientServiceClient: make(chan tcpClientServiceClientReq),
-		udpSubPublisherNew:     make(chan udpSubPublisherNewReq),
+		udpSubPublisherNew:     make(chan *subscriberPublisher),
 		udpSubPublisherClose:   make(chan udpSubPublisherCloseReq),
 		udpFrame:               make(chan udpFrameReq),
 		publisherUpdate:        make(chan publisherUpdateReq),
@@ -414,18 +409,18 @@ outer:
 				header: req.header,
 			}
 
-		case req := <-n.udpSubPublisherNew:
-			n.udprosSubPublishers[req.sp] = req.chanFrame
+		case sp := <-n.udpSubPublisherNew:
+			n.udprosSubPublishers[sp] = struct{}{}
 
 		case req := <-n.udpSubPublisherClose:
 			delete(n.udprosSubPublishers, req.sp)
 			close(req.done)
 
 		case req := <-n.udpFrame:
-			for sp, chanFrame := range n.udprosSubPublishers {
-				if req.frame.ConnectionId == sp.udprosId &&
-					req.source.IP.Equal(sp.udprosAddr.IP) {
-					chanFrame <- req.frame
+			for sp := range n.udprosSubPublishers {
+				if req.frame.ConnectionId == sp.udpId &&
+					req.source.IP.Equal(sp.udpAddr.IP) {
+					sp.udpFrame <- req.frame
 					break
 				}
 			}
