@@ -12,7 +12,7 @@ type Response interface {
 }
 
 type RequestGetBusInfo struct {
-	CallerId string
+	CallerID string
 }
 
 func (RequestGetBusInfo) isRequest() {}
@@ -26,7 +26,7 @@ type ResponseGetBusInfo struct {
 func (ResponseGetBusInfo) isResponse() {}
 
 type RequestGetPid struct {
-	CallerId string
+	CallerID string
 }
 
 func (RequestGetPid) isRequest() {}
@@ -40,7 +40,7 @@ type ResponseGetPid struct {
 func (ResponseGetPid) isResponse() {}
 
 type RequestGetPublications struct {
-	CallerId string
+	CallerID string
 }
 
 func (RequestGetPublications) isRequest() {}
@@ -54,9 +54,9 @@ type ResponseGetPublications struct {
 func (ResponseGetPublications) isResponse() {}
 
 type RequestPublisherUpdate struct {
-	CallerId      string
+	CallerID      string
 	Topic         string
-	PublisherUrls []string
+	PublisherURLs []string
 }
 
 func (RequestPublisherUpdate) isRequest() {}
@@ -70,7 +70,7 @@ type ResponsePublisherUpdate struct {
 func (ResponsePublisherUpdate) isResponse() {}
 
 type RequestRequestTopic struct {
-	CallerId  string
+	CallerID  string
 	Topic     string
 	Protocols [][]interface{}
 }
@@ -86,7 +86,7 @@ type ResponseRequestTopic struct {
 func (ResponseRequestTopic) isResponse() {}
 
 type RequestShutdown struct {
-	CallerId string
+	CallerID string
 	Reason   string
 }
 

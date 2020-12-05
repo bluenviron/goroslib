@@ -15,7 +15,7 @@ func TestServiceProviderRegister(t *testing.T) {
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -55,7 +55,7 @@ func TestServiceProviderRegister(t *testing.T) {
 	services, err = n.GetServices()
 	require.NoError(t, err)
 
-	service, ok = services["/myns/test_srv"]
+	_, ok = services["/myns/test_srv"]
 	require.Equal(t, false, ok)
 }
 
@@ -72,7 +72,7 @@ func TestServiceProviderResponse(t *testing.T) {
 			nsp, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib_sp",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer nsp.Close()
@@ -93,7 +93,7 @@ func TestServiceProviderResponse(t *testing.T) {
 
 			switch client {
 			case "cpp":
-				cc, err := newContainer("node-serviceclient", m.Ip())
+				cc, err := newContainer("node-serviceclient", m.IP())
 				require.NoError(t, err)
 				require.Equal(t, "123.000000\n", cc.waitOutput())
 
@@ -101,7 +101,7 @@ func TestServiceProviderResponse(t *testing.T) {
 				nsc, err := NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "goroslib_sc",
-					MasterAddress: m.Ip() + ":11311",
+					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
 				defer nsc.Close()

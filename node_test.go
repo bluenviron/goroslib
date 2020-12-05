@@ -53,7 +53,7 @@ func newContainerMaster() (*containerMaster, error) {
 	}, nil
 }
 
-func (m *containerMaster) Ip() string {
+func (m *containerMaster) IP() string {
 	return m.ip
 }
 
@@ -66,13 +66,13 @@ type container struct {
 	name string
 }
 
-func newContainer(name string, masterIp string) (*container, error) {
+func newContainer(name string, masterIP string) (*container, error) {
 	exec.Command("docker", "kill", "goroslib-test-"+name).Run()
 	exec.Command("docker", "wait", "goroslib-test-"+name).Run()
 	exec.Command("docker", "rm", "goroslib-test-"+name).Run()
 
 	cmd := []string{"docker", "run", "-d", "--name=goroslib-test-" + name}
-	cmd = append(cmd, "-e", "MASTER_IP="+masterIp)
+	cmd = append(cmd, "-e", "MASTER_IP="+masterIP)
 	cmd = append(cmd, "goroslib-test-"+name)
 	err := exec.Command(cmd[0], cmd[1:]...).Run()
 	if err != nil {
@@ -108,7 +108,7 @@ func TestNodeOpen(t *testing.T) {
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -131,7 +131,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -165,7 +165,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	require.NoError(t, err)
 	defer sp.Close()
 
-	rt, err := newContainer("rosnode-info", m.Ip())
+	rt, err := newContainer("rosnode-info", m.IP())
 	require.NoError(t, err)
 
 	require.Regexp(t, regexp.MustCompile("^--------------------------------------------------------------------------------\n"+

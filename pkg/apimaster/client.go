@@ -9,21 +9,21 @@ import (
 // Client is a Master API client.
 type Client struct {
 	xc       *xmlrpc.Client
-	callerId string
+	callerID string
 }
 
 // NewClient allocates a Client.
-func NewClient(address string, callerId string) *Client {
+func NewClient(address string, callerID string) *Client {
 	return &Client{
 		xc:       xmlrpc.NewClient(address),
-		callerId: callerId,
+		callerID: callerID,
 	}
 }
 
 // GetPublishedTopics writes a getPublishedTopics request.
 func (c *Client) GetPublishedTopics(subgraph string) (*ResponseGetPublishedTopics, error) {
 	req := RequestGetPublishedTopics{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Subgraph: subgraph,
 	}
 
@@ -44,7 +44,7 @@ func (c *Client) GetPublishedTopics(subgraph string) (*ResponseGetPublishedTopic
 // GetSystemState writes a getSystemState request.
 func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 	req := RequestGetSystemState{
-		c.callerId,
+		c.callerID,
 	}
 
 	var res ResponseGetSystemState
@@ -64,7 +64,7 @@ func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 // GetTopicTypes writes a getTopicTypes request.
 func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 	req := RequestGetTopicTypes{
-		c.callerId,
+		c.callerID,
 	}
 
 	var res ResponseGetTopicTypes
@@ -81,13 +81,13 @@ func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 	return &res, nil
 }
 
-// GetUri writes a getUri request.
-func (c *Client) GetUri() (*ResponseGetUri, error) {
-	req := RequestGetUri{
-		c.callerId,
+// GetURI writes a getUri request.
+func (c *Client) GetURI() (*ResponseGetURI, error) {
+	req := RequestGetURI{
+		c.callerID,
 	}
 
-	var res ResponseGetUri
+	var res ResponseGetURI
 	err := c.xc.Do("getUri", req, &res)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (c *Client) GetUri() (*ResponseGetUri, error) {
 
 func (c *Client) lookup(method string, name string) (*ResponseLookup, error) {
 	req := RequestLookup{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Name:     name,
 	}
 
@@ -132,12 +132,12 @@ func (c *Client) LookupService(name string) (*ResponseLookup, error) {
 }
 
 func (c *Client) register(method string, topic string, topicType string,
-	callerUrl string) (*ResponseRegister, error) {
+	callerURL string) (*ResponseRegister, error) {
 	req := RequestRegister{
-		CallerId:  c.callerId,
+		CallerID:  c.callerID,
 		Topic:     topic,
 		TopicType: topicType,
-		CallerUrl: callerUrl,
+		CallerURL: callerURL,
 	}
 
 	var res ResponseRegister
@@ -156,21 +156,21 @@ func (c *Client) register(method string, topic string, topicType string,
 
 // RegisterSubscriber writes a registerSubscriber request.
 func (c *Client) RegisterSubscriber(topic string, topicType string,
-	callerUrl string) (*ResponseRegister, error) {
-	return c.register("registerSubscriber", topic, topicType, callerUrl)
+	callerURL string) (*ResponseRegister, error) {
+	return c.register("registerSubscriber", topic, topicType, callerURL)
 }
 
 // RegisterPublisher writes a registerPublisher request.
 func (c *Client) RegisterPublisher(topic string, topicType string,
-	callerUrl string) (*ResponseRegister, error) {
-	return c.register("registerPublisher", topic, topicType, callerUrl)
+	callerURL string) (*ResponseRegister, error) {
+	return c.register("registerPublisher", topic, topicType, callerURL)
 }
 
-func (c *Client) unregister(method string, topic string, callerUrl string) error {
+func (c *Client) unregister(method string, topic string, callerURL string) error {
 	req := RequestUnregister{
-		CallerId:  c.callerId,
+		CallerID:  c.callerID,
 		Topic:     topic,
-		CallerUrl: callerUrl,
+		CallerURL: callerURL,
 	}
 
 	var res ResponseUnregister
@@ -187,23 +187,23 @@ func (c *Client) unregister(method string, topic string, callerUrl string) error
 }
 
 // UnregisterSubscriber writes a unregisterSubscriber request.
-func (c *Client) UnregisterSubscriber(topic string, callerUrl string) error {
-	return c.unregister("unregisterSubscriber", topic, callerUrl)
+func (c *Client) UnregisterSubscriber(topic string, callerURL string) error {
+	return c.unregister("unregisterSubscriber", topic, callerURL)
 }
 
 // UnregisterPublisher writes a unregisterPublisher request.
-func (c *Client) UnregisterPublisher(topic string, callerUrl string) error {
-	return c.unregister("unregisterPublisher", topic, callerUrl)
+func (c *Client) UnregisterPublisher(topic string, callerURL string) error {
+	return c.unregister("unregisterPublisher", topic, callerURL)
 }
 
 // RegisterService writes a registerService request.
-func (c *Client) RegisterService(service string, serviceUrl string,
-	callerUrl string) error {
+func (c *Client) RegisterService(service string, serviceURL string,
+	callerURL string) error {
 	req := RequestRegisterService{
-		CallerId:   c.callerId,
+		CallerID:   c.callerID,
 		Service:    service,
-		ServiceUrl: serviceUrl,
-		CallerUrl:  callerUrl,
+		ServiceURL: serviceURL,
+		CallerURL:  callerURL,
 	}
 
 	var res ResponseServiceRegister
@@ -220,11 +220,11 @@ func (c *Client) RegisterService(service string, serviceUrl string,
 }
 
 // UnregisterService writes a unregisterService request.
-func (c *Client) UnregisterService(service string, serviceUrl string) error {
+func (c *Client) UnregisterService(service string, serviceURL string) error {
 	req := RequestUnregisterService{
-		CallerId:   c.callerId,
+		CallerID:   c.callerID,
 		Service:    service,
-		ServiceUrl: serviceUrl,
+		ServiceURL: serviceURL,
 	}
 
 	var res ResponseServiceUnregister

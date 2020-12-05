@@ -140,7 +140,7 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
-	address, err := urlToAddress(res.Uri)
+	address, err := urlToAddress(res.URI)
 	if err != nil {
 		return err
 	}

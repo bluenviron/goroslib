@@ -4,7 +4,7 @@
 package apimaster
 
 type RequestGetPublishedTopics struct {
-	CallerId string
+	CallerID string
 	Subgraph string
 }
 
@@ -15,7 +15,7 @@ type ResponseGetPublishedTopics struct {
 }
 
 type RequestGetSystemState struct {
-	CallerId string
+	CallerID string
 }
 
 type SystemStateEntry struct {
@@ -36,7 +36,7 @@ type ResponseGetSystemState struct {
 }
 
 type RequestGetTopicTypes struct {
-	CallerId string
+	CallerID string
 }
 
 type TopicType struct {
@@ -50,44 +50,44 @@ type ResponseGetTopicTypes struct {
 	Types         []TopicType
 }
 
-type RequestGetUri struct {
-	CallerId string
+type RequestGetURI struct {
+	CallerID string
 }
 
-type ResponseGetUri struct {
+type ResponseGetURI struct {
 	Code          int
 	StatusMessage string
-	MasterUri     string
+	MasterURI     string
 }
 
 type RequestLookup struct {
-	CallerId string
+	CallerID string
 	Name     string
 }
 
 type ResponseLookup struct {
 	Code          int
 	StatusMessage string
-	Uri           string
+	URI           string
 }
 
 type RequestRegister struct {
-	CallerId  string
+	CallerID  string
 	Topic     string
 	TopicType string
-	CallerUrl string
+	CallerURL string
 }
 
 type ResponseRegister struct {
 	Code          int
 	StatusMessage string
-	Uris          []string
+	URIs          []string
 }
 
 type RequestUnregister struct {
-	CallerId  string
+	CallerID  string
 	Topic     string
-	CallerUrl string
+	CallerURL string
 }
 
 type ResponseUnregister struct {
@@ -97,10 +97,10 @@ type ResponseUnregister struct {
 }
 
 type RequestRegisterService struct {
-	CallerId   string
+	CallerID   string
 	Service    string
-	ServiceUrl string
-	CallerUrl  string
+	ServiceURL string
+	CallerURL  string
 }
 
 type ResponseServiceRegister struct {
@@ -110,9 +110,9 @@ type ResponseServiceRegister struct {
 }
 
 type RequestUnregisterService struct {
-	CallerId   string
+	CallerID   string
 	Service    string
-	ServiceUrl string
+	ServiceURL string
 }
 
 type ResponseServiceUnregister struct {

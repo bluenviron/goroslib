@@ -146,10 +146,10 @@ type Node struct {
 	apiMasterClient     *apimaster.Client
 	apiParamClient      *apiparam.Client
 	apiSlaveServer      *apislave.Server
-	apiSlaveServerUrl   string
+	apiSlaveServerURL   string
 	tcprosServer        *prototcp.Server
 	tcprosServerPort    int
-	tcprosServerUrl     string
+	tcprosServerURL     string
 	udprosServer        *protoudp.Server
 	udprosServerPort    int
 	tcprosClients       map[*prototcp.Conn]struct{}
@@ -157,7 +157,7 @@ type Node struct {
 	subscribers         map[string]*Subscriber
 	publishers          map[string]*Publisher
 	serviceProviders    map[string]*ServiceProvider
-	publisherLastId     int
+	publisherLastID     int
 	rosoutPublisher     *Publisher
 
 	// in
@@ -293,7 +293,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, err
 	}
 	// get port in case it has been set automatically
-	n.apiSlaveServerUrl = xmlrpc.ServerUrl(nodeAddr, n.apiSlaveServer.Port())
+	n.apiSlaveServerURL = xmlrpc.ServerURL(nodeAddr, n.apiSlaveServer.Port())
 
 	n.tcprosServer, err = prototcp.NewServer(conf.TcprosPort)
 	if err != nil {
@@ -302,7 +302,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 	}
 	// get port in case it has been set automatically
 	n.tcprosServerPort = n.tcprosServer.Port()
-	n.tcprosServerUrl = prototcp.ServerUrl(nodeAddr, n.tcprosServerPort)
+	n.tcprosServerURL = prototcp.ServerURL(nodeAddr, n.tcprosServerPort)
 
 	n.udprosServer, err = protoudp.NewServer(conf.UdprosPort)
 	if err != nil {
@@ -362,7 +362,7 @@ func (n *Node) run() {
 	var serversWg sync.WaitGroup
 
 	serversWg.Add(3)
-	go n.runApiSlaveServer(&serversWg)
+	go n.runAPISlaveServer(&serversWg)
 	go n.runTcprosServer(&serversWg)
 	go n.runUdprosServer(&serversWg)
 
@@ -389,7 +389,7 @@ outer:
 				continue
 			}
 
-			pub.subscriberTcpNew <- publisherSubscriberTcpNewReq{
+			pub.subscriberTCPNew <- tcpClientSubscriberReq{
 				client: req.client,
 				header: req.header,
 			}
@@ -404,10 +404,7 @@ outer:
 				continue
 			}
 
-			sp.clientNew <- serviceProviderClientNewReq{
-				client: req.client,
-				header: req.header,
-			}
+			sp.clientNew <- req
 
 		case sp := <-n.udpSubPublisherNew:
 			n.udprosSubPublishers[sp] = struct{}{}
@@ -418,7 +415,7 @@ outer:
 
 		case req := <-n.udpFrame:
 			for sp := range n.udprosSubPublishers {
-				if req.frame.ConnectionId == sp.udpId &&
+				if req.frame.ConnectionID == sp.udpID &&
 					req.source.IP.Equal(sp.udpAddr.IP) {
 					sp.udpFrame <- req.frame
 					break
@@ -452,7 +449,7 @@ outer:
 				continue
 			}
 
-			pub.requestTopic <- publisherRequestTopicReq{req.req, req.res}
+			pub.requestTopic <- subscriberRequestTopicReq{req.req, req.res}
 
 		case req := <-n.subscriberNew:
 			_, ok := n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)]
@@ -464,7 +461,7 @@ outer:
 			res, err := n.apiMasterClient.RegisterSubscriber(
 				n.absoluteTopicName(req.sub.conf.Topic),
 				req.sub.msgType,
-				n.apiSlaveServerUrl)
+				n.apiSlaveServerURL)
 			if err != nil {
 				req.err <- err
 				continue
@@ -474,7 +471,7 @@ outer:
 			req.err <- nil
 
 			// send initial publishers list to subscriber
-			req.sub.publisherUpdate <- res.Uris
+			req.sub.publisherUpdate <- res.URIs
 
 		case sub := <-n.subscriberClose:
 			delete(n.subscribers, n.absoluteTopicName(sub.conf.Topic))
@@ -490,14 +487,14 @@ outer:
 			_, err := n.apiMasterClient.RegisterPublisher(
 				n.absoluteTopicName(req.pub.conf.Topic),
 				req.pub.msgType,
-				n.apiSlaveServerUrl)
+				n.apiSlaveServerURL)
 			if err != nil {
 				req.err <- err
 				continue
 			}
 
-			n.publisherLastId += 1
-			req.pub.id = n.publisherLastId
+			n.publisherLastID++
+			req.pub.id = n.publisherLastID
 			n.publishers[n.absoluteTopicName(req.pub.conf.Topic)] = req.pub
 			req.err <- nil
 
@@ -514,8 +511,8 @@ outer:
 
 			err := n.apiMasterClient.RegisterService(
 				n.absoluteTopicName(req.sp.conf.Service),
-				n.tcprosServerUrl,
-				n.apiSlaveServerUrl)
+				n.tcprosServerURL,
+				n.apiSlaveServerURL)
 			if err != nil {
 				req.err <- err
 				continue

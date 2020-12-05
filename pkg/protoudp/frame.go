@@ -19,10 +19,10 @@ const (
 )
 
 type Frame struct {
-	ConnectionId uint32
+	ConnectionID uint32
 	Opcode       Opcode
-	MessageId    uint8
-	BlockId      uint16
+	MessageID    uint8
+	BlockID      uint16
 	Content      []byte
 }
 
@@ -33,10 +33,10 @@ func frameDecode(byts []byte) (*Frame, error) {
 
 	f := &Frame{}
 
-	f.ConnectionId = binary.LittleEndian.Uint32(byts[0:4])
+	f.ConnectionID = binary.LittleEndian.Uint32(byts[0:4])
 	f.Opcode = Opcode(byts[4])
-	f.MessageId = byts[5]
-	f.BlockId = binary.LittleEndian.Uint16(byts[6:8])
+	f.MessageID = byts[5]
+	f.BlockID = binary.LittleEndian.Uint16(byts[6:8])
 	f.Content = byts[8:]
 
 	return f, nil
@@ -45,10 +45,10 @@ func frameDecode(byts []byte) (*Frame, error) {
 func frameEncode(f *Frame) ([]byte, error) {
 	byts := make([]byte, 8+len(f.Content))
 
-	binary.LittleEndian.PutUint32(byts[:4], f.ConnectionId)
+	binary.LittleEndian.PutUint32(byts[:4], f.ConnectionID)
 	byts[4] = uint8(f.Opcode)
-	byts[5] = f.MessageId
-	binary.LittleEndian.PutUint16(byts[6:8], f.BlockId)
+	byts[5] = f.MessageID
+	binary.LittleEndian.PutUint16(byts[6:8], f.BlockID)
 	copy(byts[8:], f.Content)
 
 	return byts, nil

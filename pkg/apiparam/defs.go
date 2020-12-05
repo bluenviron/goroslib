@@ -4,7 +4,7 @@
 package apiparam
 
 type RequestDeleteParam struct {
-	CallerId string
+	CallerID string
 	Key      string
 }
 
@@ -15,7 +15,7 @@ type ResponseDeleteParam struct {
 }
 
 type RequestGetParamNames struct {
-	CallerId string
+	CallerID string
 }
 
 type ResponseGetParamNames struct {
@@ -25,7 +25,7 @@ type ResponseGetParamNames struct {
 }
 
 type RequestGetParam struct {
-	CallerId string
+	CallerID string
 	Key      string
 }
 
@@ -48,7 +48,7 @@ type ResponseGetParamString struct {
 }
 
 type RequestHasParam struct {
-	CallerId string
+	CallerID string
 	Key      string
 }
 
@@ -59,7 +59,7 @@ type ResponseHasParam struct {
 }
 
 type RequestSearchParam struct {
-	CallerId string
+	CallerID string
 	Key      string
 }
 
@@ -70,19 +70,19 @@ type ResponseSearchParam struct {
 }
 
 type RequestSetParamBool struct {
-	CallerId string
+	CallerID string
 	Key      string
 	Val      bool
 }
 
 type RequestSetParamInt struct {
-	CallerId string
+	CallerID string
 	Key      string
 	Val      int
 }
 
 type RequestSetParamString struct {
-	CallerId string
+	CallerID string
 	Key      string
 	Val      string
 }

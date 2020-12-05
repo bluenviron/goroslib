@@ -1,3 +1,4 @@
+//nolint:golint
 package stereo_msgs
 
 import (

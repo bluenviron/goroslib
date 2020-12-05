@@ -20,7 +20,7 @@ func TestPublisherRegister(t *testing.T) {
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -86,14 +86,14 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 			switch sub {
 			case "cpp":
 				var err error
-				subc, err = newContainer("node-sub", m.Ip())
+				subc, err = newContainer("node-sub", m.IP())
 				require.NoError(t, err)
 
 			case "go":
 				ns, err := NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "goroslibsub",
-					MasterAddress: m.Ip() + ":11311",
+					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
 				defer ns.Close()
@@ -113,7 +113,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -167,7 +167,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -196,14 +196,14 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 			switch sub {
 			case "cpp":
 				var err error
-				subc, err = newContainer("node-sub", m.Ip())
+				subc, err = newContainer("node-sub", m.IP())
 				require.NoError(t, err)
 
 			case "go":
 				ns, err := NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "goroslibsub",
-					MasterAddress: m.Ip() + ":11311",
+					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
 				defer ns.Close()
@@ -222,7 +222,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 			case "rostopic echo":
 				var err error
-				subc, err = newContainer("rostopic-echo", m.Ip())
+				subc, err = newContainer("rostopic-echo", m.IP())
 				require.NoError(t, err)
 			}
 
@@ -270,7 +270,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -299,14 +299,14 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 			ns, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslibsub",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer ns.Close()
 
 			switch sub {
 			case "cpp":
-				subc, err := newContainer("node-sub", m.Ip())
+				subc, err := newContainer("node-sub", m.IP())
 				require.NoError(t, err)
 				require.Equal(t, "1 other test 5776731014620\n", subc.waitOutput())
 
@@ -326,7 +326,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 				require.Equal(t, expected, <-recv)
 
 			case "rostopic echo":
-				subc, err := newContainer("rostopic-echo", m.Ip())
+				subc, err := newContainer("rostopic-echo", m.IP())
 				require.NoError(t, err)
 				require.Equal(t, "data: 45.5\n---\n", subc.waitOutput())
 			}
@@ -352,7 +352,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 			ns, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslibsub",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer ns.Close()
@@ -363,7 +363,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 			switch sub {
 			case "cpp":
 				var err error
-				subc, err = newContainer("node-sub-udp", m.Ip())
+				subc, err = newContainer("node-sub-udp", m.IP())
 				require.NoError(t, err)
 
 			case "go":
@@ -384,7 +384,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -425,7 +425,7 @@ func TestPublisherRostopicHz(t *testing.T) {
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -459,7 +459,7 @@ func TestPublisherRostopicHz(t *testing.T) {
 		}
 	}()
 
-	rt, err := newContainer("rostopic-hz", m.Ip())
+	rt, err := newContainer("rostopic-hz", m.IP())
 	require.NoError(t, err)
 
 	recv := rt.waitOutput()

@@ -16,16 +16,6 @@ import (
 	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
-type publisherRequestTopicReq struct {
-	req *apislave.RequestRequestTopic
-	res chan apislave.ResponseRequestTopic
-}
-
-type publisherSubscriberTcpNewReq struct {
-	client *prototcp.Conn
-	header *prototcp.HeaderSubscriber
-}
-
 // PublisherConf is the configuration of a Publisher.
 type PublisherConf struct {
 	// node which the publisher belongs to
@@ -54,9 +44,9 @@ type Publisher struct {
 	id            int
 
 	// in
-	requestTopic       chan publisherRequestTopicReq
-	subscriberTcpNew   chan publisherSubscriberTcpNewReq
-	subscriberTcpClose chan *publisherSubscriber
+	requestTopic       chan subscriberRequestTopicReq
+	subscriberTCPNew   chan tcpClientSubscriberReq
+	subscriberTCPClose chan *publisherSubscriber
 	write              chan interface{}
 	shutdown           chan struct{}
 	nodeTerminate      chan struct{}
@@ -95,9 +85,9 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		msgType:            msgType,
 		msgMd5:             msgMd5,
 		subscribers:        make(map[string]*publisherSubscriber),
-		requestTopic:       make(chan publisherRequestTopicReq),
-		subscriberTcpNew:   make(chan publisherSubscriberTcpNewReq),
-		subscriberTcpClose: make(chan *publisherSubscriber),
+		requestTopic:       make(chan subscriberRequestTopicReq),
+		subscriberTCPNew:   make(chan tcpClientSubscriberReq),
+		subscriberTCPClose: make(chan *publisherSubscriber),
 		write:              make(chan interface{}),
 		shutdown:           make(chan struct{}),
 		nodeTerminate:      make(chan struct{}),
@@ -153,13 +143,13 @@ outer:
 
 				switch protoName {
 				case "TCPROS":
-					nodeIp, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
+					nodeIP, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
 					req.res <- apislave.ResponseRequestTopic{
 						Code:          1,
 						StatusMessage: "",
 						Protocol: []interface{}{
 							"TCPROS",
-							nodeIp,
+							nodeIP,
 							p.conf.Node.tcprosServerPort,
 						},
 					}
@@ -264,8 +254,8 @@ outer:
 								if isLocalhost {
 									return "127.0.0.1"
 								}
-								nodeIp, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
-								return nodeIp
+								nodeIP, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
+								return nodeIP
 							}(),
 							p.conf.Node.udprosServerPort,
 							p.id,
@@ -296,7 +286,7 @@ outer:
 				continue
 			}
 
-		case req := <-p.subscriberTcpNew:
+		case req := <-p.subscriberTCPNew:
 			err := func() error {
 				_, ok := p.subscribers[req.header.Callerid]
 				if ok {
@@ -348,7 +338,7 @@ outer:
 				continue
 			}
 
-		case sub := <-p.subscriberTcpClose:
+		case sub := <-p.subscriberTCPClose:
 			sub.close()
 
 		case msg := <-p.write:
@@ -378,8 +368,8 @@ outer:
 					StatusMessage: "terminating",
 				}
 
-			case <-p.subscriberTcpNew:
-			case <-p.subscriberTcpClose:
+			case <-p.subscriberTCPNew:
+			case <-p.subscriberTCPClose:
 			case <-p.write:
 			case <-p.shutdown:
 			}
@@ -388,7 +378,7 @@ outer:
 
 	p.conf.Node.apiMasterClient.UnregisterPublisher(
 		p.conf.Node.absoluteTopicName(p.conf.Topic),
-		p.conf.Node.apiSlaveServerUrl)
+		p.conf.Node.apiSlaveServerURL)
 
 	for _, ps := range p.subscribers {
 		ps.close()
@@ -401,8 +391,8 @@ outer:
 	<-p.terminate
 
 	close(p.requestTopic)
-	close(p.subscriberTcpNew)
-	close(p.subscriberTcpClose)
+	close(p.subscriberTCPNew)
+	close(p.subscriberTCPClose)
 	close(p.write)
 	close(p.shutdown)
 }

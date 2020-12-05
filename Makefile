@@ -10,7 +10,8 @@ help:
 	@echo ""
 	@echo "  mod-tidy      run go mod tidy"
 	@echo "  format        format source files"
-	@echo "  test          run available tests"
+	@echo "  test          run tests"
+	@echo "  lint          run linter"
 	@echo "  msgs          generate standard messages"
 	@echo ""
 
@@ -51,6 +52,15 @@ test-nodocker:
 	go test -race -v ./...
 	go build -o /dev/null ./cmd/...
 	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
+
+lint:
+	docker run --rm -v $(PWD):/app -w /app \
+	golangci/golangci-lint:v1.33.0 \
+	golangci-lint run -v \
+	--disable=errcheck \
+	--enable=gofmt \
+	--enable=golint \
+	--enable=misspell
 
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)

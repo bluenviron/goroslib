@@ -9,13 +9,8 @@ import (
 	"github.com/aler9/goroslib/pkg/prototcp"
 )
 
-type serviceProviderClientNewReq struct {
-	client *prototcp.Conn
-	header *prototcp.HeaderServiceClient
-}
-
 type serviceProviderClientRequestReq struct {
-	callerId string
+	callerID string
 	req      interface{}
 }
 
@@ -45,7 +40,7 @@ type ServiceProvider struct {
 	clientsWg sync.WaitGroup
 
 	// in
-	clientNew     chan serviceProviderClientNewReq
+	clientNew     chan tcpClientServiceClientReq
 	clientClose   chan *serviceProviderClient
 	clientRequest chan serviceProviderClientRequestReq
 	shutdown      chan struct{}
@@ -114,7 +109,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		resType:       resType,
 		srvMd5:        srvMd5,
 		clients:       make(map[string]*serviceProviderClient),
-		clientNew:     make(chan serviceProviderClientNewReq),
+		clientNew:     make(chan tcpClientServiceClientReq),
 		clientClose:   make(chan *serviceProviderClient),
 		clientRequest: make(chan serviceProviderClientRequestReq),
 		shutdown:      make(chan struct{}),
@@ -186,7 +181,7 @@ outer:
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
 
-			conn, ok := sp.clients[req.callerId]
+			conn, ok := sp.clients[req.callerID]
 			if !ok {
 				continue
 			}
@@ -219,7 +214,7 @@ outer:
 
 	sp.conf.Node.apiMasterClient.UnregisterService(
 		sp.conf.Node.absoluteTopicName(sp.conf.Service),
-		sp.conf.Node.tcprosServerUrl)
+		sp.conf.Node.tcprosServerURL)
 
 	for _, spc := range sp.clients {
 		spc.close()
