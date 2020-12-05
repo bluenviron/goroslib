@@ -1,3 +1,4 @@
+//nolint:golint
 package nav_msgs
 
 import (

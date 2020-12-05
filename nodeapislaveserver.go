@@ -7,7 +7,7 @@ import (
 	"github.com/aler9/goroslib/pkg/apislave"
 )
 
-func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
+func (n *Node) runAPISlaveServer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	n.apiSlaveServer.Handle(func(req apislave.Request) apislave.Response {
@@ -44,7 +44,7 @@ func (n *Node) runApiSlaveServer(wg *sync.WaitGroup) {
 		case *apislave.RequestPublisherUpdate:
 			n.publisherUpdate <- publisherUpdateReq{
 				topic: reqt.Topic,
-				urls:  reqt.PublisherUrls,
+				urls:  reqt.PublisherURLs,
 			}
 
 			return apislave.ResponsePublisherUpdate{

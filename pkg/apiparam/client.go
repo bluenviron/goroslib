@@ -9,20 +9,20 @@ import (
 // Client is a Parameter API client.
 type Client struct {
 	xc       *xmlrpc.Client
-	callerId string
+	callerID string
 }
 
 // NewClient allocates a Client.
-func NewClient(address string, callerId string) *Client {
+func NewClient(address string, callerID string) *Client {
 	return &Client{
 		xc:       xmlrpc.NewClient(address),
-		callerId: callerId,
+		callerID: callerID,
 	}
 }
 
 // DeleteParam writes a deleteParam request.
 func (c *Client) DeleteParam(req RequestDeleteParam) error {
-	req.CallerId = c.callerId
+	req.CallerID = c.callerID
 
 	var res ResponseDeleteParam
 	err := c.xc.Do("deleteParam", req, &res)
@@ -40,7 +40,7 @@ func (c *Client) DeleteParam(req RequestDeleteParam) error {
 // GetParamNames writes a getParamNames request.
 func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 	req := RequestGetParamNames{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 	}
 
 	var res ResponseGetParamNames
@@ -59,7 +59,7 @@ func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 // GetParamBool writes a getParam request and expects a bool response.
 func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
 	req := RequestGetParam{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 	}
 
@@ -79,7 +79,7 @@ func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
 // GetParamBool writes a getParam request and expects a int response.
 func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 	req := RequestGetParam{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 	}
 
@@ -99,7 +99,7 @@ func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 // GetParamBool writes a getParam request and expects a string response.
 func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
 	req := RequestGetParam{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 	}
 
@@ -119,7 +119,7 @@ func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
 // HasParam writes a hasParam request.
 func (c *Client) HasParam(key string) (*ResponseHasParam, error) {
 	req := RequestHasParam{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 	}
 
@@ -143,7 +143,7 @@ func (c *Client) HasParam(key string) (*ResponseHasParam, error) {
 // SearchParam writes a searchParam request.
 func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
 	req := RequestSearchParam{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 	}
 
@@ -163,7 +163,7 @@ func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
 // SetParamBool writes a setParam request.
 func (c *Client) SetParamBool(key string, val bool) error {
 	req := RequestSetParamBool{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,
 	}
@@ -184,7 +184,7 @@ func (c *Client) SetParamBool(key string, val bool) error {
 // SetParamInt writes a setParam request.
 func (c *Client) SetParamInt(key string, val int) error {
 	req := RequestSetParamInt{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,
 	}
@@ -205,7 +205,7 @@ func (c *Client) SetParamInt(key string, val int) error {
 // SetParamString writes a setParam request.
 func (c *Client) SetParamString(key string, val string) error {
 	req := RequestSetParamString{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,
 	}

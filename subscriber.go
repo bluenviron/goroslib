@@ -200,7 +200,7 @@ outer:
 
 	s.conf.Node.apiMasterClient.UnregisterSubscriber(
 		s.conf.Node.absoluteTopicName(s.conf.Topic),
-		s.conf.Node.apiSlaveServerUrl)
+		s.conf.Node.apiSlaveServerURL)
 
 	for _, sp := range s.publishers {
 		sp.close()

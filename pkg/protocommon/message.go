@@ -20,7 +20,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 		if err != nil {
 			return err
 		}
-		*mlen -= 1
+		*mlen--
 		b := bool(false)
 		if buf[0] == 0x01 {
 			b = true
@@ -32,7 +32,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 		if err != nil {
 			return err
 		}
-		*mlen -= 1
+		*mlen--
 		*cv = int8(buf[0])
 
 	case *uint8:
@@ -40,7 +40,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 		if err != nil {
 			return err
 		}
-		*mlen -= 1
+		*mlen--
 		*cv = uint8(buf[0])
 
 	case *int16:

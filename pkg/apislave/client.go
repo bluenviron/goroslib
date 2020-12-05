@@ -9,21 +9,21 @@ import (
 // Client is a Slave API client.
 type Client struct {
 	xc       *xmlrpc.Client
-	callerId string
+	callerID string
 }
 
 // NewClient allocates a Client.
-func NewClient(address string, callerId string) *Client {
+func NewClient(address string, callerID string) *Client {
 	return &Client{
 		xc:       xmlrpc.NewClient(address),
-		callerId: callerId,
+		callerID: callerID,
 	}
 }
 
 // GetPid writes a getPid request.
 func (c *Client) GetPid() (*ResponseGetPid, error) {
 	req := RequestGetPid{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 	}
 
 	var res ResponseGetPid
@@ -42,7 +42,7 @@ func (c *Client) GetPid() (*ResponseGetPid, error) {
 // Shutdown writes a shutdown request.
 func (c *Client) Shutdown(reason string) error {
 	req := RequestShutdown{
-		CallerId: c.callerId,
+		CallerID: c.callerID,
 		Reason:   reason,
 	}
 
@@ -62,7 +62,7 @@ func (c *Client) Shutdown(reason string) error {
 // RequestTopic writes a requestTopic request.
 func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (*ResponseRequestTopic, error) {
 	req := RequestRequestTopic{
-		CallerId:  c.callerId,
+		CallerID:  c.callerID,
 		Topic:     topic,
 		Protocols: protocols,
 	}

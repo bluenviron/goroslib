@@ -62,7 +62,7 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 			return nil, fmt.Errorf("lookupNode: %v", err)
 		}
 
-		address, err := urlToAddress(res.Uri)
+		address, err := urlToAddress(res.URI)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			return nil, fmt.Errorf("lookupService: %v", err)
 		}
 
-		address, err := urlToAddress(res2.Uri)
+		address, err := urlToAddress(res2.URI)
 		if err != nil {
 			return nil, err
 		}
@@ -195,7 +195,7 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 		return 0, err
 	}
 
-	address, err := urlToAddress(res.Uri)
+	address, err := urlToAddress(res.URI)
 	if err != nil {
 		return 0, err
 	}
@@ -219,7 +219,7 @@ func (n *Node) KillNode(name string) error {
 		return err
 	}
 
-	address, err := urlToAddress(res.Uri)
+	address, err := urlToAddress(res.URI)
 	if err != nil {
 		return err
 	}

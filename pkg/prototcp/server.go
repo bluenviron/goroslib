@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func ServerUrl(address *net.TCPAddr, port int) string {
+func ServerURL(address *net.TCPAddr, port int) string {
 	return (&url.URL{
 		Scheme: "rosrpc",
 		Host: (&net.TCPAddr{

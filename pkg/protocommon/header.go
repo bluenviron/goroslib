@@ -29,7 +29,7 @@ func snakeToCamel(in string) string {
 		if tmp[i] == '_' {
 			tmp[i+1] = unicode.ToUpper(tmp[i+1])
 			tmp = append(tmp[:i], tmp[i+1:]...)
-			i -= 1
+			i--
 		}
 	}
 	return string(tmp)
@@ -118,7 +118,7 @@ func HeaderEncode(w io.Writer, header Header) error {
 		bkey := []byte(key)
 		flen += uint32(len(bkey))
 
-		flen += 1
+		flen++
 
 		bval := func() []byte {
 			switch val.Kind() {

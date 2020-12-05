@@ -11,34 +11,34 @@ import (
 
 type publisherSubscriber struct {
 	pub          *Publisher
-	callerId     string
+	callerID     string
 	tcpClient    *prototcp.Conn
 	udpAddr      *net.UDPAddr
-	curMessageId uint8
+	curMessageID uint8
 
 	// in
 	terminate chan struct{}
 }
 
-func newPublisherSubscriber(pub *Publisher, callerId string,
+func newPublisherSubscriber(pub *Publisher, callerID string,
 	tcpClient *prototcp.Conn, udpAddr *net.UDPAddr) {
 
 	ps := &publisherSubscriber{
 		pub:       pub,
-		callerId:  callerId,
+		callerID:  callerID,
 		tcpClient: tcpClient,
 		udpAddr:   udpAddr,
 		terminate: make(chan struct{}),
 	}
 
-	pub.subscribers[callerId] = ps
+	pub.subscribers[callerID] = ps
 
 	pub.subscribersWg.Add(1)
 	go ps.run()
 }
 
 func (ps *publisherSubscriber) close() {
-	delete(ps.pub.subscribers, ps.callerId)
+	delete(ps.pub.subscribers, ps.callerID)
 	close(ps.terminate)
 }
 
@@ -46,13 +46,13 @@ func (ps *publisherSubscriber) run() {
 	defer ps.pub.subscribersWg.Done()
 
 	if ps.tcpClient != nil {
-		ps.runTcp()
+		ps.runTCP()
 	} else {
-		ps.runUdp()
+		ps.runUDP()
 	}
 }
 
-func (ps *publisherSubscriber) runTcp() {
+func (ps *publisherSubscriber) runTCP() {
 	readerDone := make(chan struct{})
 	go func() {
 		defer close(readerDone)
@@ -68,7 +68,7 @@ func (ps *publisherSubscriber) runTcp() {
 	select {
 	case <-readerDone:
 		ps.tcpClient.Close()
-		ps.pub.subscriberTcpClose <- ps
+		ps.pub.subscriberTCPClose <- ps
 		<-ps.terminate
 
 	case <-ps.terminate:
@@ -77,7 +77,7 @@ func (ps *publisherSubscriber) runTcp() {
 	}
 }
 
-func (ps *publisherSubscriber) runUdp() {
+func (ps *publisherSubscriber) runUDP() {
 	<-ps.terminate
 }
 
@@ -86,7 +86,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 		ps.tcpClient.WriteMessage(msg)
 
 	} else {
-		ps.curMessageId += 1
+		ps.curMessageID++
 
 		rawMessage := bytes.NewBuffer(nil)
 		err := protocommon.MessageEncode(rawMessage, msg)
@@ -98,7 +98,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 
 		for i := 0; i < lbyts; i += protoudp.MaxPayloadSize {
 			ps.pub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
-				ConnectionId: uint32(ps.pub.id),
+				ConnectionID: uint32(ps.pub.id),
 				Opcode: func() protoudp.Opcode {
 					if i == 0 {
 						return protoudp.Data0
@@ -106,8 +106,8 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 
 					return protoudp.DataN
 				}(),
-				MessageId: ps.curMessageId,
-				BlockId: func() uint16 {
+				MessageID: ps.curMessageID,
+				BlockID: func() uint16 {
 					// return block count
 					if i == 0 {
 						if (lbyts % protoudp.MaxPayloadSize) == 0 {

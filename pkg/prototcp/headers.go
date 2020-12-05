@@ -13,7 +13,7 @@ type HeaderSubscriber struct {
 	Type              string
 	Md5sum            string
 	MessageDefinition string
-	TcpNodelay        int
+	TcpNodelay        int //nolint:golint
 }
 
 func (*HeaderSubscriber) IsHeader() {}

@@ -21,7 +21,7 @@ type subscriberPublisher struct {
 	sub     *Subscriber
 	address string
 	udpAddr *net.UDPAddr
-	udpId   uint32
+	udpID   uint32
 
 	// in
 	udpFrame  chan *protoudp.Frame
@@ -87,7 +87,7 @@ func (sp *subscriberPublisher) runInner() error {
 				return [][]interface{}{{"TCPROS"}}
 			}
 
-			nodeIp, _, _ := net.SplitHostPort(sp.sub.conf.Node.nodeAddr.String())
+			nodeIP, _, _ := net.SplitHostPort(sp.sub.conf.Node.nodeAddr.String())
 			return [][]interface{}{{
 				"UDPROS",
 				func() []byte {
@@ -100,7 +100,7 @@ func (sp *subscriberPublisher) runInner() error {
 					})
 					return buf.Bytes()[4:]
 				}(),
-				nodeIp,
+				nodeIP,
 				sp.sub.conf.Node.udprosServerPort,
 				1500,
 			}}
@@ -120,12 +120,12 @@ func (sp *subscriberPublisher) runInner() error {
 	}
 
 	if sp.sub.conf.Protocol == TCP {
-		return sp.runInnerTcp(res)
+		return sp.runInnerTCP(res)
 	}
-	return sp.runInnerUdp(res)
+	return sp.runInnerUDP(res)
 }
 
-func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) error {
+func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) error {
 	if len(res.Protocol) != 3 {
 		return fmt.Errorf("wrong protocol length")
 	}
@@ -253,7 +253,7 @@ func (sp *subscriberPublisher) runInnerTcp(res *apislave.ResponseRequestTopic) e
 	}
 }
 
-func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) error {
+func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) error {
 	if len(res.Protocol) != 6 {
 		return fmt.Errorf("wrong protocol length")
 	}
@@ -273,9 +273,9 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 		return fmt.Errorf("wrong protoPort")
 	}
 
-	protoId, ok := res.Protocol[3].(int)
+	protoID, ok := res.Protocol[3].(int)
 	if !ok {
-		return fmt.Errorf("wrong protoId")
+		return fmt.Errorf("wrong protoID")
 	}
 
 	if protoName != "UDPROS" {
@@ -289,7 +289,7 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 	}
 
 	sp.udpAddr = addr
-	sp.udpId = uint32(protoId)
+	sp.udpID = uint32(protoID)
 	sp.udpFrame = make(chan *protoudp.Frame)
 
 	sp.sub.conf.Node.udpSubPublisherNew <- sp
@@ -307,7 +307,7 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 		go func() {
 			defer close(readerDone)
 
-			curMessageId := uint8(0)
+			curMessageID := uint8(0)
 
 			t := time.NewTicker(60 * time.Second)
 			defer t.Stop()
@@ -316,11 +316,11 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 				select {
 				case <-t.C:
 					sp.sub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
-						ConnectionId: uint32(sp.udpId),
+						ConnectionID: uint32(sp.udpID),
 						Opcode:       protoudp.Ping,
-						MessageId:    curMessageId,
+						MessageID:    curMessageID,
 					}, sp.udpAddr)
-					curMessageId++
+					curMessageID++
 
 				case <-readerClose:
 					return
@@ -330,7 +330,7 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 	}
 
 	var curMsg []byte
-	curFieldId := 0
+	curFieldID := 0
 	curFieldCount := 0
 
 	for {
@@ -339,18 +339,18 @@ func (sp *subscriberPublisher) runInnerUdp(res *apislave.ResponseRequestTopic) e
 			switch frame.Opcode {
 			case protoudp.Data0:
 				curMsg = append([]byte{}, frame.Content...)
-				curFieldId = 0
-				curFieldCount = int(frame.BlockId)
+				curFieldID = 0
+				curFieldCount = int(frame.BlockID)
 
 			case protoudp.DataN:
-				if int(frame.BlockId) != (curFieldId + 1) {
+				if int(frame.BlockID) != (curFieldID + 1) {
 					continue
 				}
 				curMsg = append(curMsg, frame.Content...)
-				curFieldId += 1
+				curFieldID++
 			}
 
-			if (curFieldId + 1) == curFieldCount {
+			if (curFieldID + 1) == curFieldCount {
 				msg := reflect.New(sp.sub.msgMsg).Interface()
 				err := protocommon.MessageDecode(bytes.NewBuffer(curMsg), msg)
 				if err != nil {

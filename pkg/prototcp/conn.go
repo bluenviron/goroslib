@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"unicode"
 
 	"github.com/aler9/goroslib/pkg/protocommon"
 )
@@ -14,37 +13,11 @@ const (
 	bufferSize = 2048
 )
 
-func camelToSnake(in string) string {
-	tmp := []rune(in)
-	tmp[0] = unicode.ToLower(tmp[0])
-	for i := 0; i < len(tmp); i++ {
-		if unicode.IsUpper(tmp[i]) {
-			tmp[i] = unicode.ToLower(tmp[i])
-			tmp = append(tmp[:i], append([]rune{'_'}, tmp[i:]...)...)
-		}
-	}
-	return string(tmp)
-}
-
-func snakeToCamel(in string) string {
-	tmp := []rune(in)
-	tmp[0] = unicode.ToUpper(tmp[0])
-	for i := 0; i < len(tmp); i++ {
-		if tmp[i] == '_' {
-			tmp[i+1] = unicode.ToUpper(tmp[i+1])
-			tmp = append(tmp[:i], tmp[i+1:]...)
-			i -= 1
-		}
-	}
-	return string(tmp)
-}
-
 // Conn is a TCPROS connection.
 type Conn struct {
 	nconn    *net.TCPConn
 	readBuf  *bufio.Reader
 	writeBuf *bufio.Writer
-	closer   io.Closer
 }
 
 // NewConn allocates a Conn from a *net.TCPConn.

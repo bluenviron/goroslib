@@ -13,7 +13,7 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
-func ServerUrl(address *net.TCPAddr, port int) string {
+func ServerURL(address *net.TCPAddr, port int) string {
 	return (&url.URL{
 		Scheme: "http",
 		Host: (&net.TCPAddr{

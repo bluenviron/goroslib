@@ -1,3 +1,4 @@
+//nolint:golint
 package geometry_msgs
 
 import (

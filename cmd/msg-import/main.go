@@ -16,7 +16,8 @@ import (
 )
 
 var tpl = template.Must(template.New("").Parse(
-	`package {{ .GoPkgName }}
+	`//nolint:golint
+package {{ .GoPkgName }}
 
 import (
 {{- range $k, $v := .Imports }}
@@ -68,7 +69,7 @@ func snakeToCamel(in string) string {
 		if tmp[i] == '_' {
 			tmp[i+1] = unicode.ToUpper(tmp[i+1])
 			tmp = append(tmp[:i], tmp[i+1:]...)
-			i -= 1
+			i--
 		}
 	}
 	return string(tmp)
@@ -106,13 +107,13 @@ func run() error {
 
 	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
 	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
-	argUrl := kingpin.Arg("urls", "paths or urls pointing to ROS messages").Required().String()
+	argURL := kingpin.Arg("url", "path or url pointing to a ROS message").Required().String()
 
 	kingpin.Parse()
 
 	goPkgName := *argGoPkgName
 	rosPkgName := *argRosPkgName
-	u := *argUrl
+	u := *argURL
 
 	isRemote := func() bool {
 		_, err := url.ParseRequestURI(u)
@@ -163,7 +164,7 @@ func run() error {
 
 		// definition
 		if strings.Contains(line, "=") {
-			matches := regexp.MustCompile("^([a-z0-9]+)(\\s|\\t)+([A-Z0-9_]+)(\\s|\\t)*=(\\s|\\t)*(.+?)$").FindStringSubmatch(line)
+			matches := regexp.MustCompile(`^([a-z0-9]+)(\s|\t)+([A-Z0-9_]+)(\s|\t)*=(\s|\t)*(.+?)$`).FindStringSubmatch(line)
 			if matches == nil {
 				return fmt.Errorf("unable to parse definition (%s)", line)
 			}
@@ -190,7 +191,7 @@ func run() error {
 			// field
 		} else {
 			// remove multiple spaces between type and name
-			line = regexp.MustCompile("\\s+").ReplaceAllString(line, " ")
+			line = regexp.MustCompile(`\s+`).ReplaceAllString(line, " ")
 
 			parts := strings.Split(line, " ")
 			if len(parts) != 2 {
@@ -209,7 +210,7 @@ func run() error {
 			f.Type = parts[0]
 
 			// split TypeArray and Type
-			ma := regexp.MustCompile("^(.+?)(\\[.*?\\])$").FindStringSubmatch(f.Type)
+			ma := regexp.MustCompile(`^(.+?)(\[.*?\])$`).FindStringSubmatch(f.Type)
 			if ma != nil {
 				f.TypeArray = ma[2]
 				f.Type = ma[1]

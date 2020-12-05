@@ -12,14 +12,14 @@ func TestNodeGetNodes(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newContainer("node-gen", m.Ip())
+	p, err := newContainer("node-gen", m.IP())
 	require.NoError(t, err)
 	defer p.close()
 
 	n1, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n1.Close()
@@ -27,7 +27,7 @@ func TestNodeGetNodes(t *testing.T) {
 	n2, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib2",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 
@@ -61,14 +61,14 @@ func TestNodeGetMachines(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newContainer("node-gen", m.Ip())
+	p, err := newContainer("node-gen", m.IP())
 	require.NoError(t, err)
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -84,14 +84,14 @@ func TestNodeGetTopics(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newContainer("node-pub", m.Ip())
+	p, err := newContainer("node-pub", m.IP())
 	require.NoError(t, err)
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -112,14 +112,14 @@ func TestNodeGetServices(t *testing.T) {
 	require.NoError(t, err)
 	defer m.close()
 
-	p, err := newContainer("node-serviceprovider", m.Ip())
+	p, err := newContainer("node-serviceprovider", m.IP())
 	require.NoError(t, err)
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: m.Ip() + ":11311",
+		MasterAddress: m.IP() + ":11311",
 	})
 	require.NoError(t, err)
 	defer n.Close()
@@ -145,7 +145,7 @@ func TestNodePingNode(t *testing.T) {
 
 			switch node {
 			case "cpp":
-				p, err := newContainer("node-gen", m.Ip())
+				p, err := newContainer("node-gen", m.IP())
 				require.NoError(t, err)
 				defer p.close()
 
@@ -153,7 +153,7 @@ func TestNodePingNode(t *testing.T) {
 				n1, err := NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "nodegen",
-					MasterAddress: m.Ip() + ":11311",
+					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
 				defer n1.Close()
@@ -170,7 +170,7 @@ func TestNodePingNode(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -193,7 +193,7 @@ func TestNodeKillNode(t *testing.T) {
 
 			switch node {
 			case "cpp":
-				p, err := newContainer("node-gen", m.Ip())
+				p, err := newContainer("node-gen", m.IP())
 				require.NoError(t, err)
 				defer p.close()
 
@@ -201,7 +201,7 @@ func TestNodeKillNode(t *testing.T) {
 				n1, err := NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "nodegen",
-					MasterAddress: m.Ip() + ":11311",
+					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
 				defer n1.Close()
@@ -228,7 +228,7 @@ func TestNodeKillNode(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()
@@ -258,7 +258,7 @@ func TestNodeGetParam(t *testing.T) {
 
 			switch lang {
 			case "cpp":
-				p, err := newContainer("node-setparam", m.Ip())
+				p, err := newContainer("node-setparam", m.IP())
 				require.NoError(t, err)
 				defer p.close()
 
@@ -266,7 +266,7 @@ func TestNodeGetParam(t *testing.T) {
 				n, err := NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "goroslib_set",
-					MasterAddress: m.Ip() + ":11311",
+					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
 				defer n.Close()
@@ -284,7 +284,7 @@ func TestNodeGetParam(t *testing.T) {
 			n, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
-				MasterAddress: m.Ip() + ":11311",
+				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
 			defer n.Close()

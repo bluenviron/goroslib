@@ -1,3 +1,4 @@
+//nolint:golint
 package shape_msgs
 
 import (

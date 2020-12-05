@@ -23,19 +23,6 @@ func camelToSnake(in string) string {
 	return string(tmp)
 }
 
-func snakeToCamel(in string) string {
-	tmp := []rune(in)
-	tmp[0] = unicode.ToUpper(tmp[0])
-	for i := 0; i < len(tmp); i++ {
-		if tmp[i] == '_' {
-			tmp[i+1] = unicode.ToUpper(tmp[i+1])
-			tmp = append(tmp[:i], tmp[i+1:]...)
-			i -= 1
-		}
-	}
-	return string(tmp)
-}
-
 func md5Sum(text string) string {
 	h := md5.New()
 	h.Write([]byte(text))

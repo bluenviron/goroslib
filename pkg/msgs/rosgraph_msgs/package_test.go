@@ -1,3 +1,4 @@
+//nolint:golint
 package rosgraph_msgs
 
 import (
