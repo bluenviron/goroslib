@@ -79,3 +79,22 @@ func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (*Respons
 
 	return &res, nil
 }
+
+// GetBusInfo writes a getBusInfo request.
+func (c *Client) GetBusInfo() ([][]interface{}, error) {
+	req := RequestGetBusInfo{
+		CallerID: c.callerID,
+	}
+
+	var res ResponseGetBusInfo
+	err := c.xc.Do("getBusInfo", req, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Code != 1 {
+		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+	}
+
+	return res.BusInfo, nil
+}

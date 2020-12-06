@@ -9,8 +9,6 @@ goroslib is a library in pure Go that allows to build clients (nodes) for the Ro
 
 The Robot Operating System (ROS) is a project that provides a protocol specification to make multiple programs communicate with each other over time, exchanging structured data through topics, services and parameters. It was conceived to link sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
 
-The official project provides libraries to write nodes in C++ and Python, but they require the download of over 1GB of data and work only through a cmake-based buildchain, that is computationally intensive and difficult to customize. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of compiling nodes for all the Golang supported operating systems (Linux, Windows, Mac OS X, etc) and architectures.
-
 Features:
 
 * Subscribe and publish to topics, with TCP or UDP
@@ -20,13 +18,10 @@ Features:
 * Use namespaces and relative topics
 * IPv6 support (only stateful addresses, since stateless are not supported by the ROS master)
 * Compilation of `.msg` files is not necessary, message definitions are extracted from code
-* Standard messages are available in folder `msgs/`
 * Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
 * Examples provided for every feature, comprehensive test suite, continuous integration
 
-The library provides its features by implementing in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API).
-
-All the official [client libraries requirements](https://wiki.ros.org/Implementing%20Client%20Libraries) are satisfied, except for the following ones:
+The library implements in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API). All the official [client libraries requirements](https://wiki.ros.org/Implementing%20Client%20Libraries) are satisfied, except for the following ones:
 
 * parse command-line Remapping Arguments
 * Subscribe to a simulated Clock
@@ -67,9 +62,19 @@ https://pkg.go.dev/github.com/aler9/goroslib
 
 ## FAQs
 
+### Comparison with other libraries
+
+#### goroslib vs official C++/Python libraries
+
+The official project provides libraries to write nodes in C++ and Python, but they require the download of over 1GB of data and work only with a fixed buildchain. This library allows to write lightweight nodes that can be built with the standard Go compiler, do not need any runtime library and have a size of some megabytes. Another advantage lies in the possibility of compiling nodes for all the Golang supported operating systems (Linux, Windows, Mac OS X, etc) and architectures.
+
+#### goroslib vs rosgo
+
+rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` files and doesn't support UDP.
+
 ### Where can i find the standard messages?
 
-Standard messages are [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
+Standard messages are available in folder `pkg/msgs` and [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
 
 ### How can i define a custom message?
 

@@ -44,8 +44,9 @@ type Publisher struct {
 	id            int
 
 	// in
+	getBusInfo         chan getBusInfoSubReq
 	requestTopic       chan subscriberRequestTopicReq
-	subscriberTCPNew   chan tcpClientSubscriberReq
+	subscriberTCPNew   chan tcpConnSubscriberReq
 	subscriberTCPClose chan *publisherSubscriber
 	write              chan interface{}
 	shutdown           chan struct{}
@@ -85,8 +86,9 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		msgType:            msgType,
 		msgMd5:             msgMd5,
 		subscribers:        make(map[string]*publisherSubscriber),
+		getBusInfo:         make(chan getBusInfoSubReq),
 		requestTopic:       make(chan subscriberRequestTopicReq),
-		subscriberTCPNew:   make(chan tcpClientSubscriberReq),
+		subscriberTCPNew:   make(chan tcpConnSubscriberReq),
 		subscriberTCPClose: make(chan *publisherSubscriber),
 		write:              make(chan interface{}),
 		shutdown:           make(chan struct{}),
@@ -124,6 +126,20 @@ func (p *Publisher) run() {
 outer:
 	for {
 		select {
+		case req := <-p.getBusInfo:
+			for _, ps := range p.subscribers {
+				proto := func() string {
+					if ps.tcpClient != nil {
+						return "TCPROS"
+					}
+					return "UDPROS"
+				}()
+				*req.pbusInfo = append(*req.pbusInfo,
+					[]interface{}{0, ps.callerID, "o", proto,
+						p.conf.Node.absoluteTopicName(p.conf.Topic), true})
+			}
+			close(req.done)
+
 		case req := <-p.requestTopic:
 			err := func() error {
 				if len(req.req.Protocols) < 1 {
@@ -300,7 +316,7 @@ outer:
 						p.msgMd5, req.header.Md5sum)
 				}
 
-				err := req.client.WriteHeader(&prototcp.HeaderPublisher{
+				err := req.conn.WriteHeader(&prototcp.HeaderPublisher{
 					Callerid: p.conf.Node.absoluteName(),
 					Md5sum:   p.msgMd5,
 					Topic:    p.conf.Node.absoluteTopicName(p.conf.Topic),
@@ -313,16 +329,16 @@ outer:
 					}(),
 				})
 				if err != nil {
-					req.client.Close()
+					req.conn.Close()
 					return nil
 				}
 
 				if req.header.TcpNodelay == 0 {
-					req.client.NetConn().SetNoDelay(false)
+					req.conn.NetConn().SetNoDelay(false)
 				}
 
 				newPublisherSubscriber(p,
-					req.header.Callerid, req.client, nil)
+					req.header.Callerid, req.conn, nil)
 
 				if p.conf.Latch && p.lastMessage != nil {
 					p.subscribers[req.header.Callerid].writeMessage(p.lastMessage)
@@ -331,10 +347,10 @@ outer:
 				return nil
 			}()
 			if err != nil {
-				req.client.WriteHeader(&prototcp.HeaderError{
+				req.conn.WriteHeader(&prototcp.HeaderError{
 					Error: err.Error(),
 				})
-				req.client.Close()
+				req.conn.Close()
 				continue
 			}
 
@@ -358,6 +374,12 @@ outer:
 	go func() {
 		for {
 			select {
+			case req, ok := <-p.getBusInfo:
+				if !ok {
+					return
+				}
+				close(req.done)
+
 			case req, ok := <-p.requestTopic:
 				if !ok {
 					return
@@ -390,6 +412,7 @@ outer:
 	<-p.nodeTerminate
 	<-p.terminate
 
+	close(p.getBusInfo)
 	close(p.requestTopic)
 	close(p.subscriberTCPNew)
 	close(p.subscriberTCPClose)

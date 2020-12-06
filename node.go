@@ -57,13 +57,26 @@ import (
 	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
 
-type tcpClientSubscriberReq struct {
-	client *prototcp.Conn
+type getPublicationsReq struct {
+	res chan [][]string
+}
+
+type getBusInfoReq struct {
+	res chan apislave.ResponseGetBusInfo
+}
+
+type getBusInfoSubReq struct {
+	pbusInfo *[][]interface{}
+	done     chan struct{}
+}
+
+type tcpConnSubscriberReq struct {
+	conn   *prototcp.Conn
 	header *prototcp.HeaderSubscriber
 }
 
-type tcpClientServiceClientReq struct {
-	client *prototcp.Conn
+type tcpConnServiceClientReq struct {
+	conn   *prototcp.Conn
 	header *prototcp.HeaderServiceClient
 }
 
@@ -77,13 +90,9 @@ type udpFrameReq struct {
 	source *net.UDPAddr
 }
 
-type publisherUpdateReq struct {
+type subscriberPubUpdateReq struct {
 	topic string
 	urls  []string
-}
-
-type getPublicationsReq struct {
-	res chan [][]string
 }
 
 type subscriberRequestTopicReq struct {
@@ -152,7 +161,7 @@ type Node struct {
 	tcprosServerURL     string
 	udprosServer        *protoudp.Server
 	udprosServerPort    int
-	tcprosClients       map[*prototcp.Conn]struct{}
+	tcprosConns         map[*prototcp.Conn]struct{}
 	udprosSubPublishers map[*subscriberPublisher]struct{}
 	subscribers         map[string]*Subscriber
 	publishers          map[string]*Publisher
@@ -161,23 +170,24 @@ type Node struct {
 	rosoutPublisher     *Publisher
 
 	// in
-	tcpClientNew           chan *prototcp.Conn
-	tcpClientClose         chan *prototcp.Conn
-	tcpClientSubscriber    chan tcpClientSubscriberReq
-	tcpClientServiceClient chan tcpClientServiceClientReq
+	getPublications        chan getPublicationsReq
+	getBusInfo             chan getBusInfoReq
+	shutdown               chan struct{}
+	tcpConnNew             chan *prototcp.Conn
+	tcpConnClose           chan *prototcp.Conn
+	tcpConnSubscriber      chan tcpConnSubscriberReq
+	tcpConnServiceClient   chan tcpConnServiceClientReq
 	udpSubPublisherNew     chan *subscriberPublisher
 	udpSubPublisherClose   chan udpSubPublisherCloseReq
 	udpFrame               chan udpFrameReq
-	publisherUpdate        chan publisherUpdateReq
-	getPublications        chan getPublicationsReq
 	subscriberRequestTopic chan subscriberRequestTopicReq
 	subscriberNew          chan subscriberNewReq
 	subscriberClose        chan *Subscriber
+	subscriberPubUpdate    chan subscriberPubUpdateReq
 	publisherNew           chan publisherNewReq
 	publisherClose         chan *Publisher
 	serviceProviderNew     chan serviceProviderNewReq
 	serviceProviderClose   chan *ServiceProvider
-	shutdown               chan struct{}
 	terminate              chan struct{}
 
 	// out
@@ -258,28 +268,29 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf:                   conf,
 		masterAddr:             masterAddr,
 		nodeAddr:               nodeAddr,
-		tcprosClients:          make(map[*prototcp.Conn]struct{}),
+		tcprosConns:            make(map[*prototcp.Conn]struct{}),
 		udprosSubPublishers:    make(map[*subscriberPublisher]struct{}),
 		subscribers:            make(map[string]*Subscriber),
 		publishers:             make(map[string]*Publisher),
 		serviceProviders:       make(map[string]*ServiceProvider),
-		tcpClientNew:           make(chan *prototcp.Conn),
-		tcpClientClose:         make(chan *prototcp.Conn),
-		tcpClientSubscriber:    make(chan tcpClientSubscriberReq),
-		tcpClientServiceClient: make(chan tcpClientServiceClientReq),
+		getPublications:        make(chan getPublicationsReq),
+		getBusInfo:             make(chan getBusInfoReq),
+		shutdown:               make(chan struct{}),
+		tcpConnNew:             make(chan *prototcp.Conn),
+		tcpConnClose:           make(chan *prototcp.Conn),
+		tcpConnSubscriber:      make(chan tcpConnSubscriberReq),
+		tcpConnServiceClient:   make(chan tcpConnServiceClientReq),
 		udpSubPublisherNew:     make(chan *subscriberPublisher),
 		udpSubPublisherClose:   make(chan udpSubPublisherCloseReq),
 		udpFrame:               make(chan udpFrameReq),
-		publisherUpdate:        make(chan publisherUpdateReq),
-		getPublications:        make(chan getPublicationsReq),
 		subscriberRequestTopic: make(chan subscriberRequestTopicReq),
 		subscriberNew:          make(chan subscriberNewReq),
 		subscriberClose:        make(chan *Subscriber),
+		subscriberPubUpdate:    make(chan subscriberPubUpdateReq),
 		publisherNew:           make(chan publisherNewReq),
 		publisherClose:         make(chan *Publisher),
 		serviceProviderNew:     make(chan serviceProviderNewReq),
 		serviceProviderClose:   make(chan *ServiceProvider),
-		shutdown:               make(chan struct{}),
 		terminate:              make(chan struct{}),
 		done:                   make(chan struct{}),
 	}
@@ -371,36 +382,67 @@ func (n *Node) run() {
 outer:
 	for {
 		select {
-		case client := <-n.tcpClientNew:
-			n.tcprosClients[client] = struct{}{}
+		case req := <-n.getPublications:
+			res := [][]string{}
+			for _, pub := range n.publishers {
+				res = append(res, []string{pub.conf.Topic, pub.msgType})
+			}
+			req.res <- res
+
+		case req := <-n.getBusInfo:
+			var busInfo [][]interface{}
+
+			for _, pub := range n.publishers {
+				done := make(chan struct{})
+				pub.getBusInfo <- getBusInfoSubReq{&busInfo, done}
+				<-done
+			}
+
+			for _, sub := range n.subscribers {
+				done := make(chan struct{})
+				sub.getBusInfo <- getBusInfoSubReq{&busInfo, done}
+				<-done
+			}
+
+			req.res <- apislave.ResponseGetBusInfo{
+				Code:          1,
+				StatusMessage: "",
+				BusInfo:       busInfo,
+			}
+
+		case <-n.shutdown:
+			break outer
+
+		case conn := <-n.tcpConnNew:
+			n.tcprosConns[conn] = struct{}{}
 			clientsWg.Add(1)
-			go n.runTcprosClient(&clientsWg, client)
+			go n.runTcprosServerConn(&clientsWg, conn)
 
-		case client := <-n.tcpClientClose:
-			delete(n.tcprosClients, client)
+		case conn := <-n.tcpConnClose:
+			delete(n.tcprosConns, conn)
 
-		case req := <-n.tcpClientSubscriber:
-			// pass client ownership to publisher, if exists
-			delete(n.tcprosClients, req.client)
+		case req := <-n.tcpConnSubscriber:
+			// pass conn ownership to publisher, if exists
+			delete(n.tcprosConns, req.conn)
 
 			pub, ok := n.publishers[req.header.Topic]
 			if !ok {
-				req.client.Close()
+				req.conn.Close()
 				continue
 			}
 
-			pub.subscriberTCPNew <- tcpClientSubscriberReq{
-				client: req.client,
+			pub.subscriberTCPNew <- tcpConnSubscriberReq{
+				conn:   req.conn,
 				header: req.header,
 			}
 
-		case req := <-n.tcpClientServiceClient:
-			// pass client ownership to service provider, if exists
-			delete(n.tcprosClients, req.client)
+		case req := <-n.tcpConnServiceClient:
+			// pass conn ownership to service provider, if exists
+			delete(n.tcprosConns, req.conn)
 
 			sp, ok := n.serviceProviders[req.header.Service]
 			if !ok {
-				req.client.Close()
+				req.conn.Close()
 				continue
 			}
 
@@ -421,23 +463,6 @@ outer:
 					break
 				}
 			}
-
-		case req := <-n.publisherUpdate:
-			sub, ok := n.subscribers[req.topic]
-			if !ok {
-				continue
-			}
-
-			sub.publisherUpdate <- req.urls
-
-		case req := <-n.getPublications:
-			res := [][]string{}
-
-			for _, pub := range n.publishers {
-				res = append(res, []string{pub.conf.Topic, pub.msgType})
-			}
-
-			req.res <- res
 
 		case req := <-n.subscriberRequestTopic:
 			pub, ok := n.publishers[req.req.Topic]
@@ -471,11 +496,19 @@ outer:
 			req.err <- nil
 
 			// send initial publishers list to subscriber
-			req.sub.publisherUpdate <- res.URIs
+			req.sub.subscriberPubUpdate <- res.URIs
 
 		case sub := <-n.subscriberClose:
 			delete(n.subscribers, n.absoluteTopicName(sub.conf.Topic))
 			close(sub.nodeTerminate)
+
+		case req := <-n.subscriberPubUpdate:
+			sub, ok := n.subscribers[req.topic]
+			if !ok {
+				continue
+			}
+
+			sub.subscriberPubUpdate <- req.urls
 
 		case req := <-n.publisherNew:
 			_, ok := n.publishers[n.absoluteTopicName(req.pub.conf.Topic)]
@@ -524,9 +557,6 @@ outer:
 		case sp := <-n.serviceProviderClose:
 			delete(n.serviceProviders, n.absoluteTopicName(sp.conf.Service))
 			close(sp.nodeTerminate)
-
-		case <-n.shutdown:
-			break outer
 		}
 	}
 
@@ -534,13 +564,24 @@ outer:
 	go func() {
 		for {
 			select {
-			case <-n.tcpClientNew:
+			case req := <-n.getPublications:
+				req.res <- [][]string{}
 
-			case <-n.tcpClientClose:
+			case req := <-n.getBusInfo:
+				req.res <- apislave.ResponseGetBusInfo{
+					Code:          0,
+					StatusMessage: "terminating",
+				}
 
-			case <-n.tcpClientSubscriber:
+			case <-n.shutdown:
 
-			case <-n.tcpClientServiceClient:
+			case <-n.tcpConnNew:
+
+			case <-n.tcpConnClose:
+
+			case <-n.tcpConnSubscriber:
+
+			case <-n.tcpConnServiceClient:
 
 			case <-n.udpSubPublisherNew:
 
@@ -551,11 +592,6 @@ outer:
 				close(req.done)
 
 			case <-n.udpFrame:
-
-			case <-n.publisherUpdate:
-
-			case req := <-n.getPublications:
-				req.res <- [][]string{}
 
 			case req := <-n.subscriberRequestTopic:
 				req.res <- apislave.ResponseRequestTopic{
@@ -571,14 +607,14 @@ outer:
 			case req := <-n.publisherNew:
 				req.err <- fmt.Errorf("terminated")
 
+			case <-n.subscriberPubUpdate:
+
 			case <-n.publisherClose:
 
 			case req := <-n.serviceProviderNew:
 				req.err <- fmt.Errorf("terminated")
 
 			case <-n.serviceProviderClose:
-
-			case <-n.shutdown:
 			}
 		}
 	}()
@@ -588,7 +624,7 @@ outer:
 	n.udprosServer.Close()
 	serversWg.Wait()
 
-	for c := range n.tcprosClients {
+	for c := range n.tcprosConns {
 		c.Close()
 	}
 	clientsWg.Wait()
@@ -614,21 +650,22 @@ outer:
 
 	<-n.terminate
 
-	close(n.tcpClientNew)
-	close(n.tcpClientClose)
-	close(n.tcpClientSubscriber)
-	close(n.tcpClientServiceClient)
+	close(n.getPublications)
+	close(n.getBusInfo)
+	close(n.shutdown)
+	close(n.tcpConnNew)
+	close(n.tcpConnClose)
+	close(n.tcpConnSubscriber)
+	close(n.tcpConnServiceClient)
 	close(n.udpSubPublisherNew)
 	close(n.udpSubPublisherClose)
 	close(n.udpFrame)
-	close(n.publisherUpdate)
-	close(n.getPublications)
 	close(n.subscriberRequestTopic)
 	close(n.subscriberNew)
 	close(n.subscriberClose)
+	close(n.subscriberPubUpdate)
 	close(n.publisherNew)
 	close(n.publisherClose)
 	close(n.serviceProviderNew)
 	close(n.serviceProviderClose)
-	close(n.shutdown)
 }

@@ -30,6 +30,9 @@ func decodeBool(in []byte, val reflect.Value) error {
 	case *bool:
 		*tval = v
 
+	case *interface{}:
+		*tval = v
+
 	default:
 		return fmt.Errorf("cannot decode a bool into a %T", val.Interface())
 	}

@@ -56,13 +56,13 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 		}
 	}
 
-	for node, info := range ret {
-		res, err := n.apiMasterClient.LookupNode(node)
+	for nodeName, info := range ret {
+		res, err := n.apiMasterClient.LookupNode(nodeName)
 		if err != nil {
 			return nil, fmt.Errorf("lookupNode: %v", err)
 		}
 
-		address, err := urlToAddress(res.URI)
+		address, err := urlToAddress(res.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 			return nil, fmt.Errorf("lookupService: %v", err)
 		}
 
-		address, err := urlToAddress(res2.URI)
+		address, err := urlToAddress(res2.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -187,15 +187,15 @@ func (n *Node) GetServices() (map[string]*InfoService, error) {
 	return ret, nil
 }
 
-// PingNode send a ping request to a given node, wait for the response and returns
+// PingNode sends a ping request to a given node, wait for the response and returns
 // the elapsed time.
-func (n *Node) PingNode(name string) (time.Duration, error) {
-	res, err := n.apiMasterClient.LookupNode(name)
+func (n *Node) PingNode(nodeName string) (time.Duration, error) {
+	res, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
 		return 0, err
 	}
 
-	address, err := urlToAddress(res.URI)
+	address, err := urlToAddress(res.URL)
 	if err != nil {
 		return 0, err
 	}
@@ -212,14 +212,14 @@ func (n *Node) PingNode(name string) (time.Duration, error) {
 	return time.Since(start), nil
 }
 
-// KillNode send a kill request to a given node.
-func (n *Node) KillNode(name string) error {
-	res, err := n.apiMasterClient.LookupNode(name)
+// KillNode sends a kill request to a given node.
+func (n *Node) KillNode(nodeName string) error {
+	res, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
 		return err
 	}
 
-	address, err := urlToAddress(res.URI)
+	address, err := urlToAddress(res.URL)
 	if err != nil {
 		return err
 	}
@@ -234,44 +234,82 @@ func (n *Node) KillNode(name string) error {
 	return nil
 }
 
-// GetParamBool returns a bool parameter from the master.
-func (n *Node) GetParamBool(key string) (bool, error) {
-	res, err := n.apiParamClient.GetParamBool(key)
+// InfoConnection contains information about a connection.
+type InfoConnection struct {
+	ID        int
+	To        string
+	Direction byte
+	Transport string
+	Topic     string
+	Connected bool
+}
+
+// GetConnections returns infos about connections of a node.
+func (n *Node) GetConnections(nodeName string) ([]InfoConnection, error) {
+	res, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return res.Res, nil
-}
 
-// GetParamInt returns an int parameter from the master.
-func (n *Node) GetParamInt(key string) (int, error) {
-	res, err := n.apiParamClient.GetParamInt(key)
+	address, err := urlToAddress(res.URL)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return res.Res, nil
-}
 
-// GetParamString returns a string parameter from the master.
-func (n *Node) GetParamString(key string) (string, error) {
-	res, err := n.apiParamClient.GetParamString(key)
+	xcs := apislave.NewClient(address, n.absoluteName())
+
+	infos, err := xcs.GetBusInfo()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return res.Res, nil
-}
 
-// SetParamBool sets a bool parameter in the master.
-func (n *Node) SetParamBool(key string, val bool) error {
-	return n.apiParamClient.SetParamBool(key, val)
-}
+	var ret []InfoConnection
 
-// SetParamInt sets an int parameter in the master.
-func (n *Node) SetParamInt(key string, val int) error {
-	return n.apiParamClient.SetParamInt(key, val)
-}
+	for _, i := range infos {
+		if len(i) < 6 {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
 
-// SetParamString sets a string parameter in the master.
-func (n *Node) SetParamString(key string, val string) error {
-	return n.apiParamClient.SetParamString(key, val)
+		id, ok := i[0].(int)
+		if !ok {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
+
+		counterpart, ok := i[1].(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
+
+		temp, ok := i[2].(string)
+		if !ok || len(temp) != 1 {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
+		direction := temp[0]
+
+		transport, ok := i[3].(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
+
+		topic, ok := i[4].(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
+
+		connected, ok := i[5].(bool)
+		if !ok {
+			return nil, fmt.Errorf("invalid entry: %v", i)
+		}
+
+		ret = append(ret, InfoConnection{
+			ID:        id,
+			To:        counterpart,
+			Direction: direction,
+			Transport: transport,
+			Topic:     topic,
+			Connected: connected,
+		})
+	}
+
+	return ret, nil
 }

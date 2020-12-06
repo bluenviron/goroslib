@@ -68,7 +68,7 @@ type RequestLookup struct {
 type ResponseLookup struct {
 	Code          int
 	StatusMessage string
-	URI           string
+	URL           string
 }
 
 type RequestRegister struct {

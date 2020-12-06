@@ -1,10 +1,13 @@
 package goroslib
 
 import (
+	"sort"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
 func TestNodeGetNodes(t *testing.T) {
@@ -246,39 +249,64 @@ func TestNodeKillNode(t *testing.T) {
 	}
 }
 
-func TestNodeGetParam(t *testing.T) {
-	for _, lang := range []string{
+func TestNodeGetConnections(t *testing.T) {
+	for _, node := range []string{
 		"cpp",
 		"go",
 	} {
-		t.Run(lang, func(t *testing.T) {
+		t.Run(node, func(t *testing.T) {
 			m, err := newContainerMaster()
 			require.NoError(t, err)
 			defer m.close()
 
-			switch lang {
+			switch node {
 			case "cpp":
-				p, err := newContainer("node-setparam", m.IP())
+				en1, err := newContainer("node-businfo1", m.IP())
 				require.NoError(t, err)
-				defer p.close()
+				defer en1.close()
+
+				en2, err := newContainer("node-businfo2", m.IP())
+				require.NoError(t, err)
+				defer en2.close()
+
+				time.Sleep(1 * time.Second)
 
 			case "go":
-				n, err := NewNode(NodeConf{
+				en1, err := NewNode(NodeConf{
 					Namespace:     "/myns",
-					Name:          "goroslib_set",
+					Name:          "nodebusinfo1",
 					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
-				defer n.Close()
+				defer en1.Close()
 
-				err = n.SetParamBool("test_bool", true)
+				pub, err := NewPublisher(PublisherConf{
+					Node:  en1,
+					Topic: "test_topic",
+					Msg:   &std_msgs.String{},
+				})
 				require.NoError(t, err)
+				defer pub.Close()
 
-				err = n.SetParamInt("test_int", 123)
+				en2, err := NewNode(NodeConf{
+					Namespace:     "/myns",
+					Name:          "nodebusinfo2",
+					MasterAddress: m.IP() + ":11311",
+				})
 				require.NoError(t, err)
+				defer en2.Close()
 
-				err = n.SetParamString("test_string", "ABC")
+				sub, err := NewSubscriber(SubscriberConf{
+					Node:     en2,
+					Topic:    "test_topic",
+					Protocol: UDP,
+					Callback: func(msg *std_msgs.String) {
+					},
+				})
 				require.NoError(t, err)
+				defer sub.Close()
+
+				time.Sleep(1 * time.Second)
 			}
 
 			n, err := NewNode(NodeConf{
@@ -289,17 +317,59 @@ func TestNodeGetParam(t *testing.T) {
 			require.NoError(t, err)
 			defer n.Close()
 
-			resb, err := n.GetParamBool("test_bool")
+			infos1, err := n.GetConnections("nodebusinfo1")
 			require.NoError(t, err)
-			require.Equal(t, true, resb)
 
-			resi, err := n.GetParamInt("test_int")
-			require.NoError(t, err)
-			require.Equal(t, 123, resi)
+			sort.Slice(infos1, func(a, b int) bool {
+				return infos1[a].Topic < infos1[b].Topic
+			})
 
-			ress, err := n.GetParamString("test_string")
+			require.Equal(t, []InfoConnection{
+				{
+					ID:        infos1[0].ID,
+					To:        "/myns/nodebusinfo2",
+					Direction: 'o',
+					Transport: "UDPROS",
+					Topic:     "/myns/test_topic",
+					Connected: true,
+				},
+				{
+					ID:        infos1[1].ID,
+					To:        "/rosout",
+					Direction: 'o',
+					Transport: "TCPROS",
+					Topic:     "/rosout",
+					Connected: true,
+				},
+			}, infos1)
+
+			infos2, err := n.GetConnections("nodebusinfo2")
 			require.NoError(t, err)
-			require.Equal(t, "ABC", ress)
+
+			sort.Slice(infos2, func(a, b int) bool {
+				return infos2[a].Topic < infos2[b].Topic
+			})
+
+			require.Regexp(t, `^http://`, infos2[0].To)
+
+			require.Equal(t, []InfoConnection{
+				{
+					ID:        infos2[0].ID,
+					To:        infos2[0].To,
+					Direction: 'i',
+					Transport: "UDPROS",
+					Topic:     "/myns/test_topic",
+					Connected: true,
+				},
+				{
+					ID:        infos2[1].ID,
+					To:        "/rosout",
+					Direction: 'o',
+					Transport: "TCPROS",
+					Topic:     "/rosout",
+					Connected: true,
+				},
+			}, infos2)
 		})
 	}
 }

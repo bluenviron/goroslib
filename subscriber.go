@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"fmt"
+	"net/url"
 	"reflect"
 	"sync"
 
@@ -55,11 +56,12 @@ type Subscriber struct {
 	publishersWg sync.WaitGroup
 
 	// in
-	publisherUpdate chan []string
-	message         chan interface{}
-	shutdown        chan struct{}
-	terminate       chan struct{}
-	nodeTerminate   chan struct{}
+	getBusInfo          chan getBusInfoSubReq
+	subscriberPubUpdate chan []string
+	message             chan interface{}
+	shutdown            chan struct{}
+	terminate           chan struct{}
+	nodeTerminate       chan struct{}
 
 	// out
 	done chan struct{}
@@ -101,17 +103,18 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	}
 
 	s := &Subscriber{
-		conf:            conf,
-		msgMsg:          msgMsg.Elem(),
-		msgType:         msgType,
-		msgMd5:          msgMd5,
-		publishers:      make(map[string]*subscriberPublisher),
-		publisherUpdate: make(chan []string),
-		message:         make(chan interface{}),
-		shutdown:        make(chan struct{}),
-		terminate:       make(chan struct{}),
-		nodeTerminate:   make(chan struct{}),
-		done:            make(chan struct{}),
+		conf:                conf,
+		msgMsg:              msgMsg.Elem(),
+		msgType:             msgType,
+		msgMd5:              msgMd5,
+		publishers:          make(map[string]*subscriberPublisher),
+		getBusInfo:          make(chan getBusInfoSubReq),
+		subscriberPubUpdate: make(chan []string),
+		message:             make(chan interface{}),
+		shutdown:            make(chan struct{}),
+		terminate:           make(chan struct{}),
+		nodeTerminate:       make(chan struct{}),
+		done:                make(chan struct{}),
 	}
 
 	chanErr := make(chan error)
@@ -145,7 +148,27 @@ func (s *Subscriber) run() {
 outer:
 	for {
 		select {
-		case urls := <-s.publisherUpdate:
+		case req := <-s.getBusInfo:
+			proto := func() string {
+				if s.conf.Protocol == UDP {
+					return "UDPROS"
+				}
+				return "TCPROS"
+			}()
+
+			for _, ps := range s.publishers {
+				ur := (&url.URL{
+					Scheme: "http",
+					Host:   ps.address,
+					Path:   "/",
+				}).String()
+				*req.pbusInfo = append(*req.pbusInfo,
+					[]interface{}{0, ur, "i", proto,
+						s.conf.Node.absoluteTopicName(s.conf.Topic), true})
+			}
+			close(req.done)
+
+		case urls := <-s.subscriberPubUpdate:
 			var addresses []string
 			for _, u := range urls {
 				addr, err := urlToAddress(u)
@@ -187,7 +210,13 @@ outer:
 	go func() {
 		for {
 			select {
-			case _, ok := <-s.publisherUpdate:
+			case req, ok := <-s.getBusInfo:
+				if !ok {
+					return
+				}
+				close(req.done)
+
+			case _, ok := <-s.subscriberPubUpdate:
 				if !ok {
 					return
 				}
@@ -212,7 +241,8 @@ outer:
 	<-s.nodeTerminate
 	<-s.terminate
 
-	close(s.publisherUpdate)
+	close(s.getBusInfo)
+	close(s.subscriberPubUpdate)
 	close(s.message)
 	close(s.shutdown)
 }

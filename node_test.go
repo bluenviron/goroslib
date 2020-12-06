@@ -168,20 +168,30 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	rt, err := newContainer("rosnode-info", m.IP())
 	require.NoError(t, err)
 
-	require.Regexp(t, regexp.MustCompile("^--------------------------------------------------------------------------------\n"+
-		"Node \\[/myns/goroslib\\]\n"+
-		"Publications: \n"+
-		" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
-		" \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
-		"\n"+
-		"Subscriptions: \n"+
-		" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
-		"\n"+
-		"Services: \n"+
-		" \\* /myns/test_srv\n"+
-		"\n"+
-		"\n"+
-		"contacting node http://.+? ...\n"+
-		"Pid: [0-9]+\n"+
-		"\n$"), rt.waitOutput())
+	require.Regexp(t, regexp.MustCompile(
+		"^--------------------------------------------------------------------------------\n"+
+			"Node \\[/myns/goroslib\\]\n"+
+			"Publications: \n"+
+			" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
+			" \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
+			"\n"+
+			"Subscriptions: \n"+
+			" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
+			"\n"+
+			"Services: \n"+
+			" \\* /myns/test_srv\n"+
+			"\n"+
+			"\n"+
+			"contacting node http://.+? ...\n"+
+			"Pid: [0-9]+\n"+
+			"Connections:\n"+
+			" \\* topic: /rosout\n"+
+			"    \\* to: /rosout\n"+
+			"    \\* direction: outbound\n"+
+			"    \\* transport: TCPROS\n"+
+			" \\* topic: /myns/test_topic\n"+
+			"    \\* to: http://.+?/\n"+
+			"    \\* direction: inbound\n"+
+			"    \\* transport: TCPROS\n"+
+			"\n$"), rt.waitOutput())
 }

@@ -40,7 +40,7 @@ type ServiceProvider struct {
 	clientsWg sync.WaitGroup
 
 	// in
-	clientNew     chan tcpClientServiceClientReq
+	clientNew     chan tcpConnServiceClientReq
 	clientClose   chan *serviceProviderClient
 	clientRequest chan serviceProviderClientRequestReq
 	shutdown      chan struct{}
@@ -109,7 +109,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		resType:       resType,
 		srvMd5:        srvMd5,
 		clients:       make(map[string]*serviceProviderClient),
-		clientNew:     make(chan tcpClientServiceClientReq),
+		clientNew:     make(chan tcpConnServiceClientReq),
 		clientClose:   make(chan *serviceProviderClient),
 		clientRequest: make(chan serviceProviderClientRequestReq),
 		shutdown:      make(chan struct{}),
@@ -152,16 +152,16 @@ outer:
 		case req := <-sp.clientNew:
 			_, ok := sp.clients[req.header.Callerid]
 			if ok {
-				req.client.Close()
+				req.conn.Close()
 				continue
 			}
 
 			if req.header.Md5sum != sp.srvMd5 {
-				req.client.Close()
+				req.conn.Close()
 				continue
 			}
 
-			err := req.client.WriteHeader(&prototcp.HeaderServiceProvider{
+			err := req.conn.WriteHeader(&prototcp.HeaderServiceProvider{
 				Callerid:     sp.conf.Node.absoluteName(),
 				Md5sum:       sp.srvMd5,
 				RequestType:  sp.reqType,
@@ -169,11 +169,11 @@ outer:
 				Type:         "goroslib/Service",
 			})
 			if err != nil {
-				req.client.Close()
+				req.conn.Close()
 				continue
 			}
 
-			newServiceProviderClient(sp, req.header.Callerid, req.client)
+			newServiceProviderClient(sp, req.header.Callerid, req.conn)
 
 		case spc := <-sp.clientClose:
 			spc.close()
@@ -181,17 +181,17 @@ outer:
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
 
-			conn, ok := sp.clients[req.callerID]
+			client, ok := sp.clients[req.callerID]
 			if !ok {
 				continue
 			}
 
-			err := conn.client.WriteServiceResState()
+			err := client.conn.WriteServiceResState()
 			if err != nil {
 				continue
 			}
 
-			conn.client.WriteMessage(res[0].Interface())
+			client.conn.WriteMessage(res[0].Interface())
 
 		case <-sp.shutdown:
 			break outer

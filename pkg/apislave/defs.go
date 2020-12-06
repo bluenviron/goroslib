@@ -20,7 +20,7 @@ func (RequestGetBusInfo) isRequest() {}
 type ResponseGetBusInfo struct {
 	Code          int
 	StatusMessage string
-	BusInfo       [][]string
+	BusInfo       [][]interface{}
 }
 
 func (ResponseGetBusInfo) isResponse() {}

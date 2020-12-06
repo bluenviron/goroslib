@@ -9,14 +9,14 @@ import (
 type serviceProviderClient struct {
 	sp       *ServiceProvider
 	callerID string
-	client   *prototcp.Conn
+	conn     *prototcp.Conn
 }
 
-func newServiceProviderClient(sp *ServiceProvider, callerID string, client *prototcp.Conn) {
+func newServiceProviderClient(sp *ServiceProvider, callerID string, conn *prototcp.Conn) {
 	spc := &serviceProviderClient{
 		sp:       sp,
 		callerID: callerID,
-		client:   client,
+		conn:     conn,
 	}
 
 	sp.clients[callerID] = spc
@@ -27,7 +27,7 @@ func newServiceProviderClient(sp *ServiceProvider, callerID string, client *prot
 
 func (spc *serviceProviderClient) close() {
 	delete(spc.sp.clients, spc.callerID)
-	spc.client.Close()
+	spc.conn.Close()
 }
 
 func (spc *serviceProviderClient) run() {
@@ -36,7 +36,7 @@ func (spc *serviceProviderClient) run() {
 outer:
 	for {
 		req := reflect.New(spc.sp.reqMsg).Interface()
-		err := spc.client.ReadMessage(req)
+		err := spc.conn.ReadMessage(req)
 		if err != nil {
 			break outer
 		}

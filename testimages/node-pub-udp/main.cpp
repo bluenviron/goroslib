@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "nodepub");
     ros::NodeHandle node;
 
-    // advertise a publisher and publish with a fixed rate
     auto pub = node.advertise<std_msgs::Int64MultiArray>("test_topic", 100);
     std::thread pub_thread(publisher_run, &pub);
 
