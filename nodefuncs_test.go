@@ -249,7 +249,7 @@ func TestNodeKillNode(t *testing.T) {
 	}
 }
 
-func TestNodeGetConnections(t *testing.T) {
+func TestNodeGetNodeConns(t *testing.T) {
 	for _, node := range []string{
 		"cpp",
 		"go",
@@ -317,7 +317,7 @@ func TestNodeGetConnections(t *testing.T) {
 			require.NoError(t, err)
 			defer n.Close()
 
-			infos1, err := n.GetConnections("nodebusinfo1")
+			infos1, err := n.GetNodeConns("nodebusinfo1")
 			require.NoError(t, err)
 
 			sort.Slice(infos1, func(a, b int) bool {
@@ -343,7 +343,7 @@ func TestNodeGetConnections(t *testing.T) {
 				},
 			}, infos1)
 
-			infos2, err := n.GetConnections("nodebusinfo2")
+			infos2, err := n.GetNodeConns("nodebusinfo2")
 			require.NoError(t, err)
 
 			sort.Slice(infos2, func(a, b int) bool {

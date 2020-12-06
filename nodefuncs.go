@@ -244,8 +244,8 @@ type InfoConnection struct {
 	Connected bool
 }
 
-// GetConnections returns infos about connections of a node.
-func (n *Node) GetConnections(nodeName string) ([]InfoConnection, error) {
+// GetNodeConns returns infos about connections of a node.
+func (n *Node) GetNodeConns(nodeName string) ([]InfoConnection, error) {
 	res, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
 		return nil, err
