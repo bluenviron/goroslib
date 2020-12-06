@@ -197,7 +197,7 @@ outer:
 				}
 			}
 
-		// messages are received through events
+		// messages are received with events
 		// in order to avoid mutexes in the user side
 		case msg := <-s.message:
 			cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
