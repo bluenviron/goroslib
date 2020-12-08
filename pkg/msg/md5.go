@@ -175,7 +175,7 @@ func Md5Message(msg interface{}) (string, error) {
 	return md5Sum(text), nil
 }
 
-// Md5Message computes the checksum of a service.
+// Md5Service computes the checksum of a service.
 func Md5Service(req interface{}, res interface{}) (string, error) {
 	reqt := reflect.TypeOf(req)
 	if reqt.Kind() == reflect.Ptr {

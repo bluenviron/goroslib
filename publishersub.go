@@ -94,40 +94,14 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 			return
 		}
 		byts := rawMessage.Bytes()
-		lbyts := len(byts)
 
-		for i := 0; i < lbyts; i += protoudp.MaxPayloadSize {
-			ps.pub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
-				ConnectionID: uint32(ps.pub.id),
-				Opcode: func() protoudp.Opcode {
-					if i == 0 {
-						return protoudp.Data0
-					}
+		frames := protoudp.FramesForPayload(
+			uint32(ps.pub.id),
+			ps.curMessageID,
+			byts)
 
-					return protoudp.DataN
-				}(),
-				MessageID: ps.curMessageID,
-				BlockID: func() uint16 {
-					// return block count
-					if i == 0 {
-						if (lbyts % protoudp.MaxPayloadSize) == 0 {
-							return uint16(lbyts / protoudp.MaxPayloadSize)
-						}
-						return uint16((lbyts / protoudp.MaxPayloadSize) + 1)
-					}
-
-					// return current block id
-					return uint16(i / protoudp.MaxPayloadSize)
-				}(),
-				Content: func() []byte {
-					j := i + protoudp.MaxPayloadSize
-					if j > lbyts {
-						j = lbyts
-					}
-
-					return byts[i:j]
-				}(),
-			}, ps.udpAddr)
+		for _, f := range frames {
+			ps.pub.conf.Node.udprosServer.WriteFrame(f, ps.udpAddr)
 		}
 	}
 }

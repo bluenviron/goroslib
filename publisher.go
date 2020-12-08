@@ -166,7 +166,7 @@ outer:
 						Protocol: []interface{}{
 							"TCPROS",
 							nodeIP,
-							p.conf.Node.tcprosServerPort,
+							p.conf.Node.tcprosServer.Port(),
 						},
 					}
 					return nil
@@ -273,7 +273,7 @@ outer:
 								nodeIP, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
 								return nodeIP
 							}(),
-							p.conf.Node.udprosServerPort,
+							p.conf.Node.udprosServer.Port(),
 							p.id,
 							1500,
 							func() []byte {

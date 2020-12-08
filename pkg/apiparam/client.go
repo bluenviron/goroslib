@@ -76,7 +76,7 @@ func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
 	return &res, nil
 }
 
-// GetParamBool writes a getParam request and expects a int response.
+// GetParamInt writes a getParam request and expects a int response.
 func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
@@ -96,7 +96,7 @@ func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 	return &res, nil
 }
 
-// GetParamBool writes a getParam request and expects a string response.
+// GetParamString writes a getParam request and expects a string response.
 func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,

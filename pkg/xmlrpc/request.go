@@ -7,11 +7,13 @@ import (
 	"reflect"
 )
 
+// RequestRaw is a raw request.
 type RequestRaw struct {
 	Method string
 	dec    *xml.Decoder
 }
 
+// Decode transforms a RequestRaw into a Request.
 func (rr *RequestRaw) Decode(req interface{}) error {
 	return requestDecode(rr, req)
 }

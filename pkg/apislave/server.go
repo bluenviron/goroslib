@@ -4,6 +4,8 @@ import (
 	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
 
+// ErrorRes is the error returned by the server in case of wrong or unhandled
+// requests.
 type ErrorRes xmlrpc.ErrorRes
 
 func (ErrorRes) isResponse() {}

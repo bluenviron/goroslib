@@ -6,11 +6,13 @@ import (
 )
 
 const (
-	MaxPayloadSize = 1492
+	maxPayloadSize = 1492
 )
 
+// Opcode is the opcode of a Frame.
 type Opcode uint8
 
+// Standard opcodes.
 const (
 	Data0 Opcode = 0
 	DataN Opcode = 1
@@ -18,6 +20,7 @@ const (
 	Error Opcode = 3
 )
 
+// Frame is a UDPROS frame.
 type Frame struct {
 	ConnectionID uint32
 	Opcode       Opcode
@@ -26,12 +29,10 @@ type Frame struct {
 	Content      []byte
 }
 
-func frameDecode(byts []byte) (*Frame, error) {
+func (f *Frame) decode(byts []byte) error {
 	if len(byts) < 8 {
-		return nil, fmt.Errorf("invalid length")
+		return fmt.Errorf("invalid length")
 	}
-
-	f := &Frame{}
 
 	f.ConnectionID = binary.LittleEndian.Uint32(byts[0:4])
 	f.Opcode = Opcode(byts[4])
@@ -39,10 +40,10 @@ func frameDecode(byts []byte) (*Frame, error) {
 	f.BlockID = binary.LittleEndian.Uint16(byts[6:8])
 	f.Content = byts[8:]
 
-	return f, nil
+	return nil
 }
 
-func frameEncode(f *Frame) ([]byte, error) {
+func (f *Frame) encode() ([]byte, error) {
 	byts := make([]byte, 8+len(f.Content))
 
 	binary.LittleEndian.PutUint32(byts[:4], f.ConnectionID)
@@ -52,4 +53,45 @@ func frameEncode(f *Frame) ([]byte, error) {
 	copy(byts[8:], f.Content)
 
 	return byts, nil
+}
+
+// FramesForPayload generates frames for the given payload.
+func FramesForPayload(connID uint32, messageID uint8, byts []byte) []*Frame {
+	var ret []*Frame
+	lbyts := len(byts)
+
+	for i := 0; i < lbyts; i += maxPayloadSize {
+		f := &Frame{
+			ConnectionID: connID,
+			Opcode: func() Opcode {
+				if i == 0 {
+					return Data0
+				}
+				return DataN
+			}(),
+			MessageID: messageID,
+			BlockID: func() uint16 {
+				// return block count
+				if i == 0 {
+					if (lbyts % maxPayloadSize) == 0 {
+						return uint16(lbyts / maxPayloadSize)
+					}
+					return uint16((lbyts / maxPayloadSize) + 1)
+				}
+
+				// return current block id
+				return uint16(i / maxPayloadSize)
+			}(),
+			Content: func() []byte {
+				j := i + maxPayloadSize
+				if j > lbyts {
+					j = lbyts
+				}
+				return byts[i:j]
+			}(),
+		}
+		ret = append(ret, f)
+	}
+
+	return ret
 }

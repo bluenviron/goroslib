@@ -13,6 +13,7 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
+// ServerURL returns a XMLRPC server url.
 func ServerURL(address *net.TCPAddr, port int) string {
 	return (&url.URL{
 		Scheme: "http",

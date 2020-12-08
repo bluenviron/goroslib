@@ -9,10 +9,12 @@ const (
 	bufferSize = 2048
 )
 
+// Server is a UDPROS server.
 type Server struct {
 	ln net.PacketConn
 }
 
+// NewServer allocates a Server.
 func NewServer(port int) (*Server, error) {
 	ln, err := net.ListenPacket("udp", ":"+strconv.FormatInt(int64(port), 10))
 	if err != nil {
@@ -24,14 +26,17 @@ func NewServer(port int) (*Server, error) {
 	}, nil
 }
 
+// Close closes the server.
 func (s *Server) Close() error {
 	return s.ln.Close()
 }
 
+// Port returns the server port.
 func (s *Server) Port() int {
 	return s.ln.LocalAddr().(*net.UDPAddr).Port
 }
 
+// ReadFrame reads a frame.
 func (s *Server) ReadFrame() (*Frame, *net.UDPAddr, error) {
 	buf := make([]byte, bufferSize)
 
@@ -40,16 +45,18 @@ func (s *Server) ReadFrame() (*Frame, *net.UDPAddr, error) {
 		return nil, nil, err
 	}
 
-	f, err := frameDecode(buf[:n])
+	var f Frame
+	err = f.decode(buf[:n])
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return f, source.(*net.UDPAddr), nil
+	return &f, source.(*net.UDPAddr), nil
 }
 
+// WriteFrame writes a frame.
 func (s *Server) WriteFrame(f *Frame, dest *net.UDPAddr) error {
-	byts, err := frameEncode(f)
+	byts, err := f.encode()
 	if err != nil {
 		return err
 	}

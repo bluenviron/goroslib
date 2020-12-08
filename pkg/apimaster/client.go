@@ -206,7 +206,7 @@ func (c *Client) RegisterService(service string, serviceURL string,
 		CallerURL:  callerURL,
 	}
 
-	var res ResponseServiceRegister
+	var res ResponseRegisterService
 	err := c.xc.Do("registerService", req, &res)
 	if err != nil {
 		return err

@@ -101,7 +101,7 @@ func (sp *subscriberPublisher) runInner() error {
 					return buf.Bytes()[4:]
 				}(),
 				nodeIP,
-				sp.sub.conf.Node.udprosServerPort,
+				sp.sub.conf.Node.udprosServer.Port(),
 				1500,
 			}}
 		}()

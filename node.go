@@ -157,10 +157,8 @@ type Node struct {
 	apiSlaveServer      *apislave.Server
 	apiSlaveServerURL   string
 	tcprosServer        *prototcp.Server
-	tcprosServerPort    int
 	tcprosServerURL     string
 	udprosServer        *protoudp.Server
-	udprosServerPort    int
 	tcprosConns         map[*prototcp.Conn]struct{}
 	udprosSubPublishers map[*subscriberPublisher]struct{}
 	subscribers         map[string]*Subscriber
@@ -303,7 +301,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	// get port in case it has been set automatically
 	n.apiSlaveServerURL = xmlrpc.ServerURL(nodeAddr, n.apiSlaveServer.Port())
 
 	n.tcprosServer, err = prototcp.NewServer(conf.TcprosPort)
@@ -311,9 +308,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
-	// get port in case it has been set automatically
-	n.tcprosServerPort = n.tcprosServer.Port()
-	n.tcprosServerURL = prototcp.ServerURL(nodeAddr, n.tcprosServerPort)
+	n.tcprosServerURL = prototcp.ServerURL(nodeAddr, n.tcprosServer.Port())
 
 	n.udprosServer, err = protoudp.NewServer(conf.UdprosPort)
 	if err != nil {
@@ -321,8 +316,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
-	// get port in case it has been set automatically
-	n.udprosServerPort = n.udprosServer.Port()
 
 	go n.run()
 

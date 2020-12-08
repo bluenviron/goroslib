@@ -35,6 +35,7 @@ func snakeToCamel(in string) string {
 	return string(tmp)
 }
 
+// Header is an header.
 type Header interface {
 	IsHeader()
 }

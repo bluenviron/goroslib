@@ -1,12 +1,15 @@
 // Package prototcp implements the TCPROS protocol.
 package prototcp
 
+// HeaderError is the header returned in case of errors.
 type HeaderError struct {
 	Error string
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderError) IsHeader() {}
 
+// HeaderSubscriber is a subscriber header.
 type HeaderSubscriber struct {
 	Callerid          string
 	Topic             string
@@ -16,8 +19,10 @@ type HeaderSubscriber struct {
 	TcpNodelay        int //nolint:golint
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderSubscriber) IsHeader() {}
 
+// HeaderPublisher is a publisher header.
 type HeaderPublisher struct {
 	Topic    string
 	Type     string
@@ -26,8 +31,10 @@ type HeaderPublisher struct {
 	Latching int
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderPublisher) IsHeader() {}
 
+// HeaderServiceClient is a service client header.
 type HeaderServiceClient struct {
 	Callerid   string
 	Md5sum     string
@@ -35,8 +42,10 @@ type HeaderServiceClient struct {
 	Persistent int
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderServiceClient) IsHeader() {}
 
+// HeaderServiceProvider is a service provider event.
 type HeaderServiceProvider struct {
 	Callerid     string
 	Md5sum       string
@@ -45,4 +54,5 @@ type HeaderServiceProvider struct {
 	Type         string
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderServiceProvider) IsHeader() {}

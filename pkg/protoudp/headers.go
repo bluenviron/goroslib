@@ -1,6 +1,7 @@
 // Package protoudp implements the UDPROS protocol.
 package protoudp
 
+// HeaderSubscriber is a subscriber header.
 type HeaderSubscriber struct {
 	Callerid string
 	Topic    string
@@ -8,8 +9,10 @@ type HeaderSubscriber struct {
 	Md5sum   string
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderSubscriber) IsHeader() {}
 
+// HeaderPublisher is a publisher header.
 type HeaderPublisher struct {
 	Callerid          string
 	Topic             string
@@ -18,4 +21,5 @@ type HeaderPublisher struct {
 	MessageDefinition string
 }
 
+// IsHeader implements protocommon.Header.
 func (*HeaderPublisher) IsHeader() {}
