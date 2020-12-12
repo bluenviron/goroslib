@@ -21,11 +21,19 @@ Features:
 * Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
 * Examples provided for every feature, comprehensive test suite, continuous integration
 
-The library implements in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API). All the official [client libraries requirements](https://wiki.ros.org/Implementing%20Client%20Libraries) are satisfied, except for the following ones:
+## Table of contents
 
-* parse command-line Remapping Arguments
-* Subscribe to a simulated Clock
-* publish debugging messages to rosout
+* [Installation](#installation)
+* [API Documentation](#api-documentation)
+* [FAQs](#faqs)
+  * [Comparison with other libraries](#comparison-with-other-libraries)
+  * [Implementation status](#implementation-status)
+  * [Where can i find the standard messages?](#where-can-i-find-the-standard-messages)
+  * [How can i define a custom message?](#how-can-i-define-a-custom-message)
+  * [How can i set the namespace?](#how-can-i-set-the-namespace)
+  * [How can i compile a node for another operating system?](#how-can-i-compile-a-node-for-another-operating-system)
+  * [How can i edit the library?](#how-can-i-edit-the-library)
+* [Links](#links)
 
 ## Installation
 
@@ -56,7 +64,7 @@ The library implements in pure Go all the ROS protocols (xml-rpc, TCPROS, UDPROS
    go run name-of-the-go-file.go
    ```
 
-## Documentation
+## API Documentation
 
 https://pkg.go.dev/github.com/aler9/goroslib
 
@@ -71,6 +79,16 @@ The official project provides libraries to write nodes in C++ and Python, but th
 #### goroslib vs rosgo
 
 rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` files and doesn't support UDP.
+
+### Implementation status
+
+All the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API) are implemented.
+
+All the official [client libraries requirements](https://wiki.ros.org/Implementing%20Client%20Libraries) are satisfied, except for the following ones:
+
+* parse command-line Remapping Arguments
+* Subscribe to a simulated Clock
+* publish debugging messages to rosout
 
 ### Where can i find the standard messages?
 
