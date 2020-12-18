@@ -115,10 +115,7 @@ func run() error {
 	rosPkgName := *argRosPkgName
 	u := *argURL
 
-	isRemote := func() bool {
-		_, err := url.ParseRequestURI(u)
-		return err == nil
-	}()
+	isRemote := strings.HasPrefix(u, "https://") || strings.HasPrefix(u, "http://")
 
 	content, err := func() (string, error) {
 		if isRemote {

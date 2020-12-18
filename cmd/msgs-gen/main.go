@@ -1,15 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/url"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/go-git/go-git/v5"
 )
 
 var tplPackage = template.Must(template.New("").Parse(
@@ -38,28 +38,7 @@ func shellCommand(cmdstr string) error {
 	return cmd.Run()
 }
 
-func downloadJSON(addr string, data interface{}) error {
-	req, err := http.NewRequest("GET", addr, nil)
-	if err != nil {
-		return err
-	}
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	return json.NewDecoder(res.Body).Decode(data)
-}
-
-type githubFile struct {
-	Name        string
-	URL         string
-	DownloadURL string `json:"download_url"`
-}
-
-func processPackage(name string, addr string) error {
+func processDir(name string, dir string) error {
 	fmt.Fprintf(os.Stderr, "[%s]\n", name)
 
 	os.Mkdir(filepath.Join("pkg", "msgs", name), 0755)
@@ -94,71 +73,69 @@ func processPackage(name string, addr string) error {
 		return err
 	}
 
-	var files []githubFile
-	err = downloadJSON(addr, &files)
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return err
 	}
 
 	for _, f := range files {
-		fileName := func() string {
-			ur, _ := url.Parse(f.DownloadURL)
-			return strings.TrimSuffix(filepath.Base(ur.Path), ".msg")
-		}()
-
-		err = shellCommand(fmt.Sprintf("go run ./cmd/msg-import --gopackage=%s --rospackage=%s %s > %s",
-			name,
-			name,
-			f.DownloadURL,
-			filepath.Join("pkg", "msgs", name, fileName+".go")))
-		if err != nil {
-			os.Remove(filepath.Join("pkg", "msgs", name, fileName+".go"))
-			continue
+		if strings.HasSuffix(f.Name(), ".msg") {
+			err = shellCommand(fmt.Sprintf("go run ./cmd/msg-import --gopackage=%s --rospackage=%s %s > %s",
+				name,
+				name,
+				filepath.Join(dir, f.Name()),
+				filepath.Join("pkg", "msgs", name, strings.TrimSuffix(f.Name(), ".msg")+".go")))
+			if err != nil {
+				os.Remove(filepath.Join("pkg", "msgs", name, strings.TrimSuffix(f.Name(), ".msg")+".go"))
+				continue
+			}
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "\n")
 	return nil
 }
 
-func processCommonMsgs() error {
-	var files []githubFile
-	err := downloadJSON("https://api.github.com/repos/ros/common_msgs/contents", &files)
+func processRepo(name string, repo string, subdir string) error {
+	dir, err := ioutil.TempDir("", "goroslib")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir)
+
+	_, err = git.PlainClone(dir, false, &git.CloneOptions{
+		URL:   repo,
+		Depth: 1,
+	})
 	if err != nil {
 		return err
 	}
 
-	var packages [][2]string
+	return processDir(name, filepath.Join(dir, subdir))
+}
 
-	// get all folders which have the subfolder msg
-	for _, f := range files {
-		var subfiles []githubFile
-		err := downloadJSON(f.URL, &subfiles)
-		if err != nil {
-			return err
-		}
+func processCommonMsgs() error {
+	dir, err := ioutil.TempDir("", "goroslib")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir)
 
-		msgDir := func() string {
-			for _, f := range subfiles {
-				if f.Name == "msg" {
-					return f.URL
-				}
-			}
-			return ""
-		}()
-
-		if msgDir == "" {
-			continue
-		}
-
-		packages = append(packages, [2]string{f.Name, msgDir})
+	_, err = git.PlainClone(dir, false, &git.CloneOptions{
+		URL:   "https://github.com/ros/common_msgs",
+		Depth: 1,
+	})
+	if err != nil {
+		return err
 	}
 
-	for _, p := range packages {
-		err := processPackage(p[0], p[1])
-		if err != nil {
-			return err
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() && info.Name() == "msg" {
+			return processDir(filepath.Base(filepath.Dir(path)), path)
 		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -170,12 +147,12 @@ func run() error {
 		return err
 	}
 
-	err = processPackage("std_msgs", "https://api.github.com/repos/ros/std_msgs/contents/msg")
+	err = processRepo("std_msgs", "https://github.com/ros/std_msgs", "msg")
 	if err != nil {
 		return err
 	}
 
-	err = processPackage("rosgraph_msgs", "https://api.github.com/repos/ros/ros_comm_msgs/contents/rosgraph_msgs/msg")
+	err = processRepo("rosgraph_msgs", "https://github.com/ros/ros_comm_msgs", "rosgraph_msgs/msg")
 	if err != nil {
 		return err
 	}
