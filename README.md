@@ -28,11 +28,12 @@ Features:
 * [FAQs](#faqs)
   * [Comparison with other libraries](#comparison-with-other-libraries)
   * [Implementation status](#implementation-status)
-  * [Where can i find the standard messages?](#where-can-i-find-the-standard-messages)
-  * [How can i define a custom message?](#how-can-i-define-a-custom-message)
-  * [How can i set the namespace?](#how-can-i-set-the-namespace)
-  * [How can i compile a node for another operating system?](#how-can-i-compile-a-node-for-another-operating-system)
-  * [How can i edit the library?](#how-can-i-edit-the-library)
+  * [Use standard messages](#use-standard-messages)
+  * [Define custom messages](#define-custom-messages)
+  * [Import existing messages and services](#import-existing-messages-and-services)
+  * [Change namespace](#change-namespace)
+  * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
+  * [Edit the library](#edit-the-library)
 * [Links](#links)
 
 ## Installation
@@ -90,11 +91,11 @@ All the official [client libraries requirements](https://wiki.ros.org/Implementi
 * Subscribe to a simulated Clock
 * publish debugging messages to rosout
 
-### Where can i find the standard messages?
+### Use standard messages
 
 Standard messages are available in folder `pkg/msgs` and [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
 
-### How can i define a custom message?
+### Define custom messages
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
 
@@ -147,6 +148,8 @@ type MessageName struct {
 }
 ```
 
+### Import existing messages and services
+
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
 
 ```
@@ -154,7 +157,7 @@ go get github.com/aler9/goroslib/cmd/msg-import
 msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ```
 
-### How can i set the namespace?
+### Change namespace
 
 There's a field `Namespace` in the `Node` configuration:
 
@@ -168,7 +171,7 @@ goroslib.NewNode(goroslib.NodeConf{
 
 The default namespace is `/` (global namespace).
 
-### How can i compile a node for another operating system?
+### Compile a node for another operating system
 
 To compile a node for another OS, it's enough to follow the standard Golang procedure to cross-compile, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
 
@@ -176,7 +179,7 @@ To compile a node for another OS, it's enough to follow the standard Golang proc
 GOOS=windows GOARCH=amd64 go build -o node.exe name-of-source-file.go
 ```
 
-### How can i edit the library?
+### Edit the library
 
 If you want to hack the library and test the results, unit tests can be launched with:
 
