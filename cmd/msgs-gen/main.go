@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -95,7 +96,7 @@ func processDir(name string, dir string) error {
 	return nil
 }
 
-func processRepo(name string, repo string, subdir string) error {
+func processRepo(repo string) error {
 	dir, err := ioutil.TempDir("", "goroslib")
 	if err != nil {
 		return err
@@ -110,27 +111,12 @@ func processRepo(name string, repo string, subdir string) error {
 		return err
 	}
 
-	return processDir(name, filepath.Join(dir, subdir))
-}
-
-func processCommonMsgs() error {
-	dir, err := ioutil.TempDir("", "goroslib")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-
-	_, err = git.PlainClone(dir, false, &git.CloneOptions{
-		URL:   "https://github.com/ros/common_msgs",
-		Depth: 1,
-	})
-	if err != nil {
-		return err
-	}
+	u, _ := url.Parse(repo)
 
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() && info.Name() == "msg" {
-			return processDir(filepath.Base(filepath.Dir(path)), path)
+			origpath := filepath.Join(u.Path, path[len(dir):])
+			return processDir(filepath.Base(filepath.Dir(origpath)), path)
 		}
 		return nil
 	})
@@ -147,17 +133,17 @@ func run() error {
 		return err
 	}
 
-	err = processRepo("std_msgs", "https://github.com/ros/std_msgs", "msg")
+	err = processRepo("https://github.com/ros/std_msgs")
 	if err != nil {
 		return err
 	}
 
-	err = processRepo("rosgraph_msgs", "https://github.com/ros/ros_comm_msgs", "rosgraph_msgs/msg")
+	err = processRepo("https://github.com/ros/ros_comm_msgs")
 	if err != nil {
 		return err
 	}
 
-	err = processCommonMsgs()
+	err = processRepo("https://github.com/ros/common_msgs")
 	if err != nil {
 		return err
 	}
