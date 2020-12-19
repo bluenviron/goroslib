@@ -3,10 +3,10 @@
 
 #include <std_msgs/String.h>
 
-#include <nodeservice_srv/Mysrv.h>
+#include <shared_services/Mysrv.h>
 
-bool test_srv(nodeservice_srv::Mysrv::Request &req,
-    nodeservice_srv::Mysrv::Response &res) {
+bool test_srv(shared_services::Mysrv::Request &req,
+    shared_services::Mysrv::Response &res) {
     res.c = 123;
     return true;
 }

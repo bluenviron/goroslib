@@ -11,7 +11,7 @@ COPY CMakeLists.txt main.cpp package.xml ./
 
 WORKDIR /catkin_ws/src
 
-COPY nodeservice_srv ./nodeservice_srv
+COPY shared_services ./shared_services
 
 WORKDIR /catkin_ws
 

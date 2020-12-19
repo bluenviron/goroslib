@@ -9,7 +9,7 @@ find_package(
     REQUIRED COMPONENTS
     roscpp
     std_msgs
-    nodeservice_srv
+    shared_services
 )
 
 catkin_package()
