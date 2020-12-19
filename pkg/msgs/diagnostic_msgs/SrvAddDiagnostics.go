@@ -1,17 +1,16 @@
-//nolint:golint
-package diagnostic_msgs
+package diagnostic_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type AddDiagnosticsReq struct {
+type AddDiagnosticsReq struct { //nolint:golint
 	msg.Package   `ros:"diagnostic_msgs"`
-	LoadNamespace string
+	LoadNamespace string //nolint:golint
 }
 
-type AddDiagnosticsRes struct {
+type AddDiagnosticsRes struct { //nolint:golint
 	msg.Package `ros:"diagnostic_msgs"`
-	Success     bool
-	Message     string
+	Success     bool   //nolint:golint
+	Message     string //nolint:golint
 }

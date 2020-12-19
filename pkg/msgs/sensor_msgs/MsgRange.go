@@ -1,5 +1,4 @@
-//nolint:golint
-package sensor_msgs
+package sensor_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -7,17 +6,17 @@ import (
 )
 
 const (
-	Range_ULTRASOUND uint8 = 0
-	Range_INFRARED   uint8 = 1
+	Range_ULTRASOUND uint8 = 0 //nolint:golint
+	Range_INFRARED   uint8 = 1 //nolint:golint
 )
 
-type Range struct {
+type Range struct { //nolint:golint
 	msg.Package     `ros:"sensor_msgs"`
 	msg.Definitions `ros:"uint8 ULTRASOUND=0,uint8 INFRARED=1"`
-	Header          std_msgs.Header
-	RadiationType   uint8
-	FieldOfView     float32
-	MinRange        float32
-	MaxRange        float32
-	Range           float32
+	Header          std_msgs.Header //nolint:golint
+	RadiationType   uint8           //nolint:golint
+	FieldOfView     float32         //nolint:golint
+	MinRange        float32         //nolint:golint
+	MaxRange        float32         //nolint:golint
+	Range           float32         //nolint:golint
 }

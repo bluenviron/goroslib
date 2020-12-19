@@ -1,12 +1,11 @@
-//nolint:golint
-package std_msgs
+package std_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type Float64MultiArray struct {
+type Float64MultiArray struct { //nolint:golint
 	msg.Package `ros:"std_msgs"`
-	Layout      MultiArrayLayout
-	Data        []float64
+	Layout      MultiArrayLayout //nolint:golint
+	Data        []float64        //nolint:golint
 }

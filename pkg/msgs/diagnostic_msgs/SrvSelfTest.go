@@ -1,17 +1,16 @@
-//nolint:golint
-package diagnostic_msgs
+package diagnostic_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type SelfTestReq struct {
+type SelfTestReq struct { //nolint:golint
 	msg.Package `ros:"diagnostic_msgs"`
 }
 
-type SelfTestRes struct {
+type SelfTestRes struct { //nolint:golint
 	msg.Package `ros:"diagnostic_msgs"`
-	Id          string
-	Passed      int8 `rostype:"byte"`
-	Status      []DiagnosticStatus
+	Id          string             //nolint:golint
+	Passed      int8               `rostype:"byte"` //nolint:golint
+	Status      []DiagnosticStatus //nolint:golint
 }

@@ -1,11 +1,10 @@
-//nolint:golint
-package std_msgs
+package std_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type Bool struct {
+type Bool struct { //nolint:golint
 	msg.Package `ros:"std_msgs"`
-	Data        bool
+	Data        bool //nolint:golint
 }

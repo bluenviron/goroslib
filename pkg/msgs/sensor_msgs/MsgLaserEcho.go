@@ -1,11 +1,10 @@
-//nolint:golint
-package sensor_msgs
+package sensor_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type LaserEcho struct {
+type LaserEcho struct { //nolint:golint
 	msg.Package `ros:"sensor_msgs"`
-	Echoes      []float32
+	Echoes      []float32 //nolint:golint
 }

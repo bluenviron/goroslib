@@ -1,21 +1,20 @@
-//nolint:golint
-package sensor_msgs
+package sensor_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type LaserScan struct {
+type LaserScan struct { //nolint:golint
 	msg.Package    `ros:"sensor_msgs"`
-	Header         std_msgs.Header
-	AngleMin       float32
-	AngleMax       float32
-	AngleIncrement float32
-	TimeIncrement  float32
-	ScanTime       float32
-	RangeMin       float32
-	RangeMax       float32
-	Ranges         []float32
-	Intensities    []float32
+	Header         std_msgs.Header //nolint:golint
+	AngleMin       float32         //nolint:golint
+	AngleMax       float32         //nolint:golint
+	AngleIncrement float32         //nolint:golint
+	TimeIncrement  float32         //nolint:golint
+	ScanTime       float32         //nolint:golint
+	RangeMin       float32         //nolint:golint
+	RangeMax       float32         //nolint:golint
+	Ranges         []float32       //nolint:golint
+	Intensities    []float32       //nolint:golint
 }

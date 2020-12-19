@@ -1,17 +1,16 @@
-//nolint:golint
-package std_srvs
+package std_srvs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type SetBoolReq struct {
+type SetBoolReq struct { //nolint:golint
 	msg.Package `ros:"std_srvs"`
-	Data        bool
+	Data        bool //nolint:golint
 }
 
-type SetBoolRes struct {
+type SetBoolRes struct { //nolint:golint
 	msg.Package `ros:"std_srvs"`
-	Success     bool
-	Message     string
+	Success     bool   //nolint:golint
+	Message     string //nolint:golint
 }

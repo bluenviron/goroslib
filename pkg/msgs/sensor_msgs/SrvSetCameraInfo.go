@@ -1,17 +1,16 @@
-//nolint:golint
-package sensor_msgs
+package sensor_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type SetCameraInfoReq struct {
+type SetCameraInfoReq struct { //nolint:golint
 	msg.Package `ros:"sensor_msgs"`
-	CameraInfo  CameraInfo
+	CameraInfo  CameraInfo //nolint:golint
 }
 
-type SetCameraInfoRes struct {
+type SetCameraInfoRes struct { //nolint:golint
 	msg.Package   `ros:"sensor_msgs"`
-	Success       bool
-	StatusMessage string
+	Success       bool   //nolint:golint
+	StatusMessage string //nolint:golint
 }

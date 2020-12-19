@@ -1,13 +1,12 @@
-//nolint:golint
-package std_msgs
+package std_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type MultiArrayDimension struct {
+type MultiArrayDimension struct { //nolint:golint
 	msg.Package `ros:"std_msgs"`
-	Label       string
-	Size        uint32
-	Stride      uint32
+	Label       string //nolint:golint
+	Size        uint32 //nolint:golint
+	Stride      uint32 //nolint:golint
 }

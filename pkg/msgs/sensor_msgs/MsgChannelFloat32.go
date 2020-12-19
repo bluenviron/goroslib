@@ -1,12 +1,11 @@
-//nolint:golint
-package sensor_msgs
+package sensor_msgs //nolint:golint
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type ChannelFloat32 struct {
+type ChannelFloat32 struct { //nolint:golint
 	msg.Package `ros:"sensor_msgs"`
-	Name        string
-	Values      []float32
+	Name        string    //nolint:golint
+	Values      []float32 //nolint:golint
 }

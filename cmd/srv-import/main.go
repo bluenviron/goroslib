@@ -16,8 +16,7 @@ import (
 )
 
 var tpl = template.Must(template.New("").Parse(
-	`//nolint:golint
-package {{ .GoPkgName }}
+	`package {{ .GoPkgName }} //nolint:golint
 
 import (
 {{- range $k, $v := .Imports }}
