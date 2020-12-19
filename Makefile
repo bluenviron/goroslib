@@ -46,12 +46,18 @@ test:
 	temp \
 	make test-nodocker
 
-test-nodocker:
+test-examples:
+	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
+
+test-pkg:
+	go test -race -v ./pkg/...
+
+test-root:
 	$(foreach IMG,$(shell echo testimages/*/ | xargs -n1 basename), \
 	docker build -q testimages/$(IMG) -t goroslib-test-$(IMG)$(NL))
-	go test -race -v ./...
-	go build -o /dev/null ./cmd/...
-	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
+	go test -race -v .
+
+test-nodocker: test-examples test-pkg test-root
 
 lint:
 	docker run --rm -v $(PWD):/app -w /app \
