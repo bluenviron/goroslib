@@ -23,7 +23,7 @@ func onMessage(msg *TestMessage) {
 }
 
 func main() {
-	// create a node and connects to the master
+	// create a node and connect to the master
 	n, err := goroslib.NewNode(goroslib.NodeConf{
 		Name:          "goroslib_sub",
 		MasterAddress: "127.0.0.1:11311",

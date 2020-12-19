@@ -6,8 +6,21 @@ import (
 	"fmt"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/pkg/msgs/std_srvs"
 )
+
+// define a custom service.
+// unlike the standard library, a .srv file is not needed.
+// two structure definitions are enough, one for the request
+// and the other for the response.
+
+type TestServiceReq struct {
+	A float64
+	B string
+}
+
+type TestServiceRes struct {
+	C float64
+}
 
 func main() {
 	// create a node and connect to the master
@@ -24,8 +37,8 @@ func main() {
 	sc, err := goroslib.NewServiceClient(goroslib.ServiceClientConf{
 		Node:    n,
 		Service: "test_srv",
-		Req:     &std_srvs.SetBoolReq{},
-		Res:     &std_srvs.SetBoolRes{},
+		Req:     &TestServiceReq{},
+		Res:     &TestServiceRes{},
 	})
 	if err != nil {
 		panic(err)
@@ -33,10 +46,11 @@ func main() {
 	defer sc.Close()
 
 	// send a request and wait for a response
-	req := std_srvs.SetBoolReq{
-		Data: true,
+	req := TestServiceReq{
+		A: 123,
+		B: "456",
 	}
-	res := std_srvs.SetBoolRes{}
+	res := TestServiceRes{}
 	err = sc.Call(&req, &res)
 	if err != nil {
 		panic(err)

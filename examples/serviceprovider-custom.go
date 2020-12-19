@@ -6,14 +6,29 @@ import (
 	"fmt"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/pkg/msgs/std_srvs"
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
-func onService(req *std_srvs.SetBoolReq) *std_srvs.SetBoolRes {
+// define a custom service.
+// unlike the standard library, a .srv file is not needed.
+// two structure definitions are enough, one for the request
+// and the other for the response.
+
+type TestServiceReq struct {
+	msg.Package `ros:"my_package"`
+	A           float64
+	B           string
+}
+
+type TestServiceRes struct {
+	msg.Package `ros:"my_package"`
+	C           float64
+}
+
+func onService(req *TestServiceReq) *TestServiceRes {
 	fmt.Println("request:", req)
-	return &std_srvs.SetBoolRes{
-		Success: true,
-		Message: "test message",
+	return &TestServiceRes{
+		C: 123,
 	}
 }
 

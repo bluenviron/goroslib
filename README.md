@@ -55,7 +55,9 @@ Features:
    * [publisher](examples/publisher.go)
    * [publisher-custom](examples/publisher-custom.go)
    * [serviceclient](examples/serviceclient.go)
+   * [serviceclient-custom](examples/serviceclient-custom.go)
    * [serviceprovider](examples/serviceprovider.go)
+   * [serviceprovider-custom](examples/serviceprovider-custom.go)
    * [param-set-get](examples/param-set-get.go)
    * [cluster-info](examples/cluster-info.go)
 
