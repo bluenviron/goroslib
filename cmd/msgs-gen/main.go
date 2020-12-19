@@ -80,24 +80,26 @@ func processDir(name string, dir string) error {
 		}
 
 		if strings.HasSuffix(info.Name(), ".msg") {
+			outpath := filepath.Join("pkg", "msgs", name, "Msg"+strings.TrimSuffix(info.Name(), ".msg")+".go")
 			err = shellCommand(fmt.Sprintf("go run ./cmd/msg-import --gopackage=%s --rospackage=%s %s > %s",
 				name,
 				name,
 				path,
-				filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".msg")+".go")))
+				outpath))
 			if err != nil {
-				os.Remove(filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".msg")+".go"))
+				os.Remove(outpath)
 				return err
 			}
 
 		} else if strings.HasSuffix(info.Name(), ".srv") {
+			outpath := filepath.Join("pkg", "msgs", name, "Srv"+strings.TrimSuffix(info.Name(), ".srv")+".go")
 			err = shellCommand(fmt.Sprintf("go run ./cmd/srv-import --gopackage=%s --rospackage=%s %s > %s",
 				name,
 				name,
 				path,
-				filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".srv")+".go")))
+				outpath))
 			if err != nil {
-				os.Remove(filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".srv")+".go"))
+				os.Remove(outpath)
 				return err
 			}
 		}
@@ -133,7 +135,8 @@ func processRepo(repo string) error {
 			return err
 		}
 
-		if info.IsDir() && (info.Name() == "msg" || info.Name() == "srv") {
+		if info.IsDir() &&
+			(info.Name() == "msg" || info.Name() == "srv") {
 			paths[filepath.Dir(path)] = struct{}{}
 			return nil
 		}

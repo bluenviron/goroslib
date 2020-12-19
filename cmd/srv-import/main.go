@@ -44,11 +44,11 @@ func download(addr string) ([]byte, error) {
 }
 
 func run() error {
-	kingpin.CommandLine.Help = "Convert ROS messages into Go structs."
+	kingpin.CommandLine.Help = "Convert ROS services into Go structs."
 
 	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
 	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
-	argURL := kingpin.Arg("url", "path or url pointing to a ROS message").Required().String()
+	argURL := kingpin.Arg("url", "path or url pointing to a ROS service").Required().String()
 
 	kingpin.Parse()
 
@@ -87,33 +87,33 @@ func run() error {
 
 	parts := strings.Split(content, "---")
 	if len(parts) != 2 {
-		return fmt.Errorf("definition doesn't contain a request and a response")
+		return fmt.Errorf("definition must contain a request and a response")
 	}
 
-	res1, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Req", parts[0])
+	reqDef, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Req", parts[0])
 	if err != nil {
 		return err
 	}
 
-	res2, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Res", parts[1])
+	resDef, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Res", parts[1])
 	if err != nil {
 		return err
 	}
 
 	imports := make(map[string]struct{})
-	for i := range res1.Imports {
+	for i := range reqDef.Imports {
 		imports[i] = struct{}{}
 	}
-	for i := range res2.Imports {
+	for i := range resDef.Imports {
 		imports[i] = struct{}{}
 	}
 
-	request, err := res1.Write()
+	request, err := reqDef.Write()
 	if err != nil {
 		return err
 	}
 
-	response, err := res2.Write()
+	response, err := resDef.Write()
 	if err != nil {
 		return err
 	}

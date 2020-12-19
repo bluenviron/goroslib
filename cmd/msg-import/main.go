@@ -84,12 +84,12 @@ func run() error {
 		return strings.TrimSuffix(filepath.Base(u), ".msg")
 	}()
 
-	res, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name, content)
+	msgDef, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name, content)
 	if err != nil {
 		return err
 	}
 
-	message, err := res.Write()
+	message, err := msgDef.Write()
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func run() error {
 	return tpl.Execute(os.Stdout, map[string]interface{}{
 		"GoPkgName":  goPkgName,
 		"RosPkgName": rosPkgName,
-		"Imports":    res.Imports,
+		"Imports":    msgDef.Imports,
 		"Message":    message,
 	})
 }
