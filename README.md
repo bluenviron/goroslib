@@ -27,7 +27,7 @@ Features:
 * [API Documentation](#api-documentation)
 * [FAQs](#faqs)
   * [Comparison with other libraries](#comparison-with-other-libraries)
-  * [Implementation status](#implementation-status)
+  * [Full list of features](#full-list-of-features)
   * [Use standard messages and services](#use-standard-messages-and-services)
   * [Define custom messages](#define-custom-messages)
   * [Import existing messages and services](#import-existing-messages-and-services)
@@ -83,15 +83,9 @@ The official project provides libraries to write nodes in C++ and Python, but th
 
 rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` files and doesn't support UDP.
 
-### Implementation status
+### Full list of features
 
-All the ROS protocols (xml-rpc, TCPROS, UDPROS) and APIs (Master API, Parameter Server API, Slave API) are implemented.
-
-All the official [client libraries requirements](https://wiki.ros.org/Implementing%20Client%20Libraries) are satisfied, except for the following ones:
-
-* parse command-line Remapping Arguments
-* Subscribe to a simulated Clock
-* publish debugging messages to rosout
+Current and missing features are described in the [FEATURES document](FEATURES.md).
 
 ### Use standard messages and services
 
