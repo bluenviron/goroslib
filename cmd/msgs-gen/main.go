@@ -74,23 +74,38 @@ func processDir(name string, dir string) error {
 		return err
 	}
 
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return err
-	}
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	for _, f := range files {
-		if strings.HasSuffix(f.Name(), ".msg") {
+		if strings.HasSuffix(info.Name(), ".msg") {
 			err = shellCommand(fmt.Sprintf("go run ./cmd/msg-import --gopackage=%s --rospackage=%s %s > %s",
 				name,
 				name,
-				filepath.Join(dir, f.Name()),
-				filepath.Join("pkg", "msgs", name, strings.TrimSuffix(f.Name(), ".msg")+".go")))
+				path,
+				filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".msg")+".go")))
 			if err != nil {
-				os.Remove(filepath.Join("pkg", "msgs", name, strings.TrimSuffix(f.Name(), ".msg")+".go"))
-				continue
+				os.Remove(filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".msg")+".go"))
+				return err
+			}
+
+		} else if strings.HasSuffix(info.Name(), ".srv") {
+			err = shellCommand(fmt.Sprintf("go run ./cmd/srv-import --gopackage=%s --rospackage=%s %s > %s",
+				name,
+				name,
+				path,
+				filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".srv")+".go")))
+			if err != nil {
+				os.Remove(filepath.Join("pkg", "msgs", name, strings.TrimSuffix(info.Name(), ".srv")+".go"))
+				return err
 			}
 		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -111,17 +126,31 @@ func processRepo(repo string) error {
 		return err
 	}
 
-	u, _ := url.Parse(repo)
-
+	// find folders which contain a "msg" or "srv" subfolder
+	paths := make(map[string]struct{})
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() && info.Name() == "msg" {
-			origpath := filepath.Join(u.Path, path[len(dir):])
-			return processDir(filepath.Base(filepath.Dir(origpath)), path)
+		if err != nil {
+			return err
 		}
+
+		if info.IsDir() && (info.Name() == "msg" || info.Name() == "srv") {
+			paths[filepath.Dir(path)] = struct{}{}
+			return nil
+		}
+
 		return nil
 	})
 	if err != nil {
 		return err
+	}
+
+	u, _ := url.Parse(repo)
+
+	for path := range paths {
+		err := processDir(filepath.Base(filepath.Join(u.Path, path[len(dir):])), path)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -24,7 +24,8 @@ import (
     "{{ $k }}"
 {{- end }}
 )
-{{ .Message }}
+{{ .Request }}
+{{ .Response }}
 `))
 
 func download(addr string) ([]byte, error) {
@@ -79,17 +80,40 @@ func run() error {
 	name := func() string {
 		if isRemote {
 			ur, _ := url.Parse(u)
-			return strings.TrimSuffix(filepath.Base(ur.Path), ".msg")
+			return strings.TrimSuffix(filepath.Base(ur.Path), ".srv")
 		}
-		return strings.TrimSuffix(filepath.Base(u), ".msg")
+		return strings.TrimSuffix(filepath.Base(u), ".srv")
 	}()
 
-	res, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name, content)
+	parts := strings.Split(content, "---")
+	if len(parts) != 2 {
+		return fmt.Errorf("definition doesn't contain a request and a response")
+	}
+
+	res1, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Req", parts[0])
 	if err != nil {
 		return err
 	}
 
-	message, err := res.Write()
+	res2, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Res", parts[1])
+	if err != nil {
+		return err
+	}
+
+	imports := make(map[string]struct{})
+	for i := range res1.Imports {
+		imports[i] = struct{}{}
+	}
+	for i := range res2.Imports {
+		imports[i] = struct{}{}
+	}
+
+	request, err := res1.Write()
+	if err != nil {
+		return err
+	}
+
+	response, err := res2.Write()
 	if err != nil {
 		return err
 	}
@@ -97,8 +121,9 @@ func run() error {
 	return tpl.Execute(os.Stdout, map[string]interface{}{
 		"GoPkgName":  goPkgName,
 		"RosPkgName": rosPkgName,
-		"Imports":    res.Imports,
-		"Message":    message,
+		"Imports":    imports,
+		"Request":    request,
+		"Response":   response,
 	})
 }
 
