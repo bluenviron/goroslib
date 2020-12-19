@@ -69,7 +69,7 @@ Features:
 
 ## API Documentation
 
-https://pkg.go.dev/github.com/aler9/goroslib
+https://pkg.go.dev/github.com/aler9/goroslib#pkg-index
 
 ## FAQs
 
