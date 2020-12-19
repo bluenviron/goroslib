@@ -93,7 +93,7 @@ All the official [client libraries requirements](https://wiki.ros.org/Implementi
 
 ### Use standard messages and services
 
-Standard messages and services are available in folder `pkg/msgs` and [listed in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
+Standard messages and services are available in folder `pkg/msgs` and [described in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
 
 ### Define custom messages
 
