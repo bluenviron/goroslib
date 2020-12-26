@@ -156,8 +156,9 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	defer sub.Close()
 
 	sp, err := NewServiceProvider(ServiceProviderConf{
-		Node:    n,
-		Service: "test_srv",
+		Node: n,
+		Name: "test_srv",
+		Srv:  &TestService{},
 		Callback: func(req *TestServiceReq) *TestServiceRes {
 			return &TestServiceRes{}
 		},

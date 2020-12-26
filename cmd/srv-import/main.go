@@ -25,6 +25,13 @@ import (
 )
 {{ .Request }}
 {{ .Response }}
+type {{ .Name }} struct { //nolint:golint
+{{- if .RosPkgName }}
+    msg.Package ` + "`" + `ros:"{{ .RosPkgName }}"` + "`" + `
+{{- end }}
+    {{ .Name }}Req
+    {{ .Name }}Res
+}
 `))
 
 func download(addr string) ([]byte, error) {
@@ -89,12 +96,12 @@ func run() error {
 		return fmt.Errorf("definition must contain a request and a response")
 	}
 
-	reqDef, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Req", parts[0])
+	reqDef, err := msgconv.ParseMessageDefinition(goPkgName, "", name+"Req", parts[0])
 	if err != nil {
 		return err
 	}
 
-	resDef, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, name+"Res", parts[1])
+	resDef, err := msgconv.ParseMessageDefinition(goPkgName, "", name+"Res", parts[1])
 	if err != nil {
 		return err
 	}
@@ -123,6 +130,7 @@ func run() error {
 		"Imports":    imports,
 		"Request":    request,
 		"Response":   response,
+		"Name":       name,
 	})
 }
 

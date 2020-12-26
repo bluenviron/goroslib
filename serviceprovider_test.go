@@ -21,8 +21,9 @@ func TestServiceProviderRegister(t *testing.T) {
 	defer n.Close()
 
 	sp, err := NewServiceProvider(ServiceProviderConf{
-		Node:    n,
-		Service: "test_srv",
+		Node: n,
+		Name: "test_srv",
+		Srv:  &TestService{},
 		Callback: func(req *TestServiceReq) *TestServiceRes {
 			c := float64(0)
 			if req.A == 123 && req.B == "456" {
@@ -78,8 +79,9 @@ func TestServiceProviderResponse(t *testing.T) {
 			defer nsp.Close()
 
 			sp, err := NewServiceProvider(ServiceProviderConf{
-				Node:    nsp,
-				Service: "test_srv",
+				Node: nsp,
+				Name: "test_srv",
+				Srv:  &TestService{},
 				Callback: func(req *TestServiceReq) *TestServiceRes {
 					c := float64(0)
 					if req.A == 123 && req.B == "456" {
@@ -107,10 +109,9 @@ func TestServiceProviderResponse(t *testing.T) {
 				defer nsc.Close()
 
 				sc, err := NewServiceClient(ServiceClientConf{
-					Node:    nsc,
-					Service: "test_srv",
-					Req:     &TestServiceReq{},
-					Res:     &TestServiceRes{},
+					Node: nsc,
+					Name: "test_srv",
+					Srv:  &TestService{},
 				})
 				require.NoError(t, err)
 				defer sc.Close()

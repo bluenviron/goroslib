@@ -85,7 +85,7 @@ rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` 
 
 ### Full list of features
 
-Current and missing features are described in the [FEATURES document](FEATURES.md).
+Current and missing features are [described in the FEATURES document](FEATURES.md).
 
 ### Use standard messages and services
 

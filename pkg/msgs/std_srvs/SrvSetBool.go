@@ -5,12 +5,16 @@ import (
 )
 
 type SetBoolReq struct { //nolint:golint
-	msg.Package `ros:"std_srvs"`
-	Data        bool //nolint:golint
+	Data bool //nolint:golint
 }
 
 type SetBoolRes struct { //nolint:golint
+	Success bool   //nolint:golint
+	Message string //nolint:golint
+}
+
+type SetBool struct { //nolint:golint
 	msg.Package `ros:"std_srvs"`
-	Success     bool   //nolint:golint
-	Message     string //nolint:golint
+	SetBoolReq
+	SetBoolRes
 }

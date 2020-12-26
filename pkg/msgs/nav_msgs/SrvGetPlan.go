@@ -6,13 +6,17 @@ import (
 )
 
 type GetPlanReq struct { //nolint:golint
-	msg.Package `ros:"nav_msgs"`
-	Start       geometry_msgs.PoseStamped //nolint:golint
-	Goal        geometry_msgs.PoseStamped //nolint:golint
-	Tolerance   float32                   //nolint:golint
+	Start     geometry_msgs.PoseStamped //nolint:golint
+	Goal      geometry_msgs.PoseStamped //nolint:golint
+	Tolerance float32                   //nolint:golint
 }
 
 type GetPlanRes struct { //nolint:golint
+	Plan Path //nolint:golint
+}
+
+type GetPlan struct { //nolint:golint
 	msg.Package `ros:"nav_msgs"`
-	Plan        Path //nolint:golint
+	GetPlanReq
+	GetPlanRes
 }

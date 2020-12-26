@@ -19,8 +19,14 @@ type ServiceProviderConf struct {
 	// node which the service provider belongs to
 	Node *Node
 
-	// name of the service from which providers will be obtained
-	Service string
+	// name of the service
+	Name string
+
+	// an instance of the service type, which is a struct containing
+	// - goroslib.Package
+	// - a request
+	// - a response
+	Srv interface{}
 
 	// function in the form func(*NameOfRequest) *NameOfReply{}  that will be called
 	// whenever a request arrives
@@ -31,11 +37,9 @@ type ServiceProviderConf struct {
 // and send back responses.
 type ServiceProvider struct {
 	conf      ServiceProviderConf
-	reqMsg    reflect.Type
-	resMsg    reflect.Type
-	reqType   string
-	resType   string
-	srvMd5    string
+	srvType   string
+	srvMD5    string
+	srvReq    interface{}
 	clients   map[string]*serviceProviderClient
 	clientsWg sync.WaitGroup
 
@@ -57,6 +61,25 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
+	if conf.Srv == nil {
+		return nil, fmt.Errorf("Srv is empty")
+	}
+
+	srvType, err := msg.ServiceType(conf.Srv)
+	if err != nil {
+		return nil, err
+	}
+
+	srvMD5, err := msg.ServiceMD5(conf.Srv)
+	if err != nil {
+		return nil, err
+	}
+
+	srvReq, srvRes, err := msg.ServiceRequestResponse(conf.Srv)
+	if err != nil {
+		return nil, err
+	}
+
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")
@@ -68,46 +91,27 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Callback must return a single argument")
 	}
 
-	reqMsg := cbt.In(0)
-	if reqMsg.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Request must be a pointer")
+	cbIn := cbt.In(0)
+	if cbIn.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("argument must be a pointer")
 	}
-	if reqMsg.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Request must be a pointer to a struct")
-	}
-
-	resMsg := cbt.Out(0)
-	if resMsg.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Response must be a pointer")
-	}
-	if resMsg.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Response must be a pointer to a struct")
+	if cbIn.Elem() != reflect.TypeOf(srvReq) {
+		return nil, fmt.Errorf("invalid callback argument")
 	}
 
-	reqType, err := msg.Type(reflect.New(reqMsg.Elem()).Interface())
-	if err != nil {
-		return nil, err
+	cbOut := cbt.Out(0)
+	if cbOut.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("return value must be a pointer")
 	}
-
-	resType, err := msg.Type(reflect.New(resMsg.Elem()).Interface())
-	if err != nil {
-		return nil, err
-	}
-
-	srvMd5, err := msg.Md5Service(
-		reflect.New(reqMsg.Elem()).Interface(),
-		reflect.New(resMsg.Elem()).Interface())
-	if err != nil {
-		return nil, err
+	if cbOut.Elem() != reflect.TypeOf(srvRes) {
+		return nil, fmt.Errorf("invalid callback return value")
 	}
 
 	sp := &ServiceProvider{
 		conf:          conf,
-		reqMsg:        reqMsg.Elem(),
-		resMsg:        resMsg.Elem(),
-		reqType:       reqType,
-		resType:       resType,
-		srvMd5:        srvMd5,
+		srvType:       srvType,
+		srvMD5:        srvMD5,
+		srvReq:        srvReq,
 		clients:       make(map[string]*serviceProviderClient),
 		clientNew:     make(chan tcpConnServiceClientReq),
 		clientClose:   make(chan *serviceProviderClient),
@@ -156,16 +160,16 @@ outer:
 				continue
 			}
 
-			if req.header.Md5sum != sp.srvMd5 {
+			if req.header.Md5sum != sp.srvMD5 {
 				req.conn.Close()
 				continue
 			}
 
 			err := req.conn.WriteHeader(&prototcp.HeaderServiceProvider{
 				Callerid:     sp.conf.Node.absoluteName(),
-				Md5sum:       sp.srvMd5,
-				RequestType:  sp.reqType,
-				ResponseType: sp.resType,
+				Md5sum:       sp.srvMD5,
+				RequestType:  "goroslib/Service" + "Request",
+				ResponseType: "goroslib/Service" + "Response",
 				Type:         "goroslib/Service",
 			})
 			if err != nil {
@@ -213,7 +217,7 @@ outer:
 	}()
 
 	sp.conf.Node.apiMasterClient.UnregisterService(
-		sp.conf.Node.absoluteTopicName(sp.conf.Service),
+		sp.conf.Node.absoluteTopicName(sp.conf.Name),
 		sp.conf.Node.tcprosServerURL)
 
 	for _, spc := range sp.clients {

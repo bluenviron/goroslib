@@ -31,7 +31,7 @@ type Log struct {
 	Topics      []string
 }
 
-var casesMd5Message = []struct {
+var casesMessageMD5 = []struct {
 	name string
 	msg  interface{}
 	sum  string
@@ -135,41 +135,48 @@ var casesMd5Message = []struct {
 	},
 }
 
-func TestMd5Message(t *testing.T) {
-	for _, c := range casesMd5Message {
+func TestMessageMD5(t *testing.T) {
+	for _, c := range casesMessageMD5 {
 		t.Run(c.name, func(t *testing.T) {
-			md5, err := Md5Message(c.msg)
+			md5, err := MessageMD5(c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.sum, md5)
 		})
 	}
 }
 
-var casesMd5Service = []struct {
+type MsgExplicitPackage struct {
+	Package `ros:"my_package"`
+	Value   uint16
+}
+
+type MsgImplicitPackage struct {
+	Value uint16
+}
+
+var casesMessageType = []struct {
 	name string
-	req  interface{}
-	res  interface{}
-	sum  string
+	msg  interface{}
+	typ  string
 }{
 	{
-		"base types",
-		&struct {
-			A float64
-			B string
-		}{},
-		&struct {
-			C float64
-		}{},
-		"4fa8f09823d7ad898c6295d42385de20",
+		"explicit package",
+		&MsgExplicitPackage{},
+		"my_package/MsgExplicitPackage",
+	},
+	{
+		"implicit package",
+		&MsgImplicitPackage{},
+		"goroslib/MsgImplicitPackage",
 	},
 }
 
-func TestMd5Service(t *testing.T) {
-	for _, c := range casesMd5Service {
+func TestMessageType(t *testing.T) {
+	for _, c := range casesMessageType {
 		t.Run(c.name, func(t *testing.T) {
-			md5, err := Md5Service(c.req, c.res)
+			typ, err := MessageType(c.msg)
 			require.NoError(t, err)
-			require.Equal(t, c.sum, md5)
+			require.Equal(t, c.typ, typ)
 		})
 	}
 }

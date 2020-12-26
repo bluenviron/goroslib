@@ -218,8 +218,9 @@ func TestNodeKillNode(t *testing.T) {
 				defer pub.Close()
 
 				sp, err := NewServiceProvider(ServiceProviderConf{
-					Node:    n1,
-					Service: "test_srv",
+					Node: n1,
+					Name: "test_srv",
+					Srv:  &TestService{},
 					Callback: func(req *TestServiceReq) *TestServiceRes {
 						return &TestServiceRes{}
 					},

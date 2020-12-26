@@ -5,11 +5,15 @@ import (
 )
 
 type TriggerReq struct { //nolint:golint
-	msg.Package `ros:"std_srvs"`
 }
 
 type TriggerRes struct { //nolint:golint
+	Success bool   //nolint:golint
+	Message string //nolint:golint
+}
+
+type Trigger struct { //nolint:golint
 	msg.Package `ros:"std_srvs"`
-	Success     bool   //nolint:golint
-	Message     string //nolint:golint
+	TriggerReq
+	TriggerRes
 }

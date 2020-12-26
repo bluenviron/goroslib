@@ -31,7 +31,8 @@ func main() {
 	// create a service provider
 	sp, err := goroslib.NewServiceProvider(goroslib.ServiceProviderConf{
 		Node:     n,
-		Service:  "test_srv",
+		Name:     "test_srv",
+		Srv:      &std_srvs.SetBool{},
 		Callback: onService,
 	})
 	if err != nil {

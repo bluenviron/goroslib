@@ -10,8 +10,6 @@ import (
 
 // define a custom service.
 // unlike the standard library, a .srv file is not needed.
-// two structure definitions are enough, one for the request
-// and the other for the response.
 
 type TestServiceReq struct {
 	A float64
@@ -20,6 +18,11 @@ type TestServiceReq struct {
 
 type TestServiceRes struct {
 	C float64
+}
+
+type TestService struct {
+	TestServiceReq
+	TestServiceRes
 }
 
 func main() {
@@ -35,10 +38,9 @@ func main() {
 
 	// create a service client
 	sc, err := goroslib.NewServiceClient(goroslib.ServiceClientConf{
-		Node:    n,
-		Service: "test_srv",
-		Req:     &TestServiceReq{},
-		Res:     &TestServiceRes{},
+		Node: n,
+		Name: "test_srv",
+		Srv:  &TestService{},
 	})
 	if err != nil {
 		panic(err)

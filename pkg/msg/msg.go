@@ -157,8 +157,8 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
 }
 
-// Md5Message computes the checksum of a message.
-func Md5Message(msg interface{}) (string, error) {
+// MessageMD5 computes the checksum of a message.
+func MessageMD5(msg interface{}) (string, error) {
 	rt := reflect.TypeOf(msg)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
@@ -175,33 +175,40 @@ func Md5Message(msg interface{}) (string, error) {
 	return md5Sum(text), nil
 }
 
-// Md5Service computes the checksum of a service.
-func Md5Service(req interface{}, res interface{}) (string, error) {
-	reqt := reflect.TypeOf(req)
-	if reqt.Kind() == reflect.Ptr {
-		reqt = reqt.Elem()
+// MessageType returns the type of a message.
+func MessageType(msg interface{}) (string, error) {
+	rt := reflect.TypeOf(msg)
+	if rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
 	}
-	if reqt.Kind() != reflect.Struct {
-		return "", fmt.Errorf("unsupported message type '%s'", reqt.String())
-	}
-
-	text1, _, err := md5Text(reqt, "")
-	if err != nil {
-		return "", err
+	if rt.Kind() != reflect.Struct {
+		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
 	}
 
-	rest := reflect.TypeOf(res)
-	if rest.Kind() == reflect.Ptr {
-		rest = rest.Elem()
-	}
-	if rest.Kind() != reflect.Struct {
-		return "", fmt.Errorf("unsupported message type '%s'", rest.String())
+	name := rt.Name()
+	if name == "" {
+		name = "Msg"
 	}
 
-	text2, _, err := md5Text(rest, "")
-	if err != nil {
-		return "", err
+	pkg := func() string {
+		ft, ok := rt.FieldByName("Package")
+		if !ok {
+			return ""
+		}
+
+		if !ft.Anonymous {
+			return ""
+		}
+
+		if ft.Type != reflect.TypeOf(Package(0)) {
+			return ""
+		}
+
+		return ft.Tag.Get("ros")
+	}()
+	if pkg == "" {
+		pkg = "goroslib"
 	}
 
-	return md5Sum(text1 + text2), nil
+	return pkg + "/" + name, nil
 }

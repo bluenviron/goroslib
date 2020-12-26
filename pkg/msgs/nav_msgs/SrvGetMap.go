@@ -5,10 +5,14 @@ import (
 )
 
 type GetMapReq struct { //nolint:golint
-	msg.Package `ros:"nav_msgs"`
 }
 
 type GetMapRes struct { //nolint:golint
+	Map OccupancyGrid //nolint:golint
+}
+
+type GetMap struct { //nolint:golint
 	msg.Package `ros:"nav_msgs"`
-	Map         OccupancyGrid //nolint:golint
+	GetMapReq
+	GetMapRes
 }

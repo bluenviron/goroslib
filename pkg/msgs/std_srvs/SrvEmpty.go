@@ -5,9 +5,13 @@ import (
 )
 
 type EmptyReq struct { //nolint:golint
-	msg.Package `ros:"std_srvs"`
 }
 
 type EmptyRes struct { //nolint:golint
+}
+
+type Empty struct { //nolint:golint
 	msg.Package `ros:"std_srvs"`
+	EmptyReq
+	EmptyRes
 }

@@ -529,14 +529,14 @@ outer:
 			close(pub.nodeTerminate)
 
 		case req := <-n.serviceProviderNew:
-			_, ok := n.serviceProviders[n.absoluteTopicName(req.sp.conf.Service)]
+			_, ok := n.serviceProviders[n.absoluteTopicName(req.sp.conf.Name)]
 			if ok {
-				req.err <- fmt.Errorf("Service %s already provided", req.sp.conf.Service)
+				req.err <- fmt.Errorf("Service %s already provided", req.sp.conf.Name)
 				continue
 			}
 
 			err := n.apiMasterClient.RegisterService(
-				n.absoluteTopicName(req.sp.conf.Service),
+				n.absoluteTopicName(req.sp.conf.Name),
 				n.tcprosServerURL,
 				n.apiSlaveServerURL)
 			if err != nil {
@@ -544,11 +544,11 @@ outer:
 				continue
 			}
 
-			n.serviceProviders[n.absoluteTopicName(req.sp.conf.Service)] = req.sp
+			n.serviceProviders[n.absoluteTopicName(req.sp.conf.Name)] = req.sp
 			req.err <- nil
 
 		case sp := <-n.serviceProviderClose:
-			delete(n.serviceProviders, n.absoluteTopicName(sp.conf.Service))
+			delete(n.serviceProviders, n.absoluteTopicName(sp.conf.Name))
 			close(sp.nodeTerminate)
 		}
 	}

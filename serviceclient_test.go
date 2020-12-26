@@ -15,6 +15,11 @@ type TestServiceRes struct {
 	C float64
 }
 
+type TestService struct {
+	TestServiceReq
+	TestServiceRes
+}
+
 func TestServiceClientRequestAfterProvider(t *testing.T) {
 	for _, provider := range []string{
 		"cpp",
@@ -44,8 +49,9 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 				require.NoError(t, err)
 
 				sp, err = NewServiceProvider(ServiceProviderConf{
-					Node:    nsp,
-					Service: "test_srv",
+					Node: nsp,
+					Name: "test_srv",
+					Srv:  &TestService{},
 					Callback: func(req *TestServiceReq) *TestServiceRes {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {
@@ -66,10 +72,9 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 			defer n.Close()
 
 			sc, err := NewServiceClient(ServiceClientConf{
-				Node:    n,
-				Service: "test_srv",
-				Req:     &TestServiceReq{},
-				Res:     &TestServiceRes{},
+				Node: n,
+				Name: "test_srv",
+				Srv:  &TestService{},
 			})
 			require.NoError(t, err)
 			defer sc.Close()
@@ -124,10 +129,9 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 			defer n.Close()
 
 			sc, err := NewServiceClient(ServiceClientConf{
-				Node:    n,
-				Service: "test_srv",
-				Req:     &TestServiceReq{},
-				Res:     &TestServiceRes{},
+				Node: n,
+				Name: "test_srv",
+				Srv:  &TestService{},
 			})
 			require.NoError(t, err)
 			defer sc.Close()
@@ -156,8 +160,9 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 				defer nsp.Close()
 
 				sp, err := NewServiceProvider(ServiceProviderConf{
-					Node:    nsp,
-					Service: "test_srv",
+					Node: nsp,
+					Name: "test_srv",
+					Srv:  &TestService{},
 					Callback: func(req *TestServiceReq) *TestServiceRes {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {

@@ -5,12 +5,16 @@ import (
 )
 
 type SelfTestReq struct { //nolint:golint
-	msg.Package `ros:"diagnostic_msgs"`
 }
 
 type SelfTestRes struct { //nolint:golint
+	Id     string             //nolint:golint
+	Passed int8               `rostype:"byte"` //nolint:golint
+	Status []DiagnosticStatus //nolint:golint
+}
+
+type SelfTest struct { //nolint:golint
 	msg.Package `ros:"diagnostic_msgs"`
-	Id          string             //nolint:golint
-	Passed      int8               `rostype:"byte"` //nolint:golint
-	Status      []DiagnosticStatus //nolint:golint
+	SelfTestReq
+	SelfTestRes
 }

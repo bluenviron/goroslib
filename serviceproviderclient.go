@@ -35,7 +35,7 @@ func (spc *serviceProviderClient) run() {
 
 outer:
 	for {
-		req := reflect.New(spc.sp.reqMsg).Interface()
+		req := reflect.New(reflect.TypeOf(spc.sp.srvReq)).Interface()
 		err := spc.conn.ReadMessage(req)
 		if err != nil {
 			break outer

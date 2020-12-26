@@ -15,13 +15,13 @@ type ServiceClientConf struct {
 	Node *Node
 
 	// name of the service from which providers will be obtained
-	Service string
+	Name string
 
-	// an instance of the request that will be sent
-	Req interface{}
-
-	// an instance of the response that will be received
-	Res interface{}
+	// an instance of the service type, which is a struct containing
+	// - goroslib.Package
+	// - a request
+	// - a response
+	Srv interface{}
 
 	// (optional) enable keep-alive packets, that are
 	// useful when there's a firewall between nodes.
@@ -31,8 +31,10 @@ type ServiceClientConf struct {
 // ServiceClient is a ROS service client, an entity that can send requests to
 // service providers and receive responses.
 type ServiceClient struct {
-	conf ServiceClientConf
-	conn *prototcp.Conn
+	conf   ServiceClientConf
+	srvReq interface{}
+	srvRes interface{}
+	conn   *prototcp.Conn
 }
 
 // NewServiceClient allocates a ServiceClient. See ServiceClientConf for the options.
@@ -41,24 +43,19 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
-	rt := reflect.TypeOf(conf.Req)
-	if rt.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Req must be a pointer")
-	}
-	if rt.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Req must be a pointer to a struct")
+	if conf.Srv == nil {
+		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	rt = reflect.TypeOf(conf.Res)
-	if rt.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Res must be a pointer")
-	}
-	if rt.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Res must be a pointer to a struct")
+	srvReq, srvRes, err := msg.ServiceRequestResponse(conf.Srv)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ServiceClient{
-		conf: conf,
+		conf:   conf,
+		srvReq: srvReq,
+		srvRes: srvRes,
 	}, nil
 }
 
@@ -72,10 +69,10 @@ func (sc *ServiceClient) Close() error {
 
 // Call sends a request to a service provider and reads a response.
 func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
-	if reflect.TypeOf(req) != reflect.TypeOf(sc.conf.Req) {
+	if reflect.TypeOf(req) != reflect.PtrTo(reflect.TypeOf(sc.srvReq)) {
 		panic("wrong req")
 	}
-	if reflect.TypeOf(res) != reflect.TypeOf(sc.conf.Res) {
+	if reflect.TypeOf(res) != reflect.PtrTo(reflect.TypeOf(sc.srvRes)) {
 		panic("wrong res")
 	}
 
@@ -130,12 +127,12 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 
 func (sc *ServiceClient) createConn() error {
 	res, err := sc.conf.Node.apiMasterClient.LookupService(
-		sc.conf.Node.absoluteTopicName(sc.conf.Service))
+		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	if err != nil {
 		return fmt.Errorf("lookupService: %v", err)
 	}
 
-	srvMd5, err := msg.Md5Service(sc.conf.Req, sc.conf.Res)
+	srvMD5, err := msg.ServiceMD5(sc.conf.Srv)
 	if err != nil {
 		return err
 	}
@@ -157,9 +154,9 @@ func (sc *ServiceClient) createConn() error {
 
 	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
 		Callerid:   sc.conf.Node.absoluteName(),
-		Md5sum:     srvMd5,
+		Md5sum:     srvMD5,
 		Persistent: 1,
-		Service:    sc.conf.Node.absoluteTopicName(sc.conf.Service),
+		Service:    sc.conf.Node.absoluteTopicName(sc.conf.Name),
 	})
 	if err != nil {
 		conn.Close()
@@ -173,10 +170,10 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
-	if outHeader.Md5sum != srvMd5 {
+	if outHeader.Md5sum != srvMD5 {
 		conn.Close()
 		return fmt.Errorf("wrong md5sum: expected %s, got %s",
-			srvMd5, outHeader.Md5sum)
+			srvMD5, outHeader.Md5sum)
 	}
 
 	sc.conn = conn

@@ -5,12 +5,16 @@ import (
 )
 
 type SetCameraInfoReq struct { //nolint:golint
-	msg.Package `ros:"sensor_msgs"`
-	CameraInfo  CameraInfo //nolint:golint
+	CameraInfo CameraInfo //nolint:golint
 }
 
 type SetCameraInfoRes struct { //nolint:golint
-	msg.Package   `ros:"sensor_msgs"`
 	Success       bool   //nolint:golint
 	StatusMessage string //nolint:golint
+}
+
+type SetCameraInfo struct { //nolint:golint
+	msg.Package `ros:"sensor_msgs"`
+	SetCameraInfoReq
+	SetCameraInfoRes
 }

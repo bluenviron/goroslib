@@ -11,8 +11,6 @@ import (
 
 // define a custom service.
 // unlike the standard library, a .srv file is not needed.
-// two structure definitions are enough, one for the request
-// and the other for the response.
 
 type TestServiceReq struct {
 	msg.Package `ros:"my_package"`
@@ -23,6 +21,11 @@ type TestServiceReq struct {
 type TestServiceRes struct {
 	msg.Package `ros:"my_package"`
 	C           float64
+}
+
+type TestService struct {
+	TestServiceReq
+	TestServiceRes
 }
 
 func onService(req *TestServiceReq) *TestServiceRes {
@@ -46,7 +49,8 @@ func main() {
 	// create a service provider
 	sp, err := goroslib.NewServiceProvider(goroslib.ServiceProviderConf{
 		Node:     n,
-		Service:  "test_srv",
+		Name:     "test_srv",
+		Srv:      &TestService{},
 		Callback: onService,
 	})
 	if err != nil {

@@ -5,8 +5,7 @@ import (
 )
 
 type LoadMapReq struct { //nolint:golint
-	msg.Package `ros:"nav_msgs"`
-	MapUrl      string //nolint:golint
+	MapUrl string //nolint:golint
 }
 
 const (
@@ -18,8 +17,13 @@ const (
 )
 
 type LoadMapRes struct { //nolint:golint
-	msg.Package     `ros:"nav_msgs"`
 	msg.Definitions `ros:"uint8 RESULT_SUCCESS=0,uint8 RESULT_MAP_DOES_NOT_EXIST=1,uint8 RESULT_INVALID_MAP_DATA=2,uint8 RESULT_INVALID_MAP_METADATA=3,uint8 RESULT_UNDEFINED_FAILURE=255"`
 	Map             OccupancyGrid //nolint:golint
 	Result          uint8         //nolint:golint
+}
+
+type LoadMap struct { //nolint:golint
+	msg.Package `ros:"nav_msgs"`
+	LoadMapReq
+	LoadMapRes
 }

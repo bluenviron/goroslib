@@ -22,7 +22,9 @@ const (
 {{- end }}
 
 type {{ .Res.Name }} struct { //nolint:golint
+{{- if .Res.RosPkgName }}
     msg.Package ` + "`" + `ros:"{{ .Res.RosPkgName }}"` + "`" + `
+{{- end }}
 {{- if .Res.DefinitionsStr }}
     msg.Definitions ` + "`" + `ros:"{{ .Res.DefinitionsStr }}"` + "`" + `
 {{- end }}

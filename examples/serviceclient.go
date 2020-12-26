@@ -22,10 +22,9 @@ func main() {
 
 	// create a service client
 	sc, err := goroslib.NewServiceClient(goroslib.ServiceClientConf{
-		Node:    n,
-		Service: "test_srv",
-		Req:     &std_srvs.SetBoolReq{},
-		Res:     &std_srvs.SetBoolRes{},
+		Node: n,
+		Name: "test_srv",
+		Srv:  &std_srvs.SetBool{},
 	})
 	if err != nil {
 		panic(err)

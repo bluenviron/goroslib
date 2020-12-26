@@ -6,12 +6,16 @@ import (
 )
 
 type SetMapReq struct { //nolint:golint
-	msg.Package `ros:"nav_msgs"`
 	Map         OccupancyGrid                           //nolint:golint
 	InitialPose geometry_msgs.PoseWithCovarianceStamped //nolint:golint
 }
 
 type SetMapRes struct { //nolint:golint
+	Success bool //nolint:golint
+}
+
+type SetMap struct { //nolint:golint
 	msg.Package `ros:"nav_msgs"`
-	Success     bool //nolint:golint
+	SetMapReq
+	SetMapRes
 }
