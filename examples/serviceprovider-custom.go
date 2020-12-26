@@ -13,17 +13,16 @@ import (
 // unlike the standard library, a .srv file is not needed.
 
 type TestServiceReq struct {
-	msg.Package `ros:"my_package"`
-	A           float64
-	B           string
+	A float64
+	B string
 }
 
 type TestServiceRes struct {
-	msg.Package `ros:"my_package"`
-	C           float64
+	C float64
 }
 
 type TestService struct {
+	msg.Package `ros:"my_package"`
 	TestServiceReq
 	TestServiceRes
 }
