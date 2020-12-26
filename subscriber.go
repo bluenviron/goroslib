@@ -175,7 +175,6 @@ outer:
 				if err != nil {
 					continue
 				}
-
 				addresses = append(addresses, addr)
 			}
 

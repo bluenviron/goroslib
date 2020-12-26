@@ -160,7 +160,7 @@ outer:
 				continue
 			}
 
-			if req.header.Md5sum != sp.srvMD5 {
+			if req.header.Md5sum != "*" && req.header.Md5sum != sp.srvMD5 {
 				req.conn.Close()
 				continue
 			}
@@ -168,9 +168,9 @@ outer:
 			err := req.conn.WriteHeader(&prototcp.HeaderServiceProvider{
 				Callerid:     sp.conf.Node.absoluteName(),
 				Md5sum:       sp.srvMD5,
-				RequestType:  "goroslib/Service" + "Request",
-				ResponseType: "goroslib/Service" + "Response",
-				Type:         "goroslib/Service",
+				RequestType:  sp.srvType + "Request",
+				ResponseType: sp.srvType + "Response",
+				Type:         sp.srvType,
 			})
 			if err != nil {
 				req.conn.Close()
