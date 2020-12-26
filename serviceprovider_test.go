@@ -93,7 +93,7 @@ func TestServiceProviderInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Regexp(t, "Node: /myns/goroslib\n"+
-		"URI: rosrpc://172.17.0.2:[0-9]+\n"+
+		"URI: rosrpc://172.17.0.[0-9]:[0-9]+\n"+
 		"Type: std_srvs/SetBool\n"+
 		"Args: data\n", cc.waitOutput())
 }
