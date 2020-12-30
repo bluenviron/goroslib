@@ -316,7 +316,7 @@ func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) e
 				select {
 				case <-t.C:
 					sp.sub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
-						ConnectionID: uint32(sp.udpID),
+						ConnectionID: sp.udpID,
 						Opcode:       protoudp.Ping,
 						MessageID:    curMessageID,
 					}, sp.udpAddr)

@@ -47,7 +47,7 @@ var casesMessage = []caseMessage{
 		}{
 			true, -1, 2, -3, 4, -5, 6, -7, 8, 9, 10, "abc",
 			time.Date(2010, 11, 12, 13, 14, 15, 16, time.UTC),
-			time.Duration(5 * time.Second),
+			5 * time.Second,
 		},
 		[]byte{
 			0x42, 0x00, 0x00, 0x00, 0x01, 0xFF, 0x02, 0xFD,

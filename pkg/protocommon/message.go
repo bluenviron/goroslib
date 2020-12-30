@@ -41,7 +41,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			return err
 		}
 		*mlen--
-		*cv = uint8(buf[0])
+		*cv = buf[0]
 
 	case *int16:
 		_, err := io.ReadFull(r, buf[:2])
@@ -57,7 +57,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			return err
 		}
 		*mlen -= 2
-		*cv = uint16(binary.LittleEndian.Uint16(buf))
+		*cv = binary.LittleEndian.Uint16(buf)
 
 	case *int32:
 		_, err := io.ReadFull(r, buf[:4])
@@ -73,7 +73,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			return err
 		}
 		*mlen -= 4
-		*cv = uint32(binary.LittleEndian.Uint32(buf))
+		*cv = binary.LittleEndian.Uint32(buf)
 
 	case *int64:
 		_, err := io.ReadFull(r, buf[:8])
@@ -89,7 +89,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			return err
 		}
 		*mlen -= 8
-		*cv = uint64(binary.LittleEndian.Uint64(buf))
+		*cv = binary.LittleEndian.Uint64(buf)
 
 	case *float32:
 		_, err := io.ReadFull(r, buf[:4])
@@ -97,7 +97,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			return err
 		}
 		*mlen -= 4
-		*cv = float32(math.Float32frombits(binary.LittleEndian.Uint32(buf)))
+		*cv = math.Float32frombits(binary.LittleEndian.Uint32(buf))
 
 	case *float64:
 		_, err := io.ReadFull(r, buf[:8])
@@ -105,7 +105,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			return err
 		}
 		*mlen -= 8
-		*cv = float64(math.Float64frombits(binary.LittleEndian.Uint64(buf)))
+		*cv = math.Float64frombits(binary.LittleEndian.Uint64(buf))
 
 	case *string:
 		// string length
@@ -237,7 +237,7 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 		case reflect.Array:
 			// array elements
 			le := val.Elem().Len()
-			for i := 0; i < int(le); i++ {
+			for i := 0; i < le; i++ {
 				el := reflect.New(val.Elem().Type().Elem())
 
 				if el.Elem().Kind() == reflect.Ptr {
@@ -356,7 +356,7 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		}
 
 	case uint8:
-		_, err := w.Write([]byte{uint8(cv)})
+		_, err := w.Write([]byte{cv})
 		if err != nil {
 			return err
 		}
@@ -369,7 +369,7 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		}
 
 	case uint16:
-		binary.LittleEndian.PutUint16(buf, uint16(cv))
+		binary.LittleEndian.PutUint16(buf, cv)
 		_, err := w.Write(buf[:2])
 		if err != nil {
 			return err
@@ -383,7 +383,7 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		}
 
 	case uint32:
-		binary.LittleEndian.PutUint32(buf, uint32(cv))
+		binary.LittleEndian.PutUint32(buf, cv)
 		_, err := w.Write(buf[:4])
 		if err != nil {
 			return err
@@ -397,21 +397,21 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		}
 
 	case uint64:
-		binary.LittleEndian.PutUint64(buf, uint64(cv))
+		binary.LittleEndian.PutUint64(buf, cv)
 		_, err := w.Write(buf[:8])
 		if err != nil {
 			return err
 		}
 
 	case float32:
-		binary.LittleEndian.PutUint32(buf, math.Float32bits(float32(cv)))
+		binary.LittleEndian.PutUint32(buf, math.Float32bits(cv))
 		_, err := w.Write(buf[:4])
 		if err != nil {
 			return err
 		}
 
 	case float64:
-		binary.LittleEndian.PutUint64(buf, math.Float64bits(float64(cv)))
+		binary.LittleEndian.PutUint64(buf, math.Float64bits(cv))
 		_, err := w.Write(buf[:8])
 		if err != nil {
 			return err
