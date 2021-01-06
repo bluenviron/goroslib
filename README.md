@@ -89,7 +89,23 @@ Current and missing features are [described in the FEATURES document](FEATURES.m
 
 ### Use standard messages and services
 
-Standard messages and services are available in folder `pkg/msgs` and [described in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
+This library already provides most of the standard messages and services, in particular:
+
+* ackermann_msgs
+* actionlib_msgs
+* diagnostic_msgs
+* geometry_msgs
+* nav_msgs
+* rosgraph_msgs
+* sensor_msgs
+* shape_msgs
+* std_msgs
+* std_srvs
+* stereo_msgs
+* trajectory_msgs
+* visualization_msgs
+
+These are available in the folder `pkg/msgs` and [described in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
 
 ### Define custom messages
 

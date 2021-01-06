@@ -180,6 +180,11 @@ func run() error {
 		return err
 	}
 
+	err = processRepo("https://github.com/ros-drivers/ackermann_msgs")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
