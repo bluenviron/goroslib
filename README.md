@@ -89,23 +89,26 @@ Current and missing features are [described in the FEATURES document](FEATURES.m
 
 ### Use standard messages and services
 
-This library already provides most of the standard messages and services, in particular:
+This library already provides most of the standard messages and services, in the folder `pkg/msgs`, in particular:
 
-* ackermann_msgs
-* actionlib_msgs
-* diagnostic_msgs
-* geometry_msgs
-* nav_msgs
-* rosgraph_msgs
-* sensor_msgs
-* shape_msgs
-* std_msgs
-* std_srvs
-* stereo_msgs
-* trajectory_msgs
-* visualization_msgs
-
-These are available in the folder `pkg/msgs` and [described in the documentation](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs?tab=subdirectories).
+|package|documentation|repository|
+|-------|-------------|----------|
+|ackermann_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/ackermann_msgs)|[link](https://github.com/ros-drivers/ackermann_msgs)|
+|actionlib_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/actionlib_msgs)|[link](https://github.com/ros/common_msgs)|
+|audio_common_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/audio_common_msgs)|[link](https://github.com/ros-drivers/audio_common)|
+|diagnostic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/diagnostic_msgs)|[link](https://github.com/ros/common_msgs)|
+|geometry_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geometry_msgs)|[link](https://github.com/ros/common_msgs)|
+|nav_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/nav_msgs)|[link](https://github.com/ros/common_msgs)|
+|rosgraph_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs)|[link](https://github.com/ros/ros_comm_msgs)|
+|sensor_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/sensor_msgs)|[link](https://github.com/ros/common_msgs)|
+|shape_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/shape_msgs)|[link](https://github.com/ros/common_msgs)|
+|sound_play|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/sound_play)|[link](https://github.com/ros-drivers/audio_common)|
+|std_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/std_msgs)|[link](https://github.com/ros/std_msgs)|
+|std_srvs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/std_srvs)|[link](https://github.com/ros/ros_comm_msgs)|
+|stereo_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/stereo_msgs)|[link](https://github.com/ros/common_msgs)|
+|trajectory_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/trajectory_msgs)|[link](https://github.com/ros/common_msgs)|
+|velodyne_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
+|visualization_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
 
 ### Define custom messages
 
@@ -223,9 +226,6 @@ make test
   * https://wiki.ros.org/ROS/TCPROS
   * https://wiki.ros.org/ROS/UDPROS
   * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
-* Messages
-  * https://github.com/ros/std_msgs
-  * https://github.com/ros/common_msgs
 
 Other Go libraries
 

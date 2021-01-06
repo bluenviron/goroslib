@@ -165,24 +165,29 @@ func run() error {
 		return err
 	}
 
-	err = processRepo("https://github.com/ros/std_msgs")
-	if err != nil {
-		return err
+	done := make(chan error)
+	count := 0
+
+	for _, repo := range []string{
+		"https://github.com/ros/std_msgs",
+		"https://github.com/ros/ros_comm_msgs",
+		"https://github.com/ros/common_msgs",
+		"https://github.com/ros-drivers/ackermann_msgs",
+		"https://github.com/ros-drivers/audio_common",
+		"https://github.com/ros-drivers/velodyne",
+		"https://github.com/ros-perception/vision_msgs",
+	} {
+		count++
+		go func(repo string) {
+			done <- processRepo(repo)
+		}(repo)
 	}
 
-	err = processRepo("https://github.com/ros/ros_comm_msgs")
-	if err != nil {
-		return err
-	}
-
-	err = processRepo("https://github.com/ros/common_msgs")
-	if err != nil {
-		return err
-	}
-
-	err = processRepo("https://github.com/ros-drivers/ackermann_msgs")
-	if err != nil {
-		return err
+	for i := 0; i < count; i++ {
+		err := <-done
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
