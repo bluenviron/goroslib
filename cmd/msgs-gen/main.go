@@ -80,7 +80,7 @@ func processDir(name string, dir string) error {
 		}
 
 		if strings.HasSuffix(info.Name(), ".msg") {
-			outpath := filepath.Join("pkg", "msgs", name, "Msg"+strings.TrimSuffix(info.Name(), ".msg")+".go")
+			outpath := strings.ToLower(filepath.Join("pkg", "msgs", name, "Msg"+strings.TrimSuffix(info.Name(), ".msg")+".go"))
 			err = shellCommand(fmt.Sprintf("go run ./cmd/msg-import --gopackage=%s --rospackage=%s %s > %s",
 				name,
 				name,
@@ -92,7 +92,7 @@ func processDir(name string, dir string) error {
 			}
 
 		} else if strings.HasSuffix(info.Name(), ".srv") {
-			outpath := filepath.Join("pkg", "msgs", name, "Srv"+strings.TrimSuffix(info.Name(), ".srv")+".go")
+			outpath := strings.ToLower(filepath.Join("pkg", "msgs", name, "Srv"+strings.TrimSuffix(info.Name(), ".srv")+".go"))
 			err = shellCommand(fmt.Sprintf("go run ./cmd/srv-import --gopackage=%s --rospackage=%s %s > %s",
 				name,
 				name,
