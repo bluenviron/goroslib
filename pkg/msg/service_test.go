@@ -6,21 +6,53 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type ServiceReq struct {
+	A float64
+	B string
+}
+
+type ServiceRes struct {
+	C float64
+}
+
+var casesServiceRequestResponse = []struct {
+	name string
+	srv  interface{}
+	req  interface{}
+	res  interface{}
+}{
+	{
+		"base",
+		&struct {
+			ServiceReq
+			ServiceRes
+		}{},
+		ServiceReq{},
+		ServiceRes{},
+	},
+}
+
+func TestServiceRequestResponse(t *testing.T) {
+	for _, c := range casesServiceRequestResponse {
+		t.Run(c.name, func(t *testing.T) {
+			req, res, err := ServiceRequestResponse(c.srv)
+			require.NoError(t, err)
+			require.Equal(t, c.req, req)
+			require.Equal(t, c.res, res)
+		})
+	}
+}
+
 var casesServiceMD5 = []struct {
 	name string
 	srv  interface{}
 	sum  string
 }{
 	{
-		"base types",
+		"base",
 		&struct {
-			A struct {
-				A float64
-				B string
-			}
-			B struct {
-				C float64
-			}
+			ServiceReq
+			ServiceRes
 		}{},
 		"4fa8f09823d7ad898c6295d42385de20",
 	},
@@ -38,23 +70,13 @@ func TestServiceMD5(t *testing.T) {
 
 type SrvExplicitPackage struct {
 	Package `ros:"my_package"`
-	A       struct {
-		A float64
-		B string
-	}
-	B struct {
-		C float64
-	}
+	ServiceReq
+	ServiceRes
 }
 
 type SrvImplicitPackage struct {
-	A struct {
-		A float64
-		B string
-	}
-	B struct {
-		C float64
-	}
+	ServiceReq
+	ServiceRes
 }
 
 var casesServiceType = []struct {
