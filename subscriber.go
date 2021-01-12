@@ -73,6 +73,10 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
+	if conf.Topic == "" {
+		return nil, fmt.Errorf("Topic is empty")
+	}
+
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")

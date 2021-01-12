@@ -63,6 +63,10 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
+	if conf.Topic == "" {
+		return nil, fmt.Errorf("Topic is empty")
+	}
+
 	if conf.Msg == nil {
 		return nil, fmt.Errorf("Msg is empty")
 	}

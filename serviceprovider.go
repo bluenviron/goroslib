@@ -61,6 +61,10 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Node is empty")
 	}
 
+	if conf.Name == "" {
+		return nil, fmt.Errorf("Name is empty")
+	}
+
 	if conf.Srv == nil {
 		return nil, fmt.Errorf("Srv is empty")
 	}
