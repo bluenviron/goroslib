@@ -102,6 +102,18 @@ func processDir(name string, dir string) error {
 				os.Remove(outpath)
 				return err
 			}
+
+		} else if strings.HasSuffix(info.Name(), ".action") {
+			outpath := strings.ToLower(filepath.Join("pkg", "msgs", name, "Action"+strings.TrimSuffix(info.Name(), ".action")+".go"))
+			err = shellCommand(fmt.Sprintf("go run ./cmd/action-import --gopackage=%s --rospackage=%s %s > %s",
+				name,
+				name,
+				path,
+				outpath))
+			if err != nil {
+				os.Remove(outpath)
+				return err
+			}
 		}
 
 		return nil
@@ -128,7 +140,7 @@ func processRepo(repo string) error {
 		return err
 	}
 
-	// find folders which contain a "msg" or "srv" subfolder
+	// find folders which contain a "msg", "srv" or "action" subfolder
 	paths := make(map[string]struct{})
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -136,7 +148,7 @@ func processRepo(repo string) error {
 		}
 
 		if info.IsDir() &&
-			(info.Name() == "msg" || info.Name() == "srv") {
+			(info.Name() == "msg" || info.Name() == "srv" || info.Name() == "action") {
 			paths[filepath.Dir(path)] = struct{}{}
 			return nil
 		}
@@ -177,6 +189,7 @@ func run() error {
 		"https://github.com/ros-drivers/velodyne",
 		"https://github.com/ros-controls/control_msgs",
 		"https://github.com/ros-perception/vision_msgs",
+		"https://github.com/ros/actionlib",
 	} {
 		count++
 		go func(repo string) {
