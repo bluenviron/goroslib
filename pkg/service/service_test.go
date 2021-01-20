@@ -1,9 +1,11 @@
-package msg
+package service
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
 type ServiceReq struct {
@@ -15,7 +17,7 @@ type ServiceRes struct {
 	C float64
 }
 
-func TestServiceRequestResponse(t *testing.T) {
+func TestRequestResponse(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		srv  interface{}
@@ -33,7 +35,7 @@ func TestServiceRequestResponse(t *testing.T) {
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			req, res, err := ServiceRequestResponse(c.srv)
+			req, res, err := RequestResponse(c.srv)
 			require.NoError(t, err)
 			require.Equal(t, c.req, req)
 			require.Equal(t, c.res, res)
@@ -41,7 +43,7 @@ func TestServiceRequestResponse(t *testing.T) {
 	}
 }
 
-func TestServiceMD5(t *testing.T) {
+func TestMD5(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		srv  interface{}
@@ -57,7 +59,7 @@ func TestServiceMD5(t *testing.T) {
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			md5, err := ServiceMD5(c.srv)
+			md5, err := MD5(c.srv)
 			require.NoError(t, err)
 			require.Equal(t, c.sum, md5)
 		})
@@ -65,7 +67,7 @@ func TestServiceMD5(t *testing.T) {
 }
 
 type SrvExplicitPackage struct {
-	Package `ros:"my_package"`
+	msg.Package `ros:"my_package"`
 	ServiceReq
 	ServiceRes
 }
@@ -75,7 +77,7 @@ type SrvImplicitPackage struct {
 	ServiceRes
 }
 
-func TestServiceType(t *testing.T) {
+func TestType(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		srv  interface{}
@@ -93,7 +95,7 @@ func TestServiceType(t *testing.T) {
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			typ, err := ServiceType(c.srv)
+			typ, err := Type(c.srv)
 			require.NoError(t, err)
 			require.Equal(t, c.typ, typ)
 		})

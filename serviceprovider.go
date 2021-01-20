@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/aler9/goroslib/pkg/service"
 )
 
 type serviceProviderClientRequestReq struct {
@@ -22,10 +22,7 @@ type ServiceProviderConf struct {
 	// name of the service
 	Name string
 
-	// an instance of the service type, which is a struct containing
-	// - goroslib.Package
-	// - a request
-	// - a response
+	// an instance of the service type
 	Srv interface{}
 
 	// function in the form func(*NameOfRequest) *NameOfReply{}  that will be called
@@ -69,17 +66,17 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	srvType, err := msg.ServiceType(conf.Srv)
+	srvType, err := service.Type(conf.Srv)
 	if err != nil {
 		return nil, err
 	}
 
-	srvMD5, err := msg.ServiceMD5(conf.Srv)
+	srvMD5, err := service.MD5(conf.Srv)
 	if err != nil {
 		return nil, err
 	}
 
-	srvReq, srvRes, err := msg.ServiceRequestResponse(conf.Srv)
+	srvReq, srvRes, err := service.RequestResponse(conf.Srv)
 	if err != nil {
 		return nil, err
 	}

@@ -1,12 +1,23 @@
-package msg
+// Package service contains utilities to process services.
+package service
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"reflect"
+
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
-// ServiceRequestResponse returns the request and response of a service.
-func ServiceRequestResponse(srv interface{}) (interface{}, interface{}, error) {
+func md5sum(text string) string {
+	h := md5.New()
+	h.Write([]byte(text))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// RequestResponse returns the request and response of a service.
+func RequestResponse(srv interface{}) (interface{}, interface{}, error) {
 	srvv := reflect.ValueOf(srv)
 	if srvv.Kind() == reflect.Ptr {
 		srvv = srvv.Elem()
@@ -22,7 +33,7 @@ func ServiceRequestResponse(srv interface{}) (interface{}, interface{}, error) {
 	for i := 0; i < nf; i++ {
 		ft := srvv.Field(i)
 
-		if ft.Type() == reflect.TypeOf(Package(0)) {
+		if ft.Type() == reflect.TypeOf(msg.Package(0)) {
 			continue
 		}
 
@@ -38,8 +49,8 @@ func ServiceRequestResponse(srv interface{}) (interface{}, interface{}, error) {
 	return nil, nil, fmt.Errorf("service request or response not found")
 }
 
-// ServiceMD5 computes the checksum of a service.
-func ServiceMD5(srv interface{}) (string, error) {
+// MD5 computes the checksum of a service.
+func MD5(srv interface{}) (string, error) {
 	srvt := reflect.TypeOf(srv)
 	if srvt.Kind() == reflect.Ptr {
 		srvt = srvt.Elem()
@@ -48,25 +59,25 @@ func ServiceMD5(srv interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported service type '%s'", srvt.String())
 	}
 
-	req, res, err := ServiceRequestResponse(srv)
+	req, res, err := RequestResponse(srv)
 	if err != nil {
 		return "", err
 	}
 
-	text1, _, err := md5Text(reflect.TypeOf(req), "")
+	text1, _, err := msg.MD5Field(reflect.TypeOf(req), "")
 	if err != nil {
 		return "", err
 	}
 
-	text2, _, err := md5Text(reflect.TypeOf(res), "")
+	text2, _, err := msg.MD5Field(reflect.TypeOf(res), "")
 	if err != nil {
 		return "", err
 	}
 
-	return md5Sum(text1 + text2), nil
+	return md5sum(text1 + text2), nil
 }
 
-// ServiceType returns the type of a service.
-func ServiceType(msg interface{}) (string, error) {
-	return MessageType(msg)
+// Type returns the type of a service.
+func Type(srv interface{}) (string, error) {
+	return msg.Type(srv)
 }

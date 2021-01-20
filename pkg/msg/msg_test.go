@@ -11,11 +11,11 @@ type Parent struct {
 	A string
 }
 
-type Header struct {
+type Header struct { //nolint:golint
 	Package `ros:"std_msgs"`
-	Seq     uint32
-	Stamp   time.Time
-	FrameId string //nolint:golint
+	Seq     uint32    //nolint:golint
+	Stamp   time.Time //nolint:golint
+	FrameId string    //nolint:golint
 }
 
 type Log struct {
@@ -31,7 +31,7 @@ type Log struct {
 	Topics      []string
 }
 
-func TestMessageMD5(t *testing.T) {
+func TestMD5(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		msg  interface{}
@@ -136,7 +136,7 @@ func TestMessageMD5(t *testing.T) {
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			md5, err := MessageMD5(c.msg)
+			md5, err := MD5(c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.sum, md5)
 		})
@@ -152,7 +152,7 @@ type MsgImplicitPackage struct {
 	Value uint16
 }
 
-func TestMessageType(t *testing.T) {
+func TestType(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		msg  interface{}
@@ -170,7 +170,7 @@ func TestMessageType(t *testing.T) {
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			typ, err := MessageType(c.msg)
+			typ, err := Type(c.msg)
 			require.NoError(t, err)
 			require.Equal(t, c.typ, typ)
 		})

@@ -53,6 +53,10 @@ func (ps *publisherSubscriber) run() {
 }
 
 func (ps *publisherSubscriber) runTCP() {
+	if ps.pub.conf.onSubscriber != nil {
+		ps.pub.conf.onSubscriber()
+	}
+
 	readerDone := make(chan struct{})
 	go func() {
 		defer close(readerDone)
@@ -78,6 +82,10 @@ func (ps *publisherSubscriber) runTCP() {
 }
 
 func (ps *publisherSubscriber) runUDP() {
+	if ps.pub.conf.onSubscriber != nil {
+		ps.pub.conf.onSubscriber()
+	}
+
 	<-ps.terminate
 }
 

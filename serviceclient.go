@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/aler9/goroslib/pkg/service"
 )
 
 // ServiceClientConf is the configuration of a ServiceClient.
@@ -17,10 +17,7 @@ type ServiceClientConf struct {
 	// name of the service from which providers will be obtained
 	Name string
 
-	// an instance of the service type, which is a struct containing
-	// - goroslib.Package
-	// - a request
-	// - a response
+	// an instance of the service type
 	Srv interface{}
 
 	// (optional) enable keep-alive packets, that are
@@ -51,7 +48,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	srvReq, srvRes, err := msg.ServiceRequestResponse(conf.Srv)
+	srvReq, srvRes, err := service.RequestResponse(conf.Srv)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +133,7 @@ func (sc *ServiceClient) createConn() error {
 		return fmt.Errorf("lookupService: %v", err)
 	}
 
-	srvMD5, err := msg.ServiceMD5(sc.conf.Srv)
+	srvMD5, err := service.MD5(sc.conf.Srv)
 	if err != nil {
 		return err
 	}

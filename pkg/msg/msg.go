@@ -11,6 +11,12 @@ import (
 	"unicode"
 )
 
+// Package is a field that can be added to a message to set the package name.
+type Package int
+
+// Definitions is a field that can be added to a message to add definitions.
+type Definitions int
+
 func camelToSnake(in string) string {
 	tmp := []rune(in)
 	tmp[0] = unicode.ToLower(tmp[0])
@@ -23,13 +29,14 @@ func camelToSnake(in string) string {
 	return string(tmp)
 }
 
-func md5Sum(text string) string {
+func md5sum(text string) string {
 	h := md5.New()
 	h.Write([]byte(text))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
+// MD5Field computes the checksum of a field or message.
+func MD5Field(rt reflect.Type, rosTag string) (string, bool, error) {
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
@@ -86,7 +93,7 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 
 	switch rt.Kind() {
 	case reflect.Slice:
-		text, isstruct, err := md5Text(rt.Elem(), "")
+		text, isstruct, err := MD5Field(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -98,7 +105,7 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 		return text + "[]", false, nil
 
 	case reflect.Array:
-		text, isstruct, err := md5Text(rt.Elem(), "")
+		text, isstruct, err := MD5Field(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -134,13 +141,13 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 				return camelToSnake(ft.Name)
 			}()
 
-			text, isstruct, err := md5Text(ft.Type, ft.Tag.Get("rostype"))
+			text, isstruct, err := MD5Field(ft.Type, ft.Tag.Get("rostype"))
 			if err != nil {
 				return "", false, err
 			}
 
 			if isstruct {
-				text = md5Sum(text)
+				text = md5sum(text)
 			}
 
 			ret += text + " " + name + "\n"
@@ -157,8 +164,8 @@ func md5Text(rt reflect.Type, rosTag string) (string, bool, error) {
 	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
 }
 
-// MessageMD5 computes the checksum of a message.
-func MessageMD5(msg interface{}) (string, error) {
+// MD5 computes the checksum of a message.
+func MD5(msg interface{}) (string, error) {
 	rt := reflect.TypeOf(msg)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
@@ -167,16 +174,16 @@ func MessageMD5(msg interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
 	}
 
-	text, _, err := md5Text(rt, "")
+	text, _, err := MD5Field(rt, "")
 	if err != nil {
 		return "", err
 	}
 
-	return md5Sum(text), nil
+	return md5sum(text), nil
 }
 
-// MessageType returns the type of a message.
-func MessageType(msg interface{}) (string, error) {
+// Type returns the type of a message.
+func Type(msg interface{}) (string, error) {
 	rt := reflect.TypeOf(msg)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()

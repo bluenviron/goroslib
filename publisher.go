@@ -31,6 +31,8 @@ type PublisherConf struct {
 	// published message and send it to any new subscriber that connects to
 	// this publisher
 	Latch bool
+
+	onSubscriber func()
 }
 
 // Publisher is a ROS publisher, an entity that can publish messages in a named channel.
@@ -79,12 +81,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg must be a pointer to a struct")
 	}
 
-	msgType, err := msg.MessageType(conf.Msg)
+	msgType, err := msg.Type(conf.Msg)
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msg.MessageMD5(conf.Msg)
+	msgMd5, err := msg.MD5(conf.Msg)
 	if err != nil {
 		return nil, err
 	}

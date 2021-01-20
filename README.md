@@ -12,7 +12,8 @@ The Robot Operating System (ROS) is a project that provides a protocol specifica
 Features:
 
 * Subscribe and publish to topics, with TCP or UDP
-* Call and provide services
+* Provide and call services
+* Provide and call actions
 * Get and set parameters
 * Get infos about other nodes, topics, services
 * Use namespaces and relative topics
@@ -81,7 +82,7 @@ The official project provides libraries to write nodes in C++ and Python, but th
 
 #### goroslib vs rosgo
 
-rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` files and doesn't support UDP.
+rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` files, doesn't support UDP, doesn't support actions.
 
 ### Full list of features
 
@@ -155,7 +156,7 @@ The type of a field can be one of the following:
 
 * another standard or custom message
 
-The name of a field must be in CamelCase, and is converted to snake_case when interacting with C++/Python nodes. If this conversion is impossible, the tag `rosname` can be used to override the field name:
+The name of a field must be in CamelCase, and is converted to snake_case when interacting with C++/Python nodes. If this conversion is not possible, the tag `rosname` can be used to override the field name:
 
 ```go
 type MessageName struct {
@@ -177,7 +178,14 @@ Another one is provided to convert existing `.srv` files into their equivalent G
 
 ```
 go get github.com/aler9/goroslib/cmd/srv-import
-srv-import --rospackage=my_package myservice.srv > mymessage.go
+srv-import --rospackage=my_package myservice.srv > myservice.go
+```
+
+Another one is provided to convert existing `.action` files into their equivalent Go structures:
+
+```
+go get github.com/aler9/goroslib/cmd/srv-import
+action-import --rospackage=my_package myaction.action > myaction.go
 ```
 
 ### Change namespace
@@ -218,6 +226,8 @@ make test
   * https://wiki.ros.org/ROS/Technical%20Overview
   * https://wiki.ros.org/Implementing%20Client%20Libraries
   * http://wiki.ros.org/Names
+  * http://wiki.ros.org/actionlib
+  * http://wiki.ros.org/actionlib/DetailedDescription
 * APIs
   * https://wiki.ros.org/ROS/Master_API
   * https://wiki.ros.org/ROS/Parameter%20Server%20API

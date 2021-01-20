@@ -9,8 +9,8 @@
 |subscribe to topics|ok|
 |provide services|ok|
 |call services|ok|
-|provide actions||
-|call actions||
+|provide actions|ok|
+|call actions|ok|
 |provide simple actions||
 |call simple actions||
 |support namespaces|ok|

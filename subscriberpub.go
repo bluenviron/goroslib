@@ -227,6 +227,10 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 		return fmt.Errorf("wrong md5")
 	}
 
+	if sp.sub.conf.onPublisher != nil {
+		sp.sub.conf.onPublisher()
+	}
+
 	subDone = make(chan struct{})
 	go func() {
 		defer close(subDone)
@@ -300,6 +304,10 @@ func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) e
 		<-done
 		close(sp.udpFrame)
 	}()
+
+	if sp.sub.conf.onPublisher != nil {
+		sp.sub.conf.onPublisher()
+	}
 
 	readerClose := make(chan struct{})
 	readerDone := make(chan struct{})
