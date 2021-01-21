@@ -46,7 +46,12 @@ type ActionClientConf struct {
 // ActionClient is a ROS action client, an entity that can call actions.
 type ActionClient struct {
 	conf           ActionClientConf
+	goalType       reflect.Type
+	resType        reflect.Type
+	fbType         reflect.Type
 	goalActionType reflect.Type
+	resActionType  reflect.Type
+	fbActionType   reflect.Type
 	statusSub      *Subscriber
 	feedbackSub    *Subscriber
 	resultSub      *Subscriber
@@ -81,7 +86,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		return nil, fmt.Errorf("Action is empty")
 	}
 
-	_, res, _, err := action.GoalResultFeedback(conf.Action)
+	goal, res, fb, err := action.GoalResultFeedback(conf.Action)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +107,12 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		cancelPubOk:   make(chan struct{}),
 	}
 
+	ac.goalType = reflect.TypeOf(goal)
+	ac.resType = reflect.TypeOf(res)
+	ac.fbType = reflect.TypeOf(fb)
 	ac.goalActionType = reflect.TypeOf(goalAction)
+	ac.resActionType = reflect.TypeOf(resAction)
+	ac.fbActionType = reflect.TypeOf(fbAction)
 
 	ac.statusSub, err = NewSubscriber(SubscriberConf{
 		Node:  conf.Node,
@@ -159,7 +169,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Node:  conf.Node,
 		Topic: conf.Name + "/feedback",
 		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(fbAction))}, []reflect.Type{}, false),
+			reflect.FuncOf([]reflect.Type{reflect.PtrTo(ac.fbActionType)}, []reflect.Type{}, false),
 			func(in []reflect.Value) []reflect.Value {
 				fbAction := in[0]
 
@@ -204,7 +214,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Node:  conf.Node,
 		Topic: conf.Name + "/result",
 		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
+			reflect.FuncOf([]reflect.Type{reflect.PtrTo(ac.resActionType)}, []reflect.Type{}, false),
 			func(in []reflect.Value) []reflect.Value {
 				resAction := in[0]
 
@@ -243,7 +253,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 	ac.goalPub, err = NewPublisher(PublisherConf{
 		Node:  conf.Node,
 		Topic: conf.Name + "/goal",
-		Msg:   reflect.New(reflect.TypeOf(goalAction)).Interface(),
+		Msg:   reflect.New(ac.goalActionType).Interface(),
 		onSubscriber: func() {
 			select {
 			case <-ac.goalPubOk:
@@ -324,7 +334,43 @@ func (ac *ActionClient) WaitForServer() {
 }
 
 // SendGoal sends a goal to the action server.
-func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) *ActionClientGoalHandler {
+func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
+	if conf.OnTransition != nil {
+		cbt := reflect.TypeOf(conf.OnTransition)
+		if cbt.Kind() != reflect.Func {
+			return fmt.Errorf("OnTransition is not a function")
+		}
+		if cbt.NumIn() != 2 {
+			return fmt.Errorf("OnTransition must accept a single argument")
+		}
+		if cbt.NumOut() != 0 {
+			return fmt.Errorf("OnTransition must not return any value")
+		}
+		if cbt.In(0) != reflect.TypeOf(uint8(0)) {
+			return fmt.Errorf("OnTransition 1st argument must be a uint8")
+		}
+		if cbt.In(1) != reflect.PtrTo(ac.resType) {
+			return fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
+				reflect.PtrTo(ac.resType), cbt.In(1))
+		}
+	}
+	if conf.OnFeedback != nil {
+		cbt := reflect.TypeOf(conf.OnFeedback)
+		if cbt.Kind() != reflect.Func {
+			return fmt.Errorf("OnFeedback is not a function")
+		}
+		if cbt.NumIn() != 1 {
+			return fmt.Errorf("OnFeedback must accept a single argument")
+		}
+		if cbt.NumOut() != 0 {
+			return fmt.Errorf("OnFeedback must not return any value")
+		}
+		if cbt.In(0) != reflect.PtrTo(ac.fbType) {
+			return fmt.Errorf("OnFeedback 1st argument must must be %s, while is %v",
+				reflect.PtrTo(ac.fbType), cbt.In(1))
+		}
+	}
+
 	action := reflect.New(ac.goalActionType)
 
 	now := time.Now()
@@ -360,5 +406,5 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) *ActionClientGoalHan
 
 	ac.goalPub.Write(action.Interface())
 
-	return gh
+	return nil
 }

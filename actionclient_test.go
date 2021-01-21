@@ -83,7 +83,7 @@ func TestActionClient(t *testing.T) {
 			feedDone2 := make(chan *DoSomethingActionFeedback, 1)
 			resDone2 := make(chan *DoSomethingActionResult, 1)
 
-			ac.SendGoal(ActionClientGoalConf{
+			err = ac.SendGoal(ActionClientGoalConf{
 				Goal: &DoSomethingActionGoal{
 					Input: 1234312,
 				},
@@ -96,6 +96,7 @@ func TestActionClient(t *testing.T) {
 					feedDone2 <- fb
 				},
 			})
+			require.NoError(t, err)
 
 			fb := <-feedDone1
 			require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
