@@ -28,7 +28,7 @@ type SubscriberConf struct {
 	// name of the topic from which messages will be read
 	Topic string
 
-	// function in the form func(msg *NameOfMessage){} that will be called
+	// function in the form func(msg *NameOfMessage) that will be called
 	// whenever a message arrives.
 	Callback interface{}
 

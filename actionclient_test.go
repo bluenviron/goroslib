@@ -2,11 +2,11 @@ package goroslib
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/aler9/goroslib/pkg/msg"
-	"github.com/aler9/goroslib/pkg/msgs/actionlib_msgs"
 )
 
 type DoSomethingActionGoal struct {
@@ -31,7 +31,7 @@ type DoSomethingAction struct {
 func TestActionClient(t *testing.T) {
 	for _, server := range []string{
 		"cpp",
-		//"go",
+		"go",
 	} {
 		t.Run(server, func(t *testing.T) {
 			m, err := newContainerMaster()
@@ -43,18 +43,63 @@ func TestActionClient(t *testing.T) {
 				p, err := newContainer("node-actionserver", m.IP())
 				require.NoError(t, err)
 				defer p.close()
+
+			case "go":
+				ns, err := NewNode(NodeConf{
+					Namespace:     "/myns",
+					Name:          "goroslib-server",
+					MasterAddress: m.IP() + ":11311",
+				})
+				require.NoError(t, err)
+				defer ns.Close()
+
+				as, err := NewActionServer(ActionServerConf{
+					Node:   ns,
+					Name:   "test_action",
+					Action: &DoSomethingAction{},
+					OnGoal: func(goal *DoSomethingActionGoal, gh *ActionServerGoalHandler) {
+						go func() {
+							if goal.Input == 1 {
+								gh.SetRejected()
+								return
+							}
+							gh.SetAccepted()
+
+							time.Sleep(1 * time.Second)
+
+							gh.PublishFeedback(&DoSomethingActionFeedback{
+								PercentComplete: 0.5,
+							})
+
+							time.Sleep(1 * time.Second)
+
+							if goal.Input == 2 {
+								gh.SetAborted()
+								return
+							}
+
+							gh.SetSucceeded(&DoSomethingActionResult{
+								Output: 123456,
+							})
+						}()
+					},
+					OnCancel: func(gh *ActionServerGoalHandler) {
+					},
+				})
+				require.NoError(t, err)
+				defer as.Close()
 			}
 
-			n, err := NewNode(NodeConf{
+			nc, err := NewNode(NodeConf{
 				Namespace:     "/myns",
 				Name:          "goroslib",
 				MasterAddress: m.IP() + ":11311",
 			})
 			require.NoError(t, err)
-			defer n.Close()
+			defer nc.Close()
 
 			ac, err := NewActionClient(ActionClientConf{
-				Node:   n,
+				Node:   nc,
 				Name:   "test_action",
 				Action: &DoSomethingAction{},
 			})
@@ -70,8 +115,8 @@ func TestActionClient(t *testing.T) {
 				Goal: &DoSomethingActionGoal{
 					Input: 1234312,
 				},
-				OnTransition: func(status uint8, res *DoSomethingActionResult) {
-					if status == actionlib_msgs.GoalStatus_SUCCEEDED {
+				OnTransition: func(status ActionGoalStatus, res *DoSomethingActionResult) {
+					if status == Succeeded {
 						resDone1 <- res
 					}
 				},
@@ -87,8 +132,8 @@ func TestActionClient(t *testing.T) {
 				Goal: &DoSomethingActionGoal{
 					Input: 1234312,
 				},
-				OnTransition: func(status uint8, res *DoSomethingActionResult) {
-					if status == actionlib_msgs.GoalStatus_SUCCEEDED {
+				OnTransition: func(status ActionGoalStatus, res *DoSomethingActionResult) {
+					if status == Succeeded {
 						resDone2 <- res
 					}
 				},

@@ -17,17 +17,17 @@ type ActionClientGoalConf struct {
 	// the goal to send
 	Goal interface{}
 
-	// function called when a status transition happens
+	// function in the form func(ActionGoalStatus, *ActionResult) that will be called when a status transition happens
 	OnTransition interface{}
 
-	// function called when a feedback is received
+	// function in the form func(*ActionFeedback) that will becalled when a feedback is received
 	OnFeedback interface{}
 }
 
-// ActionClientGoalHandler is a goal handler.
+// ActionClientGoalHandler is a goal handler of an ActionClient.
 type ActionClientGoalHandler struct {
 	conf   ActionClientGoalConf
-	status uint8
+	status ActionGoalStatus
 	result interface{}
 }
 
@@ -97,22 +97,21 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 	}
 
 	ac := &ActionClient{
-		conf:          conf,
-		goals:         make(map[string]*ActionClientGoalHandler),
-		terminate:     make(chan struct{}),
-		statusSubOk:   make(chan struct{}),
-		feedbackSubOk: make(chan struct{}),
-		resultSubOk:   make(chan struct{}),
-		goalPubOk:     make(chan struct{}),
-		cancelPubOk:   make(chan struct{}),
+		conf:           conf,
+		goalType:       reflect.TypeOf(goal),
+		resType:        reflect.TypeOf(res),
+		fbType:         reflect.TypeOf(fb),
+		goalActionType: reflect.TypeOf(goalAction),
+		resActionType:  reflect.TypeOf(resAction),
+		fbActionType:   reflect.TypeOf(fbAction),
+		goals:          make(map[string]*ActionClientGoalHandler),
+		terminate:      make(chan struct{}),
+		statusSubOk:    make(chan struct{}),
+		feedbackSubOk:  make(chan struct{}),
+		resultSubOk:    make(chan struct{}),
+		goalPubOk:      make(chan struct{}),
+		cancelPubOk:    make(chan struct{}),
 	}
-
-	ac.goalType = reflect.TypeOf(goal)
-	ac.resType = reflect.TypeOf(res)
-	ac.fbType = reflect.TypeOf(fb)
-	ac.goalActionType = reflect.TypeOf(goalAction)
-	ac.resActionType = reflect.TypeOf(resAction)
-	ac.fbActionType = reflect.TypeOf(fbAction)
 
 	ac.statusSub, err = NewSubscriber(SubscriberConf{
 		Node:  conf.Node,
@@ -128,8 +127,8 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 						return nil, nil
 					}
 
-					if status.Status != data.status {
-						data.status = status.Status
+					if ActionGoalStatus(status.Status) != data.status {
+						data.status = ActionGoalStatus(status.Status)
 
 						if data.conf.OnTransition != nil {
 							dres := data.result
@@ -147,7 +146,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 
 				if onTransition != nil {
 					reflect.ValueOf(onTransition).Call([]reflect.Value{
-						reflect.ValueOf(status.Status),
+						reflect.ValueOf(ActionGoalStatus(status.Status)),
 						reflect.ValueOf(dres),
 					})
 				}
@@ -346,14 +345,16 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 		if cbt.NumOut() != 0 {
 			return fmt.Errorf("OnTransition must not return any value")
 		}
-		if cbt.In(0) != reflect.TypeOf(uint8(0)) {
-			return fmt.Errorf("OnTransition 1st argument must be a uint8")
+		if cbt.In(0) != reflect.TypeOf(ActionGoalStatus(0)) {
+			return fmt.Errorf("OnTransition 1st argument must be %s, while is %v",
+				reflect.TypeOf(ActionGoalStatus(0)), cbt.In(0))
 		}
 		if cbt.In(1) != reflect.PtrTo(ac.resType) {
 			return fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
 				reflect.PtrTo(ac.resType), cbt.In(1))
 		}
 	}
+
 	if conf.OnFeedback != nil {
 		cbt := reflect.TypeOf(conf.OnFeedback)
 		if cbt.Kind() != reflect.Func {
@@ -371,14 +372,14 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 		}
 	}
 
-	action := reflect.New(ac.goalActionType)
+	goalAction := reflect.New(ac.goalActionType)
 
 	now := time.Now()
 
 	header := std_msgs.Header{
 		Stamp: now,
 	}
-	action.Elem().FieldByName("Header").Set(reflect.ValueOf(header))
+	goalAction.Elem().FieldByName("Header").Set(reflect.ValueOf(header))
 
 	goalID := actionlib_msgs.GoalID{
 		Stamp: now,
@@ -392,9 +393,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 			return ss
 		}(),
 	}
-	action.Elem().FieldByName("GoalId").Set(reflect.ValueOf(goalID))
+	goalAction.Elem().FieldByName("GoalId").Set(reflect.ValueOf(goalID))
 
-	action.Elem().FieldByName("Goal").Set(reflect.ValueOf(conf.Goal).Elem())
+	goalAction.Elem().FieldByName("Goal").Set(reflect.ValueOf(conf.Goal).Elem())
 
 	ac.mutex.Lock()
 	defer ac.mutex.Unlock()
@@ -404,7 +405,7 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 	}
 	ac.goals[goalID.Id] = gh
 
-	ac.goalPub.Write(action.Interface())
+	ac.goalPub.Write(goalAction.Interface())
 
 	return nil
 }
