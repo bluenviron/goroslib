@@ -175,6 +175,7 @@ func run() error {
 		"https://github.com/ros-drivers/ackermann_msgs",
 		"https://github.com/ros-drivers/audio_common",
 		"https://github.com/ros-drivers/velodyne",
+		"https://github.com/ros-controls/control_msgs",
 		"https://github.com/ros-perception/vision_msgs",
 	} {
 		count++

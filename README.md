@@ -96,6 +96,7 @@ This library already provides most of the standard messages and services, in the
 |ackermann_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/ackermann_msgs)|[link](https://github.com/ros-drivers/ackermann_msgs)|
 |actionlib_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/actionlib_msgs)|[link](https://github.com/ros/common_msgs)|
 |audio_common_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/audio_common_msgs)|[link](https://github.com/ros-drivers/audio_common)|
+|control_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/control_msgs)|[link](https://github.com/ros-controls/control_msgs)|
 |diagnostic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/diagnostic_msgs)|[link](https://github.com/ros/common_msgs)|
 |geometry_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geometry_msgs)|[link](https://github.com/ros/common_msgs)|
 |nav_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/nav_msgs)|[link](https://github.com/ros/common_msgs)|
