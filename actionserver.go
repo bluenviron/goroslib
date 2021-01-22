@@ -158,12 +158,14 @@ type ActionServer struct {
 	resultPub      *Publisher
 	goalSub        *Subscriber
 	cancelSub      *Subscriber
-	wg             sync.WaitGroup
 	mutex          sync.Mutex
 	goals          map[string]*ActionServerGoalHandler
 
 	// in
 	terminate chan struct{}
+
+	// out
+	done chan struct{}
 }
 
 // NewActionServer allocates an ActionServer. See ActionServerConf for the options.
@@ -200,6 +202,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		fbActionType:   reflect.TypeOf(fbAction),
 		goals:          make(map[string]*ActionServerGoalHandler),
 		terminate:      make(chan struct{}),
+		done:           make(chan struct{}),
 	}
 
 	if conf.OnGoal != nil {
@@ -329,7 +332,6 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		return nil, err
 	}
 
-	as.wg.Add(1)
 	go as.run()
 
 	return as, nil
@@ -338,7 +340,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 // Close closes an ActionServer and shuts down all its operations.
 func (as *ActionServer) Close() error {
 	close(as.terminate)
-	as.wg.Wait()
+	<-as.done
 	as.cancelSub.Close()
 	as.goalSub.Close()
 	as.resultPub.Close()
@@ -348,7 +350,7 @@ func (as *ActionServer) Close() error {
 }
 
 func (as *ActionServer) run() {
-	defer as.wg.Done()
+	defer close(as.done)
 
 	statusTicker := time.NewTicker(200 * time.Millisecond)
 	defer statusTicker.Stop()
