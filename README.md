@@ -31,7 +31,7 @@ Features:
   * [Full list of features](#full-list-of-features)
   * [Use standard messages and services](#use-standard-messages-and-services)
   * [Define custom messages](#define-custom-messages)
-  * [Import existing messages and services](#import-existing-messages-and-services)
+  * [Import existing messages, services and actions](#import-existing-messages-services-and-actions)
   * [Change namespace](#change-namespace)
   * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
   * [Edit the library](#edit-the-library)
@@ -165,7 +165,7 @@ type MessageName struct {
 }
 ```
 
-### Import existing messages and services
+### Import existing messages, services and actions
 
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
 
