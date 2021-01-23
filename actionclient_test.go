@@ -108,51 +108,27 @@ func TestActionClient(t *testing.T) {
 
 			ac.WaitForServer()
 
-			feedDone1 := make(chan *DoSomethingActionFeedback, 1)
-			resDone1 := make(chan *DoSomethingActionResult, 1)
+			feedDone := make(chan *DoSomethingActionFeedback, 1)
+			resDone := make(chan *DoSomethingActionResult, 1)
 
 			ac.SendGoal(ActionClientGoalConf{
 				Goal: &DoSomethingActionGoal{
 					Input: 1234312,
 				},
-				OnTransition: func(status ActionGoalStatus, res *DoSomethingActionResult) {
-					if status == Succeeded {
-						resDone1 <- res
+				OnTransition: func(status ActionClientGoalStatus, res *DoSomethingActionResult) {
+					if status == ActionClientGoalStatusDone {
+						resDone <- res
 					}
 				},
 				OnFeedback: func(fb *DoSomethingActionFeedback) {
-					feedDone1 <- fb
+					feedDone <- fb
 				},
 			})
 
-			feedDone2 := make(chan *DoSomethingActionFeedback, 1)
-			resDone2 := make(chan *DoSomethingActionResult, 1)
-
-			err = ac.SendGoal(ActionClientGoalConf{
-				Goal: &DoSomethingActionGoal{
-					Input: 1234312,
-				},
-				OnTransition: func(status ActionGoalStatus, res *DoSomethingActionResult) {
-					if status == Succeeded {
-						resDone2 <- res
-					}
-				},
-				OnFeedback: func(fb *DoSomethingActionFeedback) {
-					feedDone2 <- fb
-				},
-			})
-			require.NoError(t, err)
-
-			fb := <-feedDone1
+			fb := <-feedDone
 			require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
 
-			res := <-resDone1
-			require.Equal(t, &DoSomethingActionResult{123456}, res)
-
-			fb = <-feedDone2
-			require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
-
-			res = <-resDone2
+			res := <-resDone
 			require.Equal(t, &DoSomethingActionResult{123456}, res)
 		})
 	}

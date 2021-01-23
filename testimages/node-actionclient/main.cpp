@@ -5,16 +5,14 @@
 #include <shared_actions/DoSomethingAction.h>
 
 void onTransition(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction> gh) {
-    ROS_INFO("ON TRANSITION %s\n", gh.getCommState().toString().c_str());
-
     if (gh.getCommState() == actionlib::CommState::StateEnum::DONE) {
+        printf("%u\n", gh.getResult()->output);
         exit(0);
     }
 }
 
 void onFeedback(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction> gh,
     const shared_actions::DoSomethingFeedback::ConstPtr& f) {
-    ROS_INFO("ON FEEDBACK\n");
 }
 
 int main(int argc, char** argv) {

@@ -12,12 +12,28 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
+// ActionClientGoalStatus is the status of the goal of an action client.
+type ActionClientGoalStatus int
+
+// standard goal statuses.
+const (
+	ActionClientGoalStatusWaitingForGoalAck ActionClientGoalStatus = iota
+	ActionClientGoalStatusPending
+	ActionClientGoalStatusActive
+	ActionClientGoalStatusWaitingForResult
+	ActionClientGoalStatusWaitingForCancelAck
+	ActionClientGoalStatusRecalling
+	ActionClientGoalStatusPreempting
+	ActionClientGoalStatusDone
+	ActionClientGoalStatusLost
+)
+
 // ActionClientGoalConf allows to configure SendGoal().
 type ActionClientGoalConf struct {
 	// the goal to send
 	Goal interface{}
 
-	// function in the form func(ActionGoalStatus, *ActionResult) that will be called when a status transition happens
+	// function in the form func(ActionClientGoalStatus, *ActionResult) that will be called when a status transition happens
 	OnTransition interface{}
 
 	// function in the form func(*ActionFeedback) that will becalled when a feedback is received
@@ -26,9 +42,238 @@ type ActionClientGoalConf struct {
 
 // ActionClientGoalHandler is a goal handler of an ActionClient.
 type ActionClientGoalHandler struct {
+	ac     *ActionClient
 	conf   ActionClientGoalConf
-	status ActionGoalStatus
+	id     string
+	status ActionClientGoalStatus
 	result interface{}
+}
+
+func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool) {
+	for _, sta := range statusList {
+		if sta.GoalId.Id == id {
+			return sta.Status, true
+		}
+	}
+	return 0, false
+}
+
+func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStatus) {
+	status, ok := findStatus(statusList, gh.id)
+	if !ok {
+		switch gh.status {
+		case ActionClientGoalStatusWaitingForGoalAck,
+			ActionClientGoalStatusWaitingForResult,
+			ActionClientGoalStatusDone:
+		default:
+			gh.transitionTo(ActionClientGoalStatusDone)
+		}
+		return
+	}
+
+	switch gh.status {
+	case ActionClientGoalStatusWaitingForGoalAck:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+			gh.transitionTo(ActionClientGoalStatusPending)
+		case actionlib_msgs.GoalStatus_ACTIVE:
+			gh.transitionTo(ActionClientGoalStatusActive)
+		case actionlib_msgs.GoalStatus_REJECTED:
+			gh.transitionTo(ActionClientGoalStatusPending)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_RECALLING:
+			gh.transitionTo(ActionClientGoalStatusPending)
+			gh.transitionTo(ActionClientGoalStatusRecalling)
+		case actionlib_msgs.GoalStatus_RECALLED:
+			gh.transitionTo(ActionClientGoalStatusPending)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+		}
+
+	case ActionClientGoalStatusPending:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+			gh.transitionTo(ActionClientGoalStatusActive)
+		case actionlib_msgs.GoalStatus_REJECTED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_RECALLING:
+			gh.transitionTo(ActionClientGoalStatusRecalling)
+		case actionlib_msgs.GoalStatus_RECALLED:
+			gh.transitionTo(ActionClientGoalStatusRecalling)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+		}
+
+	case ActionClientGoalStatusActive:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+		case actionlib_msgs.GoalStatus_RECALLING:
+		case actionlib_msgs.GoalStatus_RECALLED:
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+		}
+
+	case ActionClientGoalStatusWaitingForResult:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+		case actionlib_msgs.GoalStatus_RECALLING:
+		case actionlib_msgs.GoalStatus_RECALLED:
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+		case actionlib_msgs.GoalStatus_ABORTED:
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+		}
+
+	case ActionClientGoalStatusWaitingForCancelAck:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_RECALLING:
+			gh.transitionTo(ActionClientGoalStatusRecalling)
+		case actionlib_msgs.GoalStatus_RECALLED:
+			gh.transitionTo(ActionClientGoalStatusRecalling)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+		}
+
+	case ActionClientGoalStatusRecalling:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_RECALLING:
+		case actionlib_msgs.GoalStatus_RECALLED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientGoalStatusPreempting)
+		}
+
+	case ActionClientGoalStatusPreempting:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+		case actionlib_msgs.GoalStatus_RECALLING:
+		case actionlib_msgs.GoalStatus_RECALLED:
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+		}
+
+	case ActionClientGoalStatusDone:
+		switch status {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+		case actionlib_msgs.GoalStatus_RECALLING:
+		case actionlib_msgs.GoalStatus_RECALLED:
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+		case actionlib_msgs.GoalStatus_ABORTED:
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+		}
+	}
+}
+
+func (gh *ActionClientGoalHandler) onFeedback(fbAction reflect.Value) {
+	if gh.conf.OnFeedback != nil {
+		reflect.ValueOf(gh.conf.OnFeedback).Call([]reflect.Value{
+			fbAction.Elem().FieldByName("Feedback").Addr(),
+		})
+	}
+}
+
+func (gh *ActionClientGoalHandler) onResult(resAction reflect.Value) {
+	switch gh.status {
+	case ActionClientGoalStatusWaitingForGoalAck,
+		ActionClientGoalStatusWaitingForCancelAck,
+		ActionClientGoalStatusPending,
+		ActionClientGoalStatusActive,
+		ActionClientGoalStatusWaitingForResult,
+		ActionClientGoalStatusRecalling,
+		ActionClientGoalStatusPreempting:
+
+		gh.result = resAction.Elem().FieldByName("Result").Addr().Interface()
+		gh.transitionTo(ActionClientGoalStatusDone)
+	}
+}
+
+func (gh *ActionClientGoalHandler) transitionTo(newStatus ActionClientGoalStatus) {
+	gh.status = newStatus
+
+	if gh.conf.OnTransition != nil {
+		dres := gh.result
+		if dres == nil {
+			dres = reflect.New(gh.ac.resType).Interface()
+		}
+
+		reflect.ValueOf(gh.conf.OnTransition).Call([]reflect.Value{
+			reflect.ValueOf(gh.status),
+			reflect.ValueOf(dres),
+		})
+	}
 }
 
 // ActionClientConf is the configuration of an ActionClient.
@@ -114,51 +359,9 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 	}
 
 	ac.statusSub, err = NewSubscriber(SubscriberConf{
-		Node:  conf.Node,
-		Topic: conf.Name + "/status",
-		Callback: func(msg *actionlib_msgs.GoalStatusArray) {
-			for _, status := range msg.StatusList {
-				onTransition, dres := func() (interface{}, interface{}) {
-					ac.mutex.Lock()
-					defer ac.mutex.Unlock()
-
-					data, ok := ac.goals[status.GoalId.Id]
-					if !ok {
-						return nil, nil
-					}
-
-					if ActionGoalStatus(status.Status) != data.status {
-						data.status = ActionGoalStatus(status.Status)
-
-						if data.conf.OnTransition != nil {
-							dres := data.result
-
-							if dres == nil {
-								dres = reflect.New(reflect.TypeOf(res)).Interface()
-							}
-
-							return data.conf.OnTransition, dres
-						}
-					}
-
-					return nil, nil
-				}()
-
-				if onTransition != nil {
-					reflect.ValueOf(onTransition).Call([]reflect.Value{
-						reflect.ValueOf(ActionGoalStatus(status.Status)),
-						reflect.ValueOf(dres),
-					})
-				}
-			}
-
-			select {
-			case <-ac.statusSubOk:
-				return
-			default:
-			}
-			close(ac.statusSubOk)
-		},
+		Node:     conf.Node,
+		Topic:    conf.Name + "/status",
+		Callback: ac.onStatus,
 	})
 	if err != nil {
 		return nil, err
@@ -169,32 +372,8 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Topic: conf.Name + "/feedback",
 		Callback: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{reflect.PtrTo(ac.fbActionType)}, []reflect.Type{}, false),
-			func(in []reflect.Value) []reflect.Value {
-				fbAction := in[0]
-
-				goalStatus := fbAction.Elem().FieldByName("Status").
-					Interface().(actionlib_msgs.GoalStatus)
-
-				onFeedback := func() interface{} {
-					ac.mutex.Lock()
-					defer ac.mutex.Unlock()
-
-					data, ok := ac.goals[goalStatus.GoalId.Id]
-					if !ok {
-						return nil
-					}
-
-					return data.conf.OnFeedback
-				}()
-
-				if onFeedback != nil {
-					reflect.ValueOf(onFeedback).Call([]reflect.Value{
-						fbAction.Elem().FieldByName("Feedback").Addr(),
-					})
-				}
-
-				return []reflect.Value{}
-			}).Interface(),
+			ac.onFeedback,
+		).Interface(),
 		onPublisher: func() {
 			select {
 			case <-ac.feedbackSubOk:
@@ -214,26 +393,8 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Topic: conf.Name + "/result",
 		Callback: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{reflect.PtrTo(ac.resActionType)}, []reflect.Type{}, false),
-			func(in []reflect.Value) []reflect.Value {
-				resAction := in[0]
-
-				goalStatus := resAction.Elem().FieldByName("Status").
-					Interface().(actionlib_msgs.GoalStatus)
-
-				func() {
-					ac.mutex.Lock()
-					defer ac.mutex.Unlock()
-
-					data, ok := ac.goals[goalStatus.GoalId.Id]
-					if !ok {
-						return
-					}
-
-					data.result = resAction.Elem().FieldByName("Result").Addr().Interface()
-				}()
-
-				return []reflect.Value{}
-			}).Interface(),
+			ac.onResult,
+		).Interface(),
 		onPublisher: func() {
 			select {
 			case <-ac.resultSubOk:
@@ -304,6 +465,62 @@ func (ac *ActionClient) Close() error {
 	return nil
 }
 
+func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
+	func() {
+		ac.mutex.Lock()
+		defer ac.mutex.Unlock()
+
+		for _, gh := range ac.goals {
+			gh.onStatus(msg.StatusList)
+		}
+	}()
+
+	select {
+	case <-ac.statusSubOk:
+		return
+	default:
+	}
+	close(ac.statusSubOk)
+}
+
+func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
+	fbAction := in[0]
+
+	goalStatus := fbAction.Elem().FieldByName("Status").
+		Interface().(actionlib_msgs.GoalStatus)
+
+	ac.mutex.Lock()
+	defer ac.mutex.Unlock()
+
+	gh, ok := ac.goals[goalStatus.GoalId.Id]
+	if !ok {
+		return []reflect.Value{}
+	}
+
+	gh.onFeedback(fbAction)
+
+	return []reflect.Value{}
+}
+
+func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
+	resAction := in[0]
+
+	goalStatus := resAction.Elem().FieldByName("Status").
+		Interface().(actionlib_msgs.GoalStatus)
+
+	ac.mutex.Lock()
+	defer ac.mutex.Unlock()
+
+	gh, ok := ac.goals[goalStatus.GoalId.Id]
+	if !ok {
+		return []reflect.Value{}
+	}
+
+	gh.onResult(resAction)
+
+	return []reflect.Value{}
+}
+
 // WaitForServer waits for the action server to start.
 func (ac *ActionClient) WaitForServer() {
 	select {
@@ -345,9 +562,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 		if cbt.NumOut() != 0 {
 			return fmt.Errorf("OnTransition must not return any value")
 		}
-		if cbt.In(0) != reflect.TypeOf(ActionGoalStatus(0)) {
+		if cbt.In(0) != reflect.TypeOf(ActionClientGoalStatus(0)) {
 			return fmt.Errorf("OnTransition 1st argument must be %s, while is %v",
-				reflect.TypeOf(ActionGoalStatus(0)), cbt.In(0))
+				reflect.TypeOf(ActionClientGoalStatus(0)), cbt.In(0))
 		}
 		if cbt.In(1) != reflect.PtrTo(ac.resType) {
 			return fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
@@ -401,7 +618,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 	defer ac.mutex.Unlock()
 
 	gh := &ActionClientGoalHandler{
+		ac:   ac,
 		conf: conf,
+		id:   goalID.Id,
 	}
 	ac.goals[goalID.Id] = gh
 

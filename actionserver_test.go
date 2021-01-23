@@ -66,7 +66,7 @@ func TestActionServer(t *testing.T) {
 				c, err := newContainer("node-actionclient", m.IP())
 				require.NoError(t, err)
 				defer c.close()
-				c.waitOutput()
+				require.Equal(t, "123456\n", c.waitOutput())
 
 			case "go":
 				nc, err := NewNode(NodeConf{
@@ -87,27 +87,27 @@ func TestActionServer(t *testing.T) {
 
 				ac.WaitForServer()
 
-				feedDone1 := make(chan *DoSomethingActionFeedback, 1)
-				resDone1 := make(chan *DoSomethingActionResult, 1)
+				feedDone := make(chan *DoSomethingActionFeedback, 1)
+				resDone := make(chan *DoSomethingActionResult, 1)
 
 				ac.SendGoal(ActionClientGoalConf{
 					Goal: &DoSomethingActionGoal{
 						Input: 1234312,
 					},
-					OnTransition: func(status ActionGoalStatus, res *DoSomethingActionResult) {
-						if status == Succeeded {
-							resDone1 <- res
+					OnTransition: func(status ActionClientGoalStatus, res *DoSomethingActionResult) {
+						if status == ActionClientGoalStatusDone {
+							resDone <- res
 						}
 					},
 					OnFeedback: func(fb *DoSomethingActionFeedback) {
-						feedDone1 <- fb
+						feedDone <- fb
 					},
 				})
 
-				fb := <-feedDone1
+				fb := <-feedDone
 				require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
 
-				res := <-resDone1
+				res := <-resDone
 				require.Equal(t, &DoSomethingActionResult{123456}, res)
 			}
 		})
