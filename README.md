@@ -29,8 +29,8 @@ Features:
 * [FAQs](#faqs)
   * [Comparison with other libraries](#comparison-with-other-libraries)
   * [Full list of features](#full-list-of-features)
-  * [Use standard messages and services](#use-standard-messages-and-services)
-  * [Define custom messages](#define-custom-messages)
+  * [Use standard messages, services and actions](#use-standard-messages-services-and-actions)
+  * [Define custom messages, services and actions](#define-custom-messages-services-and-actions)
   * [Import existing messages, services and actions](#import-existing-messages-services-and-actions)
   * [Change namespace](#change-namespace)
   * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
@@ -88,9 +88,9 @@ rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` 
 
 Current and missing features are [described in the FEATURES document](FEATURES.md).
 
-### Use standard messages and services
+### Use standard messages, services and actions
 
-This library already provides most of the standard messages and services, in the folder `pkg/msgs`, in particular:
+This library already provides most of the standard messages, services and actions in the folder `pkg/msgs`:
 
 |package|documentation|repository|
 |-------|-------------|----------|
@@ -112,7 +112,7 @@ This library already provides most of the standard messages and services, in the
 |velodyne_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
 |visualization_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
 
-### Define custom messages
+### Define custom messages, services and actions
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
 
@@ -165,6 +165,65 @@ type MessageName struct {
 }
 ```
 
+Services in this format:
+
+```
+uint32 input
+---
+uint32 output
+```
+
+Are equivalent to Go structures in this format:
+
+```go
+type ServiceNameReq struct {
+    Input uint32
+}
+
+type ServiceNameRes struct {
+	Output uint32
+}
+
+type ServiceName struct {
+	msg.Package `ros:"my_package"`
+	ServiceNameReq
+	ServiceNameRes
+}
+```
+
+Actions in this format:
+
+```
+uint32 goal
+---
+uint32 result
+---
+uint32 feedback
+```
+
+Are equivalent to Go structures in this format:
+
+```go
+type ActionNameGoal struct {
+	Goal uint32
+}
+
+type ActionNameResult struct {
+	Result uint32
+}
+
+type ActionNameFeedback struct {
+	Feedback uint32
+}
+
+type ActionName struct {
+	msg.Package `ros:"my_package"`
+	ActionNameGoal
+	ActionNameResult
+	ActionNameFeedback
+}
+```
+
 ### Import existing messages, services and actions
 
 A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
@@ -184,7 +243,7 @@ srv-import --rospackage=my_package myservice.srv > myservice.go
 Another one is provided to convert existing `.action` files into their equivalent Go structures:
 
 ```
-go get github.com/aler9/goroslib/cmd/srv-import
+go get github.com/aler9/goroslib/cmd/action-import
 action-import --rospackage=my_package myaction.action > myaction.go
 ```
 
