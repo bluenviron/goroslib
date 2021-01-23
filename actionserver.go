@@ -205,13 +205,13 @@ type ActionServerConf struct {
 	// an instance of the action type
 	Action interface{}
 
-	// function in the form func(*ActionGoalHandler, *ActionGoal) that will be called
+	// function in the form func(*ActionServerGoalHandler, *ActionGoal) that will be called
 	// whenever a goal arrives.
 	OnGoal interface{}
 
-	// function in the form func(*ActionGoalHandler) that will be called
+	// function in the form func(*ActionServerGoalHandler) that will be called
 	// whenever a goal cancellation request arrives.
-	OnCancel interface{}
+	OnCancel func(gh *ActionServerGoalHandler)
 }
 
 // ActionServer is a ROS action server, an entity that can provide actions.
@@ -293,23 +293,6 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		if cbt.In(1) != reflect.PtrTo(as.goalType) {
 			return nil, fmt.Errorf("OnGoal 2nd argument must be %s, while is %v",
 				reflect.PtrTo(as.goalType), cbt.In(1))
-		}
-	}
-
-	if conf.OnCancel != nil {
-		cbt := reflect.TypeOf(conf.OnCancel)
-		if cbt.Kind() != reflect.Func {
-			return nil, fmt.Errorf("OnCancel is not a function")
-		}
-		if cbt.NumIn() != 1 {
-			return nil, fmt.Errorf("OnCancel must accept a single argument")
-		}
-		if cbt.NumOut() != 0 {
-			return nil, fmt.Errorf("OnCancel must not return any value")
-		}
-		if cbt.In(0) != reflect.TypeOf(&ActionServerGoalHandler{}) {
-			return nil, fmt.Errorf("OnCancel 1st argument must be %s, while is %v",
-				reflect.TypeOf(&ActionServerGoalHandler{}), cbt.In(0))
 		}
 	}
 
@@ -439,17 +422,16 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 		Interface().(actionlib_msgs.GoalID)
 	goal := msg.Elem().FieldByName("Goal")
 
-	gh := func() *ActionServerGoalHandler {
+	gh := &ActionServerGoalHandler{
+		id: goalID.Id,
+		as: as,
+	}
+
+	func() {
 		as.mutex.Lock()
 		defer as.mutex.Unlock()
 
-		gh := &ActionServerGoalHandler{
-			id: goalID.Id,
-			as: as,
-		}
 		as.goals[goalID.Id] = gh
-
-		return gh
 	}()
 
 	if as.conf.OnGoal != nil {
@@ -463,7 +445,21 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 }
 
 func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {
+	gh := func() *ActionServerGoalHandler {
+		as.mutex.Lock()
+		defer as.mutex.Unlock()
 
-	fmt.Println("CANCEL")
+		gh, ok := as.goals[msg.Id]
+		if !ok {
+			return nil
+		}
+		return gh
+	}()
+	if gh == nil {
+		return
+	}
 
+	if as.conf.OnCancel != nil {
+		as.conf.OnCancel(gh)
+	}
 }

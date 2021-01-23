@@ -33,6 +33,7 @@ func TestActionClient(t *testing.T) {
 		"succeeded",
 		"rejected",
 		"aborted",
+		"canceled",
 	} {
 		for _, server := range []string{
 			"cpp",
@@ -70,6 +71,10 @@ func TestActionClient(t *testing.T) {
 								}
 								gh.SetAccepted()
 
+								if goal.Input == 3 {
+									return
+								}
+
 								time.Sleep(500 * time.Millisecond)
 
 								gh.PublishFeedback(&DoSomethingActionFeedback{
@@ -89,6 +94,7 @@ func TestActionClient(t *testing.T) {
 							}()
 						},
 						OnCancel: func(gh *ActionServerGoalHandler) {
+							gh.SetCanceled(&DoSomethingActionResult{})
 						},
 					})
 					require.NoError(t, err)
@@ -116,7 +122,7 @@ func TestActionClient(t *testing.T) {
 				feedDone := make(chan struct{})
 				resDone := make(chan struct{})
 
-				err = ac.SendGoal(ActionClientGoalConf{
+				gh, err := ac.SendGoal(ActionClientGoalConf{
 					Goal: &DoSomethingActionGoal{
 						Input: func() uint32 {
 							switch ca {
@@ -124,6 +130,8 @@ func TestActionClient(t *testing.T) {
 								return 1
 							case "aborted":
 								return 2
+							case "canceled":
+								return 3
 							}
 							return 1234312
 						}(),
@@ -132,12 +140,16 @@ func TestActionClient(t *testing.T) {
 						if gh.CommState() == ActionClientCommStateDone {
 							ts, err := gh.TerminalState()
 							require.NoError(t, err)
+
 							switch ca {
 							case "rejected":
 								require.Equal(t, ActionClientTerminalStateRejected, ts)
 
 							case "aborted":
 								require.Equal(t, ActionClientTerminalStateAborted, ts)
+
+							case "canceled":
+								require.Equal(t, ActionClientTerminalStatePreempted, ts)
 
 							default:
 								require.Equal(t, ActionClientTerminalStateSucceeded, ts)
@@ -157,6 +169,10 @@ func TestActionClient(t *testing.T) {
 				case "succeeded",
 					"aborted":
 					<-feedDone
+
+				case "canceled":
+					time.Sleep(1 * time.Second)
+					gh.Cancel()
 				}
 
 				<-resDone

@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     client.waitForActionServerToStart();
 
     shared_actions::DoSomethingGoal gl;
-    gl.input = 3;
+    gl.input = 123456;
     auto gh = client.sendGoal(gl, onTransition, onFeedback);
 
     ros::waitForShutdown();

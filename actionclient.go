@@ -119,6 +119,22 @@ func (gh *ActionClientGoalHandler) TerminalState() (ActionClientTerminalState, e
 	return gh.terminalState, nil
 }
 
+// Cancel cancels the goal.
+func (gh *ActionClientGoalHandler) Cancel() {
+	gh.ac.mutex.Lock()
+	defer gh.ac.mutex.Unlock()
+
+	switch gh.commState {
+	case ActionClientCommStateWaitingForCancelAck:
+	case ActionClientCommStateDone:
+	default:
+		gh.ac.cancelPub.Write(&actionlib_msgs.GoalID{
+			Id: gh.id,
+		})
+		gh.transitionTo(ActionClientCommStateWaitingForCancelAck)
+	}
+}
+
 func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool) {
 	for _, sta := range statusList {
 		if sta.GoalId.Id == id {
@@ -613,24 +629,24 @@ func (ac *ActionClient) WaitForServer() {
 }
 
 // SendGoal sends a goal to the action server.
-func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
+func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHandler, error) {
 	if conf.OnTransition != nil {
 		cbt := reflect.TypeOf(conf.OnTransition)
 		if cbt.Kind() != reflect.Func {
-			return fmt.Errorf("OnTransition is not a function")
+			return nil, fmt.Errorf("OnTransition is not a function")
 		}
 		if cbt.NumIn() != 2 {
-			return fmt.Errorf("OnTransition must accept a single argument")
+			return nil, fmt.Errorf("OnTransition must accept a single argument")
 		}
 		if cbt.NumOut() != 0 {
-			return fmt.Errorf("OnTransition must not return any value")
+			return nil, fmt.Errorf("OnTransition must not return any value")
 		}
 		if cbt.In(0) != reflect.TypeOf(&ActionClientGoalHandler{}) {
-			return fmt.Errorf("OnTransition 1st argument must be %s, while is %v",
+			return nil, fmt.Errorf("OnTransition 1st argument must be %s, while is %v",
 				reflect.TypeOf(&ActionClientGoalHandler{}), cbt.In(0))
 		}
 		if cbt.In(1) != reflect.PtrTo(ac.resType) {
-			return fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
+			return nil, fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
 				reflect.PtrTo(ac.resType), cbt.In(1))
 		}
 	}
@@ -638,16 +654,16 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 	if conf.OnFeedback != nil {
 		cbt := reflect.TypeOf(conf.OnFeedback)
 		if cbt.Kind() != reflect.Func {
-			return fmt.Errorf("OnFeedback is not a function")
+			return nil, fmt.Errorf("OnFeedback is not a function")
 		}
 		if cbt.NumIn() != 1 {
-			return fmt.Errorf("OnFeedback must accept a single argument")
+			return nil, fmt.Errorf("OnFeedback must accept a single argument")
 		}
 		if cbt.NumOut() != 0 {
-			return fmt.Errorf("OnFeedback must not return any value")
+			return nil, fmt.Errorf("OnFeedback must not return any value")
 		}
 		if cbt.In(0) != reflect.PtrTo(ac.fbType) {
-			return fmt.Errorf("OnFeedback 1st argument must must be %s, while is %v",
+			return nil, fmt.Errorf("OnFeedback 1st argument must must be %s, while is %v",
 				reflect.PtrTo(ac.fbType), cbt.In(1))
 		}
 	}
@@ -677,17 +693,19 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 
 	goalAction.Elem().FieldByName("Goal").Set(reflect.ValueOf(conf.Goal).Elem())
 
-	ac.mutex.Lock()
-	defer ac.mutex.Unlock()
-
 	gh := &ActionClientGoalHandler{
 		ac:   ac,
 		conf: conf,
 		id:   goalID.Id,
 	}
-	ac.goals[goalID.Id] = gh
+
+	func() {
+		ac.mutex.Lock()
+		defer ac.mutex.Unlock()
+		ac.goals[goalID.Id] = gh
+	}()
 
 	ac.goalPub.Write(goalAction.Interface())
 
-	return nil
+	return gh, nil
 }

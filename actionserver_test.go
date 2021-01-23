@@ -37,6 +37,10 @@ func TestActionServer(t *testing.T) {
 						}
 						gh.SetAccepted()
 
+						if goal.Input == 3 {
+							return
+						}
+
 						time.Sleep(500 * time.Millisecond)
 
 						gh.PublishFeedback(&DoSomethingActionFeedback{
@@ -56,6 +60,7 @@ func TestActionServer(t *testing.T) {
 					}()
 				},
 				OnCancel: func(gh *ActionServerGoalHandler) {
+					gh.SetCanceled(&DoSomethingActionResult{})
 				},
 			})
 			require.NoError(t, err)
@@ -90,7 +95,7 @@ func TestActionServer(t *testing.T) {
 				feedDone := make(chan struct{})
 				resDone := make(chan struct{})
 
-				err = ac.SendGoal(ActionClientGoalConf{
+				_, err = ac.SendGoal(ActionClientGoalConf{
 					Goal: &DoSomethingActionGoal{
 						Input: 1234312,
 					},

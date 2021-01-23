@@ -12,6 +12,10 @@ void handleGoal(actionlib::ServerGoalHandle<shared_actions::DoSomethingAction> g
     }
     gh.setAccepted();
 
+    if (gh.getGoal()->input == 3) {
+        return;
+    }
+
     ros::Duration(0.5).sleep();
 
     shared_actions::DoSomethingFeedback fb;
@@ -37,6 +41,7 @@ void onGoal(actionlib::ServerGoalHandle<shared_actions::DoSomethingAction> gh) {
 }
 
 void onCancel(actionlib::ServerGoalHandle<shared_actions::DoSomethingAction> gh) {
+    gh.setCanceled();
 }
 
 int main(int argc, char** argv) {
