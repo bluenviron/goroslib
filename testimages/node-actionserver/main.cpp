@@ -12,13 +12,13 @@ void handleGoal(actionlib::ServerGoalHandle<shared_actions::DoSomethingAction> g
     }
     gh.setAccepted();
 
-    ros::Duration(1).sleep();
+    ros::Duration(0.5).sleep();
 
     shared_actions::DoSomethingFeedback fb;
     fb.percent_complete = 0.5;
     gh.publishFeedback(fb);
 
-    ros::Duration(1).sleep();
+    ros::Duration(0.5).sleep();
 
     if (gh.getGoal()->input == 2) {
         gh.setAborted();

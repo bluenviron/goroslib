@@ -11,43 +11,43 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-// ActionServerGoalStatus is the status of the goal of an action server.
-type ActionServerGoalStatus int
+// ActionServerGoalState is the state of the goal of an action server.
+type ActionServerGoalState int
 
-// standard goal statuses.
+// standard goal states.
 const (
-	ActionServerGoalStatusPending    ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_PENDING)
-	ActionServerGoalStatusActive     ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_ACTIVE)
-	ActionServerGoalStatusPreempted  ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_PREEMPTED)
-	ActionServerGoalStatusSucceeded  ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_SUCCEEDED)
-	ActionServerGoalStatusAborted    ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_ABORTED)
-	ActionServerGoalStatusRejected   ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_REJECTED)
-	ActionServerGoalStatusPreempting ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_PREEMPTING)
-	ActionServerGoalStatusRecalling  ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_RECALLING)
-	ActionServerGoalStatusRecalled   ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_RECALLED)
-	ActionServerGoalStatusLost       ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_LOST)
+	ActionServerGoalStatePending    ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_PENDING)
+	ActionServerGoalStateActive     ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_ACTIVE)
+	ActionServerGoalStatePreempted  ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_PREEMPTED)
+	ActionServerGoalStateSucceeded  ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_SUCCEEDED)
+	ActionServerGoalStateAborted    ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_ABORTED)
+	ActionServerGoalStateRejected   ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_REJECTED)
+	ActionServerGoalStatePreempting ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_PREEMPTING)
+	ActionServerGoalStateRecalling  ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_RECALLING)
+	ActionServerGoalStateRecalled   ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_RECALLED)
+	ActionServerGoalStateLost       ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_LOST)
 )
 
 // String implements fmt.Stringer.
-func (s ActionServerGoalStatus) String() string {
+func (s ActionServerGoalState) String() string {
 	switch s {
-	case ActionServerGoalStatusPending:
+	case ActionServerGoalStatePending:
 		return "pending"
-	case ActionServerGoalStatusActive:
+	case ActionServerGoalStateActive:
 		return "active"
-	case ActionServerGoalStatusPreempted:
+	case ActionServerGoalStatePreempted:
 		return "preempted"
-	case ActionServerGoalStatusSucceeded:
+	case ActionServerGoalStateSucceeded:
 		return "succeeded"
-	case ActionServerGoalStatusAborted:
+	case ActionServerGoalStateAborted:
 		return "aborted"
-	case ActionServerGoalStatusRejected:
+	case ActionServerGoalStateRejected:
 		return "rejected"
-	case ActionServerGoalStatusPreempting:
+	case ActionServerGoalStatePreempting:
 		return "preempting"
-	case ActionServerGoalStatusRecalling:
+	case ActionServerGoalStateRecalling:
 		return "recalling"
-	case ActionServerGoalStatusRecalled:
+	case ActionServerGoalStateRecalled:
 		return "recalled"
 	default:
 		return "lost"
@@ -56,9 +56,9 @@ func (s ActionServerGoalStatus) String() string {
 
 // ActionServerGoalHandler is a goal handler of an ActionServer.
 type ActionServerGoalHandler struct {
-	as     *ActionServer
-	id     string
-	status ActionServerGoalStatus
+	as    *ActionServer
+	id    string
+	state ActionServerGoalState
 }
 
 // PublishFeedback publishes a feedback,
@@ -84,7 +84,7 @@ func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
 		GoalId: actionlib_msgs.GoalID{
 			Id: gh.id,
 		},
-		Status: uint8(gh.status),
+		Status: uint8(gh.state),
 		Text:   "",
 	}
 	fbAction.Elem().FieldByName("Status").Set(reflect.ValueOf(status))
@@ -113,7 +113,7 @@ func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
 		GoalId: actionlib_msgs.GoalID{
 			Id: gh.id,
 		},
-		Status: uint8(gh.status),
+		Status: uint8(gh.state),
 		Text:   "",
 	}
 	resAction.Elem().FieldByName("Status").Set(reflect.ValueOf(status))
@@ -127,43 +127,71 @@ func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
 func (gh *ActionServerGoalHandler) SetAccepted() {
 	gh.as.mutex.Lock()
 	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusActive
-}
 
-// SetRejected sets the goal as rejected.
-func (gh *ActionServerGoalHandler) SetRejected(res interface{}) {
-	gh.as.mutex.Lock()
-	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusRejected
+	switch gh.state {
+	case ActionServerGoalStatePending:
+		gh.state = ActionServerGoalStateActive
 
-	gh.publishResult(res)
-}
-
-// SetAborted sets the goal as aborted.
-func (gh *ActionServerGoalHandler) SetAborted(res interface{}) {
-	gh.as.mutex.Lock()
-	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusAborted
-
-	gh.publishResult(res)
+	case ActionServerGoalStateRecalling:
+		gh.state = ActionServerGoalStatePreempting
+	}
 }
 
 // SetCanceled sets the goal as canceled.
 func (gh *ActionServerGoalHandler) SetCanceled(res interface{}) {
 	gh.as.mutex.Lock()
 	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusPreempted
 
-	gh.publishResult(res)
+	switch gh.state {
+	case ActionServerGoalStatePending,
+		ActionServerGoalStateRecalling:
+		gh.state = ActionServerGoalStateRecalled
+		gh.publishResult(res)
+
+	case ActionServerGoalStateActive,
+		ActionServerGoalStatePreempting:
+		gh.state = ActionServerGoalStatePreempted
+		gh.publishResult(res)
+	}
+}
+
+// SetRejected sets the goal as rejected.
+func (gh *ActionServerGoalHandler) SetRejected(res interface{}) {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+
+	switch gh.state {
+	case ActionServerGoalStatePending,
+		ActionServerGoalStateRecalling:
+		gh.state = ActionServerGoalStateRejected
+		gh.publishResult(res)
+	}
+}
+
+// SetAborted sets the goal as aborted.
+func (gh *ActionServerGoalHandler) SetAborted(res interface{}) {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+
+	switch gh.state {
+	case ActionServerGoalStatePreempting,
+		ActionServerGoalStateActive:
+		gh.state = ActionServerGoalStateAborted
+		gh.publishResult(res)
+	}
 }
 
 // SetSucceeded sets the goal as succeeded.
 func (gh *ActionServerGoalHandler) SetSucceeded(res interface{}) {
 	gh.as.mutex.Lock()
 	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusSucceeded
 
-	gh.publishResult(res)
+	switch gh.state {
+	case ActionServerGoalStatePreempting,
+		ActionServerGoalStateActive:
+		gh.state = ActionServerGoalStateSucceeded
+		gh.publishResult(res)
+	}
 }
 
 // ActionServerConf is the configuration of an ActionServer.
@@ -382,14 +410,14 @@ func (as *ActionServer) run() {
 
 					var ret []actionlib_msgs.GoalStatus
 
-					for id, g := range as.goals {
+					for id, gh := range as.goals {
 						ret = append(ret, actionlib_msgs.GoalStatus{
 							GoalId: actionlib_msgs.GoalID{
 								// Stamp
 								Id: id,
 							},
-							Status: uint8(g.status),
-							Text:   "",
+							Status: uint8(gh.state),
+							//Text:   "",
 						})
 					}
 

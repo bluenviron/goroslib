@@ -37,13 +37,13 @@ func TestActionServer(t *testing.T) {
 						}
 						gh.SetAccepted()
 
-						time.Sleep(1 * time.Second)
+						time.Sleep(500 * time.Millisecond)
 
 						gh.PublishFeedback(&DoSomethingActionFeedback{
 							PercentComplete: 0.5,
 						})
 
-						time.Sleep(1 * time.Second)
+						time.Sleep(500 * time.Millisecond)
 
 						if goal.Input == 2 {
 							gh.SetAborted(&DoSomethingActionResult{})
