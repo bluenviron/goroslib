@@ -28,6 +28,32 @@ const (
 	ActionServerGoalStatusLost       ActionServerGoalStatus = ActionServerGoalStatus(actionlib_msgs.GoalStatus_LOST)
 )
 
+// String implements fmt.Stringer.
+func (s ActionServerGoalStatus) String() string {
+	switch s {
+	case ActionServerGoalStatusPending:
+		return "pending"
+	case ActionServerGoalStatusActive:
+		return "active"
+	case ActionServerGoalStatusPreempted:
+		return "preempted"
+	case ActionServerGoalStatusSucceeded:
+		return "succeeded"
+	case ActionServerGoalStatusAborted:
+		return "aborted"
+	case ActionServerGoalStatusRejected:
+		return "rejected"
+	case ActionServerGoalStatusPreempting:
+		return "preempting"
+	case ActionServerGoalStatusRecalling:
+		return "recalling"
+	case ActionServerGoalStatusRecalled:
+		return "recalled"
+	default:
+		return "lost"
+	}
+}
+
 // ActionServerGoalHandler is a goal handler of an ActionServer.
 type ActionServerGoalHandler struct {
 	as     *ActionServer
@@ -68,38 +94,11 @@ func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
 	gh.as.feedbackPub.Write(fbAction.Interface())
 }
 
-// SetRejected sets the goal as rejected.
-func (gh *ActionServerGoalHandler) SetRejected() {
-	gh.as.mutex.Lock()
-	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusRejected
-}
-
-// SetAccepted sets the goal as accepted.
-func (gh *ActionServerGoalHandler) SetAccepted() {
-	gh.as.mutex.Lock()
-	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusActive
-}
-
-// SetAborted sets the goal as aborted.
-func (gh *ActionServerGoalHandler) SetAborted() {
-	gh.as.mutex.Lock()
-	defer gh.as.mutex.Unlock()
-	gh.status = ActionServerGoalStatusAborted
-}
-
-// SetSucceeded sets the goal as succeeded.
-func (gh *ActionServerGoalHandler) SetSucceeded(res interface{}) {
+func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
 	if reflect.TypeOf(res) != reflect.PtrTo(gh.as.resType) {
 		panic(fmt.Errorf("argument must be %s, while is %v",
 			reflect.PtrTo(gh.as.resType), reflect.TypeOf(res)))
 	}
-
-	gh.as.mutex.Lock()
-	defer gh.as.mutex.Unlock()
-
-	gh.status = ActionServerGoalStatusSucceeded
 
 	resAction := reflect.New(gh.as.resActionType)
 
@@ -122,6 +121,49 @@ func (gh *ActionServerGoalHandler) SetSucceeded(res interface{}) {
 	resAction.Elem().FieldByName("Result").Set(reflect.ValueOf(res).Elem())
 
 	gh.as.resultPub.Write(resAction.Interface())
+}
+
+// SetAccepted sets the goal as accepted.
+func (gh *ActionServerGoalHandler) SetAccepted() {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+	gh.status = ActionServerGoalStatusActive
+}
+
+// SetRejected sets the goal as rejected.
+func (gh *ActionServerGoalHandler) SetRejected(res interface{}) {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+	gh.status = ActionServerGoalStatusRejected
+
+	gh.publishResult(res)
+}
+
+// SetAborted sets the goal as aborted.
+func (gh *ActionServerGoalHandler) SetAborted(res interface{}) {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+	gh.status = ActionServerGoalStatusAborted
+
+	gh.publishResult(res)
+}
+
+// SetCanceled sets the goal as canceled.
+func (gh *ActionServerGoalHandler) SetCanceled(res interface{}) {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+	gh.status = ActionServerGoalStatusPreempted
+
+	gh.publishResult(res)
+}
+
+// SetSucceeded sets the goal as succeeded.
+func (gh *ActionServerGoalHandler) SetSucceeded(res interface{}) {
+	gh.as.mutex.Lock()
+	defer gh.as.mutex.Unlock()
+	gh.status = ActionServerGoalStatusSucceeded
+
+	gh.publishResult(res)
 }
 
 // ActionServerConf is the configuration of an ActionServer.
@@ -279,7 +321,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		Callback: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
 			as.onGoal,
-			).Interface(),
+		).Interface(),
 	})
 	if err != nil {
 		as.resultPub.Close()
@@ -289,8 +331,8 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 	}
 
 	as.cancelSub, err = NewSubscriber(SubscriberConf{
-		Node:  conf.Node,
-		Topic: conf.Name + "/cancel",
+		Node:     conf.Node,
+		Topic:    conf.Name + "/cancel",
 		Callback: as.onCancel,
 	})
 	if err != nil {

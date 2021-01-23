@@ -32,7 +32,7 @@ func TestActionServer(t *testing.T) {
 				OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
 					go func() {
 						if goal.Input == 1 {
-							gh.SetRejected()
+							gh.SetRejected(&DoSomethingActionResult{})
 							return
 						}
 						gh.SetAccepted()
@@ -46,7 +46,7 @@ func TestActionServer(t *testing.T) {
 						time.Sleep(1 * time.Second)
 
 						if goal.Input == 2 {
-							gh.SetAborted()
+							gh.SetAborted(&DoSomethingActionResult{})
 							return
 						}
 

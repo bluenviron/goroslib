@@ -28,6 +28,30 @@ const (
 	ActionClientCommStateLost
 )
 
+// String implements fmt.Stringer.
+func (s ActionClientCommState) String() string {
+	switch s {
+	case ActionClientCommStateWaitingForGoalAck:
+		return "waitingForGoalAck"
+	case ActionClientCommStatePending:
+		return "pending"
+	case ActionClientCommStateActive:
+		return "active"
+	case ActionClientCommStateWaitingForResult:
+		return "waitingForResult"
+	case ActionClientCommStateWaitingForCancelAck:
+		return "waitingForCancelAck"
+	case ActionClientCommStateRecalling:
+		return "recalling"
+	case ActionClientCommStatePreempting:
+		return "preempting"
+	case ActionClientCommStateDone:
+		return "done"
+	default:
+		return "lost"
+	}
+}
+
 // ActionClientTerminalState is the terminal state of the goal of an action client.
 type ActionClientTerminalState int
 
@@ -40,6 +64,24 @@ const (
 	ActionClientTerminalStateSucceeded ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_SUCCEEDED)
 	ActionClientTerminalStateLost      ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_LOST)
 )
+
+// String implements fmt.Stringer.
+func (s ActionClientTerminalState) String() string {
+	switch s {
+	case ActionClientTerminalStateRecalled:
+		return "recalled"
+	case ActionClientTerminalStateRejected:
+		return "rejected"
+	case ActionClientTerminalStatePreempted:
+		return "preempted"
+	case ActionClientTerminalStateAborted:
+		return "aborted"
+	case ActionClientTerminalStateSucceeded:
+		return "succeeded"
+	default:
+		return "lost"
+	}
+}
 
 // ActionClientGoalConf allows to configure SendGoal().
 type ActionClientGoalConf struct {
