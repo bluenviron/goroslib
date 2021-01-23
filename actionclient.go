@@ -144,9 +144,9 @@ func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool)
 	return 0, false
 }
 
-func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStatus) {
+func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStatus) bool {
 	if gh.commState == ActionClientCommStateDone {
-		return
+		return false
 	}
 
 	goalStatus, ok := findStatus(statusList, gh.id)
@@ -154,11 +154,13 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		switch gh.commState {
 		case ActionClientCommStateWaitingForGoalAck,
 			ActionClientCommStateWaitingForResult:
+			return true
+
 		default:
 			gh.terminalState = ActionClientTerminalStateLost
 			gh.transitionTo(ActionClientCommStateDone)
+			return false
 		}
-		return
 	}
 
 	switch gh.commState {
@@ -312,6 +314,8 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		case actionlib_msgs.GoalStatus_PREEMPTING:
 		}
 	}
+
+	return true
 }
 
 func (gh *ActionClientGoalHandler) onFeedback(fbAction reflect.Value) {
@@ -322,7 +326,7 @@ func (gh *ActionClientGoalHandler) onFeedback(fbAction reflect.Value) {
 	}
 }
 
-func (gh *ActionClientGoalHandler) onResult(resAction reflect.Value) {
+func (gh *ActionClientGoalHandler) onResult(resAction reflect.Value) bool {
 	switch gh.commState {
 	case ActionClientCommStateWaitingForGoalAck,
 		ActionClientCommStateWaitingForCancelAck,
@@ -336,7 +340,9 @@ func (gh *ActionClientGoalHandler) onResult(resAction reflect.Value) {
 		gh.terminalState = ActionClientTerminalState(
 			resAction.Elem().FieldByName("Status").FieldByName("Status").Interface().(uint8))
 		gh.transitionTo(ActionClientCommStateDone)
+		return false
 	}
+	return true
 }
 
 func (gh *ActionClientGoalHandler) transitionTo(newCommState ActionClientCommState) {
@@ -549,8 +555,11 @@ func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
 		ac.mutex.Lock()
 		defer ac.mutex.Unlock()
 
-		for _, gh := range ac.goals {
-			gh.onStatus(msg.StatusList)
+		for id, gh := range ac.goals {
+			ok := gh.onStatus(msg.StatusList)
+			if !ok {
+				delete(ac.goals, id)
+			}
 		}
 	}()
 
@@ -595,7 +604,10 @@ func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
 		return []reflect.Value{}
 	}
 
-	gh.onResult(resAction)
+	ok = gh.onResult(resAction)
+	if !ok {
+		delete(ac.goals, goalStatus.GoalId.Id)
+	}
 
 	return []reflect.Value{}
 }

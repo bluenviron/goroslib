@@ -56,9 +56,10 @@ func (s ActionServerGoalState) String() string {
 
 // ActionServerGoalHandler is a goal handler of an ActionServer.
 type ActionServerGoalHandler struct {
-	as    *ActionServer
-	id    string
-	state ActionServerGoalState
+	as      *ActionServer
+	id      string
+	created time.Time
+	state   ActionServerGoalState
 }
 
 // PublishFeedback publishes a feedback,
@@ -205,6 +206,14 @@ type ActionServerConf struct {
 	// an instance of the action type
 	Action interface{}
 
+	// status messages are published with this period.
+	// It defaults to 200 ms.
+	StatusPeriod time.Duration
+
+	// goals are deleted after this duration.
+	// It defaults to 5 secs.
+	DeleteGoalAfter time.Duration
+
 	// function in the form func(*ActionServerGoalHandler, *ActionGoal) that will be called
 	// whenever a goal arrives.
 	OnGoal interface{}
@@ -250,6 +259,14 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 
 	if conf.Action == nil {
 		return nil, fmt.Errorf("Action is empty")
+	}
+
+	if conf.StatusPeriod == 0 {
+		conf.StatusPeriod = 200 * time.Millisecond
+	}
+
+	if conf.DeleteGoalAfter == 0 {
+		conf.DeleteGoalAfter = 5 * time.Second
 	}
 
 	goal, res, fb, err := action.GoalResultFeedback(conf.Action)
@@ -374,7 +391,7 @@ func (as *ActionServer) Close() error {
 func (as *ActionServer) run() {
 	defer close(as.done)
 
-	statusTicker := time.NewTicker(200 * time.Millisecond)
+	statusTicker := time.NewTicker(as.conf.StatusPeriod)
 	defer statusTicker.Stop()
 
 	curSeq := uint32(0)
@@ -382,30 +399,36 @@ func (as *ActionServer) run() {
 	for {
 		select {
 		case <-statusTicker.C:
+			statuses := func() []actionlib_msgs.GoalStatus {
+				as.mutex.Lock()
+				defer as.mutex.Unlock()
+
+				// remove expired goals
+				now := time.Now()
+				for id, gh := range as.goals {
+					if now.Sub(gh.created) >= as.conf.DeleteGoalAfter {
+						delete(as.goals, id)
+					}
+				}
+
+				var ret []actionlib_msgs.GoalStatus
+				for id, gh := range as.goals {
+					ret = append(ret, actionlib_msgs.GoalStatus{
+						GoalId: actionlib_msgs.GoalID{
+							Id: id,
+						},
+						Status: uint8(gh.state),
+					})
+				}
+				return ret
+			}()
+
 			as.statusPub.Write(&actionlib_msgs.GoalStatusArray{
 				Header: std_msgs.Header{
 					Seq:   curSeq,
 					Stamp: time.Now(),
 				},
-				StatusList: func() []actionlib_msgs.GoalStatus {
-					as.mutex.Lock()
-					defer as.mutex.Unlock()
-
-					var ret []actionlib_msgs.GoalStatus
-
-					for id, gh := range as.goals {
-						ret = append(ret, actionlib_msgs.GoalStatus{
-							GoalId: actionlib_msgs.GoalID{
-								// Stamp
-								Id: id,
-							},
-							Status: uint8(gh.state),
-							//Text:   "",
-						})
-					}
-
-					return ret
-				}(),
+				StatusList: statuses,
 			})
 			curSeq++
 
@@ -423,8 +446,9 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 	goal := msg.Elem().FieldByName("Goal")
 
 	gh := &ActionServerGoalHandler{
-		id: goalID.Id,
-		as: as,
+		as:      as,
+		id:      goalID.Id,
+		created: time.Now(),
 	}
 
 	func() {
