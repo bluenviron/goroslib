@@ -6,6 +6,7 @@
 
 void onTransition(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction> gh) {
     if (gh.getCommState() == actionlib::CommState::StateEnum::DONE) {
+        printf("%s\n", gh.getTerminalState().toString().c_str());
         printf("%u\n", gh.getResult()->output);
         exit(0);
     }

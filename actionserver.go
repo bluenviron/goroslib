@@ -12,7 +12,7 @@ import (
 )
 
 // ActionServerGoalStatus is the status of the goal of an action server.
-type ActionServerGoalStatus uint8
+type ActionServerGoalStatus int
 
 // standard goal statuses.
 const (
@@ -135,11 +135,11 @@ type ActionServerConf struct {
 	// an instance of the action type
 	Action interface{}
 
-	// function in the form func(*ActionGoal, *ActionGoalHandler) that will be called
+	// function in the form func(*ActionGoalHandler, *ActionGoal) that will be called
 	// whenever a goal arrives.
 	OnGoal interface{}
 
-	// function in the form func(*ActionGoal, ActionGoalHandler) that will be called
+	// function in the form func(*ActionGoalHandler) that will be called
 	// whenever a goal cancellation request arrives.
 	OnCancel interface{}
 }
@@ -216,13 +216,13 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		if cbt.NumOut() != 0 {
 			return nil, fmt.Errorf("OnGoal must not return any value")
 		}
-		if cbt.In(0) != reflect.PtrTo(as.goalType) {
+		if cbt.In(0) != reflect.TypeOf(&ActionServerGoalHandler{}) {
 			return nil, fmt.Errorf("OnGoal 1st argument must be %s, while is %v",
-				reflect.PtrTo(as.goalType), cbt.In(0))
+				reflect.TypeOf(&ActionServerGoalHandler{}), cbt.In(0))
 		}
-		if cbt.In(1) != reflect.TypeOf(&ActionServerGoalHandler{}) {
+		if cbt.In(1) != reflect.PtrTo(as.goalType) {
 			return nil, fmt.Errorf("OnGoal 2nd argument must be %s, while is %v",
-				reflect.TypeOf(&ActionServerGoalHandler{}), cbt.In(1))
+				reflect.PtrTo(as.goalType), cbt.In(1))
 		}
 	}
 
@@ -238,7 +238,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 			return nil, fmt.Errorf("OnCancel must not return any value")
 		}
 		if cbt.In(0) != reflect.TypeOf(&ActionServerGoalHandler{}) {
-			return nil, fmt.Errorf("OnGoal 2nd argument must be %s, while is %v",
+			return nil, fmt.Errorf("OnCancel 1st argument must be %s, while is %v",
 				reflect.TypeOf(&ActionServerGoalHandler{}), cbt.In(0))
 		}
 	}
@@ -278,35 +278,8 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		Topic: conf.Name + "/goal",
 		Callback: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
-			func(in []reflect.Value) []reflect.Value {
-				msg := in[0]
-
-				goalID := msg.Elem().FieldByName("GoalId").
-					Interface().(actionlib_msgs.GoalID)
-				goal := msg.Elem().FieldByName("Goal")
-
-				gh := func() *ActionServerGoalHandler {
-					as.mutex.Lock()
-					defer as.mutex.Unlock()
-
-					gh := &ActionServerGoalHandler{
-						id: goalID.Id,
-						as: as,
-					}
-					as.goals[goalID.Id] = gh
-
-					return gh
-				}()
-
-				if conf.OnGoal != nil {
-					reflect.ValueOf(conf.OnGoal).Call([]reflect.Value{
-						goal.Addr(),
-						reflect.ValueOf(gh),
-					})
-				}
-
-				return []reflect.Value{}
-			}).Interface(),
+			as.onGoal,
+			).Interface(),
 	})
 	if err != nil {
 		as.resultPub.Close()
@@ -318,11 +291,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 	as.cancelSub, err = NewSubscriber(SubscriberConf{
 		Node:  conf.Node,
 		Topic: conf.Name + "/cancel",
-		Callback: func(msg *actionlib_msgs.GoalID) {
-
-			fmt.Println("CANCEL")
-
-		},
+		Callback: as.onCancel,
 	})
 	if err != nil {
 		as.goalSub.Close()
@@ -391,4 +360,40 @@ func (as *ActionServer) run() {
 			return
 		}
 	}
+}
+
+func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
+	msg := in[0]
+
+	goalID := msg.Elem().FieldByName("GoalId").
+		Interface().(actionlib_msgs.GoalID)
+	goal := msg.Elem().FieldByName("Goal")
+
+	gh := func() *ActionServerGoalHandler {
+		as.mutex.Lock()
+		defer as.mutex.Unlock()
+
+		gh := &ActionServerGoalHandler{
+			id: goalID.Id,
+			as: as,
+		}
+		as.goals[goalID.Id] = gh
+
+		return gh
+	}()
+
+	if as.conf.OnGoal != nil {
+		reflect.ValueOf(as.conf.OnGoal).Call([]reflect.Value{
+			reflect.ValueOf(gh),
+			goal.Addr(),
+		})
+	}
+
+	return []reflect.Value{}
+}
+
+func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {
+
+	fmt.Println("CANCEL")
+
 }

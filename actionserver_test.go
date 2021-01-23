@@ -29,7 +29,7 @@ func TestActionServer(t *testing.T) {
 				Node:   ns,
 				Name:   "test_action",
 				Action: &DoSomethingAction{},
-				OnGoal: func(goal *DoSomethingActionGoal, gh *ActionServerGoalHandler) {
+				OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
 					go func() {
 						if goal.Input == 1 {
 							gh.SetRejected()
@@ -66,7 +66,7 @@ func TestActionServer(t *testing.T) {
 				c, err := newContainer("node-actionclient", m.IP())
 				require.NoError(t, err)
 				defer c.close()
-				require.Equal(t, "123456\n", c.waitOutput())
+				require.Equal(t, "SUCCEEDED\n123456\n", c.waitOutput())
 
 			case "go":
 				nc, err := NewNode(NodeConf{
@@ -87,28 +87,31 @@ func TestActionServer(t *testing.T) {
 
 				ac.WaitForServer()
 
-				feedDone := make(chan *DoSomethingActionFeedback, 1)
-				resDone := make(chan *DoSomethingActionResult, 1)
+				feedDone := make(chan struct{})
+				resDone := make(chan struct{})
 
-				ac.SendGoal(ActionClientGoalConf{
+				err = ac.SendGoal(ActionClientGoalConf{
 					Goal: &DoSomethingActionGoal{
 						Input: 1234312,
 					},
-					OnTransition: func(status ActionClientGoalStatus, res *DoSomethingActionResult) {
-						if status == ActionClientGoalStatusDone {
-							resDone <- res
+					OnTransition: func(gh *ActionClientGoalHandler, res *DoSomethingActionResult) {
+						if gh.CommState() == ActionClientCommStateDone {
+							ts, err := gh.TerminalState()
+							require.NoError(t, err)
+							require.Equal(t, ActionClientTerminalStateSucceeded, ts)
+							require.Equal(t, &DoSomethingActionResult{123456}, res)
+							close(resDone)
 						}
 					},
 					OnFeedback: func(fb *DoSomethingActionFeedback) {
-						feedDone <- fb
+						require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
+						close(feedDone)
 					},
 				})
+				require.NoError(t, err)
 
-				fb := <-feedDone
-				require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
-
-				res := <-resDone
-				require.Equal(t, &DoSomethingActionResult{123456}, res)
+				<-feedDone
+				<-resDone
 			}
 		})
 	}

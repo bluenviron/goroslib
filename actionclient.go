@@ -12,20 +12,33 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-// ActionClientGoalStatus is the status of the goal of an action client.
-type ActionClientGoalStatus int
+// ActionClientCommState is the communication state of the goal of an action client.
+type ActionClientCommState int
 
-// standard goal statuses.
+// standard goal communication states.
 const (
-	ActionClientGoalStatusWaitingForGoalAck ActionClientGoalStatus = iota
-	ActionClientGoalStatusPending
-	ActionClientGoalStatusActive
-	ActionClientGoalStatusWaitingForResult
-	ActionClientGoalStatusWaitingForCancelAck
-	ActionClientGoalStatusRecalling
-	ActionClientGoalStatusPreempting
-	ActionClientGoalStatusDone
-	ActionClientGoalStatusLost
+	ActionClientCommStateWaitingForGoalAck ActionClientCommState = iota
+	ActionClientCommStatePending
+	ActionClientCommStateActive
+	ActionClientCommStateWaitingForResult
+	ActionClientCommStateWaitingForCancelAck
+	ActionClientCommStateRecalling
+	ActionClientCommStatePreempting
+	ActionClientCommStateDone
+	ActionClientCommStateLost
+)
+
+// ActionClientTerminalState is the terminal state of the goal of an action client.
+type ActionClientTerminalState int
+
+// standard goal terminal states.
+const (
+	ActionClientTerminalStateRecalled  ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_RECALLED)
+	ActionClientTerminalStateRejected  ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_REJECTED)
+	ActionClientTerminalStatePreempted ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_PREEMPTED)
+	ActionClientTerminalStateAborted   ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_ABORTED)
+	ActionClientTerminalStateSucceeded ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_SUCCEEDED)
+	ActionClientTerminalStateLost      ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_LOST)
 )
 
 // ActionClientGoalConf allows to configure SendGoal().
@@ -33,7 +46,7 @@ type ActionClientGoalConf struct {
 	// the goal to send
 	Goal interface{}
 
-	// function in the form func(ActionClientGoalStatus, *ActionResult) that will be called when a status transition happens
+	// function in the form func(*ActionClientGoalHandler, *ActionResult) that will be called when a status transition happens
 	OnTransition interface{}
 
 	// function in the form func(*ActionFeedback) that will becalled when a feedback is received
@@ -42,11 +55,26 @@ type ActionClientGoalConf struct {
 
 // ActionClientGoalHandler is a goal handler of an ActionClient.
 type ActionClientGoalHandler struct {
-	ac     *ActionClient
-	conf   ActionClientGoalConf
-	id     string
-	status ActionClientGoalStatus
-	result interface{}
+	ac            *ActionClient
+	conf          ActionClientGoalConf
+	id            string
+	commState     ActionClientCommState
+	terminalState ActionClientTerminalState
+	result        interface{}
+}
+
+// CommState returns the communication state of the goal handler.
+func (gh *ActionClientGoalHandler) CommState() ActionClientCommState {
+	return gh.commState
+}
+
+// TerminalState returns the terminal state of the goal handler.
+func (gh *ActionClientGoalHandler) TerminalState() (ActionClientTerminalState, error) {
+	if gh.commState != ActionClientCommStateDone {
+		return 0, fmt.Errorf("unable to get terminal state when communication state is not Done")
+	}
+
+	return gh.terminalState, nil
 }
 
 func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool) {
@@ -59,96 +87,100 @@ func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool)
 }
 
 func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStatus) {
-	status, ok := findStatus(statusList, gh.id)
+	if gh.commState == ActionClientCommStateDone {
+		return
+	}
+
+	goalStatus, ok := findStatus(statusList, gh.id)
 	if !ok {
-		switch gh.status {
-		case ActionClientGoalStatusWaitingForGoalAck,
-			ActionClientGoalStatusWaitingForResult,
-			ActionClientGoalStatusDone:
+		switch gh.commState {
+		case ActionClientCommStateWaitingForGoalAck,
+			ActionClientCommStateWaitingForResult:
 		default:
-			gh.transitionTo(ActionClientGoalStatusDone)
+			gh.terminalState = ActionClientTerminalStateLost
+			gh.transitionTo(ActionClientCommStateDone)
 		}
 		return
 	}
 
-	switch gh.status {
-	case ActionClientGoalStatusWaitingForGoalAck:
-		switch status {
+	switch gh.commState {
+	case ActionClientCommStateWaitingForGoalAck:
+		switch goalStatus {
 		case actionlib_msgs.GoalStatus_PENDING:
-			gh.transitionTo(ActionClientGoalStatusPending)
+			gh.transitionTo(ActionClientCommStatePending)
 		case actionlib_msgs.GoalStatus_ACTIVE:
-			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientCommStateActive)
 		case actionlib_msgs.GoalStatus_REJECTED:
-			gh.transitionTo(ActionClientGoalStatusPending)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStatePending)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_RECALLING:
-			gh.transitionTo(ActionClientGoalStatusPending)
-			gh.transitionTo(ActionClientGoalStatusRecalling)
+			gh.transitionTo(ActionClientCommStatePending)
+			gh.transitionTo(ActionClientCommStateRecalling)
 		case actionlib_msgs.GoalStatus_RECALLED:
-			gh.transitionTo(ActionClientGoalStatusPending)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStatePending)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTED:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_SUCCEEDED:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_ABORTED:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTING:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStatePreempting)
 		}
 
-	case ActionClientGoalStatusPending:
-		switch status {
+	case ActionClientCommStatePending:
+		switch goalStatus {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
-			gh.transitionTo(ActionClientGoalStatusActive)
+			gh.transitionTo(ActionClientCommStateActive)
 		case actionlib_msgs.GoalStatus_REJECTED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_RECALLING:
-			gh.transitionTo(ActionClientGoalStatusRecalling)
+			gh.transitionTo(ActionClientCommStateRecalling)
 		case actionlib_msgs.GoalStatus_RECALLED:
-			gh.transitionTo(ActionClientGoalStatusRecalling)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateRecalling)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTED:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_SUCCEEDED:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_ABORTED:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTING:
-			gh.transitionTo(ActionClientGoalStatusActive)
-			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientCommStateActive)
+			gh.transitionTo(ActionClientCommStatePreempting)
 		}
 
-	case ActionClientGoalStatusActive:
-		switch status {
+	case ActionClientCommStateActive:
+		switch goalStatus {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
 		case actionlib_msgs.GoalStatus_RECALLING:
 		case actionlib_msgs.GoalStatus_RECALLED:
 		case actionlib_msgs.GoalStatus_PREEMPTED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_SUCCEEDED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_ABORTED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTING:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
+			gh.transitionTo(ActionClientCommStatePreempting)
 		}
 
-	case ActionClientGoalStatusWaitingForResult:
-		switch status {
+	case ActionClientCommStateWaitingForResult:
+		switch goalStatus {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
@@ -157,81 +189,68 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		case actionlib_msgs.GoalStatus_PREEMPTED:
 		case actionlib_msgs.GoalStatus_SUCCEEDED:
 		case actionlib_msgs.GoalStatus_ABORTED:
-		case actionlib_msgs.GoalStatus_PREEMPTING:
-		}
-
-	case ActionClientGoalStatusWaitingForCancelAck:
-		switch status {
-		case actionlib_msgs.GoalStatus_PENDING:
-		case actionlib_msgs.GoalStatus_ACTIVE:
-		case actionlib_msgs.GoalStatus_REJECTED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_RECALLING:
-			gh.transitionTo(ActionClientGoalStatusRecalling)
-		case actionlib_msgs.GoalStatus_RECALLED:
-			gh.transitionTo(ActionClientGoalStatusRecalling)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_PREEMPTED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_SUCCEEDED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_ABORTED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_PREEMPTING:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-		}
-
-	case ActionClientGoalStatusRecalling:
-		switch status {
-		case actionlib_msgs.GoalStatus_PENDING:
-		case actionlib_msgs.GoalStatus_ACTIVE:
-		case actionlib_msgs.GoalStatus_REJECTED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_RECALLING:
-		case actionlib_msgs.GoalStatus_RECALLED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_PREEMPTED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_SUCCEEDED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_ABORTED:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_PREEMPTING:
-			gh.transitionTo(ActionClientGoalStatusPreempting)
-		}
-
-	case ActionClientGoalStatusPreempting:
-		switch status {
-		case actionlib_msgs.GoalStatus_PENDING:
-		case actionlib_msgs.GoalStatus_ACTIVE:
-		case actionlib_msgs.GoalStatus_REJECTED:
-		case actionlib_msgs.GoalStatus_RECALLING:
-		case actionlib_msgs.GoalStatus_RECALLED:
-		case actionlib_msgs.GoalStatus_PREEMPTED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_SUCCEEDED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
-		case actionlib_msgs.GoalStatus_ABORTED:
-			gh.transitionTo(ActionClientGoalStatusWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTING:
 		}
 
-	case ActionClientGoalStatusDone:
-		switch status {
+	case ActionClientCommStateWaitingForCancelAck:
+		switch goalStatus {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_RECALLING:
+			gh.transitionTo(ActionClientCommStateRecalling)
+		case actionlib_msgs.GoalStatus_RECALLED:
+			gh.transitionTo(ActionClientCommStateRecalling)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientCommStatePreempting)
+		}
+
+	case ActionClientCommStateRecalling:
+		switch goalStatus {
+		case actionlib_msgs.GoalStatus_PENDING:
+		case actionlib_msgs.GoalStatus_ACTIVE:
+		case actionlib_msgs.GoalStatus_REJECTED:
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_RECALLING:
+		case actionlib_msgs.GoalStatus_RECALLED:
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientCommStatePreempting)
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
+		case actionlib_msgs.GoalStatus_PREEMPTING:
+			gh.transitionTo(ActionClientCommStatePreempting)
+		}
+
+	case ActionClientCommStatePreempting:
+		switch goalStatus {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
 		case actionlib_msgs.GoalStatus_RECALLING:
 		case actionlib_msgs.GoalStatus_RECALLED:
 		case actionlib_msgs.GoalStatus_PREEMPTED:
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_SUCCEEDED:
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_ABORTED:
+			gh.transitionTo(ActionClientCommStateWaitingForResult)
 		case actionlib_msgs.GoalStatus_PREEMPTING:
 		}
 	}
@@ -246,22 +265,24 @@ func (gh *ActionClientGoalHandler) onFeedback(fbAction reflect.Value) {
 }
 
 func (gh *ActionClientGoalHandler) onResult(resAction reflect.Value) {
-	switch gh.status {
-	case ActionClientGoalStatusWaitingForGoalAck,
-		ActionClientGoalStatusWaitingForCancelAck,
-		ActionClientGoalStatusPending,
-		ActionClientGoalStatusActive,
-		ActionClientGoalStatusWaitingForResult,
-		ActionClientGoalStatusRecalling,
-		ActionClientGoalStatusPreempting:
+	switch gh.commState {
+	case ActionClientCommStateWaitingForGoalAck,
+		ActionClientCommStateWaitingForCancelAck,
+		ActionClientCommStatePending,
+		ActionClientCommStateActive,
+		ActionClientCommStateWaitingForResult,
+		ActionClientCommStateRecalling,
+		ActionClientCommStatePreempting:
 
 		gh.result = resAction.Elem().FieldByName("Result").Addr().Interface()
-		gh.transitionTo(ActionClientGoalStatusDone)
+		gh.terminalState = ActionClientTerminalState(
+			resAction.Elem().FieldByName("Status").FieldByName("Status").Interface().(uint8))
+		gh.transitionTo(ActionClientCommStateDone)
 	}
 }
 
-func (gh *ActionClientGoalHandler) transitionTo(newStatus ActionClientGoalStatus) {
-	gh.status = newStatus
+func (gh *ActionClientGoalHandler) transitionTo(newCommState ActionClientCommState) {
+	gh.commState = newCommState
 
 	if gh.conf.OnTransition != nil {
 		dres := gh.result
@@ -270,7 +291,7 @@ func (gh *ActionClientGoalHandler) transitionTo(newStatus ActionClientGoalStatus
 		}
 
 		reflect.ValueOf(gh.conf.OnTransition).Call([]reflect.Value{
-			reflect.ValueOf(gh.status),
+			reflect.ValueOf(gh),
 			reflect.ValueOf(dres),
 		})
 	}
@@ -562,9 +583,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) error {
 		if cbt.NumOut() != 0 {
 			return fmt.Errorf("OnTransition must not return any value")
 		}
-		if cbt.In(0) != reflect.TypeOf(ActionClientGoalStatus(0)) {
+		if cbt.In(0) != reflect.TypeOf(&ActionClientGoalHandler{}) {
 			return fmt.Errorf("OnTransition 1st argument must be %s, while is %v",
-				reflect.TypeOf(ActionClientGoalStatus(0)), cbt.In(0))
+				reflect.TypeOf(&ActionClientGoalHandler{}), cbt.In(0))
 		}
 		if cbt.In(1) != reflect.PtrTo(ac.resType) {
 			return fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
