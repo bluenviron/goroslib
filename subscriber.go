@@ -36,6 +36,11 @@ type SubscriberConf struct {
 	// it defaults to TCP.
 	Protocol Protocol
 
+	// (optional) queue size. If the Callback is too slow, the queue fills up,
+	// and newer messages are discarded.
+	// It defaults to zero (wait the Callback synchronously).
+	QueueSize uint
+
 	// (optional) enable keep-alive packets, that are
 	// useful when there's a firewall between nodes.
 	EnableKeepAlive bool
@@ -116,7 +121,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		publishers:          make(map[string]*subscriberPublisher),
 		getBusInfo:          make(chan getBusInfoSubReq),
 		subscriberPubUpdate: make(chan []string),
-		message:             make(chan interface{}),
+		message:             make(chan interface{}, conf.QueueSize),
 		shutdown:            make(chan struct{}),
 		terminate:           make(chan struct{}),
 		nodeTerminate:       make(chan struct{}),
@@ -149,7 +154,16 @@ func (s *Subscriber) Close() error {
 func (s *Subscriber) run() {
 	defer close(s.done)
 
-	cbv := reflect.ValueOf(s.conf.Callback)
+	msgDone := make(chan struct{})
+	go func() {
+		defer close(msgDone)
+
+		cbv := reflect.ValueOf(s.conf.Callback)
+
+		for msg := range s.message {
+			cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
+		}
+	}()
 
 outer:
 	for {
@@ -202,11 +216,6 @@ outer:
 				}
 			}
 
-		// messages are received with events
-		// in order to avoid mutexes in the user side
-		case msg := <-s.message:
-			cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
-
 		case <-s.shutdown:
 			break outer
 		}
@@ -241,13 +250,15 @@ outer:
 	}
 	s.publishersWg.Wait()
 
-	s.conf.Node.subscriberClose <- s
+	close(s.message)
+	<-msgDone
 
+	s.conf.Node.subscriberClose <- s
 	<-s.nodeTerminate
+
 	<-s.terminate
 
 	close(s.getBusInfo)
 	close(s.subscriberPubUpdate)
-	close(s.message)
 	close(s.shutdown)
 }

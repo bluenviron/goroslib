@@ -395,3 +395,65 @@ func TestSubscriberReadUdp(t *testing.T) {
 		})
 	}
 }
+
+func TestSubscriberQueue(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	p, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib_pub",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer p.Close()
+
+	pub, err := NewPublisher(PublisherConf{
+		Node:  p,
+		Topic: "test_topic",
+		Msg:   &std_msgs.Int64{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	recv := make(chan struct{})
+
+	sub, err := NewSubscriber(SubscriberConf{
+		Node:  n,
+		Topic: "test_topic",
+		Callback: func(msg *std_msgs.Int64) {
+			recv <- struct{}{}
+		},
+		QueueSize: 1,
+	})
+	require.NoError(t, err)
+	defer sub.Close()
+
+	time.Sleep(1 * time.Second)
+
+	pub.Write(&std_msgs.Int64{Data: 1})
+	pub.Write(&std_msgs.Int64{Data: 2})
+	pub.Write(&std_msgs.Int64{Data: 3})
+	pub.Write(&std_msgs.Int64{Data: 4})
+	pub.Write(&std_msgs.Int64{Data: 5})
+
+	time.Sleep(1 * time.Second)
+
+	<-recv
+	<-recv
+
+	select {
+	case <-recv:
+		t.Errorf("not expected")
+	case <-time.After(1 * time.Second):
+	}
+}

@@ -242,7 +242,14 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 				return
 			}
 
-			sp.sub.message <- msg
+			if sp.sub.conf.QueueSize == 0 {
+				sp.sub.message <- msg
+			} else {
+				select {
+				case sp.sub.message <- msg:
+				default:
+				}
+			}
 		}
 	}()
 
@@ -365,7 +372,14 @@ func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) e
 					continue
 				}
 
-				sp.sub.message <- msg
+				if sp.sub.conf.QueueSize == 0 {
+					sp.sub.message <- msg
+				} else {
+					select {
+					case sp.sub.message <- msg:
+					default:
+					}
+				}
 			}
 
 		case <-sp.terminate:

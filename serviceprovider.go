@@ -227,8 +227,8 @@ outer:
 	sp.clientsWg.Wait()
 
 	sp.conf.Node.serviceProviderClose <- sp
-
 	<-sp.nodeTerminate
+
 	<-sp.terminate
 
 	close(sp.clientNew)

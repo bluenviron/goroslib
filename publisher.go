@@ -418,8 +418,8 @@ outer:
 	p.subscribersWg.Wait()
 
 	p.conf.Node.publisherClose <- p
-
 	<-p.nodeTerminate
+
 	<-p.terminate
 
 	close(p.getBusInfo)
