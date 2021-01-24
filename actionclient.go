@@ -85,13 +85,15 @@ func (s ActionClientTerminalState) String() string {
 
 // ActionClientGoalConf allows to configure SendGoal().
 type ActionClientGoalConf struct {
-	// the goal to send
+	// the goal to send.
 	Goal interface{}
 
-	// function in the form func(*ActionClientGoalHandler, *ActionResult) that will be called when a status transition happens
+	// (optional) function in the form func(*ActionClientGoalHandler, *ActionResult)
+	// that will be called when a status transition happens.
 	OnTransition interface{}
 
-	// function in the form func(*ActionFeedback) that will becalled when a feedback is received
+	// (optional) function in the form func(*ActionFeedback) that will be called
+	// when a feedback is received.
 	OnFeedback interface{}
 }
 
@@ -363,13 +365,13 @@ func (gh *ActionClientGoalHandler) transitionTo(newCommState ActionClientCommSta
 
 // ActionClientConf is the configuration of an ActionClient.
 type ActionClientConf struct {
-	// node which the action client belongs to
+	// node which the action client belongs to.
 	Node *Node
 
 	// name of the action.
 	Name string
 
-	// an instance of the action type
+	// an instance of the action type.
 	Action interface{}
 }
 
@@ -550,68 +552,6 @@ func (ac *ActionClient) Close() error {
 	return nil
 }
 
-func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
-	func() {
-		ac.mutex.Lock()
-		defer ac.mutex.Unlock()
-
-		for id, gh := range ac.goals {
-			ok := gh.onStatus(msg.StatusList)
-			if !ok {
-				delete(ac.goals, id)
-			}
-		}
-	}()
-
-	select {
-	case <-ac.statusSubOk:
-		return
-	default:
-	}
-	close(ac.statusSubOk)
-}
-
-func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
-	fbAction := in[0]
-
-	goalStatus := fbAction.Elem().FieldByName("Status").
-		Interface().(actionlib_msgs.GoalStatus)
-
-	ac.mutex.Lock()
-	defer ac.mutex.Unlock()
-
-	gh, ok := ac.goals[goalStatus.GoalId.Id]
-	if !ok {
-		return []reflect.Value{}
-	}
-
-	gh.onFeedback(fbAction)
-
-	return []reflect.Value{}
-}
-
-func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
-	resAction := in[0]
-
-	goalStatus := resAction.Elem().FieldByName("Status").
-		Interface().(actionlib_msgs.GoalStatus)
-
-	ac.mutex.Lock()
-	defer ac.mutex.Unlock()
-
-	gh, ok := ac.goals[goalStatus.GoalId.Id]
-	if !ok {
-		return []reflect.Value{}
-	}
-
-	ok = gh.onResult(resAction)
-	if !ok {
-		delete(ac.goals, goalStatus.GoalId.Id)
-	}
-
-	return []reflect.Value{}
-}
-
 // WaitForServer waits for the action server to start.
 func (ac *ActionClient) WaitForServer() {
 	select {
@@ -642,6 +582,14 @@ func (ac *ActionClient) WaitForServer() {
 
 // SendGoal sends a goal to the action server.
 func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHandler, error) {
+	if conf.Goal == nil {
+		return nil, fmt.Errorf("Goal is empty")
+	}
+	if reflect.TypeOf(conf.Goal) != reflect.PtrTo(ac.goalType) {
+		return nil, fmt.Errorf("Goal must be %s, while is %v",
+			reflect.PtrTo(ac.goalType), reflect.TypeOf(conf.Goal))
+	}
+
 	if conf.OnTransition != nil {
 		cbt := reflect.TypeOf(conf.OnTransition)
 		if cbt.Kind() != reflect.Func {
@@ -720,4 +668,66 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 	ac.goalPub.Write(goalAction.Interface())
 
 	return gh, nil
+}
+
+func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
+	func() {
+		ac.mutex.Lock()
+		defer ac.mutex.Unlock()
+
+		for id, gh := range ac.goals {
+			ok := gh.onStatus(msg.StatusList)
+			if !ok {
+				delete(ac.goals, id)
+			}
+		}
+	}()
+
+	select {
+	case <-ac.statusSubOk:
+		return
+	default:
+	}
+	close(ac.statusSubOk)
+}
+
+func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
+	fbAction := in[0]
+
+	goalStatus := fbAction.Elem().FieldByName("Status").
+		Interface().(actionlib_msgs.GoalStatus)
+
+	ac.mutex.Lock()
+	defer ac.mutex.Unlock()
+
+	gh, ok := ac.goals[goalStatus.GoalId.Id]
+	if !ok {
+		return []reflect.Value{}
+	}
+
+	gh.onFeedback(fbAction)
+
+	return []reflect.Value{}
+}
+
+func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
+	resAction := in[0]
+
+	goalStatus := resAction.Elem().FieldByName("Status").
+		Interface().(actionlib_msgs.GoalStatus)
+
+	ac.mutex.Lock()
+	defer ac.mutex.Unlock()
+
+	gh, ok := ac.goals[goalStatus.GoalId.Id]
+	if !ok {
+		return []reflect.Value{}
+	}
+
+	ok = gh.onResult(resAction)
+	if !ok {
+		delete(ac.goals, goalStatus.GoalId.Id)
+	}
+
+	return []reflect.Value{}
 }
