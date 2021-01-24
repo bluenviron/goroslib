@@ -71,7 +71,7 @@ func TestActionServer(t *testing.T) {
 				c, err := newContainer("node-actionclient", m.IP())
 				require.NoError(t, err)
 				defer c.close()
-				require.Equal(t, "SUCCEEDED\n123456\n", c.waitOutput())
+				require.Equal(t, "0.50\nSUCCEEDED\n123456\n", c.waitOutput())
 
 			case "go":
 				nc, err := NewNode(NodeConf{

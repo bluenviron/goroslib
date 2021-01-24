@@ -197,28 +197,28 @@ func (gh *ActionServerGoalHandler) SetSucceeded(res interface{}) {
 
 // ActionServerConf is the configuration of an ActionServer.
 type ActionServerConf struct {
-	// node which the action server belongs to
+	// node which the action server belongs to.
 	Node *Node
 
 	// name of the action.
 	Name string
 
-	// an instance of the action type
+	// an instance of the action type.
 	Action interface{}
 
-	// status messages are published with this period.
+	// (optional) status messages are published with this period.
 	// It defaults to 200 ms.
 	StatusPeriod time.Duration
 
-	// goals are deleted after this duration.
+	// (optional) goals are deleted after this duration.
 	// It defaults to 5 secs.
 	DeleteGoalAfter time.Duration
 
-	// function in the form func(*ActionServerGoalHandler, *ActionGoal) that will be called
+	// (optional) function in the form func(*ActionServerGoalHandler, *ActionGoal) that will be called
 	// whenever a goal arrives.
 	OnGoal interface{}
 
-	// function in the form func(*ActionServerGoalHandler) that will be called
+	// (optional) function in the form func(*ActionServerGoalHandler) that will be called
 	// whenever a goal cancellation request arrives.
 	OnCancel func(gh *ActionServerGoalHandler)
 }

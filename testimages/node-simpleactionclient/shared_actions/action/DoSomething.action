@@ -1,0 +1,8 @@
+# goal
+uint32 input
+---
+# result
+uint32 output
+---
+# feedback
+float32 percent_complete

@@ -13,7 +13,7 @@ Features:
 
 * Subscribe and publish to topics, with TCP or UDP
 * Provide and call services
-* Provide and call actions
+* Provide and call actions and simple actions
 * Get and set parameters
 * Get infos about other nodes, topics, services
 * Use namespaces and relative topics

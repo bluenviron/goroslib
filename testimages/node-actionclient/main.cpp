@@ -1,5 +1,4 @@
 
-#include <actionlib/action_definition.h>
 #include <actionlib/client/action_client.h>
 
 #include <shared_actions/DoSomethingAction.h>
@@ -14,6 +13,7 @@ void onTransition(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction>
 
 void onFeedback(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction> gh,
     const shared_actions::DoSomethingFeedback::ConstPtr& f) {
+    printf("%.2f\n", f->percent_complete);
 }
 
 int main(int argc, char** argv) {

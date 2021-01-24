@@ -83,7 +83,7 @@ func (s ActionClientTerminalState) String() string {
 	}
 }
 
-// ActionClientGoalConf allows to configure SendGoal().
+// ActionClientGoalConf is the configuration of SendGoal().
 type ActionClientGoalConf struct {
 	// the goal to send.
 	Goal interface{}
@@ -580,7 +580,7 @@ func (ac *ActionClient) WaitForServer() {
 	}
 }
 
-// SendGoal sends a goal to the action server.
+// SendGoal sends a goal.
 func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHandler, error) {
 	if conf.Goal == nil {
 		return nil, fmt.Errorf("Goal is empty")
