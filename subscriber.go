@@ -22,10 +22,10 @@ const (
 
 // SubscriberConf is the configuration of a Subscriber.
 type SubscriberConf struct {
-	// node which the subscriber belongs to
+	// parent node.
 	Node *Node
 
-	// name of the topic from which messages will be read
+	// name of the topic from which messages will be read.
 	Topic string
 
 	// function in the form func(msg *NameOfMessage) that will be called

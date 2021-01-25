@@ -365,7 +365,7 @@ func (gh *ActionClientGoalHandler) transitionTo(newCommState ActionClientCommSta
 
 // ActionClientConf is the configuration of an ActionClient.
 type ActionClientConf struct {
-	// node which the action client belongs to.
+	// parent node.
 	Node *Node
 
 	// name of the action.

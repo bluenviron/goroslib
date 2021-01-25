@@ -6,9 +6,17 @@ import (
 	"sync"
 )
 
+type simpleActionClientGoalState int
+
+const (
+	simpleActionClientGoalStatePending simpleActionClientGoalState = iota
+	simpleActionClientGoalStateActive
+	simpleActionClientGoalStateDone
+)
+
 // SimpleActionClientConf is the configuration of a SimpleActionClient.
 type SimpleActionClientConf struct {
-	// node which the action client belongs to.
+	// parent node.
 	Node *Node
 
 	// name of the action.
@@ -19,7 +27,8 @@ type SimpleActionClientConf struct {
 }
 
 type simpleActionClientGoalHandler struct {
-	conf SimpleActionClientGoalConf
+	conf  SimpleActionClientGoalConf
+	state simpleActionClientGoalState
 }
 
 // SimpleActionClient is a ROS simple action client, an entity that can call simple actions.
@@ -158,17 +167,38 @@ func (sac *SimpleActionClient) onTransition(sgh *simpleActionClientGoalHandler,
 	gh := in[0].Interface().(*ActionClientGoalHandler)
 	res := in[1]
 
-	switch gh.CommState() {
-	case ActionClientCommStateActive:
+	switchToActive := func() {
+		sgh.state = simpleActionClientGoalStateActive
 		if sgh.conf.OnActive != nil {
 			sgh.conf.OnActive()
 		}
+	}
+
+	switchToDone := func() {
+		sgh.state = simpleActionClientGoalStateDone
+		if sgh.conf.OnDone != nil {
+			reflect.ValueOf(sgh.conf.OnDone).Call([]reflect.Value{res})
+		}
+	}
+
+	switch gh.CommState() {
+	case ActionClientCommStateActive:
+		switch sgh.state {
+		case simpleActionClientGoalStatePending:
+			switchToActive()
+		}
+
+	case ActionClientCommStatePreempting:
+		switch sgh.state {
+		case simpleActionClientGoalStatePending:
+			switchToActive()
+		}
 
 	case ActionClientCommStateDone:
-		if sgh.conf.OnDone != nil {
-			reflect.ValueOf(sgh.conf.OnDone).Call([]reflect.Value{
-				res,
-			})
+		switch sgh.state {
+		case simpleActionClientGoalStatePending,
+			simpleActionClientGoalStateActive:
+			switchToDone()
 		}
 	}
 

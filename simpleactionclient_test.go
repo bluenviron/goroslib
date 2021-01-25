@@ -31,21 +31,21 @@ func TestSimpleActionClient(t *testing.T) {
 			require.NoError(t, err)
 			defer nc.Close()
 
-			ac, err := NewSimpleActionClient(SimpleActionClientConf{
+			sac, err := NewSimpleActionClient(SimpleActionClientConf{
 				Node:   nc,
 				Name:   "test_action",
 				Action: &DoSomethingAction{},
 			})
 			require.NoError(t, err)
-			defer ac.Close()
+			defer sac.Close()
 
-			ac.WaitForServer()
+			sac.WaitForServer()
 
 			activeDone := make(chan struct{})
 			fbDone := make(chan struct{})
 			doneDone := make(chan struct{})
 
-			err = ac.SendGoal(SimpleActionClientGoalConf{
+			err = sac.SendGoal(SimpleActionClientGoalConf{
 				Goal: &DoSomethingActionGoal{
 					Input: 1234312,
 				},

@@ -197,7 +197,7 @@ func (gh *ActionServerGoalHandler) SetSucceeded(res interface{}) {
 
 // ActionServerConf is the configuration of an ActionServer.
 type ActionServerConf struct {
-	// node which the action server belongs to.
+	// parent node.
 	Node *Node
 
 	// name of the action.

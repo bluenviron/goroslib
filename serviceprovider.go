@@ -16,17 +16,17 @@ type serviceProviderClientRequestReq struct {
 
 // ServiceProviderConf is the configuration of a ServiceProvider.
 type ServiceProviderConf struct {
-	// node which the service provider belongs to
+	// parent node.
 	Node *Node
 
-	// name of the service
+	// name of the service.
 	Name string
 
-	// an instance of the service type
+	// an instance of the service type.
 	Srv interface{}
 
 	// function in the form func(*NameOfRequest) *NameOfReply{}  that will be called
-	// whenever a request arrives
+	// whenever a request arrives.
 	Callback interface{}
 }
 

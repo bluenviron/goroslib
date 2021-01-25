@@ -18,7 +18,7 @@ import (
 
 // PublisherConf is the configuration of a Publisher.
 type PublisherConf struct {
-	// node which the publisher belongs to
+	// parent node.
 	Node *Node
 
 	// name of the topic in which messages will be written

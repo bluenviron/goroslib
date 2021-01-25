@@ -11,13 +11,13 @@ import (
 
 // ServiceClientConf is the configuration of a ServiceClient.
 type ServiceClientConf struct {
-	// node which the service client belongs to
+	// parent node.
 	Node *Node
 
-	// name of the service from which providers will be obtained
+	// name of the service from which providers will be obtained.
 	Name string
 
-	// an instance of the service type
+	// an instance of the service type.
 	Srv interface{}
 
 	// (optional) enable keep-alive packets, that are
