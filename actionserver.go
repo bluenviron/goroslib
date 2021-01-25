@@ -62,7 +62,7 @@ type ActionServerGoalHandler struct {
 	state   ActionServerGoalState
 }
 
-// PublishFeedback publishes a feedback,
+// PublishFeedback publishes a feedback about the goal,
 func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
 	if reflect.TypeOf(fb) != reflect.PtrTo(gh.as.fbType) {
 		panic(fmt.Errorf("argument must be %s, while is %v",
@@ -298,7 +298,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 			return nil, fmt.Errorf("OnGoal is not a function")
 		}
 		if cbt.NumIn() != 2 {
-			return nil, fmt.Errorf("OnGoal must accept a single argument")
+			return nil, fmt.Errorf("OnGoal must accept 2 arguments")
 		}
 		if cbt.NumOut() != 0 {
 			return nil, fmt.Errorf("OnGoal must not return any value")

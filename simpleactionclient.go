@@ -33,9 +33,9 @@ type simpleActionClientGoalHandler struct {
 
 // SimpleActionClient is a ROS simple action client, an entity that can call simple actions.
 type SimpleActionClient struct {
-	ac             *ActionClient
-	mutex          sync.Mutex
-	curGoalHandler *simpleActionClientGoalHandler
+	ac      *ActionClient
+	mutex   sync.Mutex
+	curGoal *simpleActionClientGoalHandler
 }
 
 // NewSimpleActionClient allocates a SimpleActionClient.
@@ -119,10 +119,10 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 	sgh := func() *simpleActionClientGoalHandler {
 		sac.mutex.Lock()
 		defer sac.mutex.Unlock()
-		sac.curGoalHandler = &simpleActionClientGoalHandler{
+		sac.curGoal = &simpleActionClientGoalHandler{
 			conf: conf,
 		}
-		return sac.curGoalHandler
+		return sac.curGoal
 	}()
 
 	_, err := sac.ac.SendGoal(ActionClientGoalConf{
@@ -158,7 +158,7 @@ func (sac *SimpleActionClient) onTransition(sgh *simpleActionClientGoalHandler,
 	ok := func() bool {
 		sac.mutex.Lock()
 		defer sac.mutex.Unlock()
-		return sgh == sac.curGoalHandler
+		return sgh == sac.curGoal
 	}()
 	if !ok {
 		return []reflect.Value{}
@@ -211,7 +211,7 @@ func (sac *SimpleActionClient) onFeedback(sgh *simpleActionClientGoalHandler,
 	ok := func() bool {
 		sac.mutex.Lock()
 		defer sac.mutex.Unlock()
-		return sgh == sac.curGoalHandler
+		return sgh == sac.curGoal
 	}()
 	if !ok {
 		return []reflect.Value{}

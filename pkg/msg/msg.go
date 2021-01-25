@@ -35,8 +35,8 @@ func md5sum(text string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// MD5Field computes the checksum of a field or message.
-func MD5Field(rt reflect.Type, rosTag string) (string, bool, error) {
+// Text processes a field or message and returns its equivalent in text format.
+func Text(rt reflect.Type, rosTag string) (string, bool, error) {
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
@@ -93,7 +93,7 @@ func MD5Field(rt reflect.Type, rosTag string) (string, bool, error) {
 
 	switch rt.Kind() {
 	case reflect.Slice:
-		text, isstruct, err := MD5Field(rt.Elem(), "")
+		text, isstruct, err := Text(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -105,7 +105,7 @@ func MD5Field(rt reflect.Type, rosTag string) (string, bool, error) {
 		return text + "[]", false, nil
 
 	case reflect.Array:
-		text, isstruct, err := MD5Field(rt.Elem(), "")
+		text, isstruct, err := Text(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -141,7 +141,7 @@ func MD5Field(rt reflect.Type, rosTag string) (string, bool, error) {
 				return camelToSnake(ft.Name)
 			}()
 
-			text, isstruct, err := MD5Field(ft.Type, ft.Tag.Get("rostype"))
+			text, isstruct, err := Text(ft.Type, ft.Tag.Get("rostype"))
 			if err != nil {
 				return "", false, err
 			}
@@ -174,7 +174,7 @@ func MD5(msg interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
 	}
 
-	text, _, err := MD5Field(rt, "")
+	text, _, err := Text(rt, "")
 	if err != nil {
 		return "", err
 	}

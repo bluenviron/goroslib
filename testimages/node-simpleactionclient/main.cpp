@@ -13,6 +13,7 @@ void onActive() {
 }
 
 void onFeedback(const shared_actions::DoSomethingFeedbackConstPtr& fb) {
+    printf("%.2f\n", fb->percent_complete);
 }
 
 int main(int argc, char** argv) {

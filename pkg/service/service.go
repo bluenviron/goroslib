@@ -64,12 +64,12 @@ func MD5(srv interface{}) (string, error) {
 		return "", err
 	}
 
-	text1, _, err := msg.MD5Field(reflect.TypeOf(req), "")
+	text1, _, err := msg.Text(reflect.TypeOf(req), "")
 	if err != nil {
 		return "", err
 	}
 
-	text2, _, err := msg.MD5Field(reflect.TypeOf(res), "")
+	text2, _, err := msg.Text(reflect.TypeOf(res), "")
 	if err != nil {
 		return "", err
 	}

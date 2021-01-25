@@ -104,7 +104,7 @@ func TestActionClient(t *testing.T) {
 
 				nc, err := NewNode(NodeConf{
 					Namespace:     "/myns",
-					Name:          "goroslib",
+					Name:          "goroslib-client",
 					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)

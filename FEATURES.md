@@ -11,7 +11,7 @@
 |call services|ok|
 |provide actions|ok|
 |call actions|ok|
-|provide simple actions||
+|provide simple actions|ok|
 |call simple actions|ok|
 |support namespaces|ok|
 |support IPv6|ok|

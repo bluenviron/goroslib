@@ -12,8 +12,8 @@ void onTransition(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction>
 }
 
 void onFeedback(actionlib::ClientGoalHandle<shared_actions::DoSomethingAction> gh,
-    const shared_actions::DoSomethingFeedback::ConstPtr& f) {
-    printf("%.2f\n", f->percent_complete);
+    const shared_actions::DoSomethingFeedback::ConstPtr& fb) {
+    printf("%.2f\n", fb->percent_complete);
 }
 
 int main(int argc, char** argv) {

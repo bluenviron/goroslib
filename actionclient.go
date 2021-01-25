@@ -596,7 +596,7 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 			return nil, fmt.Errorf("OnTransition is not a function")
 		}
 		if cbt.NumIn() != 2 {
-			return nil, fmt.Errorf("OnTransition must accept a single argument")
+			return nil, fmt.Errorf("OnTransition must accept 2 arguments")
 		}
 		if cbt.NumOut() != 0 {
 			return nil, fmt.Errorf("OnTransition must not return any value")
