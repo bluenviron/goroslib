@@ -99,6 +99,7 @@ This library already provides most of the standard messages, services and action
 |package|documentation|repository|
 |-------|-------------|----------|
 |ackermann_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/ackermann_msgs)|[link](https://github.com/ros-drivers/ackermann_msgs)|
+|actionlib|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/actionlib)|[link](https://github.com/ros/actionlib)|
 |actionlib_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/actionlib_msgs)|[link](https://github.com/ros/common_msgs)|
 |audio_common_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/audio_common_msgs)|[link](https://github.com/ros-drivers/audio_common)|
 |control_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/control_msgs)|[link](https://github.com/ros-controls/control_msgs)|
@@ -114,6 +115,7 @@ This library already provides most of the standard messages, services and action
 |stereo_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/stereo_msgs)|[link](https://github.com/ros/common_msgs)|
 |trajectory_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/trajectory_msgs)|[link](https://github.com/ros/common_msgs)|
 |velodyne_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
+|vision_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/vision_msgs)|[link](https://github.com/ros-perception/vision_msgs)|
 |visualization_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
 
 ### Define custom messages, services and actions
