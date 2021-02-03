@@ -7,7 +7,7 @@
 
 goroslib is a library in pure Go that allows to build clients (nodes) for the Robot Operating System (ROS).
 
-The Robot Operating System (ROS) is a project that provides a protocol specification to make multiple programs communicate with each other over time, exchanging structured data with topics, services and parameters. It was conceived to link sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
+The Robot Operating System (ROS) is a project that provides a specification to make multiple programs communicate with each other over time, exchanging structured data with topics, services, actions and parameters. It was conceived to link sensors, algorithms and actuators in unmanned ground vehicles (UGVs) and robots, but it is not bounded to the robot world and can be used anywhere there's the need of building streams of data (for example in video processing).
 
 Features:
 
