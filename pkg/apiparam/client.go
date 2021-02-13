@@ -56,14 +56,14 @@ func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 	return &res, nil
 }
 
-// GetParamBool writes a getParam request and expects a bool response.
-func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
+// ParamGetBool writes a getParam request and expects a bool response.
+func (c *Client) ParamGetBool(key string) (*ResponseParamGetBool, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
 		Key:      key,
 	}
 
-	var res ResponseGetParamBool
+	var res ResponseParamGetBool
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -76,14 +76,14 @@ func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
 	return &res, nil
 }
 
-// GetParamInt writes a getParam request and expects a int response.
-func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
+// ParamGetInt writes a getParam request and expects a int response.
+func (c *Client) ParamGetInt(key string) (*ResponseParamGetInt, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
 		Key:      key,
 	}
 
-	var res ResponseGetParamInt
+	var res ResponseParamGetInt
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -96,14 +96,14 @@ func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 	return &res, nil
 }
 
-// GetParamString writes a getParam request and expects a string response.
-func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
+// ParamGetString writes a getParam request and expects a string response.
+func (c *Client) ParamGetString(key string) (*ResponseParamGetString, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
 		Key:      key,
 	}
 
-	var res ResponseGetParamString
+	var res ResponseParamGetString
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -160,9 +160,9 @@ func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
 	return &res, nil
 }
 
-// SetParamBool writes a setParam request.
-func (c *Client) SetParamBool(key string, val bool) error {
-	req := RequestSetParamBool{
+// ParamSetBool writes a setParam request.
+func (c *Client) ParamSetBool(key string, val bool) error {
+	req := RequestParamSetBool{
 		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,
@@ -181,9 +181,9 @@ func (c *Client) SetParamBool(key string, val bool) error {
 	return nil
 }
 
-// SetParamInt writes a setParam request.
-func (c *Client) SetParamInt(key string, val int) error {
-	req := RequestSetParamInt{
+// ParamSetInt writes a setParam request.
+func (c *Client) ParamSetInt(key string, val int) error {
+	req := RequestParamSetInt{
 		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,
@@ -202,9 +202,9 @@ func (c *Client) SetParamInt(key string, val int) error {
 	return nil
 }
 
-// SetParamString writes a setParam request.
-func (c *Client) SetParamString(key string, val string) error {
-	req := RequestSetParamString{
+// ParamSetString writes a setParam request.
+func (c *Client) ParamSetString(key string, val string) error {
+	req := RequestParamSetString{
 		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,

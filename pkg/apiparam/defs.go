@@ -34,22 +34,22 @@ type RequestGetParam struct {
 	Key      string
 }
 
-// ResponseGetParamBool is the response to a getParam request.
-type ResponseGetParamBool struct {
+// ResponseParamGetBool is the response to a getParam request.
+type ResponseParamGetBool struct {
 	Code          int
 	StatusMessage string
 	Res           bool
 }
 
-// ResponseGetParamInt is the response to a getParam request.
-type ResponseGetParamInt struct {
+// ResponseParamGetInt is the response to a getParam request.
+type ResponseParamGetInt struct {
 	Code          int
 	StatusMessage string
 	Res           int
 }
 
-// ResponseGetParamString is the response to a getParam request.
-type ResponseGetParamString struct {
+// ResponseParamGetString is the response to a getParam request.
+type ResponseParamGetString struct {
 	Code          int
 	StatusMessage string
 	Res           string
@@ -81,22 +81,22 @@ type ResponseSearchParam struct {
 	FoundKey      string
 }
 
-// RequestSetParamBool is a setParam request.
-type RequestSetParamBool struct {
+// RequestParamSetBool is a setParam request.
+type RequestParamSetBool struct {
 	CallerID string
 	Key      string
 	Val      bool
 }
 
-// RequestSetParamInt is a setParam request.
-type RequestSetParamInt struct {
+// RequestParamSetInt is a setParam request.
+type RequestParamSetInt struct {
 	CallerID string
 	Key      string
 	Val      int
 }
 
-// RequestSetParamString is a setParam request.
-type RequestSetParamString struct {
+// RequestParamSetString is a setParam request.
+type RequestParamSetString struct {
 	CallerID string
 	Key      string
 	Val      string

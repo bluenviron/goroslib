@@ -31,13 +31,13 @@ func TestNodeSetGetParam(t *testing.T) {
 				require.NoError(t, err)
 				defer n.Close()
 
-				err = n.SetParamBool("test_bool", true)
+				err = n.ParamSetBool("test_bool", true)
 				require.NoError(t, err)
 
-				err = n.SetParamInt("test_int", 123)
+				err = n.ParamSetInt("test_int", 123)
 				require.NoError(t, err)
 
-				err = n.SetParamString("test_string", "ABC")
+				err = n.ParamSetString("test_string", "ABC")
 				require.NoError(t, err)
 			}
 
@@ -49,15 +49,15 @@ func TestNodeSetGetParam(t *testing.T) {
 			require.NoError(t, err)
 			defer n.Close()
 
-			resb, err := n.GetParamBool("test_bool")
+			resb, err := n.ParamGetBool("test_bool")
 			require.NoError(t, err)
 			require.Equal(t, true, resb)
 
-			resi, err := n.GetParamInt("test_int")
+			resi, err := n.ParamGetInt("test_int")
 			require.NoError(t, err)
 			require.Equal(t, 123, resi)
 
-			ress, err := n.GetParamString("test_string")
+			ress, err := n.ParamGetString("test_string")
 			require.NoError(t, err)
 			require.Equal(t, "ABC", ress)
 		})

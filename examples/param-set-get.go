@@ -20,13 +20,13 @@ func main() {
 	defer n.Close()
 
 	// set a param of type int
-	err = n.SetParamInt("myparam", 123)
+	err = n.ParamSetInt("myparam", 123)
 	if err != nil {
 		panic(err)
 	}
 
 	// get the same param
-	val, err := n.GetParamInt("myparam")
+	val, err := n.ParamGetInt("myparam")
 	if err != nil {
 		panic(err)
 	}
