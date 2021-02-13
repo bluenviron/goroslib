@@ -26,7 +26,7 @@ https://wiki.ros.org/Implementing%20Client%20Libraries
 |handle node-to-node transport negotiation and connection setup|ok|
 |handle transport-specific serialization and deserialization of messages|ok|
 |parse command-line Remapping Arguments| |
-|Subscribe to a simulated Clock| |
+|Subscribe to a simulated Clock|ok|
 |publish debugging messages to rosout| |
 |object representation of message types|ok|
 |event loop for connection servicing|ok|

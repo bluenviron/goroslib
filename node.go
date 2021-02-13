@@ -47,6 +47,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/apimaster"
 	"github.com/aler9/goroslib/pkg/apiparam"
@@ -115,6 +116,11 @@ type serviceProviderNewReq struct {
 	err chan error
 }
 
+type simtimeSleep struct {
+	value time.Time
+	done  chan struct{}
+}
+
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
 	// (optional) hostname (or ip) and port of the master node.
@@ -144,6 +150,10 @@ type NodeConf struct {
 	// (optional) port of the UDPROS server of this node.
 	// if not provided, it will be chosen by the OS.
 	UdprosPort int
+
+	// (optional) whether to use a simulated time, provided by
+	// a clock server.
+	UseSimTime bool
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
@@ -166,6 +176,11 @@ type Node struct {
 	serviceProviders    map[string]*ServiceProvider
 	publisherLastID     int
 	rosoutPublisher     *Publisher
+	simtimeSubscriber   *Subscriber
+	simtimeMutex        sync.RWMutex
+	simtimeInitialized  bool
+	simtimeValue        time.Time
+	simtimeSleeps       []*simtimeSleep
 
 	// in
 	getPublications        chan getPublicationsReq
@@ -271,6 +286,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		subscribers:            make(map[string]*Subscriber),
 		publishers:             make(map[string]*Publisher),
 		serviceProviders:       make(map[string]*ServiceProvider),
+		simtimeValue:           time.Unix(0, 0),
 		getPublications:        make(chan getPublicationsReq),
 		getBusInfo:             make(chan getBusInfoReq),
 		shutdown:               make(chan struct{}),
@@ -327,6 +343,42 @@ func NewNode(conf NodeConf) (*Node, error) {
 	if err != nil {
 		n.Close()
 		return nil, err
+	}
+
+	if conf.UseSimTime {
+		n.simtimeSubscriber, err = NewSubscriber(SubscriberConf{
+			Node:  n,
+			Topic: "/clock",
+			Callback: func(msg *rosgraph_msgs.Clock) {
+				n.simtimeMutex.Lock()
+				defer n.simtimeMutex.Unlock()
+
+				// reinitialize sleeps if simulation time was not initialized before
+				if !n.simtimeInitialized {
+					n.simtimeInitialized = true
+					zero := time.Unix(0, 0)
+					for _, s := range n.simtimeSleeps {
+						s.value = msg.Clock.Add(s.value.Sub(zero))
+					}
+				}
+
+				n.simtimeValue = msg.Clock
+
+				for i := 0; i < len(n.simtimeSleeps); {
+					s := n.simtimeSleeps[i]
+					if !s.value.After(n.simtimeValue) {
+						close(s.done)
+						n.simtimeSleeps = append(n.simtimeSleeps[:i], n.simtimeSleeps[i+1:]...)
+					} else {
+						i++
+					}
+				}
+			},
+		})
+		if err != nil {
+			n.Close()
+			return nil, err
+		}
 	}
 
 	return n, nil
@@ -635,6 +687,10 @@ outer:
 	for _, sp := range n.serviceProviders {
 		sp.shutdown <- struct{}{}
 		close(sp.nodeTerminate)
+	}
+
+	if n.simtimeSubscriber != nil {
+		n.simtimeSubscriber.Close()
 	}
 
 	if n.rosoutPublisher != nil {
