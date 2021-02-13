@@ -15,6 +15,7 @@
 |call simple actions|ok|
 |support namespaces|ok|
 |support IPv6|ok|
+|provide a time API|ok|
 
 ## Client library requirements
 

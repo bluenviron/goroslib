@@ -34,10 +34,9 @@ func main() {
 	defer pub.Close()
 
 	// publish a message every second
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+	r := n.TimeRate(1 * time.Second)
 
-	for range ticker.C {
+	for {
 		msg := &sensor_msgs.Imu{
 			AngularVelocity: geometry_msgs.Vector3{
 				X: 23.5,
@@ -47,5 +46,7 @@ func main() {
 		}
 		fmt.Printf("Outgoing: %+v\n", msg)
 		pub.Write(msg)
+
+		r.Sleep()
 	}
 }

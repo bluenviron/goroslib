@@ -42,15 +42,16 @@ func main() {
 	defer pub.Close()
 
 	// publish a message every second
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
+	r := n.TimeRate(1 * time.Second)
 
-	for range ticker.C {
+	for {
 		msg := &TestMessage{
 			FirstField:  3,
 			SecondField: "test message",
 		}
 		fmt.Printf("Outgoing: %+v\n", msg)
 		pub.Write(msg)
+
+		r.Sleep()
 	}
 }

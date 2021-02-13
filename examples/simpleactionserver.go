@@ -33,7 +33,7 @@ func main() {
 			})
 
 			// wait some time
-			time.Sleep(500 * time.Millisecond)
+			n.TimeSleep(500 * time.Millisecond)
 
 			// set the goal as succeeded
 			sas.SetSucceeded(&actionlib.TestActionResult{
