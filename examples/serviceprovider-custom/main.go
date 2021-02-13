@@ -1,5 +1,3 @@
-// +build ignore
-
 package main
 
 import (
@@ -27,10 +25,17 @@ type TestService struct {
 	TestServiceRes
 }
 
+func onService(req *TestServiceReq) *TestServiceRes {
+	fmt.Println("request:", req)
+	return &TestServiceRes{
+		C: 123,
+	}
+}
+
 func main() {
 	// create a node and connect to the master
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:          "goroslib_sc",
+		Name:          "goroslib_sp",
 		MasterAddress: "127.0.0.1:11311",
 	})
 	if err != nil {
@@ -38,27 +43,18 @@ func main() {
 	}
 	defer n.Close()
 
-	// create a service client
-	sc, err := goroslib.NewServiceClient(goroslib.ServiceClientConf{
-		Node: n,
-		Name: "test_srv",
-		Srv:  &TestService{},
+	// create a service provider
+	sp, err := goroslib.NewServiceProvider(goroslib.ServiceProviderConf{
+		Node:     n,
+		Name:     "test_srv",
+		Srv:      &TestService{},
+		Callback: onService,
 	})
 	if err != nil {
 		panic(err)
 	}
-	defer sc.Close()
+	defer sp.Close()
 
-	// send a request and wait for a response
-	req := TestServiceReq{
-		A: 123,
-		B: "456",
-	}
-	res := TestServiceRes{}
-	err = sc.Call(&req, &res)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("response:", res)
+	// freeze main loop
+	select {}
 }

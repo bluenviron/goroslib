@@ -48,7 +48,7 @@ test:
 	make test-nodocker
 
 test-examples:
-	$(foreach f,$(shell ls examples/*),go build -o /dev/null $(f)$(NL))
+	go build -o /dev/null ./examples/...
 
 test-pkg:
 	go test -race -v ./pkg/...

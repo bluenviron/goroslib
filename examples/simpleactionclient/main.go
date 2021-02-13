@@ -1,35 +1,11 @@
-// +build ignore
-
 package main
 
 import (
 	"fmt"
 
 	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/msgs/actionlib"
 )
-
-// define a custom action.
-// unlike the standard library, a .action file is not needed.
-
-type DoSomethingActionGoal struct {
-	Input uint32
-}
-
-type DoSomethingActionResult struct {
-	Output uint32
-}
-
-type DoSomethingActionFeedback struct {
-	PercentComplete float32
-}
-
-type DoSomethingAction struct {
-	msg.Package `ros:"shared_actions"`
-	DoSomethingActionGoal
-	DoSomethingActionResult
-	DoSomethingActionFeedback
-}
 
 func main() {
 	// create a node and connect to the master
@@ -47,7 +23,7 @@ func main() {
 	sac, err := goroslib.NewSimpleActionClient(goroslib.SimpleActionClientConf{
 		Node:   n,
 		Name:   "test_action",
-		Action: &DoSomethingAction{},
+		Action: &actionlib.TestAction{},
 	})
 	if err != nil {
 		panic(err)
@@ -59,13 +35,13 @@ func main() {
 
 	// send a goal
 	err = sac.SendGoal(goroslib.SimpleActionClientGoalConf{
-		Goal: &DoSomethingActionGoal{
-			Input: 1234312,
+		Goal: &actionlib.TestActionGoal{
+			Goal: 1234312,
 		},
-		OnDone: func(res *DoSomethingActionResult) {
+		OnDone: func(res *actionlib.TestActionResult) {
 			fmt.Println("result:", res)
 		},
-		OnFeedback: func(fb *DoSomethingActionFeedback) {
+		OnFeedback: func(fb *actionlib.TestActionFeedback) {
 			fmt.Println("feedback", fb)
 		},
 	})

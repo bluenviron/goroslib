@@ -1,9 +1,8 @@
-// +build ignore
-
 package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aler9/goroslib"
 	"github.com/aler9/goroslib/pkg/msg"
@@ -18,14 +17,10 @@ type TestMessage struct {
 	SecondField string
 }
 
-func onMessage(msg *TestMessage) {
-	fmt.Printf("Incoming: %+v\n", msg)
-}
-
 func main() {
 	// create a node and connect to the master
 	n, err := goroslib.NewNode(goroslib.NodeConf{
-		Name:          "goroslib_sub",
+		Name:          "goroslib_pub",
 		MasterAddress: "127.0.0.1:11311",
 	})
 	if err != nil {
@@ -33,17 +28,28 @@ func main() {
 	}
 	defer n.Close()
 
-	// create a subscriber
-	sub, err := goroslib.NewSubscriber(goroslib.SubscriberConf{
-		Node:     n,
-		Topic:    "test_topic",
-		Callback: onMessage,
+	// create a publisher
+	pub, err := goroslib.NewPublisher(goroslib.PublisherConf{
+		Node:  n,
+		Topic: "test_topic",
+		Msg:   &TestMessage{},
 	})
 	if err != nil {
 		panic(err)
 	}
-	defer sub.Close()
+	defer pub.Close()
 
-	// freeze main loop
-	select {}
+	// publish a message every second
+	r := n.TimeRate(1 * time.Second)
+
+	for {
+		msg := &TestMessage{
+			FirstField:  3,
+			SecondField: "test message",
+		}
+		fmt.Printf("Outgoing: %+v\n", msg)
+		pub.Write(msg)
+
+		r.Sleep()
+	}
 }

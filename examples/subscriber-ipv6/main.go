@@ -1,5 +1,3 @@
-// +build ignore
-
 package main
 
 import (
@@ -14,10 +12,12 @@ func onMessage(msg *sensor_msgs.Imu) {
 }
 
 func main() {
-	// create a node and connect to the master
+	// create a node and connect to the master.
+	// the master's IPv6 must be inserted into square brackets.
+	// remember to start the master with the ROS_IPV6=on environment variable.
 	n, err := goroslib.NewNode(goroslib.NodeConf{
 		Name:          "goroslib_sub",
-		MasterAddress: "127.0.0.1:11311",
+		MasterAddress: "[4501:47d7:fc41:5099:e0cb:7560:2196:0647]:11311",
 	})
 	if err != nil {
 		panic(err)
