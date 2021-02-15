@@ -9,6 +9,20 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs"
 )
 
+func enableSimTime(m *containerMaster) error {
+	ns, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib_ns",
+		MasterAddress: m.IP() + ":11311",
+	})
+	if err != nil {
+		return err
+	}
+	defer ns.Close()
+
+	return ns.ParamSetBool("/use_sim_time", true)
+}
+
 func TestNodeTimeNow(t *testing.T) {
 	t.Run("real", func(t *testing.T) {
 		m, err := newContainerMaster()
@@ -38,6 +52,9 @@ func TestNodeTimeNow(t *testing.T) {
 		require.NoError(t, err)
 		defer m.close()
 
+		err = enableSimTime(m)
+		require.NoError(t, err)
+
 		cs, err := NewNode(NodeConf{
 			Namespace:     "/myns",
 			Name:          "goroslib_cs",
@@ -58,7 +75,6 @@ func TestNodeTimeNow(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
-			UseSimTime:    true,
 		})
 		require.NoError(t, err)
 		defer n.Close()
@@ -114,6 +130,9 @@ func TestNodeTimeSleep(t *testing.T) {
 		require.NoError(t, err)
 		defer m.close()
 
+		err = enableSimTime(m)
+		require.NoError(t, err)
+
 		cs, err := NewNode(NodeConf{
 			Namespace:     "/myns",
 			Name:          "goroslib_cs",
@@ -134,7 +153,6 @@ func TestNodeTimeSleep(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
-			UseSimTime:    true,
 		})
 		require.NoError(t, err)
 		defer n.Close()
@@ -173,6 +191,9 @@ func TestNodeTimeSleep(t *testing.T) {
 		require.NoError(t, err)
 		defer m.close()
 
+		err = enableSimTime(m)
+		require.NoError(t, err)
+
 		cs, err := NewNode(NodeConf{
 			Namespace:     "/myns",
 			Name:          "goroslib_cs",
@@ -193,7 +214,6 @@ func TestNodeTimeSleep(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
-			UseSimTime:    true,
 		})
 		require.NoError(t, err)
 		defer n.Close()
@@ -270,6 +290,9 @@ func TestNodeTimeRate(t *testing.T) {
 		require.NoError(t, err)
 		defer m.close()
 
+		err = enableSimTime(m)
+		require.NoError(t, err)
+
 		cs, err := NewNode(NodeConf{
 			Namespace:     "/myns",
 			Name:          "goroslib_cs",
@@ -290,7 +313,6 @@ func TestNodeTimeRate(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
-			UseSimTime:    true,
 		})
 		require.NoError(t, err)
 		defer n.Close()
@@ -355,6 +377,9 @@ func TestNodeTimeRate(t *testing.T) {
 		require.NoError(t, err)
 		defer m.close()
 
+		err = enableSimTime(m)
+		require.NoError(t, err)
+
 		cs, err := NewNode(NodeConf{
 			Namespace:     "/myns",
 			Name:          "goroslib_cs",
@@ -375,7 +400,6 @@ func TestNodeTimeRate(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
-			UseSimTime:    true,
 		})
 		require.NoError(t, err)
 		defer n.Close()

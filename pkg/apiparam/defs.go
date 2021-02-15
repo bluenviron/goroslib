@@ -34,22 +34,22 @@ type RequestGetParam struct {
 	Key      string
 }
 
-// ResponseParamGetBool is the response to a getParam request.
-type ResponseParamGetBool struct {
+// ResponseGetParamBool is the response to a getParam request.
+type ResponseGetParamBool struct {
 	Code          int
 	StatusMessage string
 	Res           bool
 }
 
-// ResponseParamGetInt is the response to a getParam request.
-type ResponseParamGetInt struct {
+// ResponseGetParamInt is the response to a getParam request.
+type ResponseGetParamInt struct {
 	Code          int
 	StatusMessage string
 	Res           int
 }
 
-// ResponseParamGetString is the response to a getParam request.
-type ResponseParamGetString struct {
+// ResponseGetParamString is the response to a getParam request.
+type ResponseGetParamString struct {
 	Code          int
 	StatusMessage string
 	Res           string

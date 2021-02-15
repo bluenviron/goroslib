@@ -150,10 +150,6 @@ type NodeConf struct {
 	// (optional) port of the UDPROS server of this node.
 	// if not provided, it will be chosen automatically.
 	UdprosPort int
-
-	// (optional) whether to use a simulated time, provided by
-	// a clock server.
-	UseSimTime bool
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
@@ -176,6 +172,7 @@ type Node struct {
 	serviceProviders    map[string]*ServiceProvider
 	publisherLastID     int
 	rosoutPublisher     *Publisher
+	simtimeEnabled      bool
 	simtimeSubscriber   *Subscriber
 	simtimeMutex        sync.RWMutex
 	simtimeInitialized  bool
@@ -345,7 +342,21 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, err
 	}
 
-	if conf.UseSimTime {
+	isSet, err := n.ParamIsSet("/use_sim_time")
+	if err != nil {
+		n.Close()
+		return nil, err
+	}
+
+	if isSet {
+		n.simtimeEnabled, err = n.ParamGetBool("/use_sim_time")
+		if err != nil {
+			n.Close()
+			return nil, err
+		}
+	}
+
+	if n.simtimeEnabled {
 		n.simtimeSubscriber, err = NewSubscriber(SubscriberConf{
 			Node:  n,
 			Topic: "/clock",

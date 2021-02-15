@@ -7,7 +7,7 @@ import (
 // TimeNow returns the current time.
 // It supports simulated clocks provided by ROS clock servers.
 func (n *Node) TimeNow() time.Time {
-	if !n.conf.UseSimTime {
+	if !n.simtimeEnabled {
 		return time.Now()
 	}
 
@@ -20,7 +20,7 @@ func (n *Node) TimeNow() time.Time {
 // TimeSleep sleeps for the given amount of time.
 // It supports simulated clocks provided by ROS clock servers.
 func (n *Node) TimeSleep(d time.Duration) {
-	if !n.conf.UseSimTime {
+	if !n.simtimeEnabled {
 		time.Sleep(d)
 		return
 	}
@@ -46,7 +46,7 @@ type NodeRate struct {
 // Sleep sleeps with a given period.
 // It supports simulated clocks provided by ROS clock servers.
 func (nr *NodeRate) Sleep() {
-	if !nr.n.conf.UseSimTime {
+	if !nr.n.simtimeEnabled {
 		now := time.Now()
 
 		if nr.lastSleep == nil {
