@@ -41,7 +41,7 @@ func TestServiceProviderRegister(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	services, err := n.GetServices()
+	services, err := n.MasterGetServices()
 	require.NoError(t, err)
 
 	service, ok := services["/myns/test_srv"]
@@ -55,7 +55,7 @@ func TestServiceProviderRegister(t *testing.T) {
 	sp.Close()
 	time.Sleep(1 * time.Second)
 
-	services, err = n.GetServices()
+	services, err = n.MasterGetServices()
 	require.NoError(t, err)
 
 	_, ok = services["/myns/test_srv"]

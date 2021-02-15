@@ -10,7 +10,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-func TestNodeGetNodes(t *testing.T) {
+func TestNodeMasterGetNodes(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -34,7 +34,7 @@ func TestNodeGetNodes(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	res, err := n1.GetNodes()
+	res, err := n1.MasterGetNodes()
 	require.NoError(t, err)
 
 	require.Equal(t, 4, len(res))
@@ -53,13 +53,13 @@ func TestNodeGetNodes(t *testing.T) {
 
 	n2.Close()
 
-	res, err = n1.GetNodes()
+	res, err = n1.MasterGetNodes()
 	require.NoError(t, err)
 
 	require.Equal(t, 3, len(res))
 }
 
-func TestNodeGetMachines(t *testing.T) {
+func TestNodeMasterGetMachines(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -76,13 +76,13 @@ func TestNodeGetMachines(t *testing.T) {
 	require.NoError(t, err)
 	defer n.Close()
 
-	res, err := n.GetMachines()
+	res, err := n.MasterGetMachines()
 	require.NoError(t, err)
 
 	require.Equal(t, 3, len(res))
 }
 
-func TestNodeGetTopics(t *testing.T) {
+func TestNodeMasterGetTopics(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -99,7 +99,7 @@ func TestNodeGetTopics(t *testing.T) {
 	require.NoError(t, err)
 	defer n.Close()
 
-	res, err := n.GetTopics()
+	res, err := n.MasterGetTopics()
 	require.NoError(t, err)
 
 	topic, ok := res["/myns/test_topic"]
@@ -110,7 +110,7 @@ func TestNodeGetTopics(t *testing.T) {
 	require.Equal(t, map[string]struct{}{"/myns/nodepub": {}}, topic.Publishers)
 }
 
-func TestNodeGetServices(t *testing.T) {
+func TestNodeMasterGetServices(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -127,7 +127,7 @@ func TestNodeGetServices(t *testing.T) {
 	require.NoError(t, err)
 	defer n.Close()
 
-	res, err := n.GetServices()
+	res, err := n.MasterGetServices()
 	require.NoError(t, err)
 
 	service, ok := res["/myns/test_srv"]

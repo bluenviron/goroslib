@@ -36,7 +36,7 @@ func TestPublisherRegister(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	topics, err := n.GetTopics()
+	topics, err := n.MasterGetTopics()
 	require.NoError(t, err)
 
 	topic, ok := topics["/myns/test_topic"]
@@ -50,7 +50,7 @@ func TestPublisherRegister(t *testing.T) {
 	pub.Close()
 	time.Sleep(1 * time.Second)
 
-	topics, err = n.GetTopics()
+	topics, err = n.MasterGetTopics()
 	require.NoError(t, err)
 
 	topic, ok = topics["/myns/test_topic"]

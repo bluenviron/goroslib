@@ -113,7 +113,7 @@ func TestNodeNodeKill(t *testing.T) {
 
 			time.Sleep(1 * time.Second)
 
-			res, err := n.GetNodes()
+			res, err := n.MasterGetNodes()
 			require.NoError(t, err)
 
 			require.Equal(t, 2, len(res))

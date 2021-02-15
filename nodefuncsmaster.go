@@ -13,8 +13,8 @@ type InfoNode struct {
 	Address          string
 }
 
-// GetNodes returns all the nodes connected to the master.
-func (n *Node) GetNodes() (map[string]*InfoNode, error) {
+// MasterGetNodes returns all the nodes connected to the master.
+func (n *Node) MasterGetNodes() (map[string]*InfoNode, error) {
 	res, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, err
@@ -70,12 +70,12 @@ func (n *Node) GetNodes() (map[string]*InfoNode, error) {
 	return ret, nil
 }
 
-// GetMachines returns all the machines connected to the master with a node.
-func (n *Node) GetMachines() (map[string]struct{}, error) {
+// MasterGetMachines returns all the machines connected to the master with a node.
+func (n *Node) MasterGetMachines() (map[string]struct{}, error) {
 	// this is like its equivalent in python
 	// https://docs.ros.org/melodic/api/rosnode/html/rosnode-pysrc.html#get_machines_by_nodes
 
-	nodes, err := n.GetNodes()
+	nodes, err := n.MasterGetNodes()
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +99,8 @@ type InfoTopic struct {
 	Subscribers map[string]struct{}
 }
 
-// GetTopics returns all the topics published by nodes connected to the master.
-func (n *Node) GetTopics() (map[string]*InfoTopic, error) {
+// MasterGetTopics returns all the topics published by nodes connected to the master.
+func (n *Node) MasterGetTopics() (map[string]*InfoTopic, error) {
 	res1, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, fmt.Errorf("getSystemState: %v", err)
@@ -148,8 +148,8 @@ type InfoService struct {
 	Address   string
 }
 
-// GetServices returns all the services provided by nodes connected to the server.
-func (n *Node) GetServices() (map[string]*InfoService, error) {
+// MasterGetServices returns all the services provided by nodes connected to the server.
+func (n *Node) MasterGetServices() (map[string]*InfoService, error) {
 	res1, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, fmt.Errorf("getSystemState: %v", err)

@@ -18,7 +18,7 @@ func main() {
 	defer n.Close()
 
 	// get all nodes linked to master
-	nodes, err := n.GetNodes()
+	nodes, err := n.MasterGetNodes()
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 	fmt.Println("nodes:", nodes)
 
 	// get all machines that are hosting nodes linked to master
-	machines, err := n.GetMachines()
+	machines, err := n.MasterGetMachines()
 	if err != nil {
 		panic(err)
 	}
@@ -34,7 +34,7 @@ func main() {
 	fmt.Println("machines:", machines)
 
 	// get all topics
-	topics, err := n.GetTopics()
+	topics, err := n.MasterGetTopics()
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +42,7 @@ func main() {
 	fmt.Println("topics:", topics)
 
 	// get all services
-	services, err := n.GetServices()
+	services, err := n.MasterGetServices()
 	if err != nil {
 		panic(err)
 	}
