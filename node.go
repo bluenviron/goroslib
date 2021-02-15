@@ -140,15 +140,15 @@ type NodeConf struct {
 	Host string
 
 	// (optional) port of the Slave API server of this node.
-	// if not provided, it will be chosen by the OS.
+	// if not provided, it will be chosen automatically.
 	ApislavePort int
 
 	// (optional) port of the TCPROS server of this node.
-	// if not provided, it will be chosen by the OS.
+	// if not provided, it will be chosen automatically.
 	TcprosPort int
 
 	// (optional) port of the UDPROS server of this node.
-	// if not provided, it will be chosen by the OS.
+	// if not provided, it will be chosen automatically.
 	UdprosPort int
 
 	// (optional) whether to use a simulated time, provided by
