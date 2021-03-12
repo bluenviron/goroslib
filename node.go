@@ -227,6 +227,9 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.MasterAddress = "127.0.0.1:11311"
 	}
 
+	// support ROS-style master address, in order to increase interoperability
+	conf.MasterAddress = strings.TrimPrefix(conf.MasterAddress, "http://")
+
 	// solve master address once
 	masterAddr, err := net.ResolveTCPAddr("tcp", conf.MasterAddress)
 	if err != nil {
