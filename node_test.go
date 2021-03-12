@@ -100,7 +100,7 @@ func (c *container) waitOutput() string {
 	return string(out)
 }
 
-func TestNodeOpen(t *testing.T) {
+func TestNodeMasterOpen(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -114,7 +114,21 @@ func TestNodeOpen(t *testing.T) {
 	defer n.Close()
 }
 
-func TestNodeNoMaster(t *testing.T) {
+func TestNodeOpenMasterHttp(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: "http://" + m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+}
+
+func TestNodeMasterNo(t *testing.T) {
 	_, err := NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
