@@ -36,52 +36,52 @@ func (n *Node) NodeGetConns(nodeName string) ([]InfoConnection, error) {
 		return nil, err
 	}
 
-	var ret []InfoConnection
+	ret := make([]InfoConnection, len(infos))
 
-	for _, i := range infos {
-		if len(i) < 6 {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+	for i, info := range infos {
+		if len(info) < 6 {
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 
-		id, ok := i[0].(int)
+		id, ok := info[0].(int)
 		if !ok {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 
-		counterpart, ok := i[1].(string)
+		counterpart, ok := info[1].(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 
-		temp, ok := i[2].(string)
+		temp, ok := info[2].(string)
 		if !ok || len(temp) != 1 {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 		direction := temp[0]
 
-		transport, ok := i[3].(string)
+		transport, ok := info[3].(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 
-		topic, ok := i[4].(string)
+		topic, ok := info[4].(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 
-		connected, ok := i[5].(bool)
+		connected, ok := info[5].(bool)
 		if !ok {
-			return nil, fmt.Errorf("invalid entry: %v", i)
+			return nil, fmt.Errorf("invalid entry: %v", info)
 		}
 
-		ret = append(ret, InfoConnection{
+		ret[i] = InfoConnection{
 			ID:        id,
 			To:        counterpart,
 			Direction: direction,
 			Transport: transport,
 			Topic:     topic,
 			Connected: connected,
-		})
+		}
 	}
 
 	return ret, nil
