@@ -33,15 +33,16 @@ func GoalResultFeedback(action interface{}) (interface{}, interface{}, interface
 			continue
 		}
 
-		if !goalFound {
+		switch {
+		case !goalFound:
 			goalFound = true
 			goal = ft.Interface()
 
-		} else if !resFound {
+		case !resFound:
 			resFound = true
 			res = ft.Interface()
 
-		} else {
+		default:
 			return goal, res, ft.Interface(), nil
 		}
 	}

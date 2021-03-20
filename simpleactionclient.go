@@ -183,14 +183,12 @@ func (sac *SimpleActionClient) onTransition(sgh *simpleActionClientGoalHandler,
 
 	switch gh.CommState() {
 	case ActionClientCommStateActive:
-		switch sgh.state {
-		case simpleActionClientGoalStatePending:
+		if sgh.state == simpleActionClientGoalStatePending {
 			switchToActive()
 		}
 
 	case ActionClientCommStatePreempting:
-		switch sgh.state {
-		case simpleActionClientGoalStatePending:
+		if sgh.state == simpleActionClientGoalStatePending {
 			switchToActive()
 		}
 
