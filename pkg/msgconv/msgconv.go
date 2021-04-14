@@ -131,6 +131,11 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 				return d.RosType
 			}()
 
+			if d.GoType == "string" && !strings.HasPrefix(d.Value, "\"") &&
+				!strings.HasSuffix(d.Value, "\"") {
+				d.Value = "\"" + d.Value + "\""
+			}
+
 			res.Definitions = append(res.Definitions, d)
 
 			// field
@@ -216,7 +221,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 	res.DefinitionsStr = func() string {
 		var tmp []string
 		for _, d := range res.Definitions {
-			tmp = append(tmp, d.RosType+" "+d.Name+"="+d.Value)
+			tmp = append(tmp, d.RosType+" "+d.Name+"="+strings.ReplaceAll(d.Value, "\"", "\\\""))
 		}
 		return strings.Join(tmp, ",")
 	}()
