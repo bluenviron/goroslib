@@ -1,22 +1,23 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type JointControllerState struct { //nolint:golint
+type JointControllerState struct {
 	msg.Package     `ros:"control_msgs"`
-	Header          std_msgs.Header //nolint:golint
-	SetPoint        float64         //nolint:golint
-	ProcessValue    float64         //nolint:golint
-	ProcessValueDot float64         //nolint:golint
-	Error           float64         //nolint:golint
-	TimeStep        float64         //nolint:golint
-	Command         float64         //nolint:golint
-	P               float64         //nolint:golint
-	I               float64         //nolint:golint
-	D               float64         //nolint:golint
-	IClamp          float64         //nolint:golint
-	Antiwindup      bool            //nolint:golint
+	Header          std_msgs.Header
+	SetPoint        float64
+	ProcessValue    float64
+	ProcessValueDot float64
+	Error           float64
+	TimeStep        float64
+	Command         float64
+	P               float64
+	I               float64
+	D               float64
+	IClamp          float64
+	Antiwindup      bool
 }

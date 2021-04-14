@@ -1,4 +1,5 @@
-package nav_msgs //nolint:golint
+//nolint:golint
+package nav_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,10 +7,10 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type Odometry struct { //nolint:golint
+type Odometry struct {
 	msg.Package  `ros:"nav_msgs"`
-	Header       std_msgs.Header                   //nolint:golint
-	ChildFrameId string                            //nolint:golint
-	Pose         geometry_msgs.PoseWithCovariance  //nolint:golint
-	Twist        geometry_msgs.TwistWithCovariance //nolint:golint
+	Header       std_msgs.Header
+	ChildFrameId string
+	Pose         geometry_msgs.PoseWithCovariance
+	Twist        geometry_msgs.TwistWithCovariance
 }

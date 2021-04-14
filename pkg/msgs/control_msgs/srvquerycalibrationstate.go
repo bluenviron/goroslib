@@ -1,17 +1,18 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type QueryCalibrationStateReq struct { //nolint:golint
+type QueryCalibrationStateReq struct {
 }
 
-type QueryCalibrationStateRes struct { //nolint:golint
-	IsCalibrated bool //nolint:golint
+type QueryCalibrationStateRes struct {
+	IsCalibrated bool
 }
 
-type QueryCalibrationState struct { //nolint:golint
+type QueryCalibrationState struct {
 	msg.Package `ros:"control_msgs"`
 	QueryCalibrationStateReq
 	QueryCalibrationStateRes

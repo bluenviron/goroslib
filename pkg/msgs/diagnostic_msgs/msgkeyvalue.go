@@ -1,11 +1,12 @@
-package diagnostic_msgs //nolint:golint
+//nolint:golint
+package diagnostic_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type KeyValue struct { //nolint:golint
+type KeyValue struct {
 	msg.Package `ros:"diagnostic_msgs"`
-	Key         string //nolint:golint
-	Value       string //nolint:golint
+	Key         string
+	Value       string
 }

@@ -1,10 +1,11 @@
-package std_msgs //nolint:golint
+//nolint:golint
+package std_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type UInt8 struct { //nolint:golint
+type UInt8 struct {
 	msg.Package `ros:"std_msgs"`
-	Data        uint8 //nolint:golint
+	Data        uint8
 }

@@ -1,17 +1,18 @@
-package nav_msgs //nolint:golint
+//nolint:golint
+package nav_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type GetMapReq struct { //nolint:golint
+type GetMapReq struct {
 }
 
-type GetMapRes struct { //nolint:golint
-	Map OccupancyGrid //nolint:golint
+type GetMapRes struct {
+	Map OccupancyGrid
 }
 
-type GetMap struct { //nolint:golint
+type GetMap struct {
 	msg.Package `ros:"nav_msgs"`
 	GetMapReq
 	GetMapRes

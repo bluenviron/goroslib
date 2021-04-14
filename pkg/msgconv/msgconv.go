@@ -16,12 +16,12 @@ var tpl = template.Must(template.New("").Parse(
 
 const (
 {{- range .Res.Definitions }}
-    {{ $MsgName }}_{{ .Name }} {{ .GoType }} = {{ .Value }} //nolint:golint
+    {{ $MsgName }}_{{ .Name }} {{ .GoType }} = {{ .Value }}
 {{- end }}
 )
 {{- end }}
 
-type {{ .Res.Name }} struct { //nolint:golint
+type {{ .Res.Name }} struct {
 {{- if .Res.RosPkgName }}
     msg.Package ` + "`" + `ros:"{{ .Res.RosPkgName }}"` + "`" + `
 {{- end }}
@@ -31,7 +31,7 @@ type {{ .Res.Name }} struct { //nolint:golint
 {{- range .Res.Fields }}
     {{ .Name }} ` +
 		`{{ if .TypePkg -}}{{ .TypeArray }}{{ .TypePkg }}.{{ .Type }}{{- else -}}{{ .TypeArray }}{{ .Type }}{{- end -}}` +
-		`{{ if .NameOverride -}} ` + "`" + `rosname:"{{ .NameOverride }}"` + "`" + `{{- end -}} //nolint:golint
+		`{{ if .NameOverride -}} ` + "`" + `rosname:"{{ .NameOverride }}"` + "`" + `{{- end -}}
 {{- end }}
 }
 `))

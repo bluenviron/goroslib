@@ -1,4 +1,5 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,23 +7,23 @@ import (
 	"time"
 )
 
-type SingleJointPositionActionGoal struct { //nolint:golint
-	Position    float64       //nolint:golint
-	MinDuration time.Duration //nolint:golint
-	MaxVelocity float64       //nolint:golint
+type SingleJointPositionActionGoal struct {
+	Position    float64
+	MinDuration time.Duration
+	MaxVelocity float64
 }
 
-type SingleJointPositionActionResult struct { //nolint:golint
+type SingleJointPositionActionResult struct {
 }
 
-type SingleJointPositionActionFeedback struct { //nolint:golint
-	Header   std_msgs.Header //nolint:golint
-	Position float64         //nolint:golint
-	Velocity float64         //nolint:golint
-	Error    float64         //nolint:golint
+type SingleJointPositionActionFeedback struct {
+	Header   std_msgs.Header
+	Position float64
+	Velocity float64
+	Error    float64
 }
 
-type SingleJointPositionAction struct { //nolint:golint
+type SingleJointPositionAction struct {
 	msg.Package `ros:"control_msgs"`
 	SingleJointPositionActionGoal
 	SingleJointPositionActionResult

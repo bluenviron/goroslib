@@ -1,4 +1,5 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,19 +7,19 @@ import (
 	"time"
 )
 
-type PidState struct { //nolint:golint
+type PidState struct {
 	msg.Package `ros:"control_msgs"`
-	Header      std_msgs.Header //nolint:golint
-	Timestep    time.Duration   //nolint:golint
-	Error       float64         //nolint:golint
-	ErrorDot    float64         //nolint:golint
-	PError      float64         //nolint:golint
-	IError      float64         //nolint:golint
-	DError      float64         //nolint:golint
-	PTerm       float64         //nolint:golint
-	ITerm       float64         //nolint:golint
-	DTerm       float64         //nolint:golint
-	IMax        float64         //nolint:golint
-	IMin        float64         //nolint:golint
-	Output      float64         //nolint:golint
+	Header      std_msgs.Header
+	Timestep    time.Duration
+	Error       float64
+	ErrorDot    float64
+	PError      float64
+	IError      float64
+	DError      float64
+	PTerm       float64
+	ITerm       float64
+	DTerm       float64
+	IMax        float64
+	IMin        float64
+	Output      float64
 }

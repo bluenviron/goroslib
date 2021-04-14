@@ -1,11 +1,12 @@
-package geometry_msgs //nolint:golint
+//nolint:golint
+package geometry_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type Wrench struct { //nolint:golint
+type Wrench struct {
 	msg.Package `ros:"geometry_msgs"`
-	Force       Vector3 //nolint:golint
-	Torque      Vector3 //nolint:golint
+	Force       Vector3
+	Torque      Vector3
 }

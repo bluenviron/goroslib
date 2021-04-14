@@ -1,4 +1,5 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,22 +7,22 @@ import (
 	"time"
 )
 
-type PointHeadActionGoal struct { //nolint:golint
-	Target        geometry_msgs.PointStamped //nolint:golint
-	PointingAxis  geometry_msgs.Vector3      //nolint:golint
-	PointingFrame string                     //nolint:golint
-	MinDuration   time.Duration              //nolint:golint
-	MaxVelocity   float64                    //nolint:golint
+type PointHeadActionGoal struct {
+	Target        geometry_msgs.PointStamped
+	PointingAxis  geometry_msgs.Vector3
+	PointingFrame string
+	MinDuration   time.Duration
+	MaxVelocity   float64
 }
 
-type PointHeadActionResult struct { //nolint:golint
+type PointHeadActionResult struct {
 }
 
-type PointHeadActionFeedback struct { //nolint:golint
-	PointingAngleError float64 //nolint:golint
+type PointHeadActionFeedback struct {
+	PointingAngleError float64
 }
 
-type PointHeadAction struct { //nolint:golint
+type PointHeadAction struct {
 	msg.Package `ros:"control_msgs"`
 	PointHeadActionGoal
 	PointHeadActionResult

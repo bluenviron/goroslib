@@ -1,10 +1,11 @@
-package audio_common_msgs //nolint:golint
+//nolint:golint
+package audio_common_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type AudioData struct { //nolint:golint
+type AudioData struct {
 	msg.Package `ros:"audio_common_msgs"`
-	Data        []uint8 //nolint:golint
+	Data        []uint8
 }

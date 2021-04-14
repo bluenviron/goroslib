@@ -1,22 +1,23 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"time"
 )
 
-type QueryTrajectoryStateReq struct { //nolint:golint
-	Time time.Time //nolint:golint
+type QueryTrajectoryStateReq struct {
+	Time time.Time
 }
 
-type QueryTrajectoryStateRes struct { //nolint:golint
-	Name         []string  //nolint:golint
-	Position     []float64 //nolint:golint
-	Velocity     []float64 //nolint:golint
-	Acceleration []float64 //nolint:golint
+type QueryTrajectoryStateRes struct {
+	Name         []string
+	Position     []float64
+	Velocity     []float64
+	Acceleration []float64
 }
 
-type QueryTrajectoryState struct { //nolint:golint
+type QueryTrajectoryState struct {
 	msg.Package `ros:"control_msgs"`
 	QueryTrajectoryStateReq
 	QueryTrajectoryStateRes

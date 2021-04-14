@@ -1,4 +1,5 @@
-package visualization_msgs //nolint:golint
+//nolint:golint
+package visualization_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,9 +7,9 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type InteractiveMarkerPose struct { //nolint:golint
+type InteractiveMarkerPose struct {
 	msg.Package `ros:"visualization_msgs"`
-	Header      std_msgs.Header    //nolint:golint
-	Pose        geometry_msgs.Pose //nolint:golint
-	Name        string             //nolint:golint
+	Header      std_msgs.Header
+	Pose        geometry_msgs.Pose
+	Name        string
 }

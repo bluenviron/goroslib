@@ -1,12 +1,13 @@
-package velodyne_msgs //nolint:golint
+//nolint:golint
+package velodyne_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"time"
 )
 
-type VelodynePacket struct { //nolint:golint
+type VelodynePacket struct {
 	msg.Package `ros:"velodyne_msgs"`
-	Stamp       time.Time   //nolint:golint
-	Data        [1206]uint8 //nolint:golint
+	Stamp       time.Time
+	Data        [1206]uint8
 }

@@ -1,25 +1,26 @@
-package sound_play //nolint:golint
+//nolint:golint
+package sound_play
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"time"
 )
 
-type SoundRequestActionGoal struct { //nolint:golint
-	SoundRequest SoundRequest //nolint:golint
+type SoundRequestActionGoal struct {
+	SoundRequest SoundRequest
 }
 
-type SoundRequestActionResult struct { //nolint:golint
-	Playing bool      //nolint:golint
-	Stamp   time.Time //nolint:golint
+type SoundRequestActionResult struct {
+	Playing bool
+	Stamp   time.Time
 }
 
-type SoundRequestActionFeedback struct { //nolint:golint
-	Playing bool      //nolint:golint
-	Stamp   time.Time //nolint:golint
+type SoundRequestActionFeedback struct {
+	Playing bool
+	Stamp   time.Time
 }
 
-type SoundRequestAction struct { //nolint:golint
+type SoundRequestAction struct {
 	msg.Package `ros:"sound_play"`
 	SoundRequestActionGoal
 	SoundRequestActionResult

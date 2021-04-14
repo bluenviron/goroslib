@@ -1,15 +1,16 @@
-package trajectory_msgs //nolint:golint
+//nolint:golint
+package trajectory_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"time"
 )
 
-type JointTrajectoryPoint struct { //nolint:golint
+type JointTrajectoryPoint struct {
 	msg.Package   `ros:"trajectory_msgs"`
-	Positions     []float64     //nolint:golint
-	Velocities    []float64     //nolint:golint
-	Accelerations []float64     //nolint:golint
-	Effort        []float64     //nolint:golint
-	TimeFromStart time.Duration //nolint:golint
+	Positions     []float64
+	Velocities    []float64
+	Accelerations []float64
+	Effort        []float64
+	TimeFromStart time.Duration
 }

@@ -1,11 +1,12 @@
-package vision_msgs //nolint:golint
+//nolint:golint
+package vision_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type ObjectHypothesis struct { //nolint:golint
+type ObjectHypothesis struct {
 	msg.Package `ros:"vision_msgs"`
-	Id          string  //nolint:golint
-	Score       float64 //nolint:golint
+	Id          string
+	Score       float64
 }

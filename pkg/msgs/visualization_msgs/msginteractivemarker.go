@@ -1,4 +1,5 @@
-package visualization_msgs //nolint:golint
+//nolint:golint
+package visualization_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,13 +7,13 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type InteractiveMarker struct { //nolint:golint
+type InteractiveMarker struct {
 	msg.Package `ros:"visualization_msgs"`
-	Header      std_msgs.Header            //nolint:golint
-	Pose        geometry_msgs.Pose         //nolint:golint
-	Name        string                     //nolint:golint
-	Description string                     //nolint:golint
-	Scale       float32                    //nolint:golint
-	MenuEntries []MenuEntry                //nolint:golint
-	Controls    []InteractiveMarkerControl //nolint:golint
+	Header      std_msgs.Header
+	Pose        geometry_msgs.Pose
+	Name        string
+	Description string
+	Scale       float32
+	MenuEntries []MenuEntry
+	Controls    []InteractiveMarkerControl
 }

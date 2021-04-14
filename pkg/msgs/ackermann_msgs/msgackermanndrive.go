@@ -1,14 +1,15 @@
-package ackermann_msgs //nolint:golint
+//nolint:golint
+package ackermann_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type AckermannDrive struct { //nolint:golint
+type AckermannDrive struct {
 	msg.Package           `ros:"ackermann_msgs"`
-	SteeringAngle         float32 //nolint:golint
-	SteeringAngleVelocity float32 //nolint:golint
-	Speed                 float32 //nolint:golint
-	Acceleration          float32 //nolint:golint
-	Jerk                  float32 //nolint:golint
+	SteeringAngle         float32
+	SteeringAngleVelocity float32
+	Speed                 float32
+	Acceleration          float32
+	Jerk                  float32
 }

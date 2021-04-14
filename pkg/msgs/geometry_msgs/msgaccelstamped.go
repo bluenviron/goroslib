@@ -1,12 +1,13 @@
-package geometry_msgs //nolint:golint
+//nolint:golint
+package geometry_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type AccelStamped struct { //nolint:golint
+type AccelStamped struct {
 	msg.Package `ros:"geometry_msgs"`
-	Header      std_msgs.Header //nolint:golint
-	Accel       Accel           //nolint:golint
+	Header      std_msgs.Header
+	Accel       Accel
 }

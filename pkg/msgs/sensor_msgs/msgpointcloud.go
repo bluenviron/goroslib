@@ -1,4 +1,5 @@
-package sensor_msgs //nolint:golint
+//nolint:golint
+package sensor_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,9 +7,9 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type PointCloud struct { //nolint:golint
+type PointCloud struct {
 	msg.Package `ros:"sensor_msgs"`
-	Header      std_msgs.Header         //nolint:golint
-	Points      []geometry_msgs.Point32 //nolint:golint
-	Channels    []ChannelFloat32        //nolint:golint
+	Header      std_msgs.Header
+	Points      []geometry_msgs.Point32
+	Channels    []ChannelFloat32
 }

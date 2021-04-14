@@ -1,11 +1,12 @@
-package geometry_msgs //nolint:golint
+//nolint:golint
+package geometry_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type Accel struct { //nolint:golint
+type Accel struct {
 	msg.Package `ros:"geometry_msgs"`
-	Linear      Vector3 //nolint:golint
-	Angular     Vector3 //nolint:golint
+	Linear      Vector3
+	Angular     Vector3
 }

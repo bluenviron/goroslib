@@ -1,11 +1,12 @@
-package std_msgs //nolint:golint
+//nolint:golint
+package std_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"time"
 )
 
-type Duration struct { //nolint:golint
+type Duration struct {
 	msg.Package `ros:"std_msgs"`
-	Data        time.Duration //nolint:golint
+	Data        time.Duration
 }

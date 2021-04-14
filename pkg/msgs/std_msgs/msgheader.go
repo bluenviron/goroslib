@@ -1,13 +1,14 @@
-package std_msgs //nolint:golint
+//nolint:golint
+package std_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"time"
 )
 
-type Header struct { //nolint:golint
+type Header struct {
 	msg.Package `ros:"std_msgs"`
-	Seq         uint32    //nolint:golint
-	Stamp       time.Time //nolint:golint
-	FrameId     string    //nolint:golint
+	Seq         uint32
+	Stamp       time.Time
+	FrameId     string
 }

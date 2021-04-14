@@ -1,11 +1,12 @@
-package geometry_msgs //nolint:golint
+//nolint:golint
+package geometry_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type Pose struct { //nolint:golint
+type Pose struct {
 	msg.Package `ros:"geometry_msgs"`
-	Position    Point      //nolint:golint
-	Orientation Quaternion //nolint:golint
+	Position    Point
+	Orientation Quaternion
 }

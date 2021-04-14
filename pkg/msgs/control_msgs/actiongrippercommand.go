@@ -1,28 +1,29 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type GripperCommandActionGoal struct { //nolint:golint
-	Command GripperCommand //nolint:golint
+type GripperCommandActionGoal struct {
+	Command GripperCommand
 }
 
-type GripperCommandActionResult struct { //nolint:golint
-	Position    float64 //nolint:golint
-	Effort      float64 //nolint:golint
-	Stalled     bool    //nolint:golint
-	ReachedGoal bool    //nolint:golint
+type GripperCommandActionResult struct {
+	Position    float64
+	Effort      float64
+	Stalled     bool
+	ReachedGoal bool
 }
 
-type GripperCommandActionFeedback struct { //nolint:golint
-	Position    float64 //nolint:golint
-	Effort      float64 //nolint:golint
-	Stalled     bool    //nolint:golint
-	ReachedGoal bool    //nolint:golint
+type GripperCommandActionFeedback struct {
+	Position    float64
+	Effort      float64
+	Stalled     bool
+	ReachedGoal bool
 }
 
-type GripperCommandAction struct { //nolint:golint
+type GripperCommandAction struct {
 	msg.Package `ros:"control_msgs"`
 	GripperCommandActionGoal
 	GripperCommandActionResult

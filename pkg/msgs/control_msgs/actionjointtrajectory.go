@@ -1,21 +1,22 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/trajectory_msgs"
 )
 
-type JointTrajectoryActionGoal struct { //nolint:golint
-	Trajectory trajectory_msgs.JointTrajectory //nolint:golint
+type JointTrajectoryActionGoal struct {
+	Trajectory trajectory_msgs.JointTrajectory
 }
 
-type JointTrajectoryActionResult struct { //nolint:golint
+type JointTrajectoryActionResult struct {
 }
 
-type JointTrajectoryActionFeedback struct { //nolint:golint
+type JointTrajectoryActionFeedback struct {
 }
 
-type JointTrajectoryAction struct { //nolint:golint
+type JointTrajectoryAction struct {
 	msg.Package `ros:"control_msgs"`
 	JointTrajectoryActionGoal
 	JointTrajectoryActionResult

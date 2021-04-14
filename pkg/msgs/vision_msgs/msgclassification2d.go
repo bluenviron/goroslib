@@ -1,4 +1,5 @@
-package vision_msgs //nolint:golint
+//nolint:golint
+package vision_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,9 +7,9 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type Classification2D struct { //nolint:golint
+type Classification2D struct {
 	msg.Package `ros:"vision_msgs"`
-	Header      std_msgs.Header    //nolint:golint
-	Results     []ObjectHypothesis //nolint:golint
-	SourceImg   sensor_msgs.Image  //nolint:golint
+	Header      std_msgs.Header
+	Results     []ObjectHypothesis
+	SourceImg   sensor_msgs.Image
 }

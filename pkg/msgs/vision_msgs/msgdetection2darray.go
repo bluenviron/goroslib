@@ -1,12 +1,13 @@
-package vision_msgs //nolint:golint
+//nolint:golint
+package vision_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type Detection2DArray struct { //nolint:golint
+type Detection2DArray struct {
 	msg.Package `ros:"vision_msgs"`
-	Header      std_msgs.Header //nolint:golint
-	Detections  []Detection2D   //nolint:golint
+	Header      std_msgs.Header
+	Detections  []Detection2D
 }

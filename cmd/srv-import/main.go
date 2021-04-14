@@ -16,7 +16,8 @@ import (
 )
 
 var tpl = template.Must(template.New("").Parse(
-	`package {{ .GoPkgName }} //nolint:golint
+	`//nolint:golint
+package {{ .GoPkgName }}
 
 import (
 {{- range $k, $v := .Imports }}
@@ -25,7 +26,7 @@ import (
 )
 {{ .Request }}
 {{ .Response }}
-type {{ .Name }} struct { //nolint:golint
+type {{ .Name }} struct {
 {{- if .RosPkgName }}
     msg.Package ` + "`" + `ros:"{{ .RosPkgName }}"` + "`" + `
 {{- end }}

@@ -1,4 +1,5 @@
-package trajectory_msgs //nolint:golint
+//nolint:golint
+package trajectory_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,10 +7,10 @@ import (
 	"time"
 )
 
-type MultiDOFJointTrajectoryPoint struct { //nolint:golint
+type MultiDOFJointTrajectoryPoint struct {
 	msg.Package   `ros:"trajectory_msgs"`
-	Transforms    []geometry_msgs.Transform //nolint:golint
-	Velocities    []geometry_msgs.Twist     //nolint:golint
-	Accelerations []geometry_msgs.Twist     //nolint:golint
-	TimeFromStart time.Duration             //nolint:golint
+	Transforms    []geometry_msgs.Transform
+	Velocities    []geometry_msgs.Twist
+	Accelerations []geometry_msgs.Twist
+	TimeFromStart time.Duration
 }

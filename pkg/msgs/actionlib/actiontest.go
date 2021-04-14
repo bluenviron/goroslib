@@ -1,22 +1,23 @@
-package actionlib //nolint:golint
+//nolint:golint
+package actionlib
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type TestActionGoal struct { //nolint:golint
-	Goal int32 //nolint:golint
+type TestActionGoal struct {
+	Goal int32
 }
 
-type TestActionResult struct { //nolint:golint
-	Result int32 //nolint:golint
+type TestActionResult struct {
+	Result int32
 }
 
-type TestActionFeedback struct { //nolint:golint
-	Feedback int32 //nolint:golint
+type TestActionFeedback struct {
+	Feedback int32
 }
 
-type TestAction struct { //nolint:golint
+type TestAction struct {
 	msg.Package `ros:"actionlib"`
 	TestActionGoal
 	TestActionResult

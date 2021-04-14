@@ -1,4 +1,5 @@
-package vision_msgs //nolint:golint
+//nolint:golint
+package vision_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,12 +7,12 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type Detection2D struct { //nolint:golint
+type Detection2D struct {
 	msg.Package `ros:"vision_msgs"`
-	Header      std_msgs.Header            //nolint:golint
-	Results     []ObjectHypothesisWithPose //nolint:golint
-	Bbox        BoundingBox2D              //nolint:golint
-	SourceImg   sensor_msgs.Image          //nolint:golint
-	IsTracking  bool                       //nolint:golint
-	TrackingId  string                     //nolint:golint
+	Header      std_msgs.Header
+	Results     []ObjectHypothesisWithPose
+	Bbox        BoundingBox2D
+	SourceImg   sensor_msgs.Image
+	IsTracking  bool
+	TrackingId  string
 }

@@ -1,18 +1,19 @@
-package std_srvs //nolint:golint
+//nolint:golint
+package std_srvs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type TriggerReq struct { //nolint:golint
+type TriggerReq struct {
 }
 
-type TriggerRes struct { //nolint:golint
-	Success bool   //nolint:golint
-	Message string //nolint:golint
+type TriggerRes struct {
+	Success bool
+	Message string
 }
 
-type Trigger struct { //nolint:golint
+type Trigger struct {
 	msg.Package `ros:"std_srvs"`
 	TriggerReq
 	TriggerRes

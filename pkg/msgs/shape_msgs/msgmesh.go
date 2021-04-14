@@ -1,12 +1,13 @@
-package shape_msgs //nolint:golint
+//nolint:golint
+package shape_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/geometry_msgs"
 )
 
-type Mesh struct { //nolint:golint
+type Mesh struct {
 	msg.Package `ros:"shape_msgs"`
-	Triangles   []MeshTriangle        //nolint:golint
-	Vertices    []geometry_msgs.Point //nolint:golint
+	Triangles   []MeshTriangle
+	Vertices    []geometry_msgs.Point
 }

@@ -1,4 +1,5 @@
-package nav_msgs //nolint:golint
+//nolint:golint
+package nav_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,8 +7,8 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type Path struct { //nolint:golint
+type Path struct {
 	msg.Package `ros:"nav_msgs"`
-	Header      std_msgs.Header             //nolint:golint
-	Poses       []geometry_msgs.PoseStamped //nolint:golint
+	Header      std_msgs.Header
+	Poses       []geometry_msgs.PoseStamped
 }

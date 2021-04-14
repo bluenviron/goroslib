@@ -1,4 +1,5 @@
-package control_msgs //nolint:golint
+//nolint:golint
+package control_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,11 +7,11 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/trajectory_msgs"
 )
 
-type JointTrajectoryControllerState struct { //nolint:golint
+type JointTrajectoryControllerState struct {
 	msg.Package `ros:"control_msgs"`
-	Header      std_msgs.Header                      //nolint:golint
-	JointNames  []string                             //nolint:golint
-	Desired     trajectory_msgs.JointTrajectoryPoint //nolint:golint
-	Actual      trajectory_msgs.JointTrajectoryPoint //nolint:golint
-	Error       trajectory_msgs.JointTrajectoryPoint //nolint:golint
+	Header      std_msgs.Header
+	JointNames  []string
+	Desired     trajectory_msgs.JointTrajectoryPoint
+	Actual      trajectory_msgs.JointTrajectoryPoint
+	Error       trajectory_msgs.JointTrajectoryPoint
 }

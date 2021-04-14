@@ -1,4 +1,5 @@
-package nav_msgs //nolint:golint
+//nolint:golint
+package nav_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,11 +7,11 @@ import (
 	"time"
 )
 
-type MapMetaData struct { //nolint:golint
+type MapMetaData struct {
 	msg.Package `ros:"nav_msgs"`
-	MapLoadTime time.Time          //nolint:golint
-	Resolution  float32            //nolint:golint
-	Width       uint32             //nolint:golint
-	Height      uint32             //nolint:golint
-	Origin      geometry_msgs.Pose //nolint:golint
+	MapLoadTime time.Time
+	Resolution  float32
+	Width       uint32
+	Height      uint32
+	Origin      geometry_msgs.Pose
 }

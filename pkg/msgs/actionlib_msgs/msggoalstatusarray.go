@@ -1,12 +1,13 @@
-package actionlib_msgs //nolint:golint
+//nolint:golint
+package actionlib_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type GoalStatusArray struct { //nolint:golint
+type GoalStatusArray struct {
 	msg.Package `ros:"actionlib_msgs"`
-	Header      std_msgs.Header //nolint:golint
-	StatusList  []GoalStatus    //nolint:golint
+	Header      std_msgs.Header
+	StatusList  []GoalStatus
 }

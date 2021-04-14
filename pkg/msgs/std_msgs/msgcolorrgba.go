@@ -1,13 +1,14 @@
-package std_msgs //nolint:golint
+//nolint:golint
+package std_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type ColorRGBA struct { //nolint:golint
+type ColorRGBA struct {
 	msg.Package `ros:"std_msgs"`
-	R           float32 //nolint:golint
-	G           float32 //nolint:golint
-	B           float32 //nolint:golint
-	A           float32 //nolint:golint
+	R           float32
+	G           float32
+	B           float32
+	A           float32
 }

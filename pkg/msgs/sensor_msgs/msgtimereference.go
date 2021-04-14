@@ -1,4 +1,5 @@
-package sensor_msgs //nolint:golint
+//nolint:golint
+package sensor_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
@@ -6,9 +7,9 @@ import (
 	"time"
 )
 
-type TimeReference struct { //nolint:golint
+type TimeReference struct {
 	msg.Package `ros:"sensor_msgs"`
-	Header      std_msgs.Header //nolint:golint
-	TimeRef     time.Time       //nolint:golint
-	Source      string          //nolint:golint
+	Header      std_msgs.Header
+	TimeRef     time.Time
+	Source      string
 }

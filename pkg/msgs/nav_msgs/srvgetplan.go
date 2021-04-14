@@ -1,21 +1,22 @@
-package nav_msgs //nolint:golint
+//nolint:golint
+package nav_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/geometry_msgs"
 )
 
-type GetPlanReq struct { //nolint:golint
-	Start     geometry_msgs.PoseStamped //nolint:golint
-	Goal      geometry_msgs.PoseStamped //nolint:golint
-	Tolerance float32                   //nolint:golint
+type GetPlanReq struct {
+	Start     geometry_msgs.PoseStamped
+	Goal      geometry_msgs.PoseStamped
+	Tolerance float32
 }
 
-type GetPlanRes struct { //nolint:golint
-	Plan Path //nolint:golint
+type GetPlanRes struct {
+	Plan Path
 }
 
-type GetPlan struct { //nolint:golint
+type GetPlan struct {
 	msg.Package `ros:"nav_msgs"`
 	GetPlanReq
 	GetPlanRes

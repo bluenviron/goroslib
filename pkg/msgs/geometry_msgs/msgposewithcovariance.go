@@ -1,11 +1,12 @@
-package geometry_msgs //nolint:golint
+//nolint:golint
+package geometry_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type PoseWithCovariance struct { //nolint:golint
+type PoseWithCovariance struct {
 	msg.Package `ros:"geometry_msgs"`
-	Pose        Pose        //nolint:golint
-	Covariance  [36]float64 //nolint:golint
+	Pose        Pose
+	Covariance  [36]float64
 }

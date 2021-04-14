@@ -1,13 +1,14 @@
-package nav_msgs //nolint:golint
+//nolint:golint
+package nav_msgs
 
 import (
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-type OccupancyGrid struct { //nolint:golint
+type OccupancyGrid struct {
 	msg.Package `ros:"nav_msgs"`
-	Header      std_msgs.Header //nolint:golint
-	Info        MapMetaData     //nolint:golint
-	Data        []int8          //nolint:golint
+	Header      std_msgs.Header
+	Info        MapMetaData
+	Data        []int8
 }
