@@ -63,27 +63,27 @@ var casesRequest = []struct {
 }
 
 func TestRequestDecode(t *testing.T) {
-	for _, c := range casesRequest {
-		t.Run(c.name, func(t *testing.T) {
-			raw, err := requestDecodeRaw(bytes.NewReader(c.bdec))
+	for _, ca := range casesRequest {
+		t.Run(ca.name, func(t *testing.T) {
+			raw, err := requestDecodeRaw(bytes.NewReader(ca.bdec))
 			require.NoError(t, err)
-			require.Equal(t, c.method, raw.Method)
+			require.Equal(t, ca.method, raw.Method)
 
-			params := reflect.New(reflect.TypeOf(c.params))
+			params := reflect.New(reflect.TypeOf(ca.params))
 			err = raw.Decode(params.Interface())
 			require.NoError(t, err)
-			require.Equal(t, c.params, params.Elem().Interface())
+			require.Equal(t, ca.params, params.Elem().Interface())
 		})
 	}
 }
 
 func TestRequestEncode(t *testing.T) {
-	for _, c := range casesRequest {
-		t.Run(c.name, func(t *testing.T) {
+	for _, ca := range casesRequest {
+		t.Run(ca.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := requestEncode(&buf, c.method, c.params)
+			err := requestEncode(&buf, ca.method, ca.params)
 			require.NoError(t, err)
-			require.Equal(t, c.benc, buf.Bytes())
+			require.Equal(t, ca.benc, buf.Bytes())
 		})
 	}
 }

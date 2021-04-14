@@ -18,7 +18,7 @@ type ServiceRes struct {
 }
 
 func TestRequestResponse(t *testing.T) {
-	for _, c := range []struct {
+	for _, ca := range []struct {
 		name string
 		srv  interface{}
 		req  interface{}
@@ -34,17 +34,17 @@ func TestRequestResponse(t *testing.T) {
 			ServiceRes{},
 		},
 	} {
-		t.Run(c.name, func(t *testing.T) {
-			req, res, err := RequestResponse(c.srv)
+		t.Run(ca.name, func(t *testing.T) {
+			req, res, err := RequestResponse(ca.srv)
 			require.NoError(t, err)
-			require.Equal(t, c.req, req)
-			require.Equal(t, c.res, res)
+			require.Equal(t, ca.req, req)
+			require.Equal(t, ca.res, res)
 		})
 	}
 }
 
 func TestMD5(t *testing.T) {
-	for _, c := range []struct {
+	for _, ca := range []struct {
 		name string
 		srv  interface{}
 		sum  string
@@ -58,10 +58,10 @@ func TestMD5(t *testing.T) {
 			"4fa8f09823d7ad898c6295d42385de20",
 		},
 	} {
-		t.Run(c.name, func(t *testing.T) {
-			md5, err := MD5(c.srv)
+		t.Run(ca.name, func(t *testing.T) {
+			md5, err := MD5(ca.srv)
 			require.NoError(t, err)
-			require.Equal(t, c.sum, md5)
+			require.Equal(t, ca.sum, md5)
 		})
 	}
 }
@@ -78,7 +78,7 @@ type SrvImplicitPackage struct {
 }
 
 func TestType(t *testing.T) {
-	for _, c := range []struct {
+	for _, ca := range []struct {
 		name string
 		srv  interface{}
 		typ  string
@@ -94,10 +94,10 @@ func TestType(t *testing.T) {
 			"goroslib/SrvImplicitPackage",
 		},
 	} {
-		t.Run(c.name, func(t *testing.T) {
-			typ, err := Type(c.srv)
+		t.Run(ca.name, func(t *testing.T) {
+			typ, err := Type(ca.srv)
 			require.NoError(t, err)
-			require.Equal(t, c.typ, typ)
+			require.Equal(t, ca.typ, typ)
 		})
 	}
 }

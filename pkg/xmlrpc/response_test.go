@@ -62,23 +62,23 @@ var casesResponse = []struct {
 }
 
 func TestResponseDecode(t *testing.T) {
-	for _, c := range casesResponse {
-		t.Run(c.name, func(t *testing.T) {
-			params := reflect.New(reflect.TypeOf(c.params))
-			err := responseDecode(bytes.NewReader(c.bdec), params.Interface())
+	for _, ca := range casesResponse {
+		t.Run(ca.name, func(t *testing.T) {
+			params := reflect.New(reflect.TypeOf(ca.params))
+			err := responseDecode(bytes.NewReader(ca.bdec), params.Interface())
 			require.NoError(t, err)
-			require.Equal(t, c.params, params.Elem().Interface())
+			require.Equal(t, ca.params, params.Elem().Interface())
 		})
 	}
 }
 
 func TestResponseEncode(t *testing.T) {
-	for _, c := range casesResponse {
-		t.Run(c.name, func(t *testing.T) {
+	for _, ca := range casesResponse {
+		t.Run(ca.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := responseEncode(&buf, c.params)
+			err := responseEncode(&buf, ca.params)
 			require.NoError(t, err)
-			require.Equal(t, c.benc, buf.Bytes())
+			require.Equal(t, ca.benc, buf.Bytes())
 		})
 	}
 }

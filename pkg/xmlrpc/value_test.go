@@ -124,18 +124,18 @@ var casesValue = []struct {
 }
 
 func TestValueDecode(t *testing.T) {
-	for _, c := range casesValue {
-		t.Run(c.name, func(t *testing.T) {
-			dec := xml.NewDecoder(bytes.NewReader(c.bdec))
+	for _, ca := range casesValue {
+		t.Run(ca.name, func(t *testing.T) {
+			dec := xml.NewDecoder(bytes.NewReader(ca.bdec))
 
 			err := xmlGetStartElement(dec, "value")
 			require.NoError(t, err)
 
-			v := reflect.New(reflect.TypeOf(c.v))
+			v := reflect.New(reflect.TypeOf(ca.v))
 			err = valueDecode(dec, reflect.ValueOf(v.Interface()))
 			require.NoError(t, err)
 
-			require.Equal(t, c.v, v.Elem().Interface())
+			require.Equal(t, ca.v, v.Elem().Interface())
 			_, err = dec.Token()
 
 			require.Equal(t, io.EOF, err)
@@ -144,12 +144,12 @@ func TestValueDecode(t *testing.T) {
 }
 
 func TestValueEncode(t *testing.T) {
-	for _, c := range casesValue {
-		t.Run(c.name, func(t *testing.T) {
+	for _, ca := range casesValue {
+		t.Run(ca.name, func(t *testing.T) {
 			var b bytes.Buffer
-			err := valueEncode(&b, reflect.ValueOf(c.v))
+			err := valueEncode(&b, reflect.ValueOf(ca.v))
 			require.NoError(t, err)
-			require.Equal(t, c.benc, b.Bytes())
+			require.Equal(t, ca.benc, b.Bytes())
 		})
 	}
 }

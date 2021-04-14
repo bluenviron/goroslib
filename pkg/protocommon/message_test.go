@@ -198,23 +198,23 @@ var casesMessage = []caseMessage{
 }
 
 func TestMessageDecode(t *testing.T) {
-	for _, c := range casesMessage {
-		t.Run(c.name, func(t *testing.T) {
-			msg := reflect.New(reflect.TypeOf(c.msg).Elem()).Interface()
-			err := MessageDecode(bytes.NewBuffer(c.byts), msg)
+	for _, ca := range casesMessage {
+		t.Run(ca.name, func(t *testing.T) {
+			msg := reflect.New(reflect.TypeOf(ca.msg).Elem()).Interface()
+			err := MessageDecode(bytes.NewBuffer(ca.byts), msg)
 			require.NoError(t, err)
-			require.Equal(t, c.msg, msg)
+			require.Equal(t, ca.msg, msg)
 		})
 	}
 }
 
 func TestMessageEncode(t *testing.T) {
-	for _, c := range casesMessage {
-		t.Run(c.name, func(t *testing.T) {
+	for _, ca := range casesMessage {
+		t.Run(ca.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := MessageEncode(&buf, c.msg)
+			err := MessageEncode(&buf, ca.msg)
 			require.NoError(t, err)
-			require.Equal(t, c.byts, buf.Bytes())
+			require.Equal(t, ca.byts, buf.Bytes())
 		})
 	}
 }
@@ -258,12 +258,12 @@ func benchmarkCases(b *testing.B) []caseMessage {
 
 func BenchmarkMessageDecode(b *testing.B) {
 	cases := append(benchmarkCases(b), casesMessage...)
-	for _, c := range cases {
-		b.Run(c.name, func(b *testing.B) {
+	for _, ca := range cases {
+		b.Run(ca.name, func(b *testing.B) {
 			// reuse message in loop to test benefit from preallocated fields
-			msg := reflect.New(reflect.TypeOf(c.msg).Elem()).Interface()
+			msg := reflect.New(reflect.TypeOf(ca.msg).Elem()).Interface()
 			for i := 0; i < b.N; i++ {
-				MessageDecode(bytes.NewBuffer(c.byts), msg)
+				MessageDecode(bytes.NewBuffer(ca.byts), msg)
 			}
 		})
 	}
@@ -271,11 +271,11 @@ func BenchmarkMessageDecode(b *testing.B) {
 
 func BenchmarkMessageEncode(b *testing.B) {
 	cases := append(benchmarkCases(b), casesMessage...)
-	for _, c := range cases {
-		b.Run(c.name, func(b *testing.B) {
+	for _, ca := range cases {
+		b.Run(ca.name, func(b *testing.B) {
 			var buf bytes.Buffer
 			for i := 0; i < b.N; i++ {
-				MessageEncode(&buf, c.msg)
+				MessageEncode(&buf, ca.msg)
 				buf.Reset()
 			}
 		})

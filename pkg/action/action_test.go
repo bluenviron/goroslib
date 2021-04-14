@@ -41,7 +41,7 @@ type DoSomethingAction struct {
 }
 
 func TestGoalResultFeedback(t *testing.T) {
-	for _, c := range []struct {
+	for _, ca := range []struct {
 		name string
 		act  interface{}
 		goal interface{}
@@ -60,12 +60,12 @@ func TestGoalResultFeedback(t *testing.T) {
 			ActionFeedback{},
 		},
 	} {
-		t.Run(c.name, func(t *testing.T) {
-			goal, res, fb, err := GoalResultFeedback(c.act)
+		t.Run(ca.name, func(t *testing.T) {
+			goal, res, fb, err := GoalResultFeedback(ca.act)
 			require.NoError(t, err)
-			require.Equal(t, c.goal, goal)
-			require.Equal(t, c.res, res)
-			require.Equal(t, c.fb, fb)
+			require.Equal(t, ca.goal, goal)
+			require.Equal(t, ca.res, res)
+			require.Equal(t, ca.fb, fb)
 		})
 	}
 }

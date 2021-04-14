@@ -32,7 +32,7 @@ type Log struct {
 }
 
 func TestMD5(t *testing.T) {
-	for _, c := range []struct {
+	for _, ca := range []struct {
 		name string
 		msg  interface{}
 		sum  string
@@ -135,10 +135,10 @@ func TestMD5(t *testing.T) {
 			"b9fd98954bcc9324b61cf24596e99bae",
 		},
 	} {
-		t.Run(c.name, func(t *testing.T) {
-			md5, err := MD5(c.msg)
+		t.Run(ca.name, func(t *testing.T) {
+			md5, err := MD5(ca.msg)
 			require.NoError(t, err)
-			require.Equal(t, c.sum, md5)
+			require.Equal(t, ca.sum, md5)
 		})
 	}
 }
@@ -153,7 +153,7 @@ type MsgImplicitPackage struct {
 }
 
 func TestType(t *testing.T) {
-	for _, c := range []struct {
+	for _, ca := range []struct {
 		name string
 		msg  interface{}
 		typ  string
@@ -169,10 +169,10 @@ func TestType(t *testing.T) {
 			"goroslib/MsgImplicitPackage",
 		},
 	} {
-		t.Run(c.name, func(t *testing.T) {
-			typ, err := Type(c.msg)
+		t.Run(ca.name, func(t *testing.T) {
+			typ, err := Type(ca.msg)
 			require.NoError(t, err)
-			require.Equal(t, c.typ, typ)
+			require.Equal(t, ca.typ, typ)
 		})
 	}
 }
