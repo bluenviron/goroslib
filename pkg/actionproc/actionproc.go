@@ -1,5 +1,5 @@
-// Package action contains functions to process actions.
-package action
+// Package actionproc contains functions to process actions.
+package actionproc
 
 import (
 	"fmt"
@@ -103,5 +103,4 @@ func Messages(action interface{}) (interface{}, interface{}, interface{}, error)
 	})).Elem().Interface()
 
 	return goalAction, resAction, fbAction, nil
-
 }

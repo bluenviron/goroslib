@@ -1,4 +1,4 @@
-package action
+package actionproc
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/msgproc"
 )
 
 type ActionGoal struct {
@@ -74,15 +75,15 @@ func TestMessages(t *testing.T) {
 	goalAction, resAction, fbAction, err := Messages(&DoSomethingAction{})
 	require.NoError(t, err)
 
-	cur, err := msg.MD5(goalAction)
+	cur, err := msgproc.MD5(goalAction)
 	require.NoError(t, err)
 	require.Equal(t, "3af8ef92ce0ecab8a808095234c6d844", cur)
 
-	cur, err = msg.MD5(resAction)
+	cur, err = msgproc.MD5(resAction)
 	require.NoError(t, err)
 	require.Equal(t, "f33093186ce0321119e729ea6e5846fc", cur)
 
-	cur, err = msg.MD5(fbAction)
+	cur, err = msgproc.MD5(fbAction)
 	require.NoError(t, err)
 	require.Equal(t, "25bfb21ced59f4f9490772d56f6961f4", cur)
 }

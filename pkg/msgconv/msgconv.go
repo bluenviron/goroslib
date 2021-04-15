@@ -227,7 +227,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 	}()
 
 	res.Imports = map[string]struct{}{
-		"github.com/aler9/goroslib/pkg/msg": {},
+		"github.com/aler9/goroslib/pkg/msgproc": {},
 	}
 	for _, f := range res.Fields {
 		switch f.TypePkg {

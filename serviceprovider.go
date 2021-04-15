@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/service"
+	"github.com/aler9/goroslib/pkg/serviceproc"
 )
 
 type serviceProviderClientRequestReq struct {
@@ -66,17 +66,17 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	srvType, err := service.Type(conf.Srv)
+	srvType, err := serviceproc.Type(conf.Srv)
 	if err != nil {
 		return nil, err
 	}
 
-	srvMD5, err := service.MD5(conf.Srv)
+	srvMD5, err := serviceproc.MD5(conf.Srv)
 	if err != nil {
 		return nil, err
 	}
 
-	srvReq, srvRes, err := service.RequestResponse(conf.Srv)
+	srvReq, srvRes, err := serviceproc.RequestResponse(conf.Srv)
 	if err != nil {
 		return nil, err
 	}

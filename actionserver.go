@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/action"
+	"github.com/aler9/goroslib/pkg/actionproc"
 	"github.com/aler9/goroslib/pkg/msgs/actionlib_msgs"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
@@ -269,12 +269,12 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		conf.DeleteGoalAfter = 5 * time.Second
 	}
 
-	goal, res, fb, err := action.GoalResultFeedback(conf.Action)
+	goal, res, fb, err := actionproc.GoalResultFeedback(conf.Action)
 	if err != nil {
 		return nil, err
 	}
 
-	goalAction, resAction, fbAction, err := action.Messages(conf.Action)
+	goalAction, resAction, fbAction, err := actionproc.Messages(conf.Action)
 	if err != nil {
 		return nil, err
 	}

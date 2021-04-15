@@ -1,10 +1,12 @@
-package msg
+package msgproc
 
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
 type Parent struct {
@@ -12,23 +14,23 @@ type Parent struct {
 }
 
 type Header struct { //nolint:golint
-	Package `ros:"std_msgs"`
-	Seq     uint32    //nolint:golint
-	Stamp   time.Time //nolint:golint
-	FrameId string    //nolint:golint
+	msg.Package `ros:"std_msgs"`
+	Seq         uint32    //nolint:golint
+	Stamp       time.Time //nolint:golint
+	FrameId     string    //nolint:golint
 }
 
 type Log struct {
-	Package     `ros:"rosgraph_msgs"`
-	Definitions `ros:"byte DEBUG=1,byte INFO=2,byte WARN=4,byte ERROR=8,byte FATAL=16"`
-	Header      Header
-	Level       int8 `rostype:"byte"`
-	Name        string
-	Msg         string
-	File        string
-	Function    string
-	Line        uint32
-	Topics      []string
+	msg.Package     `ros:"rosgraph_msgs"`
+	msg.Definitions `ros:"byte DEBUG=1,byte INFO=2,byte WARN=4,byte ERROR=8,byte FATAL=16"`
+	Header          Header
+	Level           int8 `rostype:"byte"`
+	Name            string
+	Msg             string
+	File            string
+	Function        string
+	Line            uint32
+	Topics          []string
 }
 
 func TestMD5(t *testing.T) {
@@ -40,23 +42,23 @@ func TestMD5(t *testing.T) {
 		{
 			"base types",
 			&struct {
-				Package `ros:"testing"`
-				A       bool
-				B       int8
-				C       uint8
-				D       int16
-				E       uint16
-				F       int32
-				G       uint32
-				H       int64
-				I       uint64
-				J       float32
-				K       float64
-				L       string
-				M       time.Time
-				N       time.Duration
-				O       int8  `rostype:"byte"`
-				P       uint8 `rostype:"char"`
+				msg.Package `ros:"testing"`
+				A           bool
+				B           int8
+				C           uint8
+				D           int16
+				E           uint16
+				F           int32
+				G           uint32
+				H           int64
+				I           uint64
+				J           float32
+				K           float64
+				L           string
+				M           time.Time
+				N           time.Duration
+				O           int8  `rostype:"byte"`
+				P           uint8 `rostype:"char"`
 			}{},
 			"7fee3a6254fc0562bf1632f0fe8f05c8",
 		},
@@ -144,8 +146,8 @@ func TestMD5(t *testing.T) {
 }
 
 type MsgExplicitPackage struct {
-	Package `ros:"my_package"`
-	Value   uint16
+	msg.Package `ros:"my_package"`
+	Value       uint16
 }
 
 type MsgImplicitPackage struct {

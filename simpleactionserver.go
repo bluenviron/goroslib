@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/pkg/action"
+	"github.com/aler9/goroslib/pkg/actionproc"
 )
 
 type goalHandlerPair struct {
@@ -52,7 +52,7 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 		done:      make(chan struct{}),
 	}
 
-	goal, _, _, err := action.GoalResultFeedback(conf.Action)
+	goal, _, _, err := actionproc.GoalResultFeedback(conf.Action)
 	if err != nil {
 		return nil, err
 	}

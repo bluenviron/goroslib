@@ -130,10 +130,10 @@ func TestNodeMasterGetServices(t *testing.T) {
 	res, err := n.MasterGetServices()
 	require.NoError(t, err)
 
-	service, ok := res["/myns/test_srv"]
+	srv, ok := res["/myns/test_srv"]
 	require.True(t, ok)
 
-	require.Equal(t, map[string]struct{}{"/myns/nodeserviceprovider": {}}, service.Providers)
+	require.Equal(t, map[string]struct{}{"/myns/nodeserviceprovider": {}}, srv.Providers)
 }
 
 func TestNodeNodeGetConns(t *testing.T) {

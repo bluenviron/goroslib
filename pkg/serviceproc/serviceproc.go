@@ -1,5 +1,5 @@
-// Package service contains functions to process services.
-package service
+// Package serviceproc contains functions to process services.
+package serviceproc
 
 import (
 	"crypto/md5"
@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/msgproc"
 )
 
 func md5sum(text string) string {
@@ -64,12 +65,12 @@ func MD5(srv interface{}) (string, error) {
 		return "", err
 	}
 
-	text1, _, err := msg.Text(reflect.TypeOf(req), "")
+	text1, _, err := msgproc.Text(reflect.TypeOf(req), "")
 	if err != nil {
 		return "", err
 	}
 
-	text2, _, err := msg.Text(reflect.TypeOf(res), "")
+	text2, _, err := msgproc.Text(reflect.TypeOf(res), "")
 	if err != nil {
 		return "", err
 	}
@@ -78,6 +79,6 @@ func MD5(srv interface{}) (string, error) {
 }
 
 // Type returns the type of a service.
-func Type(srv interface{}) (string, error) {
-	return msg.Type(srv)
+func Type(s interface{}) (string, error) {
+	return msgproc.Type(s)
 }

@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/aler9/goroslib/pkg/apislave"
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/msgproc"
 	"github.com/aler9/goroslib/pkg/protocommon"
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/protoudp"
@@ -81,12 +81,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg must be a pointer to a struct")
 	}
 
-	msgType, err := msg.Type(conf.Msg)
+	msgType, err := msgproc.Type(conf.Msg)
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msg.MD5(conf.Msg)
+	msgMd5, err := msgproc.MD5(conf.Msg)
 	if err != nil {
 		return nil, err
 	}

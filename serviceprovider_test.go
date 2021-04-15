@@ -44,10 +44,10 @@ func TestServiceProviderRegister(t *testing.T) {
 	services, err := n.MasterGetServices()
 	require.NoError(t, err)
 
-	service, ok := services["/myns/test_srv"]
+	srv, ok := services["/myns/test_srv"]
 	require.Equal(t, true, ok)
 
-	_, ok = service.Providers["/myns/goroslib"]
+	_, ok = srv.Providers["/myns/goroslib"]
 	require.Equal(t, true, ok)
 
 	// test un-registration

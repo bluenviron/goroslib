@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/service"
+	"github.com/aler9/goroslib/pkg/serviceproc"
 )
 
 // ServiceClientConf is the configuration of a ServiceClient.
@@ -48,7 +48,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	srvReq, srvRes, err := service.RequestResponse(conf.Srv)
+	srvReq, srvRes, err := serviceproc.RequestResponse(conf.Srv)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (sc *ServiceClient) createConn() error {
 		return fmt.Errorf("lookupService: %v", err)
 	}
 
-	srvMD5, err := service.MD5(sc.conf.Srv)
+	srvMD5, err := serviceproc.MD5(sc.conf.Srv)
 	if err != nil {
 		return err
 	}
