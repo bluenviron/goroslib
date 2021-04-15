@@ -11,11 +11,11 @@ import (
 )
 
 var tpl = template.Must(template.New("").Parse(
-	`{{- if .Res.Definitions }}
-{{- $MsgName := .Res.Name }}
+	`{{- if .Definitions }}
+{{- $MsgName := .Name }}
 
 const (
-{{- range .Res.Definitions }}
+{{- range .Definitions }}
 {{- if eq .GoType "string" }}
     {{ $MsgName }}_{{ .Name }} {{ .GoType }} = "{{ .Value }}"
 {{- else }}
@@ -25,14 +25,14 @@ const (
 )
 {{- end }}
 
-type {{ .Res.Name }} struct {
-{{- if .Res.RosPkgName }}
-    msg.Package ` + "`" + `ros:"{{ .Res.RosPkgName }}"` + "`" + `
+type {{ .Name }} struct {
+{{- if .RosPkgName }}
+    msg.Package ` + "`" + `ros:"{{ .RosPkgName }}"` + "`" + `
 {{- end }}
-{{- if .Res.DefinitionsStr }}
-    msg.Definitions ` + "`" + `ros:"{{ .Res.DefinitionsStr }}"` + "`" + `
+{{- if .DefinitionsStr }}
+    msg.Definitions ` + "`" + `ros:"{{ .DefinitionsStr }}"` + "`" + `
 {{- end }}
-{{- range .Res.Fields }}
+{{- range .Fields }}
     {{ .Name }} ` +
 		`{{ if .TypePkg -}}{{ .TypeArray }}{{ .TypePkg }}.{{ .Type }}{{- else -}}{{ .TypeArray }}{{ .Type }}{{- end -}}` +
 		`{{ if .NameOverride -}} ` + "`" + `rosname:"{{ .NameOverride }}"` + "`" + `{{- end -}}
@@ -249,9 +249,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 // Write converts a message definition into a Go structure.
 func (res *MessageDefinition) Write() (string, error) {
 	buf := bytes.NewBuffer(nil)
-	err := tpl.Execute(buf, map[string]interface{}{
-		"Res": res,
-	})
+	err := tpl.Execute(buf, res)
 	if err != nil {
 		return "", err
 	}
