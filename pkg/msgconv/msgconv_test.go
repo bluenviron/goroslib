@@ -13,16 +13,16 @@ func TestMessageDefinition(t *testing.T) {
 		golang string
 	}{
 		{
-			"native types",
+			"native types with some spaces",
 			"bool a\n" +
 				"int8 b\n" +
 				"uint8 c\n" +
 				"int16 d\n" +
 				"uint16 e\n" +
-				"int32 f\n" +
+				"int32   f\n" +
 				"uint32 g\n" +
 				"int64 h\n" +
-				"uint64 i\n" +
+				"uint64   i\n" +
 				"float32 j\n" +
 				"float64 k\n" +
 				"string l\n" +
@@ -51,17 +51,9 @@ func TestMessageDefinition(t *testing.T) {
 				"}\n",
 		},
 		{
-			"type with spaces",
-			"bool     a  \n",
-			"\n\ntype msgname struct {\n" +
-				"    msg.Package `ros:\"rospkg\"`\n" +
-				"    A bool\n" +
-				"}\n",
-		},
-		{
 			"definitions",
-			"int32 VAL1=3\n" +
-				"int32 VAL2=4\n" +
+			"int32 VAL1=  3\n" +
+				"int32 VAL2   = 4\n" +
 				"\n" +
 				"int32 var\n",
 			"\n\nconst (\n" +
@@ -76,23 +68,8 @@ func TestMessageDefinition(t *testing.T) {
 				"}\n",
 		},
 		{
-			"definition with spaces",
-			"int32 VAL1  =    3\n" +
-				"\n" +
-				"int32 var\n",
-			"\n\nconst (\n" +
-				"    msgname_VAL1 int32 = 3\n" +
-				")\n" +
-				"\n" +
-				"type msgname struct {\n" +
-				"    msg.Package `ros:\"rospkg\"`\n" +
-				"    msg.Definitions `ros:\"int32 VAL1=3\"`\n" +
-				"    Var int32\n" +
-				"}\n",
-		},
-		{
-			"string definition without quotes",
-			"string CONSTANT1=CONSTANT_VALUE_1\n" +
+			"string definition",
+			"string CONSTANT1=  CONSTANT_VALUE_1\n" +
 				"\n" +
 				"string source\n",
 			"\n\nconst (\n" +
@@ -101,18 +78,18 @@ func TestMessageDefinition(t *testing.T) {
 				"\n" +
 				"type msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
-				"    msg.Definitions `ros:\"string CONSTANT1=\\\"CONSTANT_VALUE_1\\\"\"`\n" +
+				"    msg.Definitions `ros:\"string CONSTANT1=CONSTANT_VALUE_1\"`\n" +
 				"    Source string\n" +
 				"}\n" +
 				"",
 		},
 		{
 			"string definition with quotes",
-			"string CONSTANT1=\"CONSTANT_VALUE_1\"\n" +
+			"string CONSTANT1 =\"CONSTANT_VALUE_1\"\n" +
 				"\n" +
 				"string source\n",
 			"\n\nconst (\n" +
-				"    msgname_CONSTANT1 string = \"CONSTANT_VALUE_1\"\n" +
+				"    msgname_CONSTANT1 string = \"\\\"CONSTANT_VALUE_1\\\"\"\n" +
 				")\n" +
 				"\n" +
 				"type msgname struct {\n" +

@@ -16,7 +16,11 @@ var tpl = template.Must(template.New("").Parse(
 
 const (
 {{- range .Res.Definitions }}
+{{- if eq .GoType "string" }}
+    {{ $MsgName }}_{{ .Name }} {{ .GoType }} = "{{ .Value }}"
+{{- else }}
     {{ $MsgName }}_{{ .Name }} {{ .GoType }} = {{ .Value }}
+{{- end }}
 {{- end }}
 )
 {{- end }}
@@ -38,10 +42,11 @@ type {{ .Res.Name }} struct {
 
 // Definition is a message definition.
 type Definition struct {
-	RosType string
-	GoType  string
-	Name    string
-	Value   string
+	RosType   string
+	GoType    string
+	Name      string
+	Value     string
+	HasQuotes bool
 }
 
 // Field is a message field.
@@ -120,6 +125,8 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 				Value:   matches[6],
 			}
 
+			d.Value = strings.ReplaceAll(d.Value, "\"", "\\\"")
+
 			d.GoType = func() string {
 				switch d.RosType {
 				case "byte":
@@ -130,11 +137,6 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 				}
 				return d.RosType
 			}()
-
-			if d.GoType == "string" && !strings.HasPrefix(d.Value, "\"") &&
-				!strings.HasSuffix(d.Value, "\"") {
-				d.Value = "\"" + d.Value + "\""
-			}
 
 			res.Definitions = append(res.Definitions, d)
 
@@ -221,7 +223,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 	res.DefinitionsStr = func() string {
 		var tmp []string
 		for _, d := range res.Definitions {
-			tmp = append(tmp, d.RosType+" "+d.Name+"="+strings.ReplaceAll(d.Value, "\"", "\\\""))
+			tmp = append(tmp, d.RosType+" "+d.Name+"="+d.Value)
 		}
 		return strings.Join(tmp, ",")
 	}()
