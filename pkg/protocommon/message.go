@@ -1,4 +1,4 @@
-// Package protocommon contains utilities and definitions for both TCPROS and UDPROS.
+// Package protocommon contains functions and definitions for both TCPROS and UDPROS.
 package protocommon
 
 import (

@@ -1,3 +1,4 @@
+// Package msg contains elements that are used to define messages.
 package msg
 
 import (

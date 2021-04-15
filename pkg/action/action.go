@@ -1,4 +1,4 @@
-// Package action contains utilities to process actions.
+// Package action contains functions to process actions.
 package action
 
 import (

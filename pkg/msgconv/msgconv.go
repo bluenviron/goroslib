@@ -1,4 +1,4 @@
-// Package msgconv contains utilities to import messages from standard definitions.
+// Package msgconv contains functions to convert messages from ROS definitions to Golang.
 package msgconv
 
 import (

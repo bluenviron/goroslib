@@ -1,4 +1,4 @@
-// Package service contains utilities to process services.
+// Package service contains functions to process services.
 package service
 
 import (
