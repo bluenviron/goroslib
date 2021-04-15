@@ -13,7 +13,7 @@ func TestMessageDefinition(t *testing.T) {
 		golang string
 	}{
 		{
-			"native types with some spaces",
+			"native types with spaces",
 			"bool a\n" +
 				"int8 b\n" +
 				"uint8 c\n" +
@@ -51,7 +51,7 @@ func TestMessageDefinition(t *testing.T) {
 				"}\n",
 		},
 		{
-			"definitions",
+			"definitions with spaces",
 			"int32 VAL1=  3\n" +
 				"int32 VAL2   = 4\n" +
 				"\n" +
