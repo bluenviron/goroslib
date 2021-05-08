@@ -96,7 +96,7 @@ Current and missing features are [described in the FEATURES document](FEATURES.m
 
 ### Use standard messages, services and actions
 
-This library already provides most of the standard messages, services and actions in the folder `pkg/msgs`:
+This library provides most of the standard messages, services and actions in the folder `pkg/msgs`:
 
 |package|documentation|repository|
 |-------|-------------|----------|
@@ -107,6 +107,7 @@ This library already provides most of the standard messages, services and action
 |control_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/control_msgs)|[link](https://github.com/ros-controls/control_msgs)|
 |diagnostic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/diagnostic_msgs)|[link](https://github.com/ros/common_msgs)|
 |geometry_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geometry_msgs)|[link](https://github.com/ros/common_msgs)|
+|geographic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geographic_msgss)|[link](https://github.com/ros-geographic-info/geographic_info)|
 |mavros_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/mavros_msgs)|[link](https://github.com/mavlink/mavros)|
 |nav_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/nav_msgs)|[link](https://github.com/ros/common_msgs)|
 |rosgraph_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs)|[link](https://github.com/ros/ros_comm_msgs)|
@@ -117,6 +118,7 @@ This library already provides most of the standard messages, services and action
 |std_srvs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/std_srvs)|[link](https://github.com/ros/ros_comm_msgs)|
 |stereo_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/stereo_msgs)|[link](https://github.com/ros/common_msgs)|
 |trajectory_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/trajectory_msgs)|[link](https://github.com/ros/common_msgs)|
+|uuid_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/uuid_msgs)|[link](https://github.com/ros-geographic-info/unique_identifier)|
 |velodyne_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
 |vision_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/vision_msgs)|[link](https://github.com/ros-perception/vision_msgs)|
 |visualization_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
@@ -148,20 +150,20 @@ The type of a field can be one of the following:
 
 * one of the primitive field types:
 
-  * bool
-  * int8
-  * uint8
-  * int16
-  * uint16
-  * int32
-  * uint32
-  * int64
-  * uint64
-  * float32
-  * float64
-  * string
-  * time.Time
-  * time.Duration
+  * `bool`
+  * `int8`
+  * `uint8`
+  * `int16`
+  * `uint16`
+  * `int32`
+  * `uint32`
+  * `int64`
+  * `uint64`
+  * `float32`
+  * `float64`
+  * `string`
+  * `time.Time`
+  * `time.Duration`
 
 * another standard or custom message
 

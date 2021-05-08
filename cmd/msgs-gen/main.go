@@ -192,6 +192,8 @@ func run() error {
 		"https://github.com/ros-perception/vision_msgs",
 		"https://github.com/ros/actionlib",
 		"https://github.com/mavlink/mavros",
+		"https://github.com/ros-geographic-info/geographic_info",
+		"https://github.com/ros-geographic-info/unique_identifier",
 	} {
 		count++
 		go func(repo string) {
