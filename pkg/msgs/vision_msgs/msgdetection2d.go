@@ -13,6 +13,4 @@ type Detection2D struct {
 	Results     []ObjectHypothesisWithPose
 	Bbox        BoundingBox2D
 	SourceImg   sensor_msgs.Image
-	IsTracking  bool
-	TrackingId  string
 }

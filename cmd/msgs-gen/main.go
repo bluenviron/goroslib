@@ -191,6 +191,7 @@ func run() error {
 		"https://github.com/ros-controls/control_msgs",
 		"https://github.com/ros-perception/vision_msgs",
 		"https://github.com/ros/actionlib",
+		"https://github.com/mavlink/mavros",
 	} {
 		count++
 		go func(repo string) {

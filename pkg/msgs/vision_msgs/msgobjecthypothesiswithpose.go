@@ -8,7 +8,7 @@ import (
 
 type ObjectHypothesisWithPose struct {
 	msg.Package `ros:"vision_msgs"`
-	Id          string
+	Id          int64
 	Score       float64
 	Pose        geometry_msgs.PoseWithCovariance
 }

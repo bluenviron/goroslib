@@ -13,6 +13,4 @@ type Detection3D struct {
 	Results     []ObjectHypothesisWithPose
 	Bbox        BoundingBox3D
 	SourceCloud sensor_msgs.PointCloud2
-	IsTracking  bool
-	TrackingId  string
 }

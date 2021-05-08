@@ -1,0 +1,84 @@
+//nolint:golint
+package mavros_msgs
+
+import (
+	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
+)
+
+const (
+	State_MODE_APM_PLANE_MANUAL        string = "MANUAL"
+	State_MODE_APM_PLANE_CIRCLE        string = "CIRCLE"
+	State_MODE_APM_PLANE_STABILIZE     string = "STABILIZE"
+	State_MODE_APM_PLANE_TRAINING      string = "TRAINING"
+	State_MODE_APM_PLANE_ACRO          string = "ACRO"
+	State_MODE_APM_PLANE_FBWA          string = "FBWA"
+	State_MODE_APM_PLANE_FBWB          string = "FBWB"
+	State_MODE_APM_PLANE_CRUISE        string = "CRUISE"
+	State_MODE_APM_PLANE_AUTOTUNE      string = "AUTOTUNE"
+	State_MODE_APM_PLANE_AUTO          string = "AUTO"
+	State_MODE_APM_PLANE_RTL           string = "RTL"
+	State_MODE_APM_PLANE_LOITER        string = "LOITER"
+	State_MODE_APM_PLANE_LAND          string = "LAND"
+	State_MODE_APM_PLANE_GUIDED        string = "GUIDED"
+	State_MODE_APM_PLANE_INITIALISING  string = "INITIALISING"
+	State_MODE_APM_PLANE_QSTABILIZE    string = "QSTABILIZE"
+	State_MODE_APM_PLANE_QHOVER        string = "QHOVER"
+	State_MODE_APM_PLANE_QLOITER       string = "QLOITER"
+	State_MODE_APM_PLANE_QLAND         string = "QLAND"
+	State_MODE_APM_PLANE_QRTL          string = "QRTL"
+	State_MODE_APM_COPTER_STABILIZE    string = "STABILIZE"
+	State_MODE_APM_COPTER_ACRO         string = "ACRO"
+	State_MODE_APM_COPTER_ALT_HOLD     string = "ALT_HOLD"
+	State_MODE_APM_COPTER_AUTO         string = "AUTO"
+	State_MODE_APM_COPTER_GUIDED       string = "GUIDED"
+	State_MODE_APM_COPTER_LOITER       string = "LOITER"
+	State_MODE_APM_COPTER_RTL          string = "RTL"
+	State_MODE_APM_COPTER_CIRCLE       string = "CIRCLE"
+	State_MODE_APM_COPTER_POSITION     string = "POSITION"
+	State_MODE_APM_COPTER_LAND         string = "LAND"
+	State_MODE_APM_COPTER_OF_LOITER    string = "OF_LOITER"
+	State_MODE_APM_COPTER_DRIFT        string = "DRIFT"
+	State_MODE_APM_COPTER_SPORT        string = "SPORT"
+	State_MODE_APM_COPTER_FLIP         string = "FLIP"
+	State_MODE_APM_COPTER_AUTOTUNE     string = "AUTOTUNE"
+	State_MODE_APM_COPTER_POSHOLD      string = "POSHOLD"
+	State_MODE_APM_COPTER_BRAKE        string = "BRAKE"
+	State_MODE_APM_COPTER_THROW        string = "THROW"
+	State_MODE_APM_COPTER_AVOID_ADSB   string = "AVOID_ADSB"
+	State_MODE_APM_COPTER_GUIDED_NOGPS string = "GUIDED_NOGPS"
+	State_MODE_APM_ROVER_MANUAL        string = "MANUAL"
+	State_MODE_APM_ROVER_LEARNING      string = "LEARNING"
+	State_MODE_APM_ROVER_STEERING      string = "STEERING"
+	State_MODE_APM_ROVER_HOLD          string = "HOLD"
+	State_MODE_APM_ROVER_AUTO          string = "AUTO"
+	State_MODE_APM_ROVER_RTL           string = "RTL"
+	State_MODE_APM_ROVER_GUIDED        string = "GUIDED"
+	State_MODE_APM_ROVER_INITIALISING  string = "INITIALISING"
+	State_MODE_PX4_MANUAL              string = "MANUAL"
+	State_MODE_PX4_ACRO                string = "ACRO"
+	State_MODE_PX4_ALTITUDE            string = "ALTCTL"
+	State_MODE_PX4_POSITION            string = "POSCTL"
+	State_MODE_PX4_OFFBOARD            string = "OFFBOARD"
+	State_MODE_PX4_STABILIZED          string = "STABILIZED"
+	State_MODE_PX4_RATTITUDE           string = "RATTITUDE"
+	State_MODE_PX4_MISSION             string = "AUTO.MISSION"
+	State_MODE_PX4_LOITER              string = "AUTO.LOITER"
+	State_MODE_PX4_RTL                 string = "AUTO.RTL"
+	State_MODE_PX4_LAND                string = "AUTO.LAND"
+	State_MODE_PX4_RTGS                string = "AUTO.RTGS"
+	State_MODE_PX4_READY               string = "AUTO.READY"
+	State_MODE_PX4_TAKEOFF             string = "AUTO.TAKEOFF"
+)
+
+type State struct {
+	msg.Package     `ros:"mavros_msgs"`
+	msg.Definitions `ros:"string MODE_APM_PLANE_MANUAL=MANUAL,string MODE_APM_PLANE_CIRCLE=CIRCLE,string MODE_APM_PLANE_STABILIZE=STABILIZE,string MODE_APM_PLANE_TRAINING=TRAINING,string MODE_APM_PLANE_ACRO=ACRO,string MODE_APM_PLANE_FBWA=FBWA,string MODE_APM_PLANE_FBWB=FBWB,string MODE_APM_PLANE_CRUISE=CRUISE,string MODE_APM_PLANE_AUTOTUNE=AUTOTUNE,string MODE_APM_PLANE_AUTO=AUTO,string MODE_APM_PLANE_RTL=RTL,string MODE_APM_PLANE_LOITER=LOITER,string MODE_APM_PLANE_LAND=LAND,string MODE_APM_PLANE_GUIDED=GUIDED,string MODE_APM_PLANE_INITIALISING=INITIALISING,string MODE_APM_PLANE_QSTABILIZE=QSTABILIZE,string MODE_APM_PLANE_QHOVER=QHOVER,string MODE_APM_PLANE_QLOITER=QLOITER,string MODE_APM_PLANE_QLAND=QLAND,string MODE_APM_PLANE_QRTL=QRTL,string MODE_APM_COPTER_STABILIZE=STABILIZE,string MODE_APM_COPTER_ACRO=ACRO,string MODE_APM_COPTER_ALT_HOLD=ALT_HOLD,string MODE_APM_COPTER_AUTO=AUTO,string MODE_APM_COPTER_GUIDED=GUIDED,string MODE_APM_COPTER_LOITER=LOITER,string MODE_APM_COPTER_RTL=RTL,string MODE_APM_COPTER_CIRCLE=CIRCLE,string MODE_APM_COPTER_POSITION=POSITION,string MODE_APM_COPTER_LAND=LAND,string MODE_APM_COPTER_OF_LOITER=OF_LOITER,string MODE_APM_COPTER_DRIFT=DRIFT,string MODE_APM_COPTER_SPORT=SPORT,string MODE_APM_COPTER_FLIP=FLIP,string MODE_APM_COPTER_AUTOTUNE=AUTOTUNE,string MODE_APM_COPTER_POSHOLD=POSHOLD,string MODE_APM_COPTER_BRAKE=BRAKE,string MODE_APM_COPTER_THROW=THROW,string MODE_APM_COPTER_AVOID_ADSB=AVOID_ADSB,string MODE_APM_COPTER_GUIDED_NOGPS=GUIDED_NOGPS,string MODE_APM_ROVER_MANUAL=MANUAL,string MODE_APM_ROVER_LEARNING=LEARNING,string MODE_APM_ROVER_STEERING=STEERING,string MODE_APM_ROVER_HOLD=HOLD,string MODE_APM_ROVER_AUTO=AUTO,string MODE_APM_ROVER_RTL=RTL,string MODE_APM_ROVER_GUIDED=GUIDED,string MODE_APM_ROVER_INITIALISING=INITIALISING,string MODE_PX4_MANUAL=MANUAL,string MODE_PX4_ACRO=ACRO,string MODE_PX4_ALTITUDE=ALTCTL,string MODE_PX4_POSITION=POSCTL,string MODE_PX4_OFFBOARD=OFFBOARD,string MODE_PX4_STABILIZED=STABILIZED,string MODE_PX4_RATTITUDE=RATTITUDE,string MODE_PX4_MISSION=AUTO.MISSION,string MODE_PX4_LOITER=AUTO.LOITER,string MODE_PX4_RTL=AUTO.RTL,string MODE_PX4_LAND=AUTO.LAND,string MODE_PX4_RTGS=AUTO.RTGS,string MODE_PX4_READY=AUTO.READY,string MODE_PX4_TAKEOFF=AUTO.TAKEOFF"`
+	Header          std_msgs.Header
+	Connected       bool
+	Armed           bool
+	Guided          bool
+	ManualInput     bool
+	Mode            string
+	SystemStatus    uint8
+}

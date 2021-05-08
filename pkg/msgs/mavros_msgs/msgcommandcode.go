@@ -1,0 +1,154 @@
+//nolint:golint
+package mavros_msgs
+
+import (
+	"github.com/aler9/goroslib/pkg/msg"
+)
+
+const (
+	CommandCode_AIRFRAME_CONFIGURATION             uint16 = 2520
+	CommandCode_ARM_AUTHORIZATION_REQUEST          uint16 = 3001
+	CommandCode_CAMERA_TRACK_POINT                 uint16 = 2004
+	CommandCode_CAMERA_TRACK_RECTANGLE             uint16 = 2005
+	CommandCode_CAMERA_STOP_TRACKING               uint16 = 2010
+	CommandCode_COMPONENT_ARM_DISARM               uint16 = 400
+	CommandCode_CONDITION_DELAY                    uint16 = 112
+	CommandCode_CONDITION_CHANGE_ALT               uint16 = 113
+	CommandCode_CONDITION_DISTANCE                 uint16 = 114
+	CommandCode_CONDITION_YAW                      uint16 = 115
+	CommandCode_CONDITION_LAST                     uint16 = 159
+	CommandCode_CONDITION_GATE                     uint16 = 4501
+	CommandCode_CONTROL_HIGH_LATENCY               uint16 = 2600
+	CommandCode_DO_FOLLOW                          uint16 = 32
+	CommandCode_DO_FOLLOW_REPOSITION               uint16 = 33
+	CommandCode_DO_ORBIT                           uint16 = 34
+	CommandCode_DO_SET_MODE                        uint16 = 176
+	CommandCode_DO_JUMP                            uint16 = 177
+	CommandCode_DO_CHANGE_SPEED                    uint16 = 178
+	CommandCode_DO_SET_HOME                        uint16 = 179
+	CommandCode_DO_SET_PARAMETER                   uint16 = 180
+	CommandCode_DO_SET_RELAY                       uint16 = 181
+	CommandCode_DO_REPEAT_RELAY                    uint16 = 182
+	CommandCode_DO_SET_SERVO                       uint16 = 183
+	CommandCode_DO_REPEAT_SERVO                    uint16 = 184
+	CommandCode_DO_FLIGHTTERMINATION               uint16 = 185
+	CommandCode_DO_CHANGE_ALTITUDE                 uint16 = 186
+	CommandCode_DO_SET_ACTUATOR                    uint16 = 187
+	CommandCode_DO_LAND_START                      uint16 = 189
+	CommandCode_DO_RALLY_LAND                      uint16 = 190
+	CommandCode_DO_GO_AROUND                       uint16 = 191
+	CommandCode_DO_REPOSITION                      uint16 = 192
+	CommandCode_DO_PAUSE_CONTINUE                  uint16 = 193
+	CommandCode_DO_SET_REVERSE                     uint16 = 194
+	CommandCode_DO_SET_ROI_LOCATION                uint16 = 195
+	CommandCode_DO_SET_ROI_WPNEXT_OFFSET           uint16 = 196
+	CommandCode_DO_SET_ROI_NONE                    uint16 = 197
+	CommandCode_DO_SET_ROI_SYSID                   uint16 = 198
+	CommandCode_DO_CONTROL_VIDEO                   uint16 = 200
+	CommandCode_DO_SET_ROI                         uint16 = 201
+	CommandCode_DO_DIGICAM_CONFIGURE               uint16 = 202
+	CommandCode_DO_DIGICAM_CONTROL                 uint16 = 203
+	CommandCode_DO_MOUNT_CONFIGURE                 uint16 = 204
+	CommandCode_DO_MOUNT_CONTROL                   uint16 = 205
+	CommandCode_DO_SET_CAM_TRIGG_DIST              uint16 = 206
+	CommandCode_DO_FENCE_ENABLE                    uint16 = 207
+	CommandCode_DO_PARACHUTE                       uint16 = 208
+	CommandCode_DO_MOTOR_TEST                      uint16 = 209
+	CommandCode_DO_INVERTED_FLIGHT                 uint16 = 210
+	CommandCode_DO_GRIPPER                         uint16 = 211
+	CommandCode_DO_AUTOTUNE_ENABLE                 uint16 = 212
+	CommandCode_DO_SET_CAM_TRIGG_INTERVAL          uint16 = 214
+	CommandCode_DO_MOUNT_CONTROL_QUAT              uint16 = 220
+	CommandCode_DO_GUIDED_MASTER                   uint16 = 221
+	CommandCode_DO_GUIDED_LIMITS                   uint16 = 222
+	CommandCode_DO_ENGINE_CONTROL                  uint16 = 223
+	CommandCode_DO_SET_MISSION_CURRENT             uint16 = 224
+	CommandCode_DO_LAST                            uint16 = 240
+	CommandCode_DO_UPGRADE                         uint16 = 247
+	CommandCode_DO_JUMP_TAG                        uint16 = 601
+	CommandCode_DO_GIMBAL_MANAGER_PITCHYAW         uint16 = 1000
+	CommandCode_DO_GIMBAL_MANAGER_CONFIGURE        uint16 = 1001
+	CommandCode_DO_TRIGGER_CONTROL                 uint16 = 2003
+	CommandCode_DO_VTOL_TRANSITION                 uint16 = 3000
+	CommandCode_DO_WINCH                           uint16 = 42600
+	CommandCode_FIXED_MAG_CAL_YAW                  uint16 = 42006
+	CommandCode_GET_HOME_POSITION                  uint16 = 410
+	CommandCode_GET_MESSAGE_INTERVAL               uint16 = 510
+	CommandCode_ILLUMINATOR_ON_OFF                 uint16 = 405
+	CommandCode_IMAGE_START_CAPTURE                uint16 = 2000
+	CommandCode_IMAGE_STOP_CAPTURE                 uint16 = 2001
+	CommandCode_INJECT_FAILURE                     uint16 = 420
+	CommandCode_JUMP_TAG                           uint16 = 600
+	CommandCode_LOGGING_START                      uint16 = 2510
+	CommandCode_LOGGING_STOP                       uint16 = 2511
+	CommandCode_MISSION_START                      uint16 = 300
+	CommandCode_NAV_WAYPOINT                       uint16 = 16
+	CommandCode_NAV_LOITER_UNLIM                   uint16 = 17
+	CommandCode_NAV_LOITER_TURNS                   uint16 = 18
+	CommandCode_NAV_LOITER_TIME                    uint16 = 19
+	CommandCode_NAV_RETURN_TO_LAUNCH               uint16 = 20
+	CommandCode_NAV_LAND                           uint16 = 21
+	CommandCode_NAV_TAKEOFF                        uint16 = 22
+	CommandCode_NAV_LAND_LOCAL                     uint16 = 23
+	CommandCode_NAV_TAKEOFF_LOCAL                  uint16 = 24
+	CommandCode_NAV_FOLLOW                         uint16 = 25
+	CommandCode_NAV_CONTINUE_AND_CHANGE_ALT        uint16 = 30
+	CommandCode_NAV_LOITER_TO_ALT                  uint16 = 31
+	CommandCode_NAV_ROI                            uint16 = 80
+	CommandCode_NAV_PATHPLANNING                   uint16 = 81
+	CommandCode_NAV_SPLINE_WAYPOINT                uint16 = 82
+	CommandCode_NAV_VTOL_TAKEOFF                   uint16 = 84
+	CommandCode_NAV_VTOL_LAND                      uint16 = 85
+	CommandCode_NAV_GUIDED_ENABLE                  uint16 = 92
+	CommandCode_NAV_DELAY                          uint16 = 93
+	CommandCode_NAV_PAYLOAD_PLACE                  uint16 = 94
+	CommandCode_NAV_LAST                           uint16 = 95
+	CommandCode_NAV_SET_YAW_SPEED                  uint16 = 213
+	CommandCode_NAV_FENCE_RETURN_POINT             uint16 = 5000
+	CommandCode_NAV_FENCE_POLYGON_VERTEX_INCLUSION uint16 = 5001
+	CommandCode_NAV_FENCE_POLYGON_VERTEX_EXCLUSION uint16 = 5002
+	CommandCode_NAV_FENCE_CIRCLE_INCLUSION         uint16 = 5003
+	CommandCode_NAV_FENCE_CIRCLE_EXCLUSION         uint16 = 5004
+	CommandCode_NAV_RALLY_POINT                    uint16 = 5100
+	CommandCode_OBLIQUE_SURVEY                     uint16 = 260
+	CommandCode_OVERRIDE_GOTO                      uint16 = 252
+	CommandCode_PANORAMA_CREATE                    uint16 = 2800
+	CommandCode_PARAM_TRANSACTION                  uint16 = 900
+	CommandCode_PAYLOAD_PREPARE_DEPLOY             uint16 = 30001
+	CommandCode_PAYLOAD_CONTROL_DEPLOY             uint16 = 30002
+	CommandCode_PREFLIGHT_CALIBRATION              uint16 = 241
+	CommandCode_PREFLIGHT_SET_SENSOR_OFFSETS       uint16 = 242
+	CommandCode_PREFLIGHT_UAVCAN                   uint16 = 243
+	CommandCode_PREFLIGHT_STORAGE                  uint16 = 245
+	CommandCode_PREFLIGHT_REBOOT_SHUTDOWN          uint16 = 246
+	CommandCode_REQUEST_MESSAGE                    uint16 = 512
+	CommandCode_REQUEST_PROTOCOL_VERSION           uint16 = 519
+	CommandCode_REQUEST_AUTOPILOT_CAPABILITIES     uint16 = 520
+	CommandCode_REQUEST_CAMERA_INFORMATION         uint16 = 521
+	CommandCode_REQUEST_CAMERA_SETTINGS            uint16 = 522
+	CommandCode_REQUEST_STORAGE_INFORMATION        uint16 = 525
+	CommandCode_REQUEST_CAMERA_CAPTURE_STATUS      uint16 = 527
+	CommandCode_REQUEST_FLIGHT_INFORMATION         uint16 = 528
+	CommandCode_REQUEST_CAMERA_IMAGE_CAPTURE       uint16 = 2002
+	CommandCode_REQUEST_VIDEO_STREAM_INFORMATION   uint16 = 2504
+	CommandCode_REQUEST_VIDEO_STREAM_STATUS        uint16 = 2505
+	CommandCode_RESET_CAMERA_SETTINGS              uint16 = 529
+	CommandCode_SET_MESSAGE_INTERVAL               uint16 = 511
+	CommandCode_SET_CAMERA_MODE                    uint16 = 530
+	CommandCode_SET_CAMERA_ZOOM                    uint16 = 531
+	CommandCode_SET_CAMERA_FOCUS                   uint16 = 532
+	CommandCode_SET_GUIDED_SUBMODE_STANDARD        uint16 = 4000
+	CommandCode_SET_GUIDED_SUBMODE_CIRCLE          uint16 = 4001
+	CommandCode_START_RX_PAIR                      uint16 = 500
+	CommandCode_STORAGE_FORMAT                     uint16 = 526
+	CommandCode_UAVCAN_GET_NODE_INFO               uint16 = 5200
+	CommandCode_VIDEO_START_CAPTURE                uint16 = 2500
+	CommandCode_VIDEO_STOP_CAPTURE                 uint16 = 2501
+	CommandCode_VIDEO_START_STREAMING              uint16 = 2502
+	CommandCode_VIDEO_STOP_STREAMING               uint16 = 2503
+)
+
+type CommandCode struct {
+	msg.Package     `ros:"mavros_msgs"`
+	msg.Definitions `ros:"uint16 AIRFRAME_CONFIGURATION=2520,uint16 ARM_AUTHORIZATION_REQUEST=3001,uint16 CAMERA_TRACK_POINT=2004,uint16 CAMERA_TRACK_RECTANGLE=2005,uint16 CAMERA_STOP_TRACKING=2010,uint16 COMPONENT_ARM_DISARM=400,uint16 CONDITION_DELAY=112,uint16 CONDITION_CHANGE_ALT=113,uint16 CONDITION_DISTANCE=114,uint16 CONDITION_YAW=115,uint16 CONDITION_LAST=159,uint16 CONDITION_GATE=4501,uint16 CONTROL_HIGH_LATENCY=2600,uint16 DO_FOLLOW=32,uint16 DO_FOLLOW_REPOSITION=33,uint16 DO_ORBIT=34,uint16 DO_SET_MODE=176,uint16 DO_JUMP=177,uint16 DO_CHANGE_SPEED=178,uint16 DO_SET_HOME=179,uint16 DO_SET_PARAMETER=180,uint16 DO_SET_RELAY=181,uint16 DO_REPEAT_RELAY=182,uint16 DO_SET_SERVO=183,uint16 DO_REPEAT_SERVO=184,uint16 DO_FLIGHTTERMINATION=185,uint16 DO_CHANGE_ALTITUDE=186,uint16 DO_SET_ACTUATOR=187,uint16 DO_LAND_START=189,uint16 DO_RALLY_LAND=190,uint16 DO_GO_AROUND=191,uint16 DO_REPOSITION=192,uint16 DO_PAUSE_CONTINUE=193,uint16 DO_SET_REVERSE=194,uint16 DO_SET_ROI_LOCATION=195,uint16 DO_SET_ROI_WPNEXT_OFFSET=196,uint16 DO_SET_ROI_NONE=197,uint16 DO_SET_ROI_SYSID=198,uint16 DO_CONTROL_VIDEO=200,uint16 DO_SET_ROI=201,uint16 DO_DIGICAM_CONFIGURE=202,uint16 DO_DIGICAM_CONTROL=203,uint16 DO_MOUNT_CONFIGURE=204,uint16 DO_MOUNT_CONTROL=205,uint16 DO_SET_CAM_TRIGG_DIST=206,uint16 DO_FENCE_ENABLE=207,uint16 DO_PARACHUTE=208,uint16 DO_MOTOR_TEST=209,uint16 DO_INVERTED_FLIGHT=210,uint16 DO_GRIPPER=211,uint16 DO_AUTOTUNE_ENABLE=212,uint16 DO_SET_CAM_TRIGG_INTERVAL=214,uint16 DO_MOUNT_CONTROL_QUAT=220,uint16 DO_GUIDED_MASTER=221,uint16 DO_GUIDED_LIMITS=222,uint16 DO_ENGINE_CONTROL=223,uint16 DO_SET_MISSION_CURRENT=224,uint16 DO_LAST=240,uint16 DO_UPGRADE=247,uint16 DO_JUMP_TAG=601,uint16 DO_GIMBAL_MANAGER_PITCHYAW=1000,uint16 DO_GIMBAL_MANAGER_CONFIGURE=1001,uint16 DO_TRIGGER_CONTROL=2003,uint16 DO_VTOL_TRANSITION=3000,uint16 DO_WINCH=42600,uint16 FIXED_MAG_CAL_YAW=42006,uint16 GET_HOME_POSITION=410,uint16 GET_MESSAGE_INTERVAL=510,uint16 ILLUMINATOR_ON_OFF=405,uint16 IMAGE_START_CAPTURE=2000,uint16 IMAGE_STOP_CAPTURE=2001,uint16 INJECT_FAILURE=420,uint16 JUMP_TAG=600,uint16 LOGGING_START=2510,uint16 LOGGING_STOP=2511,uint16 MISSION_START=300,uint16 NAV_WAYPOINT=16,uint16 NAV_LOITER_UNLIM=17,uint16 NAV_LOITER_TURNS=18,uint16 NAV_LOITER_TIME=19,uint16 NAV_RETURN_TO_LAUNCH=20,uint16 NAV_LAND=21,uint16 NAV_TAKEOFF=22,uint16 NAV_LAND_LOCAL=23,uint16 NAV_TAKEOFF_LOCAL=24,uint16 NAV_FOLLOW=25,uint16 NAV_CONTINUE_AND_CHANGE_ALT=30,uint16 NAV_LOITER_TO_ALT=31,uint16 NAV_ROI=80,uint16 NAV_PATHPLANNING=81,uint16 NAV_SPLINE_WAYPOINT=82,uint16 NAV_VTOL_TAKEOFF=84,uint16 NAV_VTOL_LAND=85,uint16 NAV_GUIDED_ENABLE=92,uint16 NAV_DELAY=93,uint16 NAV_PAYLOAD_PLACE=94,uint16 NAV_LAST=95,uint16 NAV_SET_YAW_SPEED=213,uint16 NAV_FENCE_RETURN_POINT=5000,uint16 NAV_FENCE_POLYGON_VERTEX_INCLUSION=5001,uint16 NAV_FENCE_POLYGON_VERTEX_EXCLUSION=5002,uint16 NAV_FENCE_CIRCLE_INCLUSION=5003,uint16 NAV_FENCE_CIRCLE_EXCLUSION=5004,uint16 NAV_RALLY_POINT=5100,uint16 OBLIQUE_SURVEY=260,uint16 OVERRIDE_GOTO=252,uint16 PANORAMA_CREATE=2800,uint16 PARAM_TRANSACTION=900,uint16 PAYLOAD_PREPARE_DEPLOY=30001,uint16 PAYLOAD_CONTROL_DEPLOY=30002,uint16 PREFLIGHT_CALIBRATION=241,uint16 PREFLIGHT_SET_SENSOR_OFFSETS=242,uint16 PREFLIGHT_UAVCAN=243,uint16 PREFLIGHT_STORAGE=245,uint16 PREFLIGHT_REBOOT_SHUTDOWN=246,uint16 REQUEST_MESSAGE=512,uint16 REQUEST_PROTOCOL_VERSION=519,uint16 REQUEST_AUTOPILOT_CAPABILITIES=520,uint16 REQUEST_CAMERA_INFORMATION=521,uint16 REQUEST_CAMERA_SETTINGS=522,uint16 REQUEST_STORAGE_INFORMATION=525,uint16 REQUEST_CAMERA_CAPTURE_STATUS=527,uint16 REQUEST_FLIGHT_INFORMATION=528,uint16 REQUEST_CAMERA_IMAGE_CAPTURE=2002,uint16 REQUEST_VIDEO_STREAM_INFORMATION=2504,uint16 REQUEST_VIDEO_STREAM_STATUS=2505,uint16 RESET_CAMERA_SETTINGS=529,uint16 SET_MESSAGE_INTERVAL=511,uint16 SET_CAMERA_MODE=530,uint16 SET_CAMERA_ZOOM=531,uint16 SET_CAMERA_FOCUS=532,uint16 SET_GUIDED_SUBMODE_STANDARD=4000,uint16 SET_GUIDED_SUBMODE_CIRCLE=4001,uint16 START_RX_PAIR=500,uint16 STORAGE_FORMAT=526,uint16 UAVCAN_GET_NODE_INFO=5200,uint16 VIDEO_START_CAPTURE=2500,uint16 VIDEO_STOP_CAPTURE=2501,uint16 VIDEO_START_STREAMING=2502,uint16 VIDEO_STOP_STREAMING=2503"`
+}

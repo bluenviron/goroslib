@@ -7,6 +7,6 @@ import (
 
 type ObjectHypothesis struct {
 	msg.Package `ros:"vision_msgs"`
-	Id          string
+	Id          int64
 	Score       float64
 }
