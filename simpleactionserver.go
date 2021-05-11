@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
@@ -30,14 +31,16 @@ type SimpleActionServerConf struct {
 
 // SimpleActionServer is a ROS simple action server, an entity that can provide actions.
 type SimpleActionServer struct {
-	conf          SimpleActionServerConf
+	conf SimpleActionServerConf
+
+	ctx           context.Context
+	ctxCancel     func()
 	as            *ActionServer
 	lastGoal      *ActionServerGoalHandler
 	executingGoal *ActionServerGoalHandler
 
 	// in
-	goal      chan *goalHandlerPair
-	terminate chan struct{}
+	goal chan *goalHandlerPair
 
 	// out
 	done chan struct{}
@@ -45,10 +48,13 @@ type SimpleActionServer struct {
 
 // NewSimpleActionServer allocates a SimpleActionServer.
 func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, error) {
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	sas := &SimpleActionServer{
 		conf:      conf,
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
 		goal:      make(chan *goalHandlerPair),
-		terminate: make(chan struct{}),
 		done:      make(chan struct{}),
 	}
 
@@ -109,7 +115,7 @@ func (sas *SimpleActionServer) Close() error {
 		}
 	}()
 
-	close(sas.terminate)
+	sas.ctxCancel()
 	<-sas.done
 
 	return nil
@@ -176,6 +182,7 @@ func (sas *SimpleActionServer) run() {
 
 	var nextGoal *goalHandlerPair
 
+outer:
 	for {
 		select {
 		case pair := <-sas.goal:
@@ -191,8 +198,10 @@ func (sas *SimpleActionServer) run() {
 				nextGoal = nil
 			}
 
-		case <-sas.terminate:
-			return
+		case <-sas.ctx.Done():
+			break outer
 		}
 	}
+
+	sas.ctxCancel()
 }

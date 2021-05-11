@@ -16,7 +16,11 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 			break
 		}
 
-		n.tcpConnNew <- conn
+		select {
+		case n.tcpConnNew <- conn:
+		case <-n.ctx.Done():
+			conn.Close()
+		}
 	}
 }
 
@@ -36,9 +40,12 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 				return false
 			}
 
-			n.tcpConnSubscriber <- tcpConnSubscriberReq{
+			select {
+			case n.tcpConnSubscriber <- tcpConnSubscriberReq{
 				conn:   conn,
 				header: &header,
+			}:
+			case <-n.ctx.Done():
 			}
 			return true
 
@@ -49,9 +56,12 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 				return false
 			}
 
-			n.tcpConnServiceClient <- tcpConnServiceClientReq{
+			select {
+			case n.tcpConnServiceClient <- tcpConnServiceClientReq{
 				conn:   conn,
 				header: &header,
+			}:
+			case <-n.ctx.Done():
 			}
 			return true
 		}
@@ -60,6 +70,10 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 	}()
 	if !ok {
 		conn.Close()
-		n.tcpConnClose <- conn
+
+		select {
+		case n.tcpConnClose <- conn:
+		case <-n.ctx.Done():
+		}
 	}
 }

@@ -43,6 +43,7 @@ Basic example (more are available at https://github.com/aler9/goroslib/tree/mast
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -155,7 +156,10 @@ type NodeConf struct {
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
 // and service clients.
 type Node struct {
-	conf                NodeConf
+	conf NodeConf
+
+	ctx                 context.Context
+	ctxCancel           func()
 	masterAddr          *net.TCPAddr
 	nodeAddr            *net.TCPAddr
 	apiMasterClient     *apimaster.Client
@@ -182,7 +186,6 @@ type Node struct {
 	// in
 	getPublications        chan getPublicationsReq
 	getBusInfo             chan getBusInfoReq
-	shutdown               chan struct{}
 	tcpConnNew             chan *prototcp.Conn
 	tcpConnClose           chan *prototcp.Conn
 	tcpConnSubscriber      chan tcpConnSubscriberReq
@@ -198,7 +201,6 @@ type Node struct {
 	publisherClose         chan *Publisher
 	serviceProviderNew     chan serviceProviderNewReq
 	serviceProviderClose   chan *ServiceProvider
-	terminate              chan struct{}
 
 	// out
 	done chan struct{}
@@ -277,8 +279,12 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, fmt.Errorf("the node IP is a stateless IPv6, which is not supported")
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	n := &Node{
 		conf:                   conf,
+		ctx:                    ctx,
+		ctxCancel:              ctxCancel,
 		masterAddr:             masterAddr,
 		nodeAddr:               nodeAddr,
 		tcprosConns:            make(map[*prototcp.Conn]struct{}),
@@ -289,7 +295,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 		simtimeValue:           time.Unix(0, 0),
 		getPublications:        make(chan getPublicationsReq),
 		getBusInfo:             make(chan getBusInfoReq),
-		shutdown:               make(chan struct{}),
 		tcpConnNew:             make(chan *prototcp.Conn),
 		tcpConnClose:           make(chan *prototcp.Conn),
 		tcpConnSubscriber:      make(chan tcpConnSubscriberReq),
@@ -305,7 +310,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 		publisherClose:         make(chan *Publisher),
 		serviceProviderNew:     make(chan serviceProviderNewReq),
 		serviceProviderClose:   make(chan *ServiceProvider),
-		terminate:              make(chan struct{}),
 		done:                   make(chan struct{}),
 	}
 
@@ -400,8 +404,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 // Close closes a Node and all its resources.
 func (n *Node) Close() error {
-	n.shutdown <- struct{}{}
-	close(n.terminate)
+	n.ctxCancel()
 	<-n.done
 	return nil
 }
@@ -453,14 +456,20 @@ outer:
 
 			for _, pub := range n.publishers {
 				done := make(chan struct{})
-				pub.getBusInfo <- getBusInfoSubReq{&busInfo, done}
-				<-done
+				select {
+				case pub.getBusInfo <- getBusInfoSubReq{&busInfo, done}:
+					<-done
+				case <-pub.ctx.Done():
+				}
 			}
 
 			for _, sub := range n.subscribers {
 				done := make(chan struct{})
-				sub.getBusInfo <- getBusInfoSubReq{&busInfo, done}
-				<-done
+				select {
+				case sub.getBusInfo <- getBusInfoSubReq{&busInfo, done}:
+					<-done
+				case <-sub.ctx.Done():
+				}
 			}
 
 			req.res <- apislave.ResponseGetBusInfo{
@@ -469,7 +478,7 @@ outer:
 				BusInfo:       busInfo,
 			}
 
-		case <-n.shutdown:
+		case <-n.ctx.Done():
 			break outer
 
 		case conn := <-n.tcpConnNew:
@@ -490,9 +499,12 @@ outer:
 				continue
 			}
 
-			pub.subscriberTCPNew <- tcpConnSubscriberReq{
+			select {
+			case pub.subscriberTCPNew <- tcpConnSubscriberReq{
 				conn:   req.conn,
 				header: req.header,
+			}:
+			case <-pub.ctx.Done():
 			}
 
 		case req := <-n.tcpConnServiceClient:
@@ -505,7 +517,10 @@ outer:
 				continue
 			}
 
-			sp.clientNew <- req
+			select {
+			case sp.clientNew <- req:
+			case <-sp.ctx.Done():
+			}
 
 		case sp := <-n.udpSubPublisherNew:
 			n.udprosSubPublishers[sp] = struct{}{}
@@ -518,7 +533,11 @@ outer:
 			for sp := range n.udprosSubPublishers {
 				if req.frame.ConnectionID == sp.udpID &&
 					req.source.IP.Equal(sp.udpAddr.IP) {
-					sp.udpFrame <- req.frame
+
+					select {
+					case sp.udpFrame <- req.frame:
+					case <-sp.ctx.Done():
+					}
 					break
 				}
 			}
@@ -533,7 +552,14 @@ outer:
 				continue
 			}
 
-			pub.requestTopic <- subscriberRequestTopicReq{req.req, req.res}
+			select {
+			case pub.requestTopic <- subscriberRequestTopicReq{req.req, req.res}:
+			case <-pub.ctx.Done():
+				req.res <- apislave.ResponseRequestTopic{
+					Code:          0,
+					StatusMessage: "terminating",
+				}
+			}
 
 		case req := <-n.subscriberNew:
 			_, ok := n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)]
@@ -555,11 +581,13 @@ outer:
 			req.err <- nil
 
 			// send initial publishers list to subscriber
-			req.sub.subscriberPubUpdate <- res.URIs
+			select {
+			case req.sub.subscriberPubUpdate <- res.URIs:
+			case <-req.sub.ctx.Done():
+			}
 
 		case sub := <-n.subscriberClose:
 			delete(n.subscribers, n.absoluteTopicName(sub.conf.Topic))
-			close(sub.nodeTerminate)
 
 		case req := <-n.subscriberPubUpdate:
 			sub, ok := n.subscribers[req.topic]
@@ -567,7 +595,10 @@ outer:
 				continue
 			}
 
-			sub.subscriberPubUpdate <- req.urls
+			select {
+			case sub.subscriberPubUpdate <- req.urls:
+			case <-sub.ctx.Done():
+			}
 
 		case req := <-n.publisherNew:
 			_, ok := n.publishers[n.absoluteTopicName(req.pub.conf.Topic)]
@@ -592,7 +623,6 @@ outer:
 
 		case pub := <-n.publisherClose:
 			delete(n.publishers, n.absoluteTopicName(pub.conf.Topic))
-			close(pub.nodeTerminate)
 
 		case req := <-n.serviceProviderNew:
 			_, ok := n.serviceProviders[n.absoluteTopicName(req.sp.conf.Name)]
@@ -615,68 +645,10 @@ outer:
 
 		case sp := <-n.serviceProviderClose:
 			delete(n.serviceProviders, n.absoluteTopicName(sp.conf.Name))
-			close(sp.nodeTerminate)
 		}
 	}
 
-	// consume queue
-	go func() {
-		for {
-			select {
-			case req := <-n.getPublications:
-				req.res <- [][]string{}
-
-			case req := <-n.getBusInfo:
-				req.res <- apislave.ResponseGetBusInfo{
-					Code:          0,
-					StatusMessage: "terminating",
-				}
-
-			case <-n.shutdown:
-
-			case <-n.tcpConnNew:
-
-			case <-n.tcpConnClose:
-
-			case <-n.tcpConnSubscriber:
-
-			case <-n.tcpConnServiceClient:
-
-			case <-n.udpSubPublisherNew:
-
-			case req, ok := <-n.udpSubPublisherClose:
-				if !ok {
-					return
-				}
-				close(req.done)
-
-			case <-n.udpFrame:
-
-			case req := <-n.subscriberRequestTopic:
-				req.res <- apislave.ResponseRequestTopic{
-					Code:          0,
-					StatusMessage: "terminating",
-				}
-
-			case req := <-n.subscriberNew:
-				req.err <- fmt.Errorf("terminated")
-
-			case <-n.subscriberClose:
-
-			case req := <-n.publisherNew:
-				req.err <- fmt.Errorf("terminated")
-
-			case <-n.subscriberPubUpdate:
-
-			case <-n.publisherClose:
-
-			case req := <-n.serviceProviderNew:
-				req.err <- fmt.Errorf("terminated")
-
-			case <-n.serviceProviderClose:
-			}
-		}
-	}()
+	n.ctxCancel()
 
 	n.apiSlaveServer.Close()
 	n.tcprosServer.Close()
@@ -689,18 +661,15 @@ outer:
 	clientsWg.Wait()
 
 	for _, sub := range n.subscribers {
-		sub.shutdown <- struct{}{}
-		close(sub.nodeTerminate)
+		sub.ctxCancel()
 	}
 
 	for _, pub := range n.publishers {
-		pub.shutdown <- struct{}{}
-		close(pub.nodeTerminate)
+		pub.ctxCancel()
 	}
 
 	for _, sp := range n.serviceProviders {
-		sp.shutdown <- struct{}{}
-		close(sp.nodeTerminate)
+		sp.ctxCancel()
 	}
 
 	if n.simtimeSubscriber != nil {
@@ -710,25 +679,4 @@ outer:
 	if n.rosoutPublisher != nil {
 		n.rosoutPublisher.Close()
 	}
-
-	<-n.terminate
-
-	close(n.getPublications)
-	close(n.getBusInfo)
-	close(n.shutdown)
-	close(n.tcpConnNew)
-	close(n.tcpConnClose)
-	close(n.tcpConnSubscriber)
-	close(n.tcpConnServiceClient)
-	close(n.udpSubPublisherNew)
-	close(n.udpSubPublisherClose)
-	close(n.udpFrame)
-	close(n.subscriberRequestTopic)
-	close(n.subscriberNew)
-	close(n.subscriberClose)
-	close(n.subscriberPubUpdate)
-	close(n.publisherNew)
-	close(n.publisherClose)
-	close(n.serviceProviderNew)
-	close(n.serviceProviderClose)
 }

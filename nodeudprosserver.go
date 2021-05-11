@@ -13,6 +13,9 @@ func (n *Node) runUdprosServer(wg *sync.WaitGroup) {
 			break
 		}
 
-		n.udpFrame <- udpFrameReq{frame, source}
+		select {
+		case n.udpFrame <- udpFrameReq{frame, source}:
+		case <-n.ctx.Done():
+		}
 	}
 }

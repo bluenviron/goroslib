@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -20,19 +21,24 @@ var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")
 type subscriberPublisher struct {
 	sub     *Subscriber
 	address string
-	udpAddr *net.UDPAddr
-	udpID   uint32
+
+	ctx       context.Context
+	ctxCancel func()
+	udpAddr   *net.UDPAddr
+	udpID     uint32
 
 	// in
-	udpFrame  chan *protoudp.Frame
-	terminate chan struct{}
+	udpFrame chan *protoudp.Frame
 }
 
 func newSubscriberPublisher(sub *Subscriber, address string) {
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	sp := &subscriberPublisher{
 		sub:       sub,
 		address:   address,
-		terminate: make(chan struct{}),
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
 	}
 
 	sub.publishers[address] = sp
@@ -43,7 +49,7 @@ func newSubscriberPublisher(sub *Subscriber, address string) {
 
 func (sp *subscriberPublisher) close() {
 	delete(sp.sub.publishers, sp.address)
-	close(sp.terminate)
+	sp.ctxCancel()
 }
 
 func (sp *subscriberPublisher) run() {
@@ -63,7 +69,7 @@ func (sp *subscriberPublisher) run() {
 			case <-t.C:
 				return true
 
-			case <-sp.terminate:
+			case <-sp.ctx.Done():
 				return false
 			}
 		}()
@@ -71,6 +77,8 @@ func (sp *subscriberPublisher) run() {
 			break
 		}
 	}
+
+	sp.ctxCancel()
 }
 
 func (sp *subscriberPublisher) runInner() error {
@@ -110,7 +118,7 @@ func (sp *subscriberPublisher) runInner() error {
 
 	select {
 	case <-subDone:
-	case <-sp.terminate:
+	case <-sp.ctx.Done():
 		<-subDone
 		return errSubscriberPubTerminate
 	}
@@ -161,7 +169,7 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 
 	select {
 	case <-subDone:
-	case <-sp.terminate:
+	case <-sp.ctx.Done():
 		return errSubscriberPubTerminate
 	}
 
@@ -209,7 +217,7 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 
 	select {
 	case <-subDone:
-	case <-sp.terminate:
+	case <-sp.ctx.Done():
 		conn.Close()
 		<-subDone
 		return errSubscriberPubTerminate
@@ -243,7 +251,11 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 			}
 
 			if sp.sub.conf.QueueSize == 0 {
-				sp.sub.message <- msg
+				select {
+				case sp.sub.message <- msg:
+				case <-sp.sub.ctx.Done():
+				}
+
 			} else {
 				select {
 				case sp.sub.message <- msg:
@@ -257,7 +269,7 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 	case <-subDone:
 		return err
 
-	case <-sp.terminate:
+	case <-sp.ctx.Done():
 		conn.Close()
 		<-subDone
 		return errSubscriberPubTerminate
@@ -303,12 +315,18 @@ func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) e
 	sp.udpID = uint32(protoID)
 	sp.udpFrame = make(chan *protoudp.Frame)
 
-	sp.sub.conf.Node.udpSubPublisherNew <- sp
+	select {
+	case sp.sub.conf.Node.udpSubPublisherNew <- sp:
+	case <-sp.sub.conf.Node.ctx.Done():
+	}
 
 	defer func() {
 		done := make(chan struct{})
-		sp.sub.conf.Node.udpSubPublisherClose <- udpSubPublisherCloseReq{sp, done}
-		<-done
+		select {
+		case sp.sub.conf.Node.udpSubPublisherClose <- udpSubPublisherCloseReq{sp, done}:
+			<-done
+		case <-sp.sub.conf.Node.ctx.Done():
+		}
 		close(sp.udpFrame)
 	}()
 
@@ -382,7 +400,7 @@ func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) e
 				}
 			}
 
-		case <-sp.terminate:
+		case <-sp.ctx.Done():
 			if sp.sub.conf.EnableKeepAlive {
 				close(readerClose)
 				<-readerDone

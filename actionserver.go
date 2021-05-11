@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
@@ -225,7 +226,10 @@ type ActionServerConf struct {
 
 // ActionServer is a ROS action server, an entity that can provide actions.
 type ActionServer struct {
-	conf           ActionServerConf
+	conf ActionServerConf
+
+	ctx            context.Context
+	ctxCancel      func()
 	goalType       reflect.Type
 	resType        reflect.Type
 	fbType         reflect.Type
@@ -239,9 +243,6 @@ type ActionServer struct {
 	cancelSub      *Subscriber
 	mutex          sync.Mutex
 	goals          map[string]*ActionServerGoalHandler
-
-	// in
-	terminate chan struct{}
 
 	// out
 	done chan struct{}
@@ -279,8 +280,12 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		return nil, err
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	as := &ActionServer{
 		conf:           conf,
+		ctx:            ctx,
+		ctxCancel:      ctxCancel,
 		goalType:       reflect.TypeOf(goal),
 		resType:        reflect.TypeOf(res),
 		fbType:         reflect.TypeOf(fb),
@@ -288,7 +293,6 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		resActionType:  reflect.TypeOf(resAction),
 		fbActionType:   reflect.TypeOf(fbAction),
 		goals:          make(map[string]*ActionServerGoalHandler),
-		terminate:      make(chan struct{}),
 		done:           make(chan struct{}),
 	}
 
@@ -378,7 +382,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 
 // Close closes an ActionServer and shuts down all its operations.
 func (as *ActionServer) Close() error {
-	close(as.terminate)
+	as.ctxCancel()
 	<-as.done
 	as.cancelSub.Close()
 	as.goalSub.Close()
@@ -396,6 +400,7 @@ func (as *ActionServer) run() {
 
 	curSeq := uint32(0)
 
+outer:
 	for {
 		select {
 		case <-statusTicker.C:
@@ -432,10 +437,12 @@ func (as *ActionServer) run() {
 			})
 			curSeq++
 
-		case <-as.terminate:
-			return
+		case <-as.ctx.Done():
+			break outer
 		}
 	}
+
+	as.ctxCancel()
 }
 
 func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {

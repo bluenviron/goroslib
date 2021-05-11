@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -55,7 +56,10 @@ type SubscriberConf struct {
 
 // Subscriber is a ROS subscriber, an entity that can receive messages from a named channel.
 type Subscriber struct {
-	conf         SubscriberConf
+	conf SubscriberConf
+
+	ctx          context.Context
+	ctxCancel    func()
 	msgMsg       reflect.Type
 	msgType      string
 	msgMd5       string
@@ -66,9 +70,6 @@ type Subscriber struct {
 	getBusInfo          chan getBusInfoSubReq
 	subscriberPubUpdate chan []string
 	message             chan interface{}
-	shutdown            chan struct{}
-	terminate           chan struct{}
-	nodeTerminate       chan struct{}
 
 	// out
 	done chan struct{}
@@ -113,8 +114,12 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, err
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	s := &Subscriber{
 		conf:                conf,
+		ctx:                 ctx,
+		ctxCancel:           ctxCancel,
 		msgMsg:              msgMsg.Elem(),
 		msgType:             msgType,
 		msgMd5:              msgMd5,
@@ -122,20 +127,22 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		getBusInfo:          make(chan getBusInfoSubReq),
 		subscriberPubUpdate: make(chan []string),
 		message:             make(chan interface{}, conf.QueueSize),
-		shutdown:            make(chan struct{}),
-		terminate:           make(chan struct{}),
-		nodeTerminate:       make(chan struct{}),
 		done:                make(chan struct{}),
 	}
 
-	chanErr := make(chan error)
-	conf.Node.subscriberNew <- subscriberNewReq{
+	cerr := make(chan error)
+	select {
+	case conf.Node.subscriberNew <- subscriberNewReq{
 		sub: s,
-		err: chanErr,
-	}
-	err = <-chanErr
-	if err != nil {
-		return nil, err
+		err: cerr,
+	}:
+		err = <-cerr
+		if err != nil {
+			return nil, err
+		}
+
+	case <-conf.Node.ctx.Done():
+		return nil, fmt.Errorf("terminated")
 	}
 
 	go s.run()
@@ -145,8 +152,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 
 // Close closes a Subscriber and shuts down all its operations.
 func (s *Subscriber) Close() error {
-	s.shutdown <- struct{}{}
-	close(s.terminate)
+	s.ctxCancel()
 	<-s.done
 	return nil
 }
@@ -154,14 +160,20 @@ func (s *Subscriber) Close() error {
 func (s *Subscriber) run() {
 	defer close(s.done)
 
-	msgDone := make(chan struct{})
+	dispatcherDone := make(chan struct{})
 	go func() {
-		defer close(msgDone)
+		defer close(dispatcherDone)
 
 		cbv := reflect.ValueOf(s.conf.Callback)
 
-		for msg := range s.message {
-			cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
+		for {
+			select {
+			case msg := <-s.message:
+				cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
+
+			case <-s.ctx.Done():
+				return
+			}
 		}
 	}()
 
@@ -216,30 +228,12 @@ outer:
 				}
 			}
 
-		case <-s.shutdown:
+		case <-s.ctx.Done():
 			break outer
 		}
 	}
 
-	go func() {
-		for {
-			select {
-			case req, ok := <-s.getBusInfo:
-				if !ok {
-					return
-				}
-				close(req.done)
-
-			case _, ok := <-s.subscriberPubUpdate:
-				if !ok {
-					return
-				}
-
-			case <-s.message:
-			case <-s.shutdown:
-			}
-		}
-	}()
+	s.ctxCancel()
 
 	s.conf.Node.apiMasterClient.UnregisterSubscriber(
 		s.conf.Node.absoluteTopicName(s.conf.Topic),
@@ -250,15 +244,10 @@ outer:
 	}
 	s.publishersWg.Wait()
 
-	close(s.message)
-	<-msgDone
+	<-dispatcherDone
 
-	s.conf.Node.subscriberClose <- s
-	<-s.nodeTerminate
-
-	<-s.terminate
-
-	close(s.getBusInfo)
-	close(s.subscriberPubUpdate)
-	close(s.shutdown)
+	select {
+	case s.conf.Node.subscriberClose <- s:
+	case <-s.conf.Node.ctx.Done():
+	}
 }

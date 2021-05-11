@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"bytes"
+	"context"
 	"net"
 
 	"github.com/aler9/goroslib/pkg/protocommon"
@@ -10,25 +11,31 @@ import (
 )
 
 type publisherSubscriber struct {
-	pub          *Publisher
-	callerID     string
-	tcpClient    *prototcp.Conn
-	udpAddr      *net.UDPAddr
-	curMessageID uint8
+	pub       *Publisher
+	callerID  string
+	tcpClient *prototcp.Conn
+	udpAddr   *net.UDPAddr
 
-	// in
-	terminate chan struct{}
+	ctx          context.Context
+	ctxCancel    func()
+	curMessageID uint8
 }
 
-func newPublisherSubscriber(pub *Publisher, callerID string,
-	tcpClient *prototcp.Conn, udpAddr *net.UDPAddr) {
+func newPublisherSubscriber(
+	pub *Publisher,
+	callerID string,
+	tcpClient *prototcp.Conn,
+	udpAddr *net.UDPAddr) {
+
+	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	ps := &publisherSubscriber{
 		pub:       pub,
 		callerID:  callerID,
 		tcpClient: tcpClient,
 		udpAddr:   udpAddr,
-		terminate: make(chan struct{}),
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
 	}
 
 	pub.subscribers[callerID] = ps
@@ -39,7 +46,7 @@ func newPublisherSubscriber(pub *Publisher, callerID string,
 
 func (ps *publisherSubscriber) close() {
 	delete(ps.pub.subscribers, ps.callerID)
-	close(ps.terminate)
+	ps.ctxCancel()
 }
 
 func (ps *publisherSubscriber) run() {
@@ -72,10 +79,15 @@ func (ps *publisherSubscriber) runTCP() {
 	select {
 	case <-readerDone:
 		ps.tcpClient.Close()
-		ps.pub.subscriberTCPClose <- ps
-		<-ps.terminate
 
-	case <-ps.terminate:
+		select {
+		case ps.pub.subscriberTCPClose <- ps:
+		case <-ps.pub.ctx.Done():
+		}
+
+		<-ps.ctx.Done()
+
+	case <-ps.ctx.Done():
 		ps.tcpClient.Close()
 		<-readerDone
 	}
@@ -86,7 +98,7 @@ func (ps *publisherSubscriber) runUDP() {
 		ps.pub.conf.onSubscriber()
 	}
 
-	<-ps.terminate
+	<-ps.ctx.Done()
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {

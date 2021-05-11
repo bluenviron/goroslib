@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"net"
@@ -37,7 +38,10 @@ type PublisherConf struct {
 
 // Publisher is a ROS publisher, an entity that can publish messages in a named channel.
 type Publisher struct {
-	conf          PublisherConf
+	conf PublisherConf
+
+	ctx           context.Context
+	ctxCancel     func()
 	msgType       string
 	msgMd5        string
 	subscribers   map[string]*publisherSubscriber
@@ -51,9 +55,6 @@ type Publisher struct {
 	subscriberTCPNew   chan tcpConnSubscriberReq
 	subscriberTCPClose chan *publisherSubscriber
 	write              chan interface{}
-	shutdown           chan struct{}
-	nodeTerminate      chan struct{}
-	terminate          chan struct{}
 
 	// out
 	done chan struct{}
@@ -91,8 +92,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, err
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	p := &Publisher{
 		conf:               conf,
+		ctx:                ctx,
+		ctxCancel:          ctxCancel,
 		msgType:            msgType,
 		msgMd5:             msgMd5,
 		subscribers:        make(map[string]*publisherSubscriber),
@@ -101,20 +106,22 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		subscriberTCPNew:   make(chan tcpConnSubscriberReq),
 		subscriberTCPClose: make(chan *publisherSubscriber),
 		write:              make(chan interface{}),
-		shutdown:           make(chan struct{}),
-		nodeTerminate:      make(chan struct{}),
-		terminate:          make(chan struct{}),
 		done:               make(chan struct{}),
 	}
 
-	chanErr := make(chan error)
-	conf.Node.publisherNew <- publisherNewReq{
+	cerr := make(chan error)
+	select {
+	case conf.Node.publisherNew <- publisherNewReq{
 		pub: p,
-		err: chanErr,
-	}
-	err = <-chanErr
-	if err != nil {
-		return nil, err
+		err: cerr,
+	}:
+		err = <-cerr
+		if err != nil {
+			return nil, err
+		}
+
+	case <-conf.Node.ctx.Done():
+		return nil, fmt.Errorf("terminated")
 	}
 
 	go p.run()
@@ -124,8 +131,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 
 // Close closes a Publisher and shuts down all its operations.
 func (p *Publisher) Close() error {
-	p.shutdown <- struct{}{}
-	close(p.terminate)
+	p.ctxCancel()
 	<-p.done
 	return nil
 }
@@ -376,37 +382,12 @@ outer:
 				s.writeMessage(msg)
 			}
 
-		case <-p.shutdown:
+		case <-p.ctx.Done():
 			break outer
 		}
 	}
 
-	go func() {
-		for {
-			select {
-			case req, ok := <-p.getBusInfo:
-				if !ok {
-					return
-				}
-				close(req.done)
-
-			case req, ok := <-p.requestTopic:
-				if !ok {
-					return
-				}
-
-				req.res <- apislave.ResponseRequestTopic{
-					Code:          0,
-					StatusMessage: "terminating",
-				}
-
-			case <-p.subscriberTCPNew:
-			case <-p.subscriberTCPClose:
-			case <-p.write:
-			case <-p.shutdown:
-			}
-		}
-	}()
+	p.ctxCancel()
 
 	p.conf.Node.apiMasterClient.UnregisterPublisher(
 		p.conf.Node.absoluteTopicName(p.conf.Topic),
@@ -417,17 +398,10 @@ outer:
 	}
 	p.subscribersWg.Wait()
 
-	p.conf.Node.publisherClose <- p
-	<-p.nodeTerminate
-
-	<-p.terminate
-
-	close(p.getBusInfo)
-	close(p.requestTopic)
-	close(p.subscriberTCPNew)
-	close(p.subscriberTCPClose)
-	close(p.write)
-	close(p.shutdown)
+	select {
+	case p.conf.Node.publisherClose <- p:
+	case <-p.conf.Node.ctx.Done():
+	}
 }
 
 // Write writes a message into the publisher.
@@ -436,5 +410,8 @@ func (p *Publisher) Write(msg interface{}) {
 		panic("wrong message type")
 	}
 
-	p.write <- msg
+	select {
+	case p.write <- msg:
+	case <-p.ctx.Done():
+	}
 }

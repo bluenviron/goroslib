@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -377,7 +378,10 @@ type ActionClientConf struct {
 
 // ActionClient is a ROS action client, an entity that can call actions.
 type ActionClient struct {
-	conf           ActionClientConf
+	conf ActionClientConf
+
+	ctx            context.Context
+	ctxCancel      func()
 	goalType       reflect.Type
 	resType        reflect.Type
 	fbType         reflect.Type
@@ -392,9 +396,6 @@ type ActionClient struct {
 	goalCount      int
 	goals          map[string]*ActionClientGoalHandler
 	mutex          sync.Mutex
-
-	// in
-	terminate chan struct{}
 
 	// out
 	statusSubOk   chan struct{}
@@ -428,8 +429,12 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		return nil, err
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	ac := &ActionClient{
 		conf:           conf,
+		ctx:            ctx,
+		ctxCancel:      ctxCancel,
 		goalType:       reflect.TypeOf(goal),
 		resType:        reflect.TypeOf(res),
 		fbType:         reflect.TypeOf(fb),
@@ -437,7 +442,6 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		resActionType:  reflect.TypeOf(resAction),
 		fbActionType:   reflect.TypeOf(fbAction),
 		goals:          make(map[string]*ActionClientGoalHandler),
-		terminate:      make(chan struct{}),
 		statusSubOk:    make(chan struct{}),
 		feedbackSubOk:  make(chan struct{}),
 		resultSubOk:    make(chan struct{}),
@@ -543,7 +547,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 
 // Close closes an ActionClient and shuts down all its operations.
 func (ac *ActionClient) Close() error {
-	close(ac.terminate)
+	ac.ctxCancel()
 	ac.cancelPub.Close()
 	ac.goalPub.Close()
 	ac.resultSub.Close()
@@ -555,28 +559,28 @@ func (ac *ActionClient) Close() error {
 // WaitForServer waits for the action server to start.
 func (ac *ActionClient) WaitForServer() {
 	select {
-	case <-ac.terminate:
 	case <-ac.statusSubOk:
+	case <-ac.ctx.Done():
 	}
 
 	select {
-	case <-ac.terminate:
 	case <-ac.feedbackSubOk:
+	case <-ac.ctx.Done():
 	}
 
 	select {
-	case <-ac.terminate:
 	case <-ac.resultSubOk:
+	case <-ac.ctx.Done():
 	}
 
 	select {
-	case <-ac.terminate:
 	case <-ac.goalPubOk:
+	case <-ac.ctx.Done():
 	}
 
 	select {
-	case <-ac.terminate:
 	case <-ac.cancelPubOk:
+	case <-ac.ctx.Done():
 	}
 }
 

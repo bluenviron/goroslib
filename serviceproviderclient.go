@@ -41,11 +41,17 @@ outer:
 			break outer
 		}
 
-		spc.sp.clientRequest <- serviceProviderClientRequestReq{
+		select {
+		case spc.sp.clientRequest <- serviceProviderClientRequestReq{
 			callerID: spc.callerID,
 			req:      req,
+		}:
+		case <-spc.sp.ctx.Done():
 		}
 	}
 
-	spc.sp.clientClose <- spc
+	select {
+	case spc.sp.clientClose <- spc:
+	case <-spc.sp.ctx.Done():
+	}
 }

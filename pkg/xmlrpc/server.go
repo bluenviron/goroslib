@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 )
 
 // ErrorRes is a special response that sends status code 400.
@@ -27,10 +28,12 @@ func ServerURL(address *net.TCPAddr, port int) string {
 
 // Server is a XML-RPC server.
 type Server struct {
-	ln    net.Listener
-	read  chan *RequestRaw
-	write chan interface{}
-	done  chan struct{}
+	ctx       context.Context
+	ctxCancel func()
+	wg        sync.WaitGroup
+	ln        net.Listener
+	read      chan *RequestRaw
+	write     chan interface{}
 }
 
 // NewServer allocates a server.
@@ -42,13 +45,17 @@ func NewServer(port int) (*Server, error) {
 		return nil, err
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	s := &Server{
-		ln:    ln,
-		read:  make(chan *RequestRaw),
-		write: make(chan interface{}),
-		done:  make(chan struct{}),
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
+		ln:        ln,
+		read:      make(chan *RequestRaw),
+		write:     make(chan interface{}),
 	}
 
+	s.wg.Add(1)
 	go s.run()
 
 	return s, nil
@@ -56,8 +63,8 @@ func NewServer(port int) (*Server, error) {
 
 // Close closes all the server resources.
 func (s *Server) Close() error {
-	s.ln.Close()
-	<-s.done
+	s.ctxCancel()
+	s.wg.Wait()
 	return nil
 }
 
@@ -67,7 +74,7 @@ func (s *Server) Port() int {
 }
 
 func (s *Server) run() {
-	defer close(s.done)
+	defer s.wg.Done()
 
 	hs := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -87,29 +94,41 @@ func (s *Server) run() {
 				return
 			}
 
-			s.read <- raw
-			res := <-s.write
+			select {
+			case s.read <- raw:
+				res := <-s.write
+				if _, ok := res.(ErrorRes); ok {
+					w.WriteHeader(http.StatusBadRequest)
+				} else {
+					responseEncode(w, res)
+				}
 
-			if _, ok := res.(ErrorRes); ok {
-				w.WriteHeader(http.StatusBadRequest)
-			} else {
-				responseEncode(w, res)
+			case <-s.ctx.Done():
 			}
 		}),
 	}
 
-	hs.Serve(s.ln)
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		hs.Serve(s.ln)
+	}()
 
-	// wait for all handlers to return
+	<-s.ctx.Done()
+
+	s.ln.Close()
 	hs.Shutdown(context.Background())
-
-	close(s.read)
-	close(s.write)
 }
 
 // Handle sets a callback that is called when a request arrives.
 func (s *Server) Handle(cb func(*RequestRaw) interface{}) {
-	for req := range s.read {
-		s.write <- cb(req)
+	for {
+		select {
+		case req := <-s.read:
+			s.write <- cb(req)
+
+		case <-s.ctx.Done():
+			return
+		}
 	}
 }

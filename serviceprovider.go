@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
@@ -33,7 +34,10 @@ type ServiceProviderConf struct {
 // ServiceProvider is a ROS service provider, an entity that can receive requests
 // and send back responses.
 type ServiceProvider struct {
-	conf      ServiceProviderConf
+	conf ServiceProviderConf
+
+	ctx       context.Context
+	ctxCancel func()
 	srvType   string
 	srvMD5    string
 	srvReq    interface{}
@@ -44,9 +48,6 @@ type ServiceProvider struct {
 	clientNew     chan tcpConnServiceClientReq
 	clientClose   chan *serviceProviderClient
 	clientRequest chan serviceProviderClientRequestReq
-	shutdown      chan struct{}
-	terminate     chan struct{}
-	nodeTerminate chan struct{}
 
 	// out
 	done chan struct{}
@@ -108,8 +109,12 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("invalid callback return value")
 	}
 
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	sp := &ServiceProvider{
 		conf:          conf,
+		ctx:           ctx,
+		ctxCancel:     ctxCancel,
 		srvType:       srvType,
 		srvMD5:        srvMD5,
 		srvReq:        srvReq,
@@ -117,20 +122,22 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		clientNew:     make(chan tcpConnServiceClientReq),
 		clientClose:   make(chan *serviceProviderClient),
 		clientRequest: make(chan serviceProviderClientRequestReq),
-		shutdown:      make(chan struct{}),
-		terminate:     make(chan struct{}),
-		nodeTerminate: make(chan struct{}),
 		done:          make(chan struct{}),
 	}
 
-	chanErr := make(chan error)
-	conf.Node.serviceProviderNew <- serviceProviderNewReq{
+	cerr := make(chan error)
+	select {
+	case conf.Node.serviceProviderNew <- serviceProviderNewReq{
 		sp:  sp,
-		err: chanErr,
-	}
-	err = <-chanErr
-	if err != nil {
-		return nil, err
+		err: cerr,
+	}:
+		err = <-cerr
+		if err != nil {
+			return nil, err
+		}
+
+	case <-sp.ctx.Done():
+		return nil, fmt.Errorf("terminated")
 	}
 
 	go sp.run()
@@ -140,8 +147,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 
 // Close closes a ServiceProvider and shuts down all its operations.
 func (sp *ServiceProvider) Close() error {
-	sp.shutdown <- struct{}{}
-	close(sp.terminate)
+	sp.ctxCancel()
 	<-sp.done
 	return nil
 }
@@ -198,24 +204,12 @@ outer:
 
 			client.conn.WriteMessage(res[0].Interface())
 
-		case <-sp.shutdown:
+		case <-sp.ctx.Done():
 			break outer
 		}
 	}
 
-	go func() {
-		for {
-			select {
-			case _, ok := <-sp.clientNew:
-				if !ok {
-					return
-				}
-			case <-sp.clientClose:
-			case <-sp.clientRequest:
-			case <-sp.shutdown:
-			}
-		}
-	}()
+	sp.ctxCancel()
 
 	sp.conf.Node.apiMasterClient.UnregisterService(
 		sp.conf.Node.absoluteTopicName(sp.conf.Name),
@@ -226,13 +220,8 @@ outer:
 	}
 	sp.clientsWg.Wait()
 
-	sp.conf.Node.serviceProviderClose <- sp
-	<-sp.nodeTerminate
-
-	<-sp.terminate
-
-	close(sp.clientNew)
-	close(sp.clientClose)
-	close(sp.clientRequest)
-	close(sp.shutdown)
+	select {
+	case sp.conf.Node.serviceProviderClose <- sp:
+	case <-sp.conf.Node.ctx.Done():
+	}
 }
