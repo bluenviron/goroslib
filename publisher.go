@@ -92,7 +92,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, err
 	}
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
 
 	p := &Publisher{
 		conf:               conf,
@@ -393,9 +393,6 @@ outer:
 		p.conf.Node.absoluteTopicName(p.conf.Topic),
 		p.conf.Node.apiSlaveServerURL)
 
-	for _, ps := range p.subscribers {
-		ps.close()
-	}
 	p.subscribersWg.Wait()
 
 	select {

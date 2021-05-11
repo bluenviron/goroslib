@@ -32,7 +32,7 @@ type subscriberPublisher struct {
 }
 
 func newSubscriberPublisher(sub *Subscriber, address string) {
-	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(sub.ctx)
 
 	sp := &subscriberPublisher{
 		sub:       sub,

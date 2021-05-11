@@ -114,7 +114,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, err
 	}
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
 
 	s := &Subscriber{
 		conf:                conf,
@@ -239,9 +239,6 @@ outer:
 		s.conf.Node.absoluteTopicName(s.conf.Topic),
 		s.conf.Node.apiSlaveServerURL)
 
-	for _, sp := range s.publishers {
-		sp.close()
-	}
 	s.publishersWg.Wait()
 
 	<-dispatcherDone

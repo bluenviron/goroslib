@@ -109,7 +109,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("invalid callback return value")
 	}
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
 
 	sp := &ServiceProvider{
 		conf:          conf,
@@ -215,9 +215,6 @@ outer:
 		sp.conf.Node.absoluteTopicName(sp.conf.Name),
 		sp.conf.Node.tcprosServerURL)
 
-	for _, spc := range sp.clients {
-		spc.close()
-	}
 	sp.clientsWg.Wait()
 
 	select {

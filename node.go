@@ -660,18 +660,6 @@ outer:
 	}
 	clientsWg.Wait()
 
-	for _, sub := range n.subscribers {
-		sub.ctxCancel()
-	}
-
-	for _, pub := range n.publishers {
-		pub.ctxCancel()
-	}
-
-	for _, sp := range n.serviceProviders {
-		sp.ctxCancel()
-	}
-
 	if n.simtimeSubscriber != nil {
 		n.simtimeSubscriber.Close()
 	}

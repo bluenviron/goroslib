@@ -27,7 +27,7 @@ func newPublisherSubscriber(
 	tcpClient *prototcp.Conn,
 	udpAddr *net.UDPAddr) {
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(pub.ctx)
 
 	ps := &publisherSubscriber{
 		pub:       pub,

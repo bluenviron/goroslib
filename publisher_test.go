@@ -475,10 +475,10 @@ func TestPublisherRostopicHz(t *testing.T) {
 	}
 
 	v, _ := strconv.ParseFloat(ma[1], 64)
-	require.Greater(t, v, 0.198)
-	require.Less(t, v, 0.202)
+	require.Greater(t, v, 0.195)
+	require.Less(t, v, 0.205)
 
 	v, _ = strconv.ParseFloat(ma[2], 64)
-	require.Greater(t, v, 0.198)
-	require.Less(t, v, 0.202)
+	require.Greater(t, v, 0.195)
+	require.Less(t, v, 0.205)
 }
