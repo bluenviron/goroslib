@@ -32,8 +32,9 @@ type Server struct {
 	ctxCancel func()
 	wg        sync.WaitGroup
 	ln        net.Listener
-	read      chan *RequestRaw
-	write     chan interface{}
+
+	// in
+	setHandler chan func(*RequestRaw) interface{}
 }
 
 // NewServer allocates a server.
@@ -48,11 +49,10 @@ func NewServer(port int) (*Server, error) {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	s := &Server{
-		ctx:       ctx,
-		ctxCancel: ctxCancel,
-		ln:        ln,
-		read:      make(chan *RequestRaw),
-		write:     make(chan interface{}),
+		ctx:        ctx,
+		ctxCancel:  ctxCancel,
+		ln:         ln,
+		setHandler: make(chan func(*RequestRaw) interface{}),
 	}
 
 	s.wg.Add(1)
@@ -76,6 +76,14 @@ func (s *Server) Port() int {
 func (s *Server) run() {
 	defer s.wg.Done()
 
+	var handler func(*RequestRaw) interface{}
+	select {
+	case handler = <-s.setHandler:
+	case <-s.ctx.Done():
+		s.ln.Close()
+		return
+	}
+
 	hs := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
@@ -94,16 +102,12 @@ func (s *Server) run() {
 				return
 			}
 
-			select {
-			case s.read <- raw:
-				res := <-s.write
-				if _, ok := res.(ErrorRes); ok {
-					w.WriteHeader(http.StatusBadRequest)
-				} else {
-					responseEncode(w, res)
-				}
+			res := handler(raw)
 
-			case <-s.ctx.Done():
+			if _, ok := res.(ErrorRes); ok {
+				w.WriteHeader(http.StatusBadRequest)
+			} else {
+				responseEncode(w, res)
 			}
 		}),
 	}
@@ -120,15 +124,8 @@ func (s *Server) run() {
 	hs.Shutdown(context.Background())
 }
 
-// Handle sets a callback that is called when a request arrives.
-func (s *Server) Handle(cb func(*RequestRaw) interface{}) {
-	for {
-		select {
-		case req := <-s.read:
-			s.write <- cb(req)
-
-		case <-s.ctx.Done():
-			return
-		}
-	}
+// Serve starts serving requests and waits until the server is closed.
+func (s *Server) Serve(handler func(*RequestRaw) interface{}) {
+	s.setHandler <- handler
+	s.wg.Wait()
 }

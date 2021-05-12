@@ -10,7 +10,7 @@ import (
 func (n *Node) runAPISlaveServer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	n.apiSlaveServer.Handle(n.handleAPISlaveServer)
+	n.apiSlaveServer.Serve(n.handleAPISlaveServer)
 }
 
 func (n *Node) handleAPISlaveServer(req apislave.Request) apislave.Response {

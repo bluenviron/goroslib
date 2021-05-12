@@ -39,9 +39,9 @@ func (s *Server) Port() int {
 	return s.xs.Port()
 }
 
-// Handle sets a callback that is called when a request arrives.
-func (s *Server) Handle(cb func(req Request) Response) {
-	s.xs.Handle(func(raw *xmlrpc.RequestRaw) interface{} {
+// Serve starts serving requests and waits until the server is closed.
+func (s *Server) Serve(handler func(req Request) Response) {
+	s.xs.Serve(func(raw *xmlrpc.RequestRaw) interface{} {
 		req := func() Request {
 			switch raw.Method {
 			case "getBusInfo":
@@ -73,6 +73,6 @@ func (s *Server) Handle(cb func(req Request) Response) {
 			return xmlrpc.ErrorRes{}
 		}
 
-		return cb(req)
+		return handler(req)
 	})
 }
