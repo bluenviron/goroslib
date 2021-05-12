@@ -21,10 +21,13 @@ func NewClient(address string, callerID string) *Client {
 }
 
 // DeleteParam writes a deleteParam request.
-func (c *Client) DeleteParam(req RequestDeleteParam) error {
-	req.CallerID = c.callerID
-
+func (c *Client) DeleteParam(key string) error {
+	req := RequestDeleteParam{
+		CallerID: c.callerID,
+		Key:      key,
+	}
 	var res ResponseDeleteParam
+
 	err := c.xc.Do("deleteParam", req, &res)
 	if err != nil {
 		return err
@@ -42,8 +45,8 @@ func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 	req := RequestGetParamNames{
 		CallerID: c.callerID,
 	}
-
 	var res ResponseGetParamNames
+
 	err := c.xc.Do("getParamNames", req, &res)
 	if err != nil {
 		return nil, err
@@ -62,8 +65,8 @@ func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
 		CallerID: c.callerID,
 		Key:      key,
 	}
-
 	var res ResponseGetParamBool
+
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -82,8 +85,8 @@ func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 		CallerID: c.callerID,
 		Key:      key,
 	}
-
 	var res ResponseGetParamInt
+
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -102,8 +105,8 @@ func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
 		CallerID: c.callerID,
 		Key:      key,
 	}
-
 	var res ResponseGetParamString
+
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -122,8 +125,8 @@ func (c *Client) HasParam(key string) (*ResponseHasParam, error) {
 		CallerID: c.callerID,
 		Key:      key,
 	}
-
 	var res ResponseHasParam
+
 	err := c.xc.Do("hasParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -146,8 +149,8 @@ func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
 		CallerID: c.callerID,
 		Key:      key,
 	}
-
 	var res ResponseSearchParam
+
 	err := c.xc.Do("searchParam", req, &res)
 	if err != nil {
 		return nil, err
@@ -167,8 +170,8 @@ func (c *Client) SetParamBool(key string, val bool) error {
 		Key:      key,
 		Val:      val,
 	}
-
 	var res ResponseSetParam
+
 	err := c.xc.Do("setParam", req, &res)
 	if err != nil {
 		return err
@@ -188,8 +191,8 @@ func (c *Client) SetParamInt(key string, val int) error {
 		Key:      key,
 		Val:      val,
 	}
-
 	var res ResponseSetParam
+
 	err := c.xc.Do("setParam", req, &res)
 	if err != nil {
 		return err
@@ -209,8 +212,8 @@ func (c *Client) SetParamString(key string, val string) error {
 		Key:      key,
 		Val:      val,
 	}
-
 	var res ResponseSetParam
+
 	err := c.xc.Do("setParam", req, &res)
 	if err != nil {
 		return err

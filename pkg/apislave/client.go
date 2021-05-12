@@ -25,8 +25,8 @@ func (c *Client) GetPid() (*ResponseGetPid, error) {
 	req := RequestGetPid{
 		CallerID: c.callerID,
 	}
-
 	var res ResponseGetPid
+
 	err := c.xc.Do("getPid", req, &res)
 	if err != nil {
 		return nil, err
@@ -45,8 +45,8 @@ func (c *Client) Shutdown(reason string) error {
 		CallerID: c.callerID,
 		Reason:   reason,
 	}
-
 	var res ResponseShutdown
+
 	err := c.xc.Do("shutdown", req, &res)
 	if err != nil {
 		return err
@@ -66,8 +66,8 @@ func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (*Respons
 		Topic:     topic,
 		Protocols: protocols,
 	}
-
 	var res ResponseRequestTopic
+
 	err := c.xc.Do("requestTopic", req, &res)
 	if err != nil {
 		return nil, err
@@ -85,8 +85,8 @@ func (c *Client) GetBusInfo() ([][]interface{}, error) {
 	req := RequestGetBusInfo{
 		CallerID: c.callerID,
 	}
-
 	var res ResponseGetBusInfo
+
 	err := c.xc.Do("getBusInfo", req, &res)
 	if err != nil {
 		return nil, err

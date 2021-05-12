@@ -71,6 +71,20 @@ func TestGoalResultFeedback(t *testing.T) {
 	}
 }
 
+func TestGoalResultFeedbackErrors(t *testing.T) {
+	t.Run("invalid action 1", func(t *testing.T) {
+		_, _, _, err := GoalResultFeedback(123)
+		require.Equal(t, "unsupported action type 'int'", err.Error())
+	})
+
+	t.Run("invalid action 2", func(t *testing.T) {
+		_, _, _, err := GoalResultFeedback(&struct {
+			ActionGoal
+		}{})
+		require.Equal(t, "goal, request or feedback not found", err.Error())
+	})
+}
+
 func TestMessages(t *testing.T) {
 	goalAction, resAction, fbAction, err := Messages(&DoSomethingAction{})
 	require.NoError(t, err)
@@ -86,4 +100,11 @@ func TestMessages(t *testing.T) {
 	cur, err = msgproc.MD5(fbAction)
 	require.NoError(t, err)
 	require.Equal(t, "25bfb21ced59f4f9490772d56f6961f4", cur)
+}
+
+func TestMessagesError(t *testing.T) {
+	t.Run("invalid action", func(t *testing.T) {
+		_, _, _, err := Messages(123)
+		require.Equal(t, "unsupported action type 'int'", err.Error())
+	})
 }

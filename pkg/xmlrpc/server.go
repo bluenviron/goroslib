@@ -121,6 +121,7 @@ func (s *Server) run() {
 	<-s.ctx.Done()
 
 	s.ln.Close()
+
 	hs.Shutdown(context.Background())
 }
 

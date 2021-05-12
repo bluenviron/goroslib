@@ -26,8 +26,8 @@ func (c *Client) GetPublishedTopics(subgraph string) (*ResponseGetPublishedTopic
 		CallerID: c.callerID,
 		Subgraph: subgraph,
 	}
-
 	var res ResponseGetPublishedTopics
+
 	err := c.xc.Do("getPublishedTopics", req, &res)
 	if err != nil {
 		return nil, err
@@ -46,8 +46,8 @@ func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 	req := RequestGetSystemState{
 		c.callerID,
 	}
-
 	var res ResponseGetSystemState
+
 	err := c.xc.Do("getSystemState", req, &res)
 	if err != nil {
 		return nil, err
@@ -66,8 +66,8 @@ func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 	req := RequestGetTopicTypes{
 		c.callerID,
 	}
-
 	var res ResponseGetTopicTypes
+
 	err := c.xc.Do("getTopicTypes", req, &res)
 	if err != nil {
 		return nil, err
@@ -86,8 +86,8 @@ func (c *Client) GetURI() (*ResponseGetURI, error) {
 	req := RequestGetURI{
 		c.callerID,
 	}
-
 	var res ResponseGetURI
+
 	err := c.xc.Do("getUri", req, &res)
 	if err != nil {
 		return nil, err
@@ -106,8 +106,8 @@ func (c *Client) lookup(method string, name string) (*ResponseLookup, error) {
 		CallerID: c.callerID,
 		Name:     name,
 	}
-
 	var res ResponseLookup
+
 	err := c.xc.Do(method, req, &res)
 	if err != nil {
 		return nil, err
@@ -139,8 +139,8 @@ func (c *Client) register(method string, topic string, topicType string,
 		TopicType: topicType,
 		CallerURL: callerURL,
 	}
-
 	var res ResponseRegister
+
 	err := c.xc.Do(method, req, &res)
 	if err != nil {
 		return nil, err
@@ -155,13 +155,17 @@ func (c *Client) register(method string, topic string, topicType string,
 }
 
 // RegisterSubscriber writes a registerSubscriber request.
-func (c *Client) RegisterSubscriber(topic string, topicType string,
+func (c *Client) RegisterSubscriber(
+	topic string,
+	topicType string,
 	callerURL string) (*ResponseRegister, error) {
 	return c.register("registerSubscriber", topic, topicType, callerURL)
 }
 
 // RegisterPublisher writes a registerPublisher request.
-func (c *Client) RegisterPublisher(topic string, topicType string,
+func (c *Client) RegisterPublisher(
+	topic string,
+	topicType string,
 	callerURL string) (*ResponseRegister, error) {
 	return c.register("registerPublisher", topic, topicType, callerURL)
 }
@@ -172,11 +176,16 @@ func (c *Client) unregister(method string, topic string, callerURL string) error
 		Topic:     topic,
 		CallerURL: callerURL,
 	}
-
 	var res ResponseUnregister
+
 	err := c.xc.Do(method, req, &res)
 	if err != nil {
 		return err
+	}
+
+	if res.Code != 1 {
+		return fmt.Errorf("server returned an error (%d): %s", res.Code,
+			res.StatusMessage)
 	}
 
 	if res.NumUnregistered == 0 {
@@ -197,7 +206,9 @@ func (c *Client) UnregisterPublisher(topic string, callerURL string) error {
 }
 
 // RegisterService writes a registerService request.
-func (c *Client) RegisterService(service string, serviceURL string,
+func (c *Client) RegisterService(
+	service string,
+	serviceURL string,
 	callerURL string) error {
 	req := RequestRegisterService{
 		CallerID:   c.callerID,
@@ -205,8 +216,8 @@ func (c *Client) RegisterService(service string, serviceURL string,
 		ServiceURL: serviceURL,
 		CallerURL:  callerURL,
 	}
-
 	var res ResponseRegisterService
+
 	err := c.xc.Do("registerService", req, &res)
 	if err != nil {
 		return err
@@ -220,17 +231,24 @@ func (c *Client) RegisterService(service string, serviceURL string,
 }
 
 // UnregisterService writes a unregisterService request.
-func (c *Client) UnregisterService(service string, serviceURL string) error {
+func (c *Client) UnregisterService(
+	service string,
+	serviceURL string) error {
 	req := RequestUnregisterService{
 		CallerID:   c.callerID,
 		Service:    service,
 		ServiceURL: serviceURL,
 	}
-
 	var res ResponseServiceUnregister
+
 	err := c.xc.Do("unregisterService", req, &res)
 	if err != nil {
 		return err
+	}
+
+	if res.Code != 1 {
+		return fmt.Errorf("server returned an error (%d): %s", res.Code,
+			res.StatusMessage)
 	}
 
 	if res.NumUnregistered == 0 {

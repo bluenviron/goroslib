@@ -17,7 +17,7 @@ func GoalResultFeedback(action interface{}) (interface{}, interface{}, interface
 		actionv = actionv.Elem()
 	}
 	if actionv.Kind() != reflect.Struct {
-		return nil, nil, nil, fmt.Errorf("unsupported action type '%s'", actionv.String())
+		return nil, nil, nil, fmt.Errorf("unsupported action type '%s'", actionv.Type().String())
 	}
 
 	var goal interface{}
@@ -47,7 +47,7 @@ func GoalResultFeedback(action interface{}) (interface{}, interface{}, interface
 		}
 	}
 
-	return nil, nil, nil, fmt.Errorf("action goal, request or feedback not found")
+	return nil, nil, nil, fmt.Errorf("goal, request or feedback not found")
 }
 
 // Messages returns the automatically-generated messages of an action.
