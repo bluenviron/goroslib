@@ -9,7 +9,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	s, err := xmlrpc.NewServer(9998)
+	s, err := xmlrpc.NewServer("localhost:9998")
 	require.NoError(t, err)
 	defer s.Close()
 

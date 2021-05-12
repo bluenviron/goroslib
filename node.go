@@ -46,6 +46,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -317,7 +318,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
 
-	n.apiSlaveServer, err = apislave.NewServer(conf.ApislavePort)
+	n.apiSlaveServer, err = apislave.NewServer(":" + strconv.FormatInt(int64(conf.ApislavePort), 10))
 	if err != nil {
 		return nil, err
 	}

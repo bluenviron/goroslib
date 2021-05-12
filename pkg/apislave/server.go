@@ -16,8 +16,8 @@ type Server struct {
 }
 
 // NewServer allocates a Server.
-func NewServer(port int) (*Server, error) {
-	xs, err := xmlrpc.NewServer(port)
+func NewServer(address string) (*Server, error) {
+	xs, err := xmlrpc.NewServer(address)
 	if err != nil {
 		return nil, err
 	}

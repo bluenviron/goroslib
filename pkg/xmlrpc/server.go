@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 )
 
@@ -38,10 +37,10 @@ type Server struct {
 }
 
 // NewServer allocates a server.
-func NewServer(port int) (*Server, error) {
+func NewServer(address string) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
-	ln, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(port), 10))
+	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}
