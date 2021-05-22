@@ -27,4 +27,3 @@ Architecture
 ## Describe the issue
 
 Description
-
