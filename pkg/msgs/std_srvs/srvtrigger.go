@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type TriggerReq struct {
-}
+type TriggerReq struct{}
 
 type TriggerRes struct {
 	Success bool

@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type GetMapReq struct {
-}
+type GetMapReq struct{}
 
 type GetMapRes struct {
 	Map OccupancyGrid

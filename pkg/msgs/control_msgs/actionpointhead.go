@@ -2,9 +2,10 @@
 package control_msgs
 
 import (
+	"time"
+
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/geometry_msgs"
-	"time"
 )
 
 type PointHeadActionGoal struct {
@@ -15,8 +16,7 @@ type PointHeadActionGoal struct {
 	MaxVelocity   float64
 }
 
-type PointHeadActionResult struct {
-}
+type PointHeadActionResult struct{}
 
 type PointHeadActionFeedback struct {
 	PointingAngleError float64

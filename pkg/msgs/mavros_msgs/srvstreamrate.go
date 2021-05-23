@@ -24,8 +24,7 @@ type StreamRateReq struct {
 	OnOff           bool
 }
 
-type StreamRateRes struct {
-}
+type StreamRateRes struct{}
 
 type StreamRate struct {
 	msg.Package `ros:"mavros_msgs"`

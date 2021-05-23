@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type SelfTestReq struct {
-}
+type SelfTestReq struct{}
 
 type SelfTestRes struct {
 	Id     string

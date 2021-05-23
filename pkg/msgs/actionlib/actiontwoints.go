@@ -14,8 +14,7 @@ type TwoIntsActionResult struct {
 	Sum int64
 }
 
-type TwoIntsActionFeedback struct {
-}
+type TwoIntsActionFeedback struct{}
 
 type TwoIntsAction struct {
 	msg.Package `ros:"actionlib"`

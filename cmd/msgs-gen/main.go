@@ -42,7 +42,7 @@ func shellCommand(cmdstr string) error {
 func processDir(name string, dir string) error {
 	fmt.Fprintf(os.Stderr, "[%s]\n", name)
 
-	os.Mkdir(filepath.Join("pkg", "msgs", name), 0755)
+	os.Mkdir(filepath.Join("pkg", "msgs", name), 0o755)
 
 	err := func() error {
 		f, err := os.Create(filepath.Join("pkg", "msgs", name, "package.go"))

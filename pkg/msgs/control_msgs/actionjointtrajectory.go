@@ -10,11 +10,9 @@ type JointTrajectoryActionGoal struct {
 	Trajectory trajectory_msgs.JointTrajectory
 }
 
-type JointTrajectoryActionResult struct {
-}
+type JointTrajectoryActionResult struct{}
 
-type JointTrajectoryActionFeedback struct {
-}
+type JointTrajectoryActionFeedback struct{}
 
 type JointTrajectoryAction struct {
 	msg.Package `ros:"control_msgs"`

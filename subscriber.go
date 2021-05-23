@@ -195,8 +195,10 @@ outer:
 					Path:   "/",
 				}).String()
 				*req.pbusInfo = append(*req.pbusInfo,
-					[]interface{}{0, ur, "i", proto,
-						s.conf.Node.absoluteTopicName(s.conf.Topic), true})
+					[]interface{}{
+						0, ur, "i", proto,
+						s.conf.Node.absoluteTopicName(s.conf.Topic), true,
+					})
 			}
 			close(req.done)
 

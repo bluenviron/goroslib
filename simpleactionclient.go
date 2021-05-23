@@ -152,9 +152,9 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 	return nil
 }
 
-func (sac *SimpleActionClient) onTransition(sgh *simpleActionClientGoalHandler,
+func (sac *SimpleActionClient) onTransition(
+	sgh *simpleActionClientGoalHandler,
 	in []reflect.Value) []reflect.Value {
-
 	ok := func() bool {
 		sac.mutex.Lock()
 		defer sac.mutex.Unlock()
@@ -203,9 +203,9 @@ func (sac *SimpleActionClient) onTransition(sgh *simpleActionClientGoalHandler,
 	return []reflect.Value{}
 }
 
-func (sac *SimpleActionClient) onFeedback(sgh *simpleActionClientGoalHandler,
+func (sac *SimpleActionClient) onFeedback(
+	sgh *simpleActionClientGoalHandler,
 	in []reflect.Value) []reflect.Value {
-
 	ok := func() bool {
 		sac.mutex.Lock()
 		defer sac.mutex.Unlock()

@@ -255,7 +255,6 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 				case sp.sub.message <- msg:
 				case <-sp.sub.ctx.Done():
 				}
-
 			} else {
 				select {
 				case sp.sub.message <- msg:

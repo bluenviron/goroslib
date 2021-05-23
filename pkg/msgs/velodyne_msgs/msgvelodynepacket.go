@@ -2,8 +2,9 @@
 package velodyne_msgs
 
 import (
-	"github.com/aler9/goroslib/pkg/msg"
 	"time"
+
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
 type VelodynePacket struct {

@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type ParamPushReq struct {
-}
+type ParamPushReq struct{}
 
 type ParamPushRes struct {
 	Success         bool

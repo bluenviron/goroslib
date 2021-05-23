@@ -23,12 +23,20 @@ $(blank)
 endef
 
 mod-tidy:
-	docker run --rm -it -v $(PWD):/s $(BASE_IMAGE) \
-	sh -c "apk add git && cd /s && go get && go mod tidy"
+	docker run --rm -it -v $(PWD):/s -w /s $(BASE_IMAGE) \
+	sh -c "apk add git && go get && go mod tidy"
+
+define DOCKERFILE_FORMAT
+FROM $(BASE_IMAGE)
+RUN apk add --no-cache git
+RUN GO111MODULE=on go get mvdan.cc/gofumpt
+endef
+export DOCKERFILE_FORMAT
 
 format:
-	docker run --rm -it -v $(PWD):/s $(BASE_IMAGE) \
-	sh -c "cd /s && find . -type f -name '*.go' | xargs gofmt -l -w -s"
+	echo "$$DOCKERFILE_FORMAT" | docker build -q . -f - -t temp
+	docker run --rm -it -v $(PWD):/s -w /s temp \
+	sh -c "find . -type f -name '*.go' | xargs gofumpt -l -w"
 
 define DOCKERFILE_TEST
 FROM $(BASE_IMAGE)
@@ -68,6 +76,7 @@ lint:
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)
 RUN apk add --no-cache make docker-cli git
+RUN GO111MODULE=on go get mvdan.cc/gofumpt
 WORKDIR /s
 COPY go.mod go.sum ./
 RUN go mod download
@@ -79,8 +88,8 @@ msgs:
 	docker run --rm -it \
 	-v $(PWD):/s \
 	temp \
-	sh -c "cd /s && make msgs-nodocker"
+	sh -c "make msgs-nodocker"
 
 msgs-nodocker:
 	go run ./cmd/msgs-gen
-	find ./pkg/msgs -type f -name '*.go' | xargs gofmt -l -w -s
+	find ./pkg/msgs -type f -name '*.go' | xargs gofumpt -l -w

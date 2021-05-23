@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type LogRequestEndReq struct {
-}
+type LogRequestEndReq struct{}
 
 type LogRequestEndRes struct {
 	Success bool

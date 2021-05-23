@@ -26,7 +26,6 @@ func newPublisherSubscriber(
 	callerID string,
 	tcpClient *prototcp.Conn,
 	udpAddr *net.UDPAddr) {
-
 	ctx, ctxCancel := context.WithCancel(pub.ctx)
 
 	ps := &publisherSubscriber{
@@ -104,7 +103,6 @@ func (ps *publisherSubscriber) runUDP() {
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 	if ps.tcpClient != nil {
 		ps.tcpClient.WriteMessage(msg)
-
 	} else {
 		ps.curMessageID++
 

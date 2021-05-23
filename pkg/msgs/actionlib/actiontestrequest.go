@@ -2,8 +2,9 @@
 package actionlib
 
 import (
-	"github.com/aler9/goroslib/pkg/msg"
 	"time"
+
+	"github.com/aler9/goroslib/pkg/msg"
 )
 
 const (
@@ -32,8 +33,7 @@ type TestRequestActionResult struct {
 	IsSimpleServer bool
 }
 
-type TestRequestActionFeedback struct {
-}
+type TestRequestActionFeedback struct{}
 
 type TestRequestAction struct {
 	msg.Package `ros:"actionlib"`

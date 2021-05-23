@@ -2,10 +2,11 @@
 package control_msgs
 
 import (
+	"time"
+
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 	"github.com/aler9/goroslib/pkg/msgs/trajectory_msgs"
-	"time"
 )
 
 type FollowJointTrajectoryActionGoal struct {

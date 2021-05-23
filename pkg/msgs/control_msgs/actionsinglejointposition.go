@@ -2,9 +2,10 @@
 package control_msgs
 
 import (
+	"time"
+
 	"github.com/aler9/goroslib/pkg/msg"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
-	"time"
 )
 
 type SingleJointPositionActionGoal struct {
@@ -13,8 +14,7 @@ type SingleJointPositionActionGoal struct {
 	MaxVelocity float64
 }
 
-type SingleJointPositionActionResult struct {
-}
+type SingleJointPositionActionResult struct{}
 
 type SingleJointPositionActionFeedback struct {
 	Header   std_msgs.Header

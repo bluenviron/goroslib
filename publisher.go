@@ -151,8 +151,10 @@ outer:
 					return "UDPROS"
 				}()
 				*req.pbusInfo = append(*req.pbusInfo,
-					[]interface{}{0, ps.callerID, "o", proto,
-						p.conf.Node.absoluteTopicName(p.conf.Topic), true})
+					[]interface{}{
+						0, ps.callerID, "o", proto,
+						p.conf.Node.absoluteTopicName(p.conf.Topic), true,
+					})
 			}
 			close(req.done)
 

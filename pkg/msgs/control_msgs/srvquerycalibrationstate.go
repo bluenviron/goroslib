@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type QueryCalibrationStateReq struct {
-}
+type QueryCalibrationStateReq struct{}
 
 type QueryCalibrationStateRes struct {
 	IsCalibrated bool

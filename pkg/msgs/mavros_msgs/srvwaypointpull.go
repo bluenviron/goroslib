@@ -5,8 +5,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type WaypointPullReq struct {
-}
+type WaypointPullReq struct{}
 
 type WaypointPullRes struct {
 	Success    bool
