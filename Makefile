@@ -75,7 +75,7 @@ lint:
 
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)
-RUN apk add --no-cache make docker-cli git
+RUN apk add --no-cache make git
 RUN GO111MODULE=on go get mvdan.cc/gofumpt
 WORKDIR /s
 COPY go.mod go.sum ./
@@ -84,7 +84,7 @@ endef
 export DOCKERFILE_MSGS
 
 msgs:
-	echo "$$DOCKERFILE_TEST" | docker build -q . -f - -t temp
+	echo "$$DOCKERFILE_MSGS" | docker build -q . -f - -t temp
 	docker run --rm -it \
 	-v $(PWD):/s \
 	temp \
