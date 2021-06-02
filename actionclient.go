@@ -676,6 +676,13 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 	return gh, nil
 }
 
+// CancelAllGoals cancels all goals running on the server.
+func (ac *ActionClient) CancelAllGoals() {
+	ac.cancelPub.Write(&actionlib_msgs.GoalID{
+		Id: "",
+	})
+}
+
 func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
 	func() {
 		ac.mutex.Lock()

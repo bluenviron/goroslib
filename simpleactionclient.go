@@ -179,6 +179,11 @@ func (sac *SimpleActionClient) CancelGoal() {
 	sac.sgh.gh.Cancel()
 }
 
+// CancelAllGoals cancels all goals running on the server.
+func (sac *SimpleActionClient) CancelAllGoals() {
+	sac.ac.CancelAllGoals()
+}
+
 func (sac *SimpleActionClient) onTransition(
 	sgh *simpleActionClientGoalHandler,
 	in []reflect.Value) []reflect.Value {
