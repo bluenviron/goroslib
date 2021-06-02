@@ -477,21 +477,41 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 }
 
 func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {
-	gh := func() *ActionServerGoalHandler {
-		as.mutex.Lock()
-		defer as.mutex.Unlock()
+	if msg.Id == "" { // cancel all goals
+		goals := func() []*ActionServerGoalHandler {
+			as.mutex.Lock()
+			defer as.mutex.Unlock()
 
-		gh, ok := as.goals[msg.Id]
-		if !ok {
-			return nil
+			var ret []*ActionServerGoalHandler
+			for _, gh := range as.goals {
+				ret = append(ret, gh)
+			}
+			return ret
+		}()
+
+		for _, gh := range goals {
+			if as.conf.OnCancel != nil {
+				as.conf.OnCancel(gh)
+			}
 		}
-		return gh
-	}()
-	if gh == nil {
-		return
-	}
 
-	if as.conf.OnCancel != nil {
-		as.conf.OnCancel(gh)
+	} else { // cancel specific goal
+		gh := func() *ActionServerGoalHandler {
+			as.mutex.Lock()
+			defer as.mutex.Unlock()
+
+			gh, ok := as.goals[msg.Id]
+			if !ok {
+				return nil
+			}
+			return gh
+		}()
+		if gh == nil {
+			return
+		}
+
+		if as.conf.OnCancel != nil {
+			as.conf.OnCancel(gh)
+		}
 	}
 }
