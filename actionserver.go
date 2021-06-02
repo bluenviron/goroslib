@@ -384,11 +384,6 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 func (as *ActionServer) Close() error {
 	as.ctxCancel()
 	<-as.done
-	as.cancelSub.Close()
-	as.goalSub.Close()
-	as.resultPub.Close()
-	as.feedbackPub.Close()
-	as.statusPub.Close()
 	return nil
 }
 
@@ -443,6 +438,12 @@ outer:
 	}
 
 	as.ctxCancel()
+
+	as.cancelSub.Close()
+	as.goalSub.Close()
+	as.resultPub.Close()
+	as.feedbackPub.Close()
+	as.statusPub.Close()
 }
 
 func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {

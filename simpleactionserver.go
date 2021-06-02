@@ -36,7 +36,6 @@ type SimpleActionServer struct {
 	ctx           context.Context
 	ctxCancel     func()
 	as            *ActionServer
-	lastGoal      *ActionServerGoalHandler
 	executingGoal *ActionServerGoalHandler
 
 	// in
@@ -108,30 +107,25 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 
 // Close closes a SimpleActionServer.
 func (sas *SimpleActionServer) Close() error {
-	sas.as.Close()
-
-	go func() {
-		for range sas.goal {
-		}
-	}()
-
 	sas.ctxCancel()
 	<-sas.done
-
 	return nil
 }
 
 // PublishFeedback publishes a feedback about the current goal.
+// This can be called only from an OnExecute callback.
 func (sas *SimpleActionServer) PublishFeedback(fb interface{}) {
 	sas.executingGoal.PublishFeedback(fb)
 }
 
 // SetAborted sets the current goal as aborted.
+// This can be called only from an OnExecute callback.
 func (sas *SimpleActionServer) SetAborted(res interface{}) {
 	sas.executingGoal.SetAborted(res)
 }
 
 // SetSucceeded sets the current goal as succeeded.
+// This can be called only from an OnExecute callback.
 func (sas *SimpleActionServer) SetSucceeded(res interface{}) {
 	sas.executingGoal.SetSucceeded(res)
 }
@@ -140,15 +134,10 @@ func (sas *SimpleActionServer) onGoal(in []reflect.Value) []reflect.Value {
 	gh := in[0].Interface().(*ActionServerGoalHandler)
 	goal := in[1].Interface()
 
-	if sas.lastGoal != nil {
-		sas.lastGoal.SetCanceled(reflect.New(sas.as.resType).Interface())
+	select {
+	case sas.goal <- &goalHandlerPair{gh, goal}:
+	case <-sas.ctx.Done():
 	}
-
-	sas.lastGoal = gh
-
-	gh.SetAccepted()
-
-	sas.goal <- &goalHandlerPair{gh, goal}
 
 	return []reflect.Value{}
 }
@@ -163,11 +152,11 @@ func (sas *SimpleActionServer) run() {
 	executeRunning := false
 	var executeDone chan struct{}
 
-	executeLaunch := func(pair *goalHandlerPair) {
+	executeStart := func(pair *goalHandlerPair) {
 		sas.executingGoal = pair.gh
 		executeRunning = true
-
 		executeDone = make(chan struct{})
+
 		go func() {
 			defer close(executeDone)
 
@@ -180,22 +169,33 @@ func (sas *SimpleActionServer) run() {
 		}()
 	}
 
+	var lastGoal *ActionServerGoalHandler
 	var nextGoal *goalHandlerPair
 
 outer:
 	for {
 		select {
 		case pair := <-sas.goal:
+			if lastGoal != nil {
+				lastGoal.SetCanceled(reflect.New(sas.as.resType).Interface())
+			}
+
+			lastGoal = pair.gh
+
+			pair.gh.SetAccepted()
+
 			if !executeRunning {
-				executeLaunch(pair)
+				executeStart(pair)
 			} else {
 				nextGoal = pair
 			}
 
 		case <-executeDone:
 			if nextGoal != nil {
-				executeLaunch(nextGoal)
+				executeStart(nextGoal)
 				nextGoal = nil
+			} else {
+				lastGoal = nil
 			}
 
 		case <-sas.ctx.Done():
@@ -204,4 +204,10 @@ outer:
 	}
 
 	sas.ctxCancel()
+
+	sas.as.Close()
+
+	if executeRunning {
+		<-executeDone
+	}
 }
