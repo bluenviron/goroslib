@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/aler9/goroslib/pkg/actionproc"
 )
@@ -33,13 +34,16 @@ type SimpleActionServerConf struct {
 type SimpleActionServer struct {
 	conf SimpleActionServerConf
 
-	ctx           context.Context
-	ctxCancel     func()
-	as            *ActionServer
-	executingGoal *ActionServerGoalHandler
+	ctx         context.Context
+	ctxCancel   func()
+	as          *ActionServer
+	currentGoal *ActionServerGoalHandler
+	preemptFlag bool
+	mutex       sync.Mutex
 
 	// in
-	goal chan *goalHandlerPair
+	goal   chan goalHandlerPair
+	cancel chan *ActionServerGoalHandler
 
 	// out
 	done chan struct{}
@@ -53,7 +57,8 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 		conf:      conf,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
-		goal:      make(chan *goalHandlerPair),
+		goal:      make(chan goalHandlerPair),
+		cancel:    make(chan *ActionServerGoalHandler),
 		done:      make(chan struct{}),
 	}
 
@@ -112,22 +117,29 @@ func (sas *SimpleActionServer) Close() error {
 	return nil
 }
 
+// IsPreemptRequested checks whether the goal has been canceled.
+func (sas *SimpleActionServer) IsPreemptRequested() bool {
+	sas.mutex.Lock()
+	defer sas.mutex.Unlock()
+	return sas.preemptFlag
+}
+
 // PublishFeedback publishes a feedback about the current goal.
 // This can be called only from an OnExecute callback.
 func (sas *SimpleActionServer) PublishFeedback(fb interface{}) {
-	sas.executingGoal.PublishFeedback(fb)
+	sas.currentGoal.PublishFeedback(fb)
 }
 
 // SetAborted sets the current goal as aborted.
 // This can be called only from an OnExecute callback.
 func (sas *SimpleActionServer) SetAborted(res interface{}) {
-	sas.executingGoal.SetAborted(res)
+	sas.currentGoal.SetAborted(res)
 }
 
 // SetSucceeded sets the current goal as succeeded.
 // This can be called only from an OnExecute callback.
 func (sas *SimpleActionServer) SetSucceeded(res interface{}) {
-	sas.executingGoal.SetSucceeded(res)
+	sas.currentGoal.SetSucceeded(res)
 }
 
 func (sas *SimpleActionServer) onGoal(in []reflect.Value) []reflect.Value {
@@ -135,7 +147,7 @@ func (sas *SimpleActionServer) onGoal(in []reflect.Value) []reflect.Value {
 	goal := in[1].Interface()
 
 	select {
-	case sas.goal <- &goalHandlerPair{gh, goal}:
+	case sas.goal <- goalHandlerPair{gh, goal}:
 	case <-sas.ctx.Done():
 	}
 
@@ -143,7 +155,10 @@ func (sas *SimpleActionServer) onGoal(in []reflect.Value) []reflect.Value {
 }
 
 func (sas *SimpleActionServer) onCancel(gh *ActionServerGoalHandler) {
-	gh.SetCanceled(reflect.New(sas.as.resType).Interface())
+	select {
+	case sas.cancel <- gh:
+	case <-sas.ctx.Done():
+	}
 }
 
 func (sas *SimpleActionServer) run() {
@@ -152,8 +167,10 @@ func (sas *SimpleActionServer) run() {
 	executeRunning := false
 	var executeDone chan struct{}
 
-	executeStart := func(pair *goalHandlerPair) {
-		sas.executingGoal = pair.gh
+	executeStart := func(goal interface{}, gh *ActionServerGoalHandler, preemptFlag bool) {
+		sas.currentGoal = gh
+		sas.preemptFlag = preemptFlag
+
 		executeRunning = true
 		executeDone = make(chan struct{})
 
@@ -163,7 +180,7 @@ func (sas *SimpleActionServer) run() {
 			if sas.conf.OnExecute != nil {
 				reflect.ValueOf(sas.conf.OnExecute).Call([]reflect.Value{
 					reflect.ValueOf(sas),
-					reflect.ValueOf(pair.goal),
+					reflect.ValueOf(goal),
 				})
 			}
 		}()
@@ -171,6 +188,7 @@ func (sas *SimpleActionServer) run() {
 
 	var lastGoal *ActionServerGoalHandler
 	var nextGoal *goalHandlerPair
+	nextGoalPreemptFlag := false
 
 outer:
 	for {
@@ -185,15 +203,28 @@ outer:
 			pair.gh.SetAccepted()
 
 			if !executeRunning {
-				executeStart(pair)
+				executeStart(pair.goal, pair.gh, false)
 			} else {
-				nextGoal = pair
+				nextGoal = &pair
+				nextGoalPreemptFlag = false
+			}
+
+		case gh := <-sas.cancel:
+			switch gh {
+			case sas.currentGoal:
+				sas.mutex.Lock()
+				sas.preemptFlag = true
+				sas.mutex.Unlock()
+
+			case nextGoal.gh:
+				nextGoalPreemptFlag = true
 			}
 
 		case <-executeDone:
 			if nextGoal != nil {
-				executeStart(nextGoal)
+				executeStart(nextGoal.goal, nextGoal.gh, nextGoalPreemptFlag)
 				nextGoal = nil
+				nextGoalPreemptFlag = false
 			} else {
 				lastGoal = nil
 			}

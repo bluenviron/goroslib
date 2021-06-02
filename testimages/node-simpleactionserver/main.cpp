@@ -7,7 +7,11 @@ actionlib::SimpleActionServer<shared_actions::DoSomethingAction>* server;
 
 void onExecute(const shared_actions::DoSomethingGoalConstPtr& goal) {
     if (goal->input == 3) {
-        return;
+        ros::Duration(2.0).sleep();
+        if (server->isPreemptRequested()) {
+            server->setAborted();
+            return;
+        }
     }
 
     ros::Duration(0.5).sleep();

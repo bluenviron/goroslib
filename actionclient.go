@@ -152,6 +152,8 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		return false
 	}
 
+	// https://github.com/ros/actionlib/blob/noetic-devel/actionlib/src/actionlib/action_client.py#L332
+
 	goalStatus, ok := findStatus(statusList, gh.id)
 	if !ok {
 		switch gh.commState {

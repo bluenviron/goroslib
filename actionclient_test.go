@@ -78,9 +78,7 @@ func TestActionClient(t *testing.T) {
 
 								time.Sleep(500 * time.Millisecond)
 
-								gh.PublishFeedback(&DoSomethingActionFeedback{
-									PercentComplete: 0.5,
-								})
+								gh.PublishFeedback(&DoSomethingActionFeedback{PercentComplete: 0.5})
 
 								time.Sleep(500 * time.Millisecond)
 
@@ -89,9 +87,7 @@ func TestActionClient(t *testing.T) {
 									return
 								}
 
-								gh.SetSucceeded(&DoSomethingActionResult{
-									Output: 123456,
-								})
+								gh.SetSucceeded(&DoSomethingActionResult{Output: 123456})
 							}()
 						},
 						OnCancel: func(gh *ActionServerGoalHandler) {
@@ -156,6 +152,7 @@ func TestActionClient(t *testing.T) {
 								require.Equal(t, ActionClientTerminalStateSucceeded, ts)
 								require.Equal(t, &DoSomethingActionResult{123456}, res)
 							}
+
 							close(resDone)
 						}
 					},

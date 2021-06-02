@@ -30,26 +30,13 @@ func TestSimpleActionServer(t *testing.T) {
 				Name:   "test_action",
 				Action: &DoSomethingAction{},
 				OnExecute: func(sas *SimpleActionServer, goal *DoSomethingActionGoal) {
-					if goal.Input == 3 {
-						return
-					}
+					time.Sleep(500 * time.Millisecond)
+
+					sas.PublishFeedback(&DoSomethingActionFeedback{PercentComplete: 0.5})
 
 					time.Sleep(500 * time.Millisecond)
 
-					sas.PublishFeedback(&DoSomethingActionFeedback{
-						PercentComplete: 0.5,
-					})
-
-					time.Sleep(500 * time.Millisecond)
-
-					if goal.Input == 2 {
-						sas.SetAborted(&DoSomethingActionResult{})
-						return
-					}
-
-					sas.SetSucceeded(&DoSomethingActionResult{
-						Output: 123456,
-					})
+					sas.SetSucceeded(&DoSomethingActionResult{Output: 123456})
 				},
 			})
 			require.NoError(t, err)
@@ -86,22 +73,16 @@ func TestSimpleActionServer(t *testing.T) {
 				doneDone := make(chan struct{})
 
 				err = sac.SendGoal(SimpleActionClientGoalConf{
-					Goal: &DoSomethingActionGoal{
-						Input: 1234312,
-					},
-					OnDone: func(res *DoSomethingActionResult) {
-						require.Equal(t, &DoSomethingActionResult{
-							Output: 123456,
-						}, res)
+					Goal: &DoSomethingActionGoal{Input: 1234312},
+					OnDone: func(state SimpleActionClientGoalState, res *DoSomethingActionResult) {
+						require.Equal(t, &DoSomethingActionResult{Output: 123456}, res)
 						close(doneDone)
 					},
 					OnActive: func() {
 						close(activeDone)
 					},
 					OnFeedback: func(fb *DoSomethingActionFeedback) {
-						require.Equal(t, &DoSomethingActionFeedback{
-							PercentComplete: 0.5,
-						}, fb)
+						require.Equal(t, &DoSomethingActionFeedback{PercentComplete: 0.5}, fb)
 						close(fbDone)
 					},
 				})
