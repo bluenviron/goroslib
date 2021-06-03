@@ -16,13 +16,13 @@ func TestClient(t *testing.T) {
 	go s.Serve(func(raw *xmlrpc.RequestRaw) interface{} {
 		switch raw.Method {
 		case "getPid":
-			return ResponseGetPid{Code: 1}
+			return ResponseGetPid{Code: 1, Pid: 123}
 
 		case "shutdown":
 			return ResponseShutdown{Code: 1}
 
 		case "requestTopic":
-			return ResponseRequestTopic{Code: 1}
+			return ResponseRequestTopic{Code: 1, Protocol: []interface{}{"myproto"}}
 
 		case "getBusInfo":
 			return ResponseGetBusInfo{Code: 1}
@@ -35,7 +35,7 @@ func TestClient(t *testing.T) {
 	func() {
 		res, err := c.GetPid()
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetPid{Code: 1}, res)
+		require.Equal(t, 123, res)
 	}()
 
 	func() {
@@ -46,7 +46,7 @@ func TestClient(t *testing.T) {
 	func() {
 		res, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
 		require.NoError(t, err)
-		require.Equal(t, &ResponseRequestTopic{Code: 1}, res)
+		require.Equal(t, []interface{}{"myproto"}, res)
 	}()
 
 	func() {

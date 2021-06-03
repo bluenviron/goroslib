@@ -16,7 +16,7 @@ func TestClient(t *testing.T) {
 	go s.Serve(func(raw *xmlrpc.RequestRaw) interface{} {
 		switch raw.Method {
 		case "getParamNames":
-			return ResponseGetParamNames{Code: 1}
+			return ResponseGetParamNames{Code: 1, List: []string{"val1", "val2"}}
 
 		case "deleteParam":
 			return ResponseDeleteParam{Code: 1}
@@ -28,20 +28,20 @@ func TestClient(t *testing.T) {
 
 			switch req.Key {
 			case "mykey1":
-				return ResponseGetParamBool{Code: 1}
+				return ResponseGetParamBool{Code: 1, Res: true}
 
 			case "mykey2":
-				return ResponseGetParamInt{Code: 1}
+				return ResponseGetParamInt{Code: 1, Res: 123}
 
 			case "mykey3":
-				return ResponseGetParamString{Code: 1}
+				return ResponseGetParamString{Code: 1, Res: "mystring"}
 			}
 
 		case "hasParam":
-			return ResponseHasParam{Code: 1, KeyOut: "mykey"}
+			return ResponseHasParam{Code: 1, KeyOut: "mykey", Res: true}
 
 		case "searchParam":
-			return ResponseSearchParam{Code: 1}
+			return ResponseSearchParam{Code: 1, FoundKey: "mykey"}
 
 		case "setParam":
 			return ResponseSetParam{Code: 1}
@@ -59,37 +59,37 @@ func TestClient(t *testing.T) {
 	func() {
 		res, err := c.GetParamNames()
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetParamNames{Code: 1}, res)
+		require.Equal(t, []string{"val1", "val2"}, res)
 	}()
 
 	func() {
 		res, err := c.GetParamBool("mykey1")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetParamBool{Code: 1}, res)
+		require.Equal(t, true, res)
 	}()
 
 	func() {
 		res, err := c.GetParamInt("mykey2")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetParamInt{Code: 1}, res)
+		require.Equal(t, 123, res)
 	}()
 
 	func() {
 		res, err := c.GetParamString("mykey3")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetParamString{Code: 1}, res)
+		require.Equal(t, "mystring", res)
 	}()
 
 	func() {
 		res, err := c.HasParam("mykey")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseHasParam{Code: 1, KeyOut: "mykey"}, res)
+		require.Equal(t, true, res)
 	}()
 
 	func() {
 		res, err := c.SearchParam("mykey")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseSearchParam{Code: 1}, res)
+		require.Equal(t, "mykey", res)
 	}()
 
 	func() {

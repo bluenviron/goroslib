@@ -16,28 +16,31 @@ func TestClient(t *testing.T) {
 	go s.Serve(func(raw *xmlrpc.RequestRaw) interface{} {
 		switch raw.Method {
 		case "getPublishedTopics":
-			return ResponseGetPublishedTopics{Code: 1}
+			return ResponseGetPublishedTopics{Code: 1, Topics: [][]string{{"mytopic"}}}
 
 		case "getSystemState":
-			return ResponseGetSystemState{Code: 1}
+			return ResponseGetSystemState{
+				Code:  1,
+				State: SystemState{PublishedTopics: []SystemStateEntry{{Name: "myname", Nodes: []string{"mynode"}}}},
+			}
 
 		case "getTopicTypes":
-			return ResponseGetTopicTypes{Code: 1}
+			return ResponseGetTopicTypes{Code: 1, Types: []TopicType{{Name: "myname", Type: "mytype"}}}
 
 		case "getUri":
-			return ResponseGetURI{Code: 1}
+			return ResponseGetURI{Code: 1, MasterURI: "myuri"}
 
 		case "lookupNode":
-			return ResponseLookup{Code: 1}
+			return ResponseLookup{Code: 1, URL: "myurl"}
 
 		case "lookupService":
-			return ResponseLookup{Code: 1}
+			return ResponseLookup{Code: 1, URL: "myurl"}
 
 		case "registerSubscriber":
-			return ResponseRegister{Code: 1}
+			return ResponseRegister{Code: 1, URIs: []string{"myurl"}}
 
 		case "registerPublisher":
-			return ResponseRegister{Code: 1}
+			return ResponseRegister{Code: 1, URIs: []string{"myurl"}}
 
 		case "unregisterSubscriber":
 			return ResponseUnregister{Code: 1, NumUnregistered: 1}
@@ -59,49 +62,49 @@ func TestClient(t *testing.T) {
 	func() {
 		res, err := c.GetPublishedTopics("mysubgraph")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetPublishedTopics{Code: 1}, res)
+		require.Equal(t, [][]string{{"mytopic"}}, res)
 	}()
 
 	func() {
 		res, err := c.GetSystemState()
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetSystemState{Code: 1}, res)
+		require.Equal(t, &SystemState{PublishedTopics: []SystemStateEntry{{Name: "myname", Nodes: []string{"mynode"}}}}, res)
 	}()
 
 	func() {
 		res, err := c.GetTopicTypes()
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetTopicTypes{Code: 1}, res)
+		require.Equal(t, []TopicType{{Name: "myname", Type: "mytype"}}, res)
 	}()
 
 	func() {
 		res, err := c.GetURI()
 		require.NoError(t, err)
-		require.Equal(t, &ResponseGetURI{Code: 1}, res)
+		require.Equal(t, "myuri", res)
 	}()
 
 	func() {
 		res, err := c.LookupNode("mynode")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseLookup{Code: 1}, res)
+		require.Equal(t, "myurl", res)
 	}()
 
 	func() {
 		res, err := c.LookupService("myservice")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseLookup{Code: 1}, res)
+		require.Equal(t, "myurl", res)
 	}()
 
 	func() {
 		res, err := c.RegisterSubscriber("mytopic", "mytype", "myurl")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseRegister{Code: 1}, res)
+		require.Equal(t, []string{"myurl"}, res)
 	}()
 
 	func() {
 		res, err := c.RegisterPublisher("mytopic", "mytype", "myurl")
 		require.NoError(t, err)
-		require.Equal(t, &ResponseRegister{Code: 1}, res)
+		require.Equal(t, []string{"myurl"}, res)
 	}()
 
 	func() {

@@ -21,7 +21,7 @@ func NewClient(address string, callerID string) *Client {
 }
 
 // GetPublishedTopics writes a getPublishedTopics request.
-func (c *Client) GetPublishedTopics(subgraph string) (*ResponseGetPublishedTopics, error) {
+func (c *Client) GetPublishedTopics(subgraph string) ([][]string, error) {
 	req := RequestGetPublishedTopics{
 		CallerID: c.callerID,
 		Subgraph: subgraph,
@@ -38,11 +38,11 @@ func (c *Client) GetPublishedTopics(subgraph string) (*ResponseGetPublishedTopic
 			res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Topics, nil
 }
 
 // GetSystemState writes a getSystemState request.
-func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
+func (c *Client) GetSystemState() (*SystemState, error) {
 	req := RequestGetSystemState{
 		c.callerID,
 	}
@@ -58,11 +58,11 @@ func (c *Client) GetSystemState() (*ResponseGetSystemState, error) {
 			res.StatusMessage)
 	}
 
-	return &res, nil
+	return &res.State, nil
 }
 
 // GetTopicTypes writes a getTopicTypes request.
-func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
+func (c *Client) GetTopicTypes() ([]TopicType, error) {
 	req := RequestGetTopicTypes{
 		c.callerID,
 	}
@@ -78,11 +78,11 @@ func (c *Client) GetTopicTypes() (*ResponseGetTopicTypes, error) {
 			res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Types, nil
 }
 
 // GetURI writes a getUri request.
-func (c *Client) GetURI() (*ResponseGetURI, error) {
+func (c *Client) GetURI() (string, error) {
 	req := RequestGetURI{
 		c.callerID,
 	}
@@ -90,18 +90,18 @@ func (c *Client) GetURI() (*ResponseGetURI, error) {
 
 	err := c.xc.Do("getUri", req, &res)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return "", fmt.Errorf("server returned an error (%d): %s", res.Code,
 			res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.MasterURI, nil
 }
 
-func (c *Client) lookup(method string, name string) (*ResponseLookup, error) {
+func (c *Client) lookup(method string, name string) (string, error) {
 	req := RequestLookup{
 		CallerID: c.callerID,
 		Name:     name,
@@ -110,29 +110,29 @@ func (c *Client) lookup(method string, name string) (*ResponseLookup, error) {
 
 	err := c.xc.Do(method, req, &res)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return "", fmt.Errorf("server returned an error (%d): %s", res.Code,
 			res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.URL, nil
 }
 
 // LookupNode writes a lookupNode request.
-func (c *Client) LookupNode(name string) (*ResponseLookup, error) {
+func (c *Client) LookupNode(name string) (string, error) {
 	return c.lookup("lookupNode", name)
 }
 
 // LookupService writes a lookupService request.
-func (c *Client) LookupService(name string) (*ResponseLookup, error) {
+func (c *Client) LookupService(name string) (string, error) {
 	return c.lookup("lookupService", name)
 }
 
 func (c *Client) register(method string, topic string, topicType string,
-	callerURL string) (*ResponseRegister, error) {
+	callerURL string) ([]string, error) {
 	req := RequestRegister{
 		CallerID:  c.callerID,
 		Topic:     topic,
@@ -151,14 +151,14 @@ func (c *Client) register(method string, topic string, topicType string,
 			res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.URIs, nil
 }
 
 // RegisterSubscriber writes a registerSubscriber request.
 func (c *Client) RegisterSubscriber(
 	topic string,
 	topicType string,
-	callerURL string) (*ResponseRegister, error) {
+	callerURL string) ([]string, error) {
 	return c.register("registerSubscriber", topic, topicType, callerURL)
 }
 
@@ -166,7 +166,7 @@ func (c *Client) RegisterSubscriber(
 func (c *Client) RegisterPublisher(
 	topic string,
 	topicType string,
-	callerURL string) (*ResponseRegister, error) {
+	callerURL string) ([]string, error) {
 	return c.register("registerPublisher", topic, topicType, callerURL)
 }
 

@@ -21,7 +21,7 @@ func NewClient(address string, callerID string) *Client {
 }
 
 // GetPid writes a getPid request.
-func (c *Client) GetPid() (*ResponseGetPid, error) {
+func (c *Client) GetPid() (int, error) {
 	req := RequestGetPid{
 		CallerID: c.callerID,
 	}
@@ -29,14 +29,14 @@ func (c *Client) GetPid() (*ResponseGetPid, error) {
 
 	err := c.xc.Do("getPid", req, &res)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return 0, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Pid, nil
 }
 
 // Shutdown writes a shutdown request.
@@ -60,7 +60,8 @@ func (c *Client) Shutdown(reason string) error {
 }
 
 // RequestTopic writes a requestTopic request.
-func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (*ResponseRequestTopic, error) {
+func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (
+	[]interface{}, error) {
 	req := RequestRequestTopic{
 		CallerID:  c.callerID,
 		Topic:     topic,
@@ -77,7 +78,7 @@ func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (*Respons
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Protocol, nil
 }
 
 // GetBusInfo writes a getBusInfo request.

@@ -569,7 +569,7 @@ outer:
 				continue
 			}
 
-			res, err := n.apiMasterClient.RegisterSubscriber(
+			uris, err := n.apiMasterClient.RegisterSubscriber(
 				n.absoluteTopicName(req.sub.conf.Topic),
 				req.sub.msgType,
 				n.apiSlaveServerURL)
@@ -583,7 +583,7 @@ outer:
 
 			// send initial publishers list to subscriber
 			select {
-			case req.sub.subscriberPubUpdate <- res.URIs:
+			case req.sub.subscriberPubUpdate <- uris:
 			case <-req.sub.ctx.Done():
 			}
 

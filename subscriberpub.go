@@ -85,8 +85,9 @@ func (sp *subscriberPublisher) runInner() error {
 	xcs := apislave.NewClient(sp.address, sp.sub.conf.Node.absoluteName())
 
 	subDone := make(chan struct{}, 1)
-	var res *apislave.ResponseRequestTopic
+	var proto []interface{}
 	var err error
+
 	go func() {
 		defer close(subDone)
 
@@ -113,7 +114,7 @@ func (sp *subscriberPublisher) runInner() error {
 				1500,
 			}}
 		}()
-		res, err = xcs.RequestTopic(sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic), protocols)
+		proto, err = xcs.RequestTopic(sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic), protocols)
 	}()
 
 	select {
@@ -128,27 +129,27 @@ func (sp *subscriberPublisher) runInner() error {
 	}
 
 	if sp.sub.conf.Protocol == TCP {
-		return sp.runInnerTCP(res)
+		return sp.runInnerTCP(proto)
 	}
-	return sp.runInnerUDP(res)
+	return sp.runInnerUDP(proto)
 }
 
-func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) error {
-	if len(res.Protocol) != 3 {
+func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
+	if len(proto) != 3 {
 		return fmt.Errorf("wrong protocol length")
 	}
 
-	protoName, ok := res.Protocol[0].(string)
+	protoName, ok := proto[0].(string)
 	if !ok {
 		return fmt.Errorf("wrong protoName")
 	}
 
-	protoHost, ok := res.Protocol[1].(string)
+	protoHost, ok := proto[1].(string)
 	if !ok {
 		return fmt.Errorf("wrong protoHost")
 	}
 
-	protoPort, ok := res.Protocol[2].(int)
+	protoPort, ok := proto[2].(int)
 	if !ok {
 		return fmt.Errorf("wrong protoPort")
 	}
@@ -275,27 +276,27 @@ func (sp *subscriberPublisher) runInnerTCP(res *apislave.ResponseRequestTopic) e
 	}
 }
 
-func (sp *subscriberPublisher) runInnerUDP(res *apislave.ResponseRequestTopic) error {
-	if len(res.Protocol) != 6 {
+func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
+	if len(proto) != 6 {
 		return fmt.Errorf("wrong protocol length")
 	}
 
-	protoName, ok := res.Protocol[0].(string)
+	protoName, ok := proto[0].(string)
 	if !ok {
 		return fmt.Errorf("wrong protoName")
 	}
 
-	protoHost, ok := res.Protocol[1].(string)
+	protoHost, ok := proto[1].(string)
 	if !ok {
 		return fmt.Errorf("wrong protoHost")
 	}
 
-	protoPort, ok := res.Protocol[2].(int)
+	protoPort, ok := proto[2].(int)
 	if !ok {
 		return fmt.Errorf("wrong protoPort")
 	}
 
-	protoID, ok := res.Protocol[3].(int)
+	protoID, ok := proto[3].(int)
 	if !ok {
 		return fmt.Errorf("wrong protoID")
 	}

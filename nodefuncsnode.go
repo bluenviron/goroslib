@@ -19,12 +19,12 @@ type InfoConnection struct {
 
 // NodeGetConns returns infos about connections of a node.
 func (n *Node) NodeGetConns(nodeName string) ([]InfoConnection, error) {
-	res, err := n.apiMasterClient.LookupNode(nodeName)
+	ur, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
 		return nil, err
 	}
 
-	address, err := urlToAddress(res.URL)
+	address, err := urlToAddress(ur)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +90,12 @@ func (n *Node) NodeGetConns(nodeName string) ([]InfoConnection, error) {
 // NodePing sends a ping request to a given node, wait for the response and returns
 // the elapsed time.
 func (n *Node) NodePing(nodeName string) (time.Duration, error) {
-	res, err := n.apiMasterClient.LookupNode(nodeName)
+	ur, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
 		return 0, err
 	}
 
-	address, err := urlToAddress(res.URL)
+	address, err := urlToAddress(ur)
 	if err != nil {
 		return 0, err
 	}
@@ -114,12 +114,12 @@ func (n *Node) NodePing(nodeName string) (time.Duration, error) {
 
 // NodeKill sends a kill request to a given node.
 func (n *Node) NodeKill(nodeName string) error {
-	res, err := n.apiMasterClient.LookupNode(nodeName)
+	ur, err := n.apiMasterClient.LookupNode(nodeName)
 	if err != nil {
 		return err
 	}
 
-	address, err := urlToAddress(res.URL)
+	address, err := urlToAddress(ur)
 	if err != nil {
 		return err
 	}

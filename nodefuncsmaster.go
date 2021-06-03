@@ -15,7 +15,7 @@ type InfoNode struct {
 
 // MasterGetNodes returns all the nodes connected to the master.
 func (n *Node) MasterGetNodes() (map[string]*InfoNode, error) {
-	res, err := n.apiMasterClient.GetSystemState()
+	state, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, err
 	}
@@ -32,21 +32,21 @@ func (n *Node) MasterGetNodes() (map[string]*InfoNode, error) {
 		}
 	}
 
-	for _, entry := range res.State.PublishedTopics {
+	for _, entry := range state.PublishedTopics {
 		for _, node := range entry.Nodes {
 			initEntry(node)
 			ret[node].PublishedTopics[entry.Name] = struct{}{}
 		}
 	}
 
-	for _, entry := range res.State.SubscribedTopics {
+	for _, entry := range state.SubscribedTopics {
 		for _, node := range entry.Nodes {
 			initEntry(node)
 			ret[node].SubscribedTopics[entry.Name] = struct{}{}
 		}
 	}
 
-	for _, entry := range res.State.ProvidedServices {
+	for _, entry := range state.ProvidedServices {
 		for _, node := range entry.Nodes {
 			initEntry(node)
 			ret[node].ProvidedServices[entry.Name] = struct{}{}
@@ -54,12 +54,12 @@ func (n *Node) MasterGetNodes() (map[string]*InfoNode, error) {
 	}
 
 	for nodeName, info := range ret {
-		res, err := n.apiMasterClient.LookupNode(nodeName)
+		ur, err := n.apiMasterClient.LookupNode(nodeName)
 		if err != nil {
 			return nil, fmt.Errorf("lookupNode: %v", err)
 		}
 
-		address, err := urlToAddress(res.URL)
+		address, err := urlToAddress(ur)
 		if err != nil {
 			return nil, err
 		}
@@ -101,19 +101,19 @@ type InfoTopic struct {
 
 // MasterGetTopics returns all the topics published by nodes connected to the master.
 func (n *Node) MasterGetTopics() (map[string]*InfoTopic, error) {
-	res1, err := n.apiMasterClient.GetSystemState()
+	state, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, fmt.Errorf("getSystemState: %v", err)
 	}
 
-	res2, err := n.apiMasterClient.GetTopicTypes()
+	types, err := n.apiMasterClient.GetTopicTypes()
 	if err != nil {
 		return nil, fmt.Errorf("getTopicTypes: %v", err)
 	}
 
 	ret := make(map[string]*InfoTopic)
 
-	for _, entry := range res2.Types {
+	for _, entry := range types {
 		ret[entry.Name] = &InfoTopic{
 			Type:        entry.Type,
 			Publishers:  make(map[string]struct{}),
@@ -121,7 +121,7 @@ func (n *Node) MasterGetTopics() (map[string]*InfoTopic, error) {
 		}
 	}
 
-	for _, entry := range res1.State.PublishedTopics {
+	for _, entry := range state.PublishedTopics {
 		if _, ok := ret[entry.Name]; !ok {
 			continue
 		}
@@ -130,7 +130,7 @@ func (n *Node) MasterGetTopics() (map[string]*InfoTopic, error) {
 		}
 	}
 
-	for _, entry := range res1.State.SubscribedTopics {
+	for _, entry := range state.SubscribedTopics {
 		if _, ok := ret[entry.Name]; !ok {
 			continue
 		}
@@ -150,14 +150,14 @@ type InfoService struct {
 
 // MasterGetServices returns all the services provided by nodes connected to the server.
 func (n *Node) MasterGetServices() (map[string]*InfoService, error) {
-	res1, err := n.apiMasterClient.GetSystemState()
+	state, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
 		return nil, fmt.Errorf("getSystemState: %v", err)
 	}
 
 	ret := make(map[string]*InfoService)
 
-	for _, entry := range res1.State.ProvidedServices {
+	for _, entry := range state.ProvidedServices {
 		if _, ok := ret[entry.Name]; !ok {
 			ret[entry.Name] = &InfoService{
 				Providers: make(map[string]struct{}),
@@ -168,12 +168,12 @@ func (n *Node) MasterGetServices() (map[string]*InfoService, error) {
 			ret[entry.Name].Providers[node] = struct{}{}
 		}
 
-		res2, err := n.apiMasterClient.LookupService(entry.Name)
+		ur, err := n.apiMasterClient.LookupService(entry.Name)
 		if err != nil {
 			return nil, fmt.Errorf("lookupService: %v", err)
 		}
 
-		address, err := urlToAddress(res2.URL)
+		address, err := urlToAddress(ur)
 		if err != nil {
 			return nil, err
 		}

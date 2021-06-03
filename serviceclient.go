@@ -127,7 +127,7 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 }
 
 func (sc *ServiceClient) createConn() error {
-	res, err := sc.conf.Node.apiMasterClient.LookupService(
+	ur, err := sc.conf.Node.apiMasterClient.LookupService(
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	if err != nil {
 		return fmt.Errorf("lookupService: %v", err)
@@ -138,7 +138,7 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
-	address, err := urlToAddress(res.URL)
+	address, err := urlToAddress(ur)
 	if err != nil {
 		return err
 	}

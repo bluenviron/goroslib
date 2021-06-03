@@ -41,7 +41,7 @@ func (c *Client) DeleteParam(key string) error {
 }
 
 // GetParamNames writes a getParamNames request.
-func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
+func (c *Client) GetParamNames() ([]string, error) {
 	req := RequestGetParamNames{
 		CallerID: c.callerID,
 	}
@@ -56,11 +56,11 @@ func (c *Client) GetParamNames() (*ResponseGetParamNames, error) {
 		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.List, nil
 }
 
 // GetParamBool writes a getParam request and expects a bool response.
-func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
+func (c *Client) GetParamBool(key string) (bool, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
 		Key:      key,
@@ -69,18 +69,18 @@ func (c *Client) GetParamBool(key string) (*ResponseGetParamBool, error) {
 
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return false, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Res, nil
 }
 
 // GetParamInt writes a getParam request and expects a int response.
-func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
+func (c *Client) GetParamInt(key string) (int, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
 		Key:      key,
@@ -89,18 +89,18 @@ func (c *Client) GetParamInt(key string) (*ResponseGetParamInt, error) {
 
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return 0, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Res, nil
 }
 
 // GetParamString writes a getParam request and expects a string response.
-func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
+func (c *Client) GetParamString(key string) (string, error) {
 	req := RequestGetParam{
 		CallerID: c.callerID,
 		Key:      key,
@@ -109,18 +109,18 @@ func (c *Client) GetParamString(key string) (*ResponseGetParamString, error) {
 
 	err := c.xc.Do("getParam", req, &res)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return "", fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
 	}
 
-	return &res, nil
+	return res.Res, nil
 }
 
 // HasParam writes a hasParam request.
-func (c *Client) HasParam(key string) (*ResponseHasParam, error) {
+func (c *Client) HasParam(key string) (bool, error) {
 	req := RequestHasParam{
 		CallerID: c.callerID,
 		Key:      key,
@@ -129,22 +129,22 @@ func (c *Client) HasParam(key string) (*ResponseHasParam, error) {
 
 	err := c.xc.Do("hasParam", req, &res)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d)", res.Code)
+		return false, fmt.Errorf("server returned an error (%d)", res.Code)
 	}
 
 	if res.KeyOut != req.Key {
-		return nil, fmt.Errorf("unexpected response")
+		return false, fmt.Errorf("unexpected response")
 	}
 
-	return &res, nil
+	return res.Res, nil
 }
 
 // SearchParam writes a searchParam request.
-func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
+func (c *Client) SearchParam(key string) (string, error) {
 	req := RequestSearchParam{
 		CallerID: c.callerID,
 		Key:      key,
@@ -153,14 +153,14 @@ func (c *Client) SearchParam(key string) (*ResponseSearchParam, error) {
 
 	err := c.xc.Do("searchParam", req, &res)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d)", res.Code)
+		return "", fmt.Errorf("server returned an error (%d)", res.Code)
 	}
 
-	return &res, nil
+	return res.FoundKey, nil
 }
 
 // SetParamBool writes a setParam request.

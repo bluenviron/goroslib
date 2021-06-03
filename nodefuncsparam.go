@@ -6,7 +6,7 @@ func (n *Node) ParamIsSet(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return res.Res, nil
+	return res, nil
 }
 
 // ParamGetBool returns a bool parameter from the master.
@@ -15,7 +15,7 @@ func (n *Node) ParamGetBool(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return res.Res, nil
+	return res, nil
 }
 
 // ParamGetInt returns an int parameter from the master.
@@ -24,7 +24,7 @@ func (n *Node) ParamGetInt(key string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return res.Res, nil
+	return res, nil
 }
 
 // ParamGetString returns a string parameter from the master.
@@ -33,7 +33,7 @@ func (n *Node) ParamGetString(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return res.Res, nil
+	return res, nil
 }
 
 // ParamSetBool sets a bool parameter in the master.
