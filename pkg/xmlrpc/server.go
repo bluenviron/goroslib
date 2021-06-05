@@ -105,9 +105,10 @@ func (s *Server) run() {
 
 			if _, ok := res.(ErrorRes); ok {
 				w.WriteHeader(http.StatusBadRequest)
-			} else {
-				responseEncode(w, res)
+				return
 			}
+
+			responseEncode(w, res)
 		}),
 	}
 
@@ -120,12 +121,14 @@ func (s *Server) run() {
 	<-s.ctx.Done()
 
 	s.ln.Close()
-
 	hs.Shutdown(context.Background())
 }
 
 // Serve starts serving requests and waits until the server is closed.
 func (s *Server) Serve(handler func(*RequestRaw) interface{}) {
-	s.setHandler <- handler
+	select {
+	case s.setHandler <- handler:
+	case <-s.ctx.Done():
+	}
 	s.wg.Wait()
 }
