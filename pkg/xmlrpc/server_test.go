@@ -9,10 +9,6 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s, err := NewServer("127.0.0.1:8080")
-	require.NoError(t, err)
-	defer s.Close()
-
 	type myRequest struct {
 		Param string
 	}
@@ -20,6 +16,10 @@ func TestServer(t *testing.T) {
 	type myResponse struct {
 		Param string
 	}
+
+	s, err := NewServer("127.0.0.1:8080")
+	require.NoError(t, err)
+	defer s.Close()
 
 	go s.Serve(func(raw *RequestRaw) interface{} {
 		require.Equal(t, "mymethod", raw.Method)
