@@ -8,7 +8,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	l, err := net.Listen("tcp", "127.0.0.1:9900")
+	l, err := net.Listen("tcp", "localhost:9900")
 	require.NoError(t, err)
 	defer l.Close()
 
@@ -23,7 +23,7 @@ func TestClient(t *testing.T) {
 		defer conn.Close()
 	}()
 
-	c, err := NewClient("127.0.0.1:9900")
+	c, err := NewClient("localhost:9900")
 	require.NoError(t, err)
 	defer c.Close()
 }

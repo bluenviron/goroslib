@@ -17,7 +17,7 @@ func TestServer(t *testing.T) {
 		Param string
 	}
 
-	s, err := NewServer("127.0.0.1:9904")
+	s, err := NewServer("localhost:9904")
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -35,7 +35,7 @@ func TestServer(t *testing.T) {
 	err = requestEncode(&buf, "mymethod", myRequest{Param: "myrequest"})
 	require.NoError(t, err)
 
-	res, err := http.Post("http://127.0.0.1:9904/RPC2", "text/xml", &buf)
+	res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
 	require.NoError(t, err)
 	defer res.Body.Close()
 

@@ -8,7 +8,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s, err := NewServer("127.0.0.1:9901")
+	s, err := NewServer("localhost:9901")
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -23,7 +23,7 @@ func TestServer(t *testing.T) {
 		defer conn.Close()
 	}()
 
-	conn, err := net.Dial("tcp", "127.0.0.1:9901")
+	conn, err := net.Dial("tcp", "localhost:9901")
 	require.NoError(t, err)
 	defer conn.Close()
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s, err := NewServer("127.0.0.1:9902")
+	s, err := NewServer("127.0.0.1:9902") // localhost doesn't work with GitHub actions
 	require.NoError(t, err)
 	defer s.Close()
 

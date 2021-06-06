@@ -9,7 +9,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s, err := NewServer("127.0.0.1:9906")
+	s, err := NewServer("localhost:9906")
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -43,7 +43,7 @@ func TestServer(t *testing.T) {
 		return ErrorRes{}
 	})
 
-	c := xmlrpc.NewClient("127.0.0.1:9906")
+	c := xmlrpc.NewClient("localhost:9906")
 
 	func() {
 		var res ResponseGetBusInfo
