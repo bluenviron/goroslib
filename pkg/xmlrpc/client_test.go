@@ -38,13 +38,13 @@ func TestClient(t *testing.T) {
 	}
 	defer hs.Shutdown(context.Background())
 
-	l, err := net.Listen("tcp", "127.0.0.1:8080")
+	l, err := net.Listen("tcp", "127.0.0.1:9903")
 	require.NoError(t, err)
 	defer l.Close()
 
 	go hs.Serve(l)
 
-	c := NewClient("127.0.0.1:8080")
+	c := NewClient("127.0.0.1:9903")
 	var res myResponse
 	err = c.Do("mymethod", myRequest{Param: "myparam"}, &res)
 	require.NoError(t, err)

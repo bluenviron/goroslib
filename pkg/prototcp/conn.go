@@ -15,13 +15,12 @@ const (
 
 // Conn is a TCPROS connection.
 type Conn struct {
-	nconn    *net.TCPConn
+	nconn    net.Conn
 	readBuf  *bufio.Reader
 	writeBuf *bufio.Writer
 }
 
-// NewConn allocates a Conn from a *net.TCPConn.
-func NewConn(nconn *net.TCPConn) *Conn {
+func newConn(nconn net.Conn) *Conn {
 	return &Conn{
 		nconn:    nconn,
 		readBuf:  bufio.NewReaderSize(nconn, bufferSize),
@@ -34,8 +33,8 @@ func (c *Conn) Close() error {
 	return c.nconn.Close()
 }
 
-// NetConn returns the underlying *net.TCPConn.
-func (c *Conn) NetConn() *net.TCPConn {
+// NetConn returns the underlying net.Conn.
+func (c *Conn) NetConn() net.Conn {
 	return c.nconn
 }
 

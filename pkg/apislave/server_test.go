@@ -9,19 +9,81 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s, err := NewServer("127.0.0.1:9999")
+	s, err := NewServer("127.0.0.1:9906")
 	require.NoError(t, err)
 	defer s.Close()
 
 	go s.Serve(func(req Request) Response {
-		require.Equal(t, &RequestGetPid{CallerID: "mycaller"}, req)
-		return ResponseGetPid{Code: 1, Pid: 123}
+		switch req.(type) {
+		case *RequestGetBusInfo:
+			require.Equal(t, &RequestGetBusInfo{CallerID: "mycaller"}, req)
+			return ResponseGetBusInfo{Code: 1}
+
+		case *RequestGetPid:
+			require.Equal(t, &RequestGetPid{CallerID: "mycaller"}, req)
+			return ResponseGetPid{Code: 1}
+
+		case *RequestGetPublications:
+			require.Equal(t, &RequestGetPublications{CallerID: "mycaller"}, req)
+			return ResponseGetPublications{Code: 1}
+
+		case *RequestPublisherUpdate:
+			require.Equal(t, &RequestPublisherUpdate{CallerID: "mycaller"}, req)
+			return ResponsePublisherUpdate{Code: 1}
+
+		case *RequestRequestTopic:
+			require.Equal(t, &RequestRequestTopic{CallerID: "mycaller"}, req)
+			return ResponseRequestTopic{Code: 1}
+
+		case *RequestShutdown:
+			require.Equal(t, &RequestShutdown{CallerID: "mycaller"}, req)
+			return ResponseShutdown{Code: 1}
+		}
+
+		return ErrorRes{}
 	})
 
-	c := xmlrpc.NewClient("127.0.0.1:9999")
+	c := xmlrpc.NewClient("127.0.0.1:9906")
 
-	var res ResponseGetPid
-	err = c.Do("getPid", RequestGetPid{CallerID: "mycaller"}, &res)
-	require.NoError(t, err)
-	require.Equal(t, ResponseGetPid{Code: 1, Pid: 123}, res)
+	func() {
+		var res ResponseGetBusInfo
+		err = c.Do("getBusInfo", RequestGetBusInfo{CallerID: "mycaller"}, &res)
+		require.NoError(t, err)
+		require.Equal(t, ResponseGetBusInfo{Code: 1}, res)
+	}()
+
+	func() {
+		var res ResponseGetPid
+		err = c.Do("getPid", RequestGetPid{CallerID: "mycaller"}, &res)
+		require.NoError(t, err)
+		require.Equal(t, ResponseGetPid{Code: 1}, res)
+	}()
+
+	func() {
+		var res ResponseGetPublications
+		err = c.Do("getPublications", RequestGetPublications{CallerID: "mycaller"}, &res)
+		require.NoError(t, err)
+		require.Equal(t, ResponseGetPublications{Code: 1}, res)
+	}()
+
+	func() {
+		var res ResponsePublisherUpdate
+		err = c.Do("publisherUpdate", RequestPublisherUpdate{CallerID: "mycaller"}, &res)
+		require.NoError(t, err)
+		require.Equal(t, ResponsePublisherUpdate{Code: 1}, res)
+	}()
+
+	func() {
+		var res ResponseRequestTopic
+		err = c.Do("requestTopic", RequestRequestTopic{CallerID: "mycaller"}, &res)
+		require.NoError(t, err)
+		require.Equal(t, ResponseRequestTopic{Code: 1}, res)
+	}()
+
+	func() {
+		var res ResponseShutdown
+		err = c.Do("shutdown", RequestShutdown{CallerID: "mycaller"}, &res)
+		require.NoError(t, err)
+		require.Equal(t, ResponseShutdown{Code: 1}, res)
+	}()
 }

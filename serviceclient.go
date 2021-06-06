@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"fmt"
+	"net"
 	"reflect"
 	"time"
 
@@ -149,8 +150,8 @@ func (sc *ServiceClient) createConn() error {
 	}
 
 	if sc.conf.EnableKeepAlive {
-		conn.NetConn().SetKeepAlive(true)
-		conn.NetConn().SetKeepAlivePeriod(60 * time.Second)
+		conn.NetConn().(*net.TCPConn).SetKeepAlive(true)
+		conn.NetConn().(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
 	}
 
 	err = conn.WriteHeader(&prototcp.HeaderServiceClient{

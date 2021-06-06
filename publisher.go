@@ -352,7 +352,7 @@ outer:
 				}
 
 				if req.header.TcpNodelay == 0 {
-					req.conn.NetConn().SetNoDelay(false)
+					req.conn.NetConn().(*net.TCPConn).SetNoDelay(false)
 				}
 
 				newPublisherSubscriber(p,

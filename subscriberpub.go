@@ -181,12 +181,12 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	defer conn.Close()
 
 	if sp.sub.conf.EnableKeepAlive {
-		conn.NetConn().SetKeepAlive(true)
-		conn.NetConn().SetKeepAlivePeriod(60 * time.Second)
+		conn.NetConn().(*net.TCPConn).SetKeepAlive(true)
+		conn.NetConn().(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
 	}
 
 	if sp.sub.conf.DisableNoDelay {
-		err := conn.NetConn().SetNoDelay(false)
+		err := conn.NetConn().(*net.TCPConn).SetNoDelay(false)
 		if err != nil {
 			return err
 		}
@@ -371,7 +371,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 		case frame := <-sp.udpFrame:
 			switch frame.Opcode {
 			case protoudp.Data0:
-				curMsg = append([]byte{}, frame.Content...)
+				curMsg = append([]byte{}, frame.Payload...)
 				curFieldID = 0
 				curFieldCount = int(frame.BlockID)
 
@@ -379,7 +379,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 				if int(frame.BlockID) != (curFieldID + 1) {
 					continue
 				}
-				curMsg = append(curMsg, frame.Content...)
+				curMsg = append(curMsg, frame.Payload...)
 				curFieldID++
 			}
 

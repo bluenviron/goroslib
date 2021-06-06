@@ -2,7 +2,6 @@ package protoudp
 
 import (
 	"net"
-	"strconv"
 )
 
 const (
@@ -15,8 +14,8 @@ type Server struct {
 }
 
 // NewServer allocates a Server.
-func NewServer(port int) (*Server, error) {
-	ln, err := net.ListenPacket("udp", ":"+strconv.FormatInt(int64(port), 10))
+func NewServer(address string) (*Server, error) {
+	ln, err := net.ListenPacket("udp", address)
 	if err != nil {
 		return nil, err
 	}

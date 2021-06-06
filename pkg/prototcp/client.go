@@ -16,5 +16,5 @@ func NewClient(address string) (*Conn, error) {
 		return nil, err
 	}
 
-	return NewConn(nconn.(*net.TCPConn)), nil
+	return newConn(nconn), nil
 }

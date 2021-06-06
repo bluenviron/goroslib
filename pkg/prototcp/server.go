@@ -3,7 +3,6 @@ package prototcp
 import (
 	"net"
 	"net/url"
-	"strconv"
 )
 
 // ServerURL returns the url of a PROTOTCP server.
@@ -24,8 +23,8 @@ type Server struct {
 }
 
 // NewServer allocates a Server.
-func NewServer(port int) (*Server, error) {
-	ln, err := net.Listen("tcp", ":"+strconv.FormatInt(int64(port), 10))
+func NewServer(address string) (*Server, error) {
+	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}
@@ -52,5 +51,5 @@ func (s *Server) Accept() (*Conn, error) {
 		return nil, err
 	}
 
-	return NewConn(nconn.(*net.TCPConn)), err
+	return newConn(nconn), err
 }

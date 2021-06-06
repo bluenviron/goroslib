@@ -9,7 +9,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	s, err := xmlrpc.NewServer("localhost:9999")
+	s, err := xmlrpc.NewServer("localhost:9905")
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -30,7 +30,7 @@ func TestClient(t *testing.T) {
 		return xmlrpc.ErrorRes{}
 	})
 
-	c := NewClient("localhost:9999", "test")
+	c := NewClient("localhost:9905", "test")
 
 	func() {
 		res, err := c.GetPid()
