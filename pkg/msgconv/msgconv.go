@@ -192,7 +192,7 @@ func parseDefinition(goPkgName string, res *MessageDefinition, typ string, name 
 func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content string) (*MessageDefinition, error) {
 	res := &MessageDefinition{
 		RosPkgName: rosPkgName,
-		Name:       name,
+		Name:       strings.Title(name),
 	}
 
 	for _, line := range strings.Split(content, "\n") {

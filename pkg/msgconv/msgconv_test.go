@@ -30,7 +30,7 @@ func TestMessageDefinition(t *testing.T) {
 				"duration n\n" +
 				"byte o\n" +
 				"char p\n",
-			"\n\ntype msgname struct {\n" +
+			"\n\ntype Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
 				"    A bool\n" +
 				"    B int8\n" +
@@ -53,7 +53,7 @@ func TestMessageDefinition(t *testing.T) {
 		{
 			"array",
 			"float32[8]  controls\n",
-			"\n\ntype msgname struct {\n" +
+			"\n\ntype Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
 				"    Controls [8]float32\n" +
 				"}\n",
@@ -66,12 +66,12 @@ func TestMessageDefinition(t *testing.T) {
 				"\n" +
 				"int32 var\n",
 			"\n\nconst (\n" +
-				"    msgname_VAL1 int32 = 3\n" +
-				"    msgname_VAL2 int32 = 4\n" +
-				"    msgname_VAL3 int32 = 5\n" +
+				"    Msgname_VAL1 int32 = 3\n" +
+				"    Msgname_VAL2 int32 = 4\n" +
+				"    Msgname_VAL3 int32 = 5\n" +
 				")\n" +
 				"\n" +
-				"type msgname struct {\n" +
+				"type Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
 				"    msg.Definitions `ros:\"int32 VAL1=3,int32 VAL2=4,int32 VAL3=5\"`\n" +
 				"    Var int32\n" +
@@ -83,10 +83,10 @@ func TestMessageDefinition(t *testing.T) {
 				"\n" +
 				"string source\n",
 			"\n\nconst (\n" +
-				"    msgname_CONSTANT1 string = \"CONSTANT_VALUE_1\"\n" +
+				"    Msgname_CONSTANT1 string = \"CONSTANT_VALUE_1\"\n" +
 				")\n" +
 				"\n" +
-				"type msgname struct {\n" +
+				"type Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
 				"    msg.Definitions `ros:\"string CONSTANT1=CONSTANT_VALUE_1\"`\n" +
 				"    Source string\n" +
@@ -99,10 +99,10 @@ func TestMessageDefinition(t *testing.T) {
 				"\n" +
 				"string source\n",
 			"\n\nconst (\n" +
-				"    msgname_CONSTANT1 string = \"\\\"CONSTANT_VALUE_1\\\"\"\n" +
+				"    Msgname_CONSTANT1 string = \"\\\"CONSTANT_VALUE_1\\\"\"\n" +
 				")\n" +
 				"\n" +
-				"type msgname struct {\n" +
+				"type Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
 				"    msg.Definitions `ros:\"string CONSTANT1=\\\"CONSTANT_VALUE_1\\\"\"`\n" +
 				"    Source string\n" +

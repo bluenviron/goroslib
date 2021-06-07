@@ -235,6 +235,14 @@ func run() error {
 			ur:     "https://github.com/ros-geographic-info/unique_identifier",
 			branch: "master",
 		},
+		{
+			ur:     "https://github.com/ros/geometry",
+			branch: "noetic-devel",
+		},
+		{
+			ur:     "https://github.com/ros/geometry2",
+			branch: "noetic-devel",
+		},
 	} {
 		count++
 		go func(ur string, branch string) {
