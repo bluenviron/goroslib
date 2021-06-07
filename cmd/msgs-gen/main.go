@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 var tplPackage = template.Must(template.New("").Parse(
@@ -126,7 +127,7 @@ func processDir(name string, dir string) error {
 	return nil
 }
 
-func processRepo(repo string) error {
+func processRepo(ur string, branch string) error {
 	dir, err := ioutil.TempDir("", "goroslib")
 	if err != nil {
 		return err
@@ -134,8 +135,9 @@ func processRepo(repo string) error {
 	defer os.RemoveAll(dir)
 
 	_, err = git.PlainClone(dir, false, &git.CloneOptions{
-		URL:   repo,
-		Depth: 1,
+		URL:           ur,
+		Depth:         1,
+		ReferenceName: plumbing.NewBranchReferenceName(branch),
 	})
 	if err != nil {
 		return err
@@ -160,7 +162,7 @@ func processRepo(repo string) error {
 		return err
 	}
 
-	u, _ := url.Parse(repo)
+	u, _ := url.Parse(ur)
 
 	for path := range paths {
 		err := processDir(filepath.Base(filepath.Join(u.Path, path[len(dir):])), path)
@@ -181,24 +183,63 @@ func run() error {
 	done := make(chan error)
 	count := 0
 
-	for _, repo := range []string{
-		"https://github.com/ros/std_msgs",
-		"https://github.com/ros/ros_comm_msgs",
-		"https://github.com/ros/common_msgs",
-		"https://github.com/ros-drivers/ackermann_msgs",
-		"https://github.com/ros-drivers/audio_common",
-		"https://github.com/ros-drivers/velodyne",
-		"https://github.com/ros-controls/control_msgs",
-		"https://github.com/ros-perception/vision_msgs",
-		"https://github.com/ros/actionlib",
-		"https://github.com/mavlink/mavros",
-		"https://github.com/ros-geographic-info/geographic_info",
-		"https://github.com/ros-geographic-info/unique_identifier",
+	for _, entry := range []struct {
+		ur     string
+		branch string
+	}{
+		{
+			ur:     "https://github.com/ros/std_msgs",
+			branch: "kinetic-devel",
+		},
+		{
+			ur:     "https://github.com/ros/ros_comm_msgs",
+			branch: "kinetic-devel",
+		},
+		{
+			ur:     "https://github.com/ros/common_msgs",
+			branch: "noetic-devel",
+		},
+		{
+			ur:     "https://github.com/ros-drivers/ackermann_msgs",
+			branch: "master",
+		},
+		{
+			ur:     "https://github.com/ros-drivers/audio_common",
+			branch: "master",
+		},
+		{
+			ur:     "https://github.com/ros-drivers/velodyne",
+			branch: "master",
+		},
+		{
+			ur:     "https://github.com/ros-controls/control_msgs",
+			branch: "kinetic-devel",
+		},
+		{
+			ur:     "https://github.com/ros-perception/vision_msgs",
+			branch: "noetic-devel",
+		},
+		{
+			ur:     "https://github.com/ros/actionlib",
+			branch: "noetic-devel",
+		},
+		{
+			ur:     "https://github.com/mavlink/mavros",
+			branch: "master",
+		},
+		{
+			ur:     "https://github.com/ros-geographic-info/geographic_info",
+			branch: "master",
+		},
+		{
+			ur:     "https://github.com/ros-geographic-info/unique_identifier",
+			branch: "master",
+		},
 	} {
 		count++
-		go func(repo string) {
-			done <- processRepo(repo)
-		}(repo)
+		go func(ur string, branch string) {
+			done <- processRepo(ur, branch)
+		}(entry.ur, entry.branch)
 	}
 
 	for i := 0; i < count; i++ {

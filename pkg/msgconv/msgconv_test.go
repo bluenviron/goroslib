@@ -21,7 +21,7 @@ func TestMessageDefinition(t *testing.T) {
 				"uint16 e\n" +
 				"int32   f\n" +
 				"uint32 g\n" +
-				"int64 h\n" +
+				"int64\th\n" +
 				"uint64   i\n" +
 				"float32 j\n" +
 				"float64 k\n" +
@@ -51,25 +51,35 @@ func TestMessageDefinition(t *testing.T) {
 				"}\n",
 		},
 		{
+			"array",
+			"float32[8]  controls\n",
+			"\n\ntype msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    Controls [8]float32\n" +
+				"}\n",
+		},
+		{
 			"definitions with spaces",
 			"int32 VAL1=  3\n" +
-				"int32 VAL2   = 4\n" +
+				"int32 VAL2   =\t4\n" +
+				"int32 VAL3   =5\n" +
 				"\n" +
 				"int32 var\n",
 			"\n\nconst (\n" +
 				"    msgname_VAL1 int32 = 3\n" +
 				"    msgname_VAL2 int32 = 4\n" +
+				"    msgname_VAL3 int32 = 5\n" +
 				")\n" +
 				"\n" +
 				"type msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
-				"    msg.Definitions `ros:\"int32 VAL1=3,int32 VAL2=4\"`\n" +
+				"    msg.Definitions `ros:\"int32 VAL1=3,int32 VAL2=4,int32 VAL3=5\"`\n" +
 				"    Var int32\n" +
 				"}\n",
 		},
 		{
 			"string definition",
-			"string CONSTANT1=  CONSTANT_VALUE_1\n" +
+			"string CONSTANT1=CONSTANT_VALUE_1\n" +
 				"\n" +
 				"string source\n",
 			"\n\nconst (\n" +
