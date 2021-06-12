@@ -118,7 +118,7 @@ This library provides most of the standard messages, services and actions in the
 |std_srvs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/std_srvs)|[link](https://github.com/ros/ros_comm_msgs)|
 |stereo_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/stereo_msgs)|[link](https://github.com/ros/common_msgs)|
 |tf|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/tf)|[link](https://github.com/ros/geometry)|
-|tf2_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/tf_msgs2)|[link](https://github.com/ros/geometry2)|
+|tf2_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/tf2_msgs)|[link](https://github.com/ros/geometry2)|
 |trajectory_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/trajectory_msgs)|[link](https://github.com/ros/common_msgs)|
 |uuid_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/uuid_msgs)|[link](https://github.com/ros-geographic-info/unique_identifier)|
 |velodyne_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
