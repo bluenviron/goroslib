@@ -2,7 +2,6 @@ package prototcp
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"net"
 
@@ -53,24 +52,20 @@ func (c *Conn) WriteHeader(header protocommon.Header) error {
 }
 
 // ReadServiceResState reads the response of a service state request.
-func (c *Conn) ReadServiceResState() error {
+func (c *Conn) ReadServiceResState() (uint8, error) {
 	byt := make([]byte, 1)
 	_, err := io.ReadFull(c.readBuf, byt)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	if byt[0] != 1 {
-		return fmt.Errorf("service returned an error")
-	}
-
-	return nil
+	return byt[0], nil
 }
 
 // WriteServiceResState writes the response of a service state request.
-func (c *Conn) WriteServiceResState() error {
+func (c *Conn) WriteServiceResState(v uint8) error {
+	_, err := c.writeBuf.Write([]byte{v})
 	// do not flush, since WriteServiceResState() is always called before a WriteMessage()
-	_, err := c.writeBuf.Write([]byte{1})
 	return err
 }
 

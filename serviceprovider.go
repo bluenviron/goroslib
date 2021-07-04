@@ -197,7 +197,7 @@ outer:
 				continue
 			}
 
-			err := client.conn.WriteServiceResState()
+			err := client.conn.WriteServiceResState(1)
 			if err != nil {
 				continue
 			}
