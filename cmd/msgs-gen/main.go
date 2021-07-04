@@ -20,18 +20,6 @@ var tplPackage = template.Must(template.New("").Parse(
 package {{ .PkgName }}
 `))
 
-var tplTest = template.Must(template.New("").Parse(
-	`//nolint:golint
-package {{ .PkgName }}
-
-import (
-	"testing"
-)
-
-func TestCompileOk(t *testing.T) {
-}
-`))
-
 func shellCommand(cmdstr string) error {
 	fmt.Fprintf(os.Stderr, "%s\n", cmdstr)
 	cmd := exec.Command("sh", "-c", cmdstr)
@@ -40,37 +28,27 @@ func shellCommand(cmdstr string) error {
 	return cmd.Run()
 }
 
+func writeTemplate(fpath string, tpl *template.Template, args map[string]interface{}) error {
+	f, err := os.Create(fpath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return tpl.Execute(f, args)
+}
+
 func processDir(name string, dir string) error {
 	fmt.Fprintf(os.Stderr, "[%s]\n", name)
 
 	os.Mkdir(filepath.Join("pkg", "msgs", name), 0o755)
 
-	err := func() error {
-		f, err := os.Create(filepath.Join("pkg", "msgs", name, "package.go"))
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		return tplPackage.Execute(f, map[string]interface{}{
+	err := writeTemplate(
+		filepath.Join("pkg", "msgs", name, "package.go"),
+		tplPackage,
+		map[string]interface{}{
 			"PkgName": name,
 		})
-	}()
-	if err != nil {
-		return err
-	}
-
-	err = func() error {
-		f, err := os.Create(filepath.Join("pkg", "msgs", name, "package_test.go"))
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		return tplTest.Execute(f, map[string]interface{}{
-			"PkgName": name,
-		})
-	}()
 	if err != nil {
 		return err
 	}
