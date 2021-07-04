@@ -262,8 +262,8 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 
 // Write converts a message definition into a Go structure.
 func (res *MessageDefinition) Write() (string, error) {
-	buf := bytes.NewBuffer(nil)
-	err := tpl.Execute(buf, res)
+	var buf bytes.Buffer
+	err := tpl.Execute(&buf, res)
 	if err != nil {
 		return "", err
 	}

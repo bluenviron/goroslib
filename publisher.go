@@ -295,8 +295,8 @@ outer:
 							p.id,
 							1500,
 							func() []byte {
-								buf := bytes.NewBuffer(nil)
-								protocommon.HeaderEncode(buf, &protoudp.HeaderPublisher{
+								var buf bytes.Buffer
+								protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
 									Callerid: p.conf.Node.absoluteName(),
 									Md5sum:   p.msgMd5,
 									Topic:    p.conf.Node.absoluteTopicName(p.conf.Topic),

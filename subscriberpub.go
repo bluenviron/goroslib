@@ -100,8 +100,8 @@ func (sp *subscriberPublisher) runInner() error {
 			return [][]interface{}{{
 				"UDPROS",
 				func() []byte {
-					buf := bytes.NewBuffer(nil)
-					protocommon.HeaderEncode(buf, &protoudp.HeaderSubscriber{
+					var buf bytes.Buffer
+					protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
 						Callerid: sp.sub.conf.Node.absoluteName(),
 						Md5sum:   sp.sub.msgMd5,
 						Topic:    sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
