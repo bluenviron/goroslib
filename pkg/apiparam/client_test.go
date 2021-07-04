@@ -107,3 +107,57 @@ func TestClient(t *testing.T) {
 		require.NoError(t, err)
 	}()
 }
+
+func TestClientError(t *testing.T) {
+	c := NewClient("localhost:9998", "test")
+
+	func() {
+		err := c.DeleteParam("mykey")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetParamNames()
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetParamBool("mykey1")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetParamInt("mykey2")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetParamString("mykey3")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.HasParam("mykey")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.SearchParam("mykey")
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.SetParamBool("mykey", true)
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.SetParamInt("mykey", 123)
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.SetParamString("mykey", "myval")
+		require.Error(t, err)
+	}()
+}

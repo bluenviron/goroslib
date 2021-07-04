@@ -127,3 +127,67 @@ func TestClient(t *testing.T) {
 		require.NoError(t, err)
 	}()
 }
+
+func TestClientError(t *testing.T) {
+	c := NewClient("localhost:9997", "test")
+
+	func() {
+		_, err := c.GetPublishedTopics("mysubgraph")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetSystemState()
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetTopicTypes()
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetURI()
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.LookupNode("mynode")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.LookupService("myservice")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.RegisterSubscriber("mytopic", "mytype", "myurl")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.RegisterPublisher("mytopic", "mytype", "myurl")
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.UnregisterSubscriber("mytopic", "myurl")
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.UnregisterPublisher("mytopic", "myurl")
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.RegisterService("myservice", "serviceurl", "myurl")
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.UnregisterService("myservice", "serviceurl")
+		require.Error(t, err)
+	}()
+}

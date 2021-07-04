@@ -55,3 +55,27 @@ func TestClient(t *testing.T) {
 		require.Equal(t, [][]interface{}(nil), res)
 	}()
 }
+
+func TestClientError(t *testing.T) {
+	c := NewClient("localhost:9905", "test")
+
+	func() {
+		_, err := c.GetPid()
+		require.Error(t, err)
+	}()
+
+	func() {
+		err := c.Shutdown("myreason")
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
+		require.Error(t, err)
+	}()
+
+	func() {
+		_, err := c.GetBusInfo()
+		require.Error(t, err)
+	}()
+}
