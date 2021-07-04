@@ -213,7 +213,18 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 			return
 		}
 
-		err = conn.ReadHeader(&outHeader)
+		var raw protocommon.HeaderRaw
+		raw, err = conn.ReadHeaderRaw()
+		if err != nil {
+			return
+		}
+
+		if strErr, ok := raw["error"]; ok {
+			err = fmt.Errorf(strErr)
+			return
+		}
+
+		err = protocommon.HeaderDecode(raw, &outHeader)
 	}()
 
 	select {

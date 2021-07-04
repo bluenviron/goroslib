@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/aler9/goroslib/pkg/protocommon"
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/serviceproc"
 )
@@ -165,8 +166,19 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
+	raw, err := conn.ReadHeaderRaw()
+	if err != nil {
+		conn.Close()
+		return err
+	}
+
+	if strErr, ok := raw["error"]; ok {
+		conn.Close()
+		return fmt.Errorf(strErr)
+	}
+
 	var outHeader prototcp.HeaderServiceProvider
-	err = conn.ReadHeader(&outHeader)
+	err = protocommon.HeaderDecode(raw, &outHeader)
 	if err != nil {
 		conn.Close()
 		return err

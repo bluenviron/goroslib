@@ -43,20 +43,6 @@ func (c *Conn) ReadHeaderRaw() (protocommon.HeaderRaw, error) {
 	return protocommon.HeaderRawDecode(c.readBuf)
 }
 
-// ReadHeader reads an Header.
-func (c *Conn) ReadHeader(header protocommon.Header) error {
-	raw, err := protocommon.HeaderRawDecode(c.readBuf)
-	if err != nil {
-		return err
-	}
-
-	if strErr, ok := raw["error"]; ok {
-		return fmt.Errorf(strErr)
-	}
-
-	return protocommon.HeaderDecode(raw, header)
-}
-
 // WriteHeader writes an header.
 func (c *Conn) WriteHeader(header protocommon.Header) error {
 	err := protocommon.HeaderEncode(c.writeBuf, header)

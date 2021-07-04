@@ -67,8 +67,9 @@ func (ps *publisherSubscriber) runTCP() {
 	go func() {
 		defer close(readerDone)
 
+		buf := make([]byte, 64)
 		for {
-			_, err := ps.tcpClient.ReadHeaderRaw()
+			_, err := ps.tcpClient.NetConn().Read(buf)
 			if err != nil {
 				return
 			}
