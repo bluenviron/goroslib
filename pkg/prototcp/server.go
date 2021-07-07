@@ -5,7 +5,7 @@ import (
 	"net/url"
 )
 
-// ServerURL returns the url of a PROTOTCP server.
+// ServerURL returns the URL of a PROTOTCP server.
 func ServerURL(address *net.TCPAddr, port int) string {
 	return (&url.URL{
 		Scheme: "rosrpc",

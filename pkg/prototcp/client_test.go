@@ -27,3 +27,8 @@ func TestClient(t *testing.T) {
 	require.NoError(t, err)
 	defer c.Close()
 }
+
+func TestClientError(t *testing.T) {
+	_, err := NewClient("localhost:9900")
+	require.Error(t, err)
+}

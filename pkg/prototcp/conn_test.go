@@ -103,3 +103,62 @@ func TestConn(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, struct{}{}, msg)
 }
+
+func TestConnErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+	}{
+		{
+			"write_header",
+		},
+		{
+			"read_service_res_state",
+		},
+		{
+			"write_message",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			l, err := net.Listen("tcp", "localhost:9907")
+			require.NoError(t, err)
+			defer l.Close()
+
+			serverDone := make(chan struct{})
+			defer func() { <-serverDone }()
+
+			go func() {
+				defer close(serverDone)
+
+				conn, err := l.Accept()
+				require.NoError(t, err)
+				conn.Close()
+			}()
+
+			conn, err := net.Dial("tcp", "localhost:9907")
+			require.NoError(t, err)
+
+			tconn := newConn(conn)
+			tconn.Close()
+
+			switch ca.name {
+			case "write_header":
+				err := tconn.WriteHeader(&HeaderPublisher{
+					Topic:    "mytopic",
+					Type:     "mytype",
+					Md5sum:   "mysum",
+					Callerid: "mycallerid",
+					Latching: 0,
+				})
+				require.Error(t, err)
+
+			case "read_service_res_state":
+				_, err = tconn.ReadServiceResState()
+				require.Error(t, err)
+
+			case "write_message":
+				err := tconn.WriteMessage(&struct{}{})
+				require.Error(t, err)
+			}
+		})
+	}
+}

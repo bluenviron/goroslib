@@ -8,22 +8,37 @@ import (
 )
 
 func TestServer(t *testing.T) {
+	serverDone := make(chan struct{})
+	defer func() { <-serverDone }()
+
 	s, err := NewServer("localhost:9901")
 	require.NoError(t, err)
 	defer s.Close()
 
-	serverDone := make(chan struct{})
-	defer func() { <-serverDone }()
+	require.NotEqual(t, 0, s.Port())
 
 	go func() {
 		defer close(serverDone)
 
-		conn, err := s.Accept()
-		require.NoError(t, err)
-		defer conn.Close()
+		for {
+			conn, err := s.Accept()
+			if err != nil {
+				return
+			}
+			conn.Close()
+		}
 	}()
 
 	conn, err := net.Dial("tcp", "localhost:9901")
 	require.NoError(t, err)
 	defer conn.Close()
+}
+
+func TestServerError(t *testing.T) {
+	s1, err := NewServer("localhost:9901")
+	require.NoError(t, err)
+	defer s1.Close()
+
+	_, err = NewServer("localhost:9901")
+	require.Error(t, err)
 }
