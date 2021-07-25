@@ -23,7 +23,7 @@ func requestDecodeRaw(r io.Reader) (*RequestRaw, error) {
 		dec: xml.NewDecoder(r),
 	}
 
-	err := xmlGetProcInst(raw.dec)
+	err := xmlGetProcessingInstruction(raw.dec)
 	if err != nil {
 		return nil, err
 	}
@@ -45,18 +45,13 @@ func requestDecodeRaw(r io.Reader) (*RequestRaw, error) {
 
 	cnt, ok := tok.(xml.CharData)
 	if !ok {
-		return nil, fmt.Errorf("expected CharData, got %T", tok)
+		return nil, fmt.Errorf("expected xml.CharData, got %T", tok)
 	}
 	raw.Method = string(cnt)
 
-	tok, err = raw.dec.Token()
+	err = xmlGetEndElement(raw.dec, false)
 	if err != nil {
 		return nil, err
-	}
-
-	_, ok = tok.(xml.EndElement)
-	if !ok {
-		return nil, fmt.Errorf("expected EndElement, got %T", tok)
 	}
 
 	return raw, nil
@@ -89,7 +84,7 @@ func requestDecode(raw *RequestRaw, req interface{}) error {
 			return err
 		}
 
-		err = xmlGetEndElement(raw.dec, "param")
+		err = xmlGetEndElement(raw.dec, true)
 		if err != nil {
 			return err
 		}

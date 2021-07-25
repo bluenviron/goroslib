@@ -9,7 +9,7 @@ import (
 func responseDecode(r io.Reader, req interface{}) error {
 	dec := xml.NewDecoder(r)
 
-	err := xmlGetProcInst(dec)
+	err := xmlGetProcessingInstruction(dec)
 	if err != nil {
 		return err
 	}

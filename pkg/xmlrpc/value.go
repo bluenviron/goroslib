@@ -134,7 +134,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 			}
 		}
 
-		err = xmlGetEndElement(dec, "data")
+		err = xmlGetEndElement(dec, true)
 		if err != nil {
 			return err
 		}
@@ -165,7 +165,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 		return fmt.Errorf("cannot decode an array into a %s", val.Elem().Kind())
 	}
 
-	return xmlGetEndElement(dec, "array")
+	return xmlGetEndElement(dec, true)
 }
 
 func valueDecode(dec *xml.Decoder, val reflect.Value) error {
@@ -243,7 +243,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 			return fmt.Errorf("unhandled value type: %s", ttok.Name.Local)
 		}
 
-		err = xmlGetEndElement(dec, "value")
+		err = xmlGetEndElement(dec, true)
 		if err != nil {
 			return err
 		}
@@ -255,7 +255,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 			return err
 		}
 
-		err = xmlGetEndElement(dec, "value")
+		err = xmlGetEndElement(dec, true)
 		if err != nil {
 			return err
 		}

@@ -8,7 +8,21 @@ import (
 
 var errEndElement = fmt.Errorf("unexpected EndElement")
 
-func xmlGetEndElement(dec *xml.Decoder, name string) error {
+func xmlGetProcessingInstruction(dec *xml.Decoder) error {
+	tok, err := dec.Token()
+	if err != nil {
+		return err
+	}
+
+	_, ok := tok.(xml.ProcInst)
+	if !ok {
+		return fmt.Errorf("expected xml.ProcInst, got %T", tok)
+	}
+
+	return nil
+}
+
+func xmlGetStartElement(dec *xml.Decoder, name string) error {
 	for {
 		tok, err := dec.Token()
 		if err != nil {
@@ -19,14 +33,45 @@ func xmlGetEndElement(dec *xml.Decoder, name string) error {
 		// skip spaces, newlines, etc
 		case xml.CharData:
 
-		case xml.EndElement:
+		case xml.StartElement:
 			if ttok.Name.Local != name {
-				return fmt.Errorf("expected EndElement with name '%s', got '%s'", name, ttok.Name.Local)
+				return fmt.Errorf("expected xml.StartElement with name '%s', got '%s'", name, ttok.Name.Local)
 			}
 			return nil
 
+		case xml.EndElement:
+			return errEndElement
+
 		default:
-			return fmt.Errorf("unexpected element type: %T", tok)
+			return fmt.Errorf("unexpected element: %T", tok)
+		}
+	}
+}
+
+func xmlGetEndElement(dec *xml.Decoder, allowSpaces bool) error {
+	for {
+		tok, err := dec.Token()
+		if err != nil {
+			return err
+		}
+
+		if !allowSpaces {
+			_, ok := tok.(xml.EndElement)
+			if !ok {
+				return fmt.Errorf("expected xml.EndElement, got %T", tok)
+			}
+			return nil
+		}
+
+		switch tok.(type) {
+		// skip spaces, newlines, etc
+		case xml.CharData:
+
+		case xml.EndElement:
+			return nil
+
+		default:
+			return fmt.Errorf("unexpected element: %T", tok)
 		}
 	}
 }
@@ -55,7 +100,7 @@ func xmlGetContent(dec *xml.Decoder) ([]byte, error) {
 		return nil, nil
 
 	default:
-		return nil, fmt.Errorf("unexpected element type: %T", tok)
+		return nil, fmt.Errorf("unexpected element: %T", tok)
 	}
 }
 
@@ -76,47 +121,7 @@ func xmlConsumeUntilEOF(dec *xml.Decoder) error {
 		case xml.EndElement:
 
 		default:
-			return fmt.Errorf("unexpected element type: %T", tok)
+			return fmt.Errorf("unexpected element: %T", tok)
 		}
 	}
-}
-
-func xmlGetStartElement(dec *xml.Decoder, name string) error {
-	for {
-		tok, err := dec.Token()
-		if err != nil {
-			return err
-		}
-
-		switch ttok := tok.(type) {
-		// skip spaces, newlines, etc
-		case xml.CharData:
-
-		case xml.StartElement:
-			if ttok.Name.Local != name {
-				return fmt.Errorf("expected StartElement with name '%s', got '%s'", name, ttok.Name.Local)
-			}
-			return nil
-
-		case xml.EndElement:
-			return errEndElement
-
-		default:
-			return fmt.Errorf("unexpected element type: %T", tok)
-		}
-	}
-}
-
-func xmlGetProcInst(dec *xml.Decoder) error {
-	tok, err := dec.Token()
-	if err != nil {
-		return err
-	}
-
-	_, ok := tok.(xml.ProcInst)
-	if !ok {
-		return fmt.Errorf("expected ProcInst, got %T", tok)
-	}
-
-	return nil
 }

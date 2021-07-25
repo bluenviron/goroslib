@@ -87,3 +87,47 @@ func TestRequestEncode(t *testing.T) {
 		})
 	}
 }
+
+func TestRequestDecodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		enc  []byte
+		err  string
+	}{
+		{
+			"empty",
+			[]byte(""),
+			"EOF",
+		},
+		{
+			"missing processing instruction",
+			[]byte(`<othertag>`),
+			"expected xml.ProcInst, got xml.StartElement",
+		},
+		{
+			"missing method call",
+			[]byte(`<?xml version="1.0"?><othertag>`),
+			"expected xml.StartElement with name 'methodCall', got 'othertag'",
+		},
+		{
+			"missing method name",
+			[]byte(`<?xml version="1.0"?><methodCall><othertag>`),
+			"expected xml.StartElement with name 'methodName', got 'othertag'",
+		},
+		{
+			"missing method name content",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName></methodName>`),
+			"expected xml.CharData, got xml.EndElement",
+		},
+		{
+			"missing method name closing tag",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>asd`),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := requestDecodeRaw(bytes.NewReader(ca.enc))
+			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}

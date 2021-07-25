@@ -82,3 +82,38 @@ func TestResponseEncode(t *testing.T) {
 		})
 	}
 }
+
+func TestResponseDecodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		enc  []byte
+		err  string
+	}{
+		{
+			"empty",
+			[]byte(""),
+			"EOF",
+		},
+		{
+			"missing processing instruction",
+			[]byte(`<othertag>`),
+			"expected xml.ProcInst, got xml.StartElement",
+		},
+		{
+			"missing method response",
+			[]byte(`<?xml version="1.0"?><othertag>`),
+			"expected xml.StartElement with name 'methodResponse', got 'othertag'",
+		},
+		{
+			"missing params",
+			[]byte(`<?xml version="1.0"?><methodResponse><othertag>`),
+			"expected xml.StartElement with name 'params', got 'othertag'",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			params := reflect.New(reflect.TypeOf(struct{}{}))
+			err := responseDecode(bytes.NewReader(ca.enc), params.Interface())
+			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}
