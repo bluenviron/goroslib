@@ -239,8 +239,11 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 		return err
 	}
 
-	if outHeader.Topic != sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic) {
-		return fmt.Errorf("wrong topic")
+	if outHeader.Topic != "" &&
+		outHeader.Topic != sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic) {
+		return fmt.Errorf("wrong topic (expected '%s', got '%s')",
+			sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+			outHeader.Topic)
 	}
 
 	if outHeader.Md5sum != sp.sub.msgMd5 {
