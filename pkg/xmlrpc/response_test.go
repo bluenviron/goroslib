@@ -109,6 +109,21 @@ func TestResponseDecodeErrors(t *testing.T) {
 			[]byte(`<?xml version="1.0"?><methodResponse><othertag>`),
 			"expected xml.StartElement with name 'params', got 'othertag'",
 		},
+		{
+			"missing param",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><othertag>`),
+			"expected xml.StartElement with name 'param', got 'othertag'",
+		},
+		{
+			"missing value",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param><othertag>`),
+			"expected xml.StartElement with name 'value', got 'othertag'",
+		},
+		{
+			"missing array",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><othertag>`),
+			"expected xml.StartElement with name 'array', got 'othertag'",
+		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			params := reflect.New(reflect.TypeOf(struct{}{}))

@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"net"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -101,40 +102,81 @@ func (c *container) waitOutput() string {
 }
 
 func TestNodeMasterOpen(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+	t.Run("normal", func(t *testing.T) {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
 
-	n, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib",
-		MasterAddress: m.IP() + ":11311",
+		n, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib1",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n.Close()
 	})
-	require.NoError(t, err)
-	defer n.Close()
+
+	t.Run("http", func(t *testing.T) {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib2",
+			MasterAddress: "http://" + m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n.Close()
+	})
+
+	t.Run("not running", func(t *testing.T) {
+		_, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib",
+			MasterAddress: "127.0.0.1:11311",
+		})
+		require.Error(t, err)
+	})
 }
 
-func TestNodeOpenMasterHttp(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
+func TestNodeNamespace(t *testing.T) {
+	t.Run("from environment", func(t *testing.T) {
+		os.Setenv("ROS_NAMESPACE", "/myns")
+		defer os.Unsetenv("ROS_NAMESPACE")
 
-	n, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib",
-		MasterAddress: "http://" + m.IP() + ":11311",
-	})
-	require.NoError(t, err)
-	defer n.Close()
-}
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
 
-func TestNodeMasterNo(t *testing.T) {
-	_, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib",
-		MasterAddress: "127.0.0.1:11311",
+		n, err := NewNode(NodeConf{
+			Name:          "goroslib1",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		require.Equal(t, "/myns", n.conf.Namespace)
 	})
-	require.Error(t, err)
+
+	t.Run("from environment and conf", func(t *testing.T) {
+		os.Setenv("ROS_NAMESPACE", "/myns1")
+		defer os.Unsetenv("ROS_NAMESPACE")
+
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Name:          "goroslib1",
+			Namespace:     "/myns2",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		require.Equal(t, "/myns2", n.conf.Namespace)
+	})
 }
 
 func TestNodeRosnodeInfo(t *testing.T) {
