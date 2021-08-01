@@ -107,6 +107,8 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, err
 	}
 
+	conf.Topic = conf.Node.applyCliRemapping(conf.Topic)
+
 	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
 
 	s := &Subscriber{

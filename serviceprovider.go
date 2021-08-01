@@ -82,6 +82,8 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, err
 	}
 
+	conf.Name = conf.Node.applyCliRemapping(conf.Name)
+
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")

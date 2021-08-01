@@ -410,6 +410,8 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		return nil, err
 	}
 
+	conf.Name = conf.Node.applyCliRemapping(conf.Name)
+
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	ac := &ActionClient{

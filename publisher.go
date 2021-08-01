@@ -84,6 +84,8 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, err
 	}
 
+	conf.Topic = conf.Node.applyCliRemapping(conf.Topic)
+
 	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
 
 	p := &Publisher{
