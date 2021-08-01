@@ -201,6 +201,8 @@ type NodeConf struct {
 	// (optional) a function that will be called for every log message.
 	// It defaults to nil.
 	OnLog func(LogLevel, string)
+
+	args []string
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers,
@@ -289,6 +291,10 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.LogDestinations = LogDestinationConsole | LogDestinationCallback | LogDestinationRosout
 	}
 
+	if conf.args == nil {
+		conf.args = os.Args
+	}
+
 	// support ROS-style master address, in order to increase interoperability
 	conf.MasterAddress = strings.TrimPrefix(conf.MasterAddress, "http://")
 
@@ -372,6 +378,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 		serviceProviderClose:   make(chan *ServiceProvider),
 		done:                   make(chan struct{}),
 	}
+
+	n.conf.Name = n.applyCliRemapping(n.conf.Name)
 
 	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName())
 
@@ -571,6 +579,18 @@ func (n *Node) absoluteName() string {
 		return "/" + n.conf.Name
 	}
 	return n.conf.Namespace + "/" + n.conf.Name
+}
+
+func (n *Node) applyCliRemapping(v string) string {
+	for _, cliArg := range n.conf.args {
+		remapArg := strings.Split(cliArg, ":=")
+		if len(remapArg) == 2 { // only match ros remapping args chatter:=/talker
+			if v == remapArg[0] {
+				return remapArg[1]
+			}
+		}
+	}
+	return v
 }
 
 func (n *Node) run() {

@@ -55,6 +55,8 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
+	conf.Name = conf.Node.applyCliRemapping(conf.Name)
+
 	sc := &ServiceClient{
 		conf:   conf,
 		srvReq: srvReq,

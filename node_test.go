@@ -223,6 +223,23 @@ func TestNodeNamespaceFromEnv(t *testing.T) {
 	})
 }
 
+func TestNodeCliRemapping(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.IP() + ":11311",
+		args:          []string{"goroslib:=replaced"},
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	require.Equal(t, "replaced", n.conf.Name)
+}
+
 func TestNodeLog(t *testing.T) {
 	t.Run("rosout", func(t *testing.T) {
 		m, err := newContainerMaster()

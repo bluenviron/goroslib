@@ -276,6 +276,8 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		return nil, err
 	}
 
+	conf.Name = conf.Node.applyCliRemapping(conf.Name)
+
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	as := &ActionServer{

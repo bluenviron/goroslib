@@ -26,7 +26,7 @@ https://wiki.ros.org/Implementing%20Client%20Libraries
 |implement the slave side of the master/slave API|:heavy_check_mark:|
 |handle node-to-node transport negotiation and connection setup|:heavy_check_mark:|
 |handle transport-specific serialization and deserialization of messages|:heavy_check_mark:|
-|parse command-line Remapping Arguments| |
+|parse command-line Remapping Arguments|:heavy_check_mark:|
 |Subscribe to a simulated Clock|:heavy_check_mark:|
 |publish debugging messages to rosout|:heavy_check_mark:|
 |object representation of message types|:heavy_check_mark:|
