@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func responseDecode(r io.Reader, req interface{}) error {
+func responseDecode(r io.Reader, dest interface{}) error {
 	dec := xml.NewDecoder(r)
 
 	err := xmlGetProcessingInstruction(dec)
@@ -45,7 +45,7 @@ func responseDecode(r io.Reader, req interface{}) error {
 	}
 
 	// read each value
-	rv := reflect.ValueOf(req).Elem()
+	rv := reflect.ValueOf(dest).Elem()
 	nf := rv.NumField()
 	for i := 0; i < nf; i++ {
 		field := rv.Field(i).Addr()

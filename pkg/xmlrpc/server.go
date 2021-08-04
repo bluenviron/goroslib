@@ -86,12 +86,12 @@ func (s *Server) run() {
 	hs := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
-				w.WriteHeader(http.StatusBadRequest)
+				w.WriteHeader(http.StatusNotFound)
 				return
 			}
 
-			if req.Method != "POST" {
-				w.WriteHeader(http.StatusBadRequest)
+			if req.Method != http.MethodPost {
+				w.WriteHeader(http.StatusNotFound)
 				return
 			}
 

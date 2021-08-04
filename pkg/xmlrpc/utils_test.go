@@ -60,7 +60,7 @@ func TestXMLGetStartElementErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<!-- comment -->`)))
 		err := xmlGetStartElement(dec, "mytag")
-		require.Equal(t, "unexpected element: xml.Comment", err.Error())
+		require.Equal(t, "unexpected element type: xml.Comment", err.Error())
 	}()
 
 	func() {
@@ -96,7 +96,7 @@ func TestXMLGetEndElementErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<tag>`)))
 		err := xmlGetEndElement(dec, true)
-		require.Equal(t, "unexpected element: xml.StartElement", err.Error())
+		require.Equal(t, "unexpected element type: xml.StartElement", err.Error())
 	}()
 
 	func() {
@@ -133,7 +133,7 @@ func TestXMLGetContentErrors(t *testing.T) {
 		err := xmlGetStartElement(dec, "mytag")
 		require.NoError(t, err)
 		_, err = xmlGetContent(dec)
-		require.Equal(t, "unexpected element: xml.StartElement", err.Error())
+		require.Equal(t, "unexpected element type: xml.StartElement", err.Error())
 	}()
 
 	func() {
@@ -159,7 +159,7 @@ func TestXMLConsumeUntilEOFErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<mytag>`)))
 		err := xmlConsumeUntilEOF(dec)
-		require.Equal(t, "unexpected element: xml.StartElement", err.Error())
+		require.Equal(t, "unexpected element type: xml.StartElement", err.Error())
 	}()
 
 	func() {

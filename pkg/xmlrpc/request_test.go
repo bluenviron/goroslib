@@ -115,7 +115,12 @@ func TestRequestDecodeErrors(t *testing.T) {
 			"expected xml.StartElement with name 'methodName', got 'othertag'",
 		},
 		{
-			"missing method name content",
+			"missing method name content 1",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>`),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"missing method name content 2",
 			[]byte(`<?xml version="1.0"?><methodCall><methodName></methodName>`),
 			"expected xml.CharData, got xml.EndElement",
 		},
@@ -127,6 +132,60 @@ func TestRequestDecodeErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			_, err := requestDecodeRaw(bytes.NewReader(ca.enc))
+			require.Equal(t, ca.err, err.Error())
+		})
+	}
+
+	for _, ca := range []struct {
+		name string
+		enc  []byte
+		dest interface{}
+		err  string
+	}{
+		{
+			"missing params",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName>`),
+			nil,
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"missing param",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params>`),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"missing value",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param>`),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"invalid value",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param><value>`),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"not ended",
+			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param><value>aaa</value>`),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			raw, err := requestDecodeRaw(bytes.NewReader(ca.enc))
+			require.NoError(t, err)
+
+			err = requestDecode(raw, ca.dest)
 			require.Equal(t, ca.err, err.Error())
 		})
 	}

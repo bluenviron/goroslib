@@ -43,7 +43,7 @@ func xmlGetStartElement(dec *xml.Decoder, name string) error {
 			return errEndElement
 
 		default:
-			return fmt.Errorf("unexpected element: %T", tok)
+			return fmt.Errorf("unexpected element type: %T", tok)
 		}
 	}
 }
@@ -71,7 +71,7 @@ func xmlGetEndElement(dec *xml.Decoder, allowSpaces bool) error {
 			return nil
 
 		default:
-			return fmt.Errorf("unexpected element: %T", tok)
+			return fmt.Errorf("unexpected element type: %T", tok)
 		}
 	}
 }
@@ -100,7 +100,7 @@ func xmlGetContent(dec *xml.Decoder) ([]byte, error) {
 		return nil, nil
 
 	default:
-		return nil, fmt.Errorf("unexpected element: %T", tok)
+		return nil, fmt.Errorf("unexpected element type: %T", tok)
 	}
 }
 
@@ -121,7 +121,7 @@ func xmlConsumeUntilEOF(dec *xml.Decoder) error {
 		case xml.EndElement:
 
 		default:
-			return fmt.Errorf("unexpected element: %T", tok)
+			return fmt.Errorf("unexpected element type: %T", tok)
 		}
 	}
 }

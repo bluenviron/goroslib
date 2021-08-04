@@ -87,47 +87,76 @@ func TestResponseDecodeErrors(t *testing.T) {
 	for _, ca := range []struct {
 		name string
 		enc  []byte
+		dest interface{}
 		err  string
 	}{
 		{
 			"empty",
 			[]byte(""),
+			nil,
 			"EOF",
 		},
 		{
 			"missing processing instruction",
 			[]byte(`<othertag>`),
+			nil,
 			"expected xml.ProcInst, got xml.StartElement",
 		},
 		{
 			"missing method response",
-			[]byte(`<?xml version="1.0"?><othertag>`),
-			"expected xml.StartElement with name 'methodResponse', got 'othertag'",
+			[]byte(`<?xml version="1.0"?>`),
+			nil,
+			"EOF",
 		},
 		{
 			"missing params",
-			[]byte(`<?xml version="1.0"?><methodResponse><othertag>`),
-			"expected xml.StartElement with name 'params', got 'othertag'",
+			[]byte(`<?xml version="1.0"?><methodResponse>`),
+			nil,
+			"XML syntax error on line 1: unexpected EOF",
 		},
 		{
 			"missing param",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><othertag>`),
-			"expected xml.StartElement with name 'param', got 'othertag'",
+			[]byte(`<?xml version="1.0"?><methodResponse><params>`),
+			nil,
+			"XML syntax error on line 1: unexpected EOF",
 		},
 		{
 			"missing value",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param><othertag>`),
-			"expected xml.StartElement with name 'value', got 'othertag'",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param>`),
+			nil,
+			"XML syntax error on line 1: unexpected EOF",
 		},
 		{
 			"missing array",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><othertag>`),
-			"expected xml.StartElement with name 'array', got 'othertag'",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value>`),
+			nil,
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"missing data",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array>`),
+			nil,
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"missing value",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array><data>`),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"invalid value",
+			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array><data><value>asd`),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
-			params := reflect.New(reflect.TypeOf(struct{}{}))
-			err := responseDecode(bytes.NewReader(ca.enc), params.Interface())
+			err := responseDecode(bytes.NewReader(ca.enc), ca.dest)
 			require.Equal(t, ca.err, err.Error())
 		})
 	}

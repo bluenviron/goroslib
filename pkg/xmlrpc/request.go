@@ -57,14 +57,14 @@ func requestDecodeRaw(r io.Reader) (*RequestRaw, error) {
 	return raw, nil
 }
 
-func requestDecode(raw *RequestRaw, req interface{}) error {
+func requestDecode(raw *RequestRaw, dest interface{}) error {
 	err := xmlGetStartElement(raw.dec, "params")
 	if err != nil {
 		return err
 	}
 
 	// read each param
-	rv := reflect.ValueOf(req).Elem()
+	rv := reflect.ValueOf(dest).Elem()
 	nf := rv.NumField()
 	for i := 0; i < nf; i++ {
 		field := rv.Field(i).Addr()

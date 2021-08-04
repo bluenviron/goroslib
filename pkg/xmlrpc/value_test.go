@@ -84,18 +84,27 @@ var casesValue = []struct {
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
 			`<value><double>-1.324543</double></value>` +
+			`<value><base64>AQIDBA==</base64></value>` +
 			`</data></array></value>`),
 		[]byte(`<value><array><data>` +
 			`<value>test1</value>` +
 			`<value>test2</value>` +
 			`<value><i4>123</i4></value>` +
 			`<value><double>-1.324543</double></value>` +
+			`<value><base64>AQIDBA==</base64></value>` +
 			`</data></array></value>`),
-		Substruct{
+		struct {
+			Param1 string
+			Param2 string
+			Param3 int
+			Param4 float64
+			Param5 []byte
+		}{
 			"test1",
 			"test2",
 			123,
 			-1.324543,
+			[]byte{0x01, 0x02, 0x03, 0x04},
 		},
 	},
 	{
@@ -193,10 +202,22 @@ func TestValueDecodeErrors(t *testing.T) {
 		err  string
 	}{
 		{
+			"not pointer",
+			[]byte("<value>"),
+			nil,
+			"destination is not a pointer",
+		},
+		{
 			"no data",
 			[]byte("<value>"),
 			new(interface{}),
 			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"invalid element",
+			[]byte("<value><!-- comment -->"),
+			new(interface{}),
+			"unexpected element type: xml.Comment",
 		},
 		{
 			"invalid type",
@@ -218,9 +239,9 @@ func TestValueDecodeErrors(t *testing.T) {
 		},
 		{
 			"bool invalid",
-			[]byte("<value><boolean>test</boolean>"),
+			[]byte("<value><boolean>t</boolean>"),
 			new(interface{}),
-			"value is not a bool: 'test'",
+			"value is not a bool: 't'",
 		},
 		{
 			"bool wrong type",
@@ -286,8 +307,17 @@ func TestValueDecodeErrors(t *testing.T) {
 			"XML syntax error on line 1: element <value> closed by </otherval>",
 		},
 		{
-			"string wrong type",
+			"string wrong type 1",
 			[]byte("<value><string>asd</string>"),
+			func() interface{} {
+				v := 123
+				return &v
+			}(),
+			"cannot decode a string into a int",
+		},
+		{
+			"string wrong type 2",
+			[]byte("<value>asd</value>"),
 			func() interface{} {
 				v := 123
 				return &v
@@ -308,17 +338,23 @@ func TestValueDecodeErrors(t *testing.T) {
 		},
 		{
 			"base64 wrong type",
-			[]byte("<value><base64>999</base64>"),
+			[]byte("<value><base64>aGVsbG8=</base64>"),
 			func() interface{} {
 				v := "aaaa"
 				return &v
 			}(),
-			"illegal base64 data at input byte 0",
+			"cannot decode a base64 into a string",
 		},
 		{
-			"array not closed",
+			"array not closed 1",
 			[]byte("<value><array>"),
 			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"array not closed 2",
+			[]byte("<value><array><data></data>"),
+			&struct{}{},
 			"XML syntax error on line 1: unexpected EOF",
 		},
 		{
