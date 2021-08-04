@@ -11,7 +11,7 @@ import (
 
 func decodeBool(in []byte, val reflect.Value) error {
 	if len(in) != 1 {
-		return fmt.Errorf("value is not a bool: %v", in)
+		return fmt.Errorf("value is not a bool: '%v'", string(in))
 	}
 
 	var v bool
@@ -23,7 +23,7 @@ func decodeBool(in []byte, val reflect.Value) error {
 		v = false
 
 	default:
-		return fmt.Errorf("value is not a bool: %v", in)
+		return fmt.Errorf("value is not a bool: '%v'", string(in))
 	}
 
 	switch tval := val.Interface().(type) {
@@ -34,7 +34,7 @@ func decodeBool(in []byte, val reflect.Value) error {
 		*tval = v
 
 	default:
-		return fmt.Errorf("cannot decode a bool into a %T", val.Interface())
+		return fmt.Errorf("cannot decode a bool into a %T", val.Elem().Interface())
 	}
 	return nil
 }
@@ -54,7 +54,7 @@ func decodeInt(in []byte, val reflect.Value) error {
 		*tval = int(v)
 
 	default:
-		return fmt.Errorf("cannot decode a int into a %T", val.Interface())
+		return fmt.Errorf("cannot decode a int into a %T", val.Elem().Interface())
 	}
 	return nil
 }
@@ -73,7 +73,7 @@ func decodeDouble(in []byte, val reflect.Value) error {
 		*tval = v
 
 	default:
-		return fmt.Errorf("cannot decode a double into a %T", val.Interface())
+		return fmt.Errorf("cannot decode a double into a %T", val.Elem().Interface())
 	}
 	return nil
 }
@@ -87,7 +87,7 @@ func decodeString(in []byte, val reflect.Value) error {
 		*tval = string(in)
 
 	default:
-		return fmt.Errorf("cannot decode a string into a %T", val.Interface())
+		return fmt.Errorf("cannot decode a string into a %T", val.Elem().Interface())
 	}
 	return nil
 }
@@ -106,7 +106,7 @@ func decodeBase64(in []byte, val reflect.Value) error {
 		*tval = byts
 
 	default:
-		return fmt.Errorf("cannot decode a base64 into a %T", val.Interface())
+		return fmt.Errorf("cannot decode a base64 into a %T", val.Elem().Interface())
 	}
 	return nil
 }
@@ -162,13 +162,17 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 		}
 
 	default:
-		return fmt.Errorf("cannot decode an array into a %s", val.Elem().Kind())
+		return fmt.Errorf("cannot decode an array into a %T", val.Elem().Interface())
 	}
 
 	return xmlGetEndElement(dec, true)
 }
 
-func valueDecode(dec *xml.Decoder, val reflect.Value) error {
+func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
+	if dest.Kind() != reflect.Ptr {
+		return fmt.Errorf("destination is not a pointer")
+	}
+
 	tok, err := dec.Token()
 	if err != nil {
 		return err
@@ -184,7 +188,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			err = decodeBool(cnt, val)
+			err = decodeBool(cnt, dest)
 			if err != nil {
 				return err
 			}
@@ -195,7 +199,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			err = decodeInt(cnt, val)
+			err = decodeInt(cnt, dest)
 			if err != nil {
 				return err
 			}
@@ -206,7 +210,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			err = decodeDouble(cnt, val)
+			err = decodeDouble(cnt, dest)
 			if err != nil {
 				return err
 			}
@@ -217,7 +221,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			err = decodeString(cnt, val)
+			err = decodeString(cnt, dest)
 			if err != nil {
 				return err
 			}
@@ -228,19 +232,19 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 				return err
 			}
 
-			err = decodeBase64(cnt, val)
+			err = decodeBase64(cnt, dest)
 			if err != nil {
 				return err
 			}
 
 		case "array":
-			err = decodeArray(dec, val)
+			err = decodeArray(dec, dest)
 			if err != nil {
 				return err
 			}
 
 		default:
-			return fmt.Errorf("unhandled value type: %s", ttok.Name.Local)
+			return fmt.Errorf("unhandled value type: '%s'", ttok.Name.Local)
 		}
 
 		err = xmlGetEndElement(dec, true)
@@ -250,7 +254,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 
 	// content with no type (i.e. string)
 	case xml.CharData:
-		err := decodeString(ttok, val)
+		err := decodeString(ttok, dest)
 		if err != nil {
 			return err
 		}
@@ -262,7 +266,7 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 
 	// content with no type (i.e. string) and empty
 	case xml.EndElement:
-		err := decodeString([]byte{}, val)
+		err := decodeString([]byte{}, dest)
 		if err != nil {
 			return err
 		}
@@ -274,13 +278,13 @@ func valueDecode(dec *xml.Decoder, val reflect.Value) error {
 	return nil
 }
 
-func valueEncode(w io.Writer, val reflect.Value) error {
+func valueEncode(w io.Writer, src reflect.Value) error {
 	_, err := w.Write([]byte(`<value>`))
 	if err != nil {
 		return err
 	}
 
-	switch tval := val.Interface().(type) {
+	switch tval := src.Interface().(type) {
 	case bool:
 		v := "0"
 		if tval {
@@ -316,16 +320,16 @@ func valueEncode(w io.Writer, val reflect.Value) error {
 		}
 
 	default:
-		switch val.Kind() {
+		switch src.Kind() {
 		case reflect.Struct:
 			_, err := w.Write([]byte(`<array><data>`))
 			if err != nil {
 				return err
 			}
 
-			nf := val.NumField()
+			nf := src.NumField()
 			for i := 0; i < nf; i++ {
-				field := val.Field(i)
+				field := src.Field(i)
 
 				err := valueEncode(w, field)
 				if err != nil {
@@ -344,9 +348,9 @@ func valueEncode(w io.Writer, val reflect.Value) error {
 				return err
 			}
 
-			le := val.Len()
+			le := src.Len()
 			for i := 0; i < le; i++ {
-				el := val.Index(i)
+				el := src.Index(i)
 
 				err := valueEncode(w, el)
 				if err != nil {
@@ -360,7 +364,7 @@ func valueEncode(w io.Writer, val reflect.Value) error {
 			}
 
 		default:
-			return fmt.Errorf("unhandled value type: %s", val.Kind())
+			return fmt.Errorf("unhandled value type: %s", src.Kind())
 		}
 	}
 

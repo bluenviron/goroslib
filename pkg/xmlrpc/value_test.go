@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,10 +18,16 @@ var casesValue = []struct {
 	v    interface{}
 }{
 	{
-		"bool",
+		"bool true",
 		[]byte("<value><boolean>1</boolean></value>"),
 		[]byte("<value><boolean>1</boolean></value>"),
 		true,
+	},
+	{
+		"bool false",
+		[]byte("<value><boolean>0</boolean></value>"),
+		[]byte("<value><boolean>0</boolean></value>"),
+		false,
 	},
 	{
 		"int",
@@ -126,19 +133,43 @@ var casesValue = []struct {
 func TestValueDecode(t *testing.T) {
 	for _, ca := range casesValue {
 		t.Run(ca.name, func(t *testing.T) {
-			dec := xml.NewDecoder(bytes.NewReader(ca.bdec))
+			// decode to typed variable
+			func() {
+				dec := xml.NewDecoder(bytes.NewReader(ca.bdec))
 
-			err := xmlGetStartElement(dec, "value")
-			require.NoError(t, err)
+				err := xmlGetStartElement(dec, "value")
+				require.NoError(t, err)
 
-			v := reflect.New(reflect.TypeOf(ca.v))
-			err = valueDecode(dec, reflect.ValueOf(v.Interface()))
-			require.NoError(t, err)
+				v := reflect.New(reflect.TypeOf(ca.v))
+				err = valueDecode(dec, reflect.ValueOf(v.Interface()))
+				require.NoError(t, err)
 
-			require.Equal(t, ca.v, v.Elem().Interface())
-			_, err = dec.Token()
+				require.Equal(t, ca.v, v.Elem().Interface())
 
-			require.Equal(t, io.EOF, err)
+				_, err = dec.Token()
+				require.Equal(t, io.EOF, err)
+			}()
+
+			// decode to interface
+			func() {
+				if strings.HasPrefix(ca.name, "array") {
+					return
+				}
+
+				dec := xml.NewDecoder(bytes.NewReader(ca.bdec))
+
+				err := xmlGetStartElement(dec, "value")
+				require.NoError(t, err)
+
+				var v interface{}
+				err = valueDecode(dec, reflect.ValueOf(&v))
+				require.NoError(t, err)
+
+				require.Equal(t, ca.v, v)
+
+				_, err = dec.Token()
+				require.Equal(t, io.EOF, err)
+			}()
 		})
 	}
 }
@@ -150,6 +181,192 @@ func TestValueEncode(t *testing.T) {
 			err := valueEncode(&b, reflect.ValueOf(ca.v))
 			require.NoError(t, err)
 			require.Equal(t, ca.benc, b.Bytes())
+		})
+	}
+}
+
+func TestValueDecodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		enc  []byte
+		dest interface{}
+		err  string
+	}{
+		{
+			"no data",
+			[]byte("<value>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"invalid type",
+			[]byte("<value><invalid>"),
+			new(interface{}),
+			"unhandled value type: 'invalid'",
+		},
+		{
+			"bool not closed",
+			[]byte("<value><boolean>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"bool empty",
+			[]byte("<value><boolean></boolean>"),
+			new(interface{}),
+			"value is not a bool: ''",
+		},
+		{
+			"bool invalid",
+			[]byte("<value><boolean>test</boolean>"),
+			new(interface{}),
+			"value is not a bool: 'test'",
+		},
+		{
+			"bool wrong type",
+			[]byte("<value><boolean>1</boolean>"),
+			func() interface{} {
+				v := int(0)
+				return &v
+			}(),
+			"cannot decode a bool into a int",
+		},
+		{
+			"int not closed",
+			[]byte("<value><int>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"int invalid",
+			[]byte("<value><int>aaa</int>"),
+			new(interface{}),
+			"strconv.ParseInt: parsing \"aaa\": invalid syntax",
+		},
+		{
+			"int wrong type",
+			[]byte("<value><int>123</int>"),
+			func() interface{} {
+				v := "aaaa"
+				return &v
+			}(),
+			"cannot decode a int into a string",
+		},
+		{
+			"double not closed",
+			[]byte("<value><double>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"double invalid",
+			[]byte("<value><double>aaa</double>"),
+			new(interface{}),
+			"strconv.ParseFloat: parsing \"aaa\": invalid syntax",
+		},
+		{
+			"double wrong type",
+			[]byte("<value><double>123</double>"),
+			func() interface{} {
+				v := "aaaa"
+				return &v
+			}(),
+			"cannot decode a double into a string",
+		},
+		{
+			"string not closed",
+			[]byte("<value><string>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"string untyped not closed",
+			[]byte("<value>asd</otherval>"),
+			new(interface{}),
+			"XML syntax error on line 1: element <value> closed by </otherval>",
+		},
+		{
+			"string wrong type",
+			[]byte("<value><string>asd</string>"),
+			func() interface{} {
+				v := 123
+				return &v
+			}(),
+			"cannot decode a string into a int",
+		},
+		{
+			"base64 not closed",
+			[]byte("<value><base64>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"base64 invalid",
+			[]byte("<value><base64>999</base64>"),
+			new(interface{}),
+			"illegal base64 data at input byte 0",
+		},
+		{
+			"base64 wrong type",
+			[]byte("<value><base64>999</base64>"),
+			func() interface{} {
+				v := "aaaa"
+				return &v
+			}(),
+			"illegal base64 data at input byte 0",
+		},
+		{
+			"array not closed",
+			[]byte("<value><array>"),
+			new(interface{}),
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"array wrong type",
+			[]byte("<value><array><data>"),
+			func() interface{} {
+				v := "aaaa"
+				return &v
+			}(),
+			"cannot decode an array into a string",
+		},
+		{
+			"array no values to struct",
+			[]byte("<value><array><data>"),
+			&struct {
+				A string
+			}{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"array no values to array",
+			[]byte("<value><array><data>"),
+			&[]string{},
+			"XML syntax error on line 1: unexpected EOF",
+		},
+		{
+			"array invalid value to struct",
+			[]byte("<value><array><data><value><int>123</int>"),
+			&struct {
+				A string
+			}{},
+			"cannot decode a int into a string",
+		},
+		{
+			"array invalid value to array",
+			[]byte("<value><array><data><value><int>123</int>"),
+			&[]string{},
+			"cannot decode a int into a string",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			dec := xml.NewDecoder(bytes.NewReader(ca.enc))
+
+			err := xmlGetStartElement(dec, "value")
+			require.NoError(t, err)
+
+			err = valueDecode(dec, reflect.ValueOf(ca.dest))
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }
