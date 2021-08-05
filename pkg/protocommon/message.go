@@ -13,138 +13,166 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte) error {
-	switch cv := val.Interface().(type) {
+func readMessageByts(r io.Reader, buf []byte, mlen *int64) error {
+	lb := int64(len(buf))
+
+	if *mlen < lb {
+		return fmt.Errorf("message length is too short")
+	}
+
+	_, err := io.ReadFull(r, buf)
+	if err != nil {
+		return err
+	}
+
+	*mlen -= lb
+
+	return nil
+}
+
+func readMessageBytsDoNotCheck(r io.Reader, buf []byte, mlen *int64) error {
+	lb := int64(len(buf))
+
+	_, err := io.ReadFull(r, buf)
+	if err != nil {
+		return err
+	}
+
+	*mlen -= lb
+
+	return nil
+}
+
+func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte) error {
+	switch cv := dest.Interface().(type) {
 	case *bool:
-		_, err := io.ReadFull(r, buf[:1])
+		err := readMessageByts(r, buf[:1], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen--
-		b := bool(false)
+
+		b := false
 		if buf[0] == 0x01 {
 			b = true
 		}
 		*cv = b
 
 	case *int8:
-		_, err := io.ReadFull(r, buf[:1])
+		err := readMessageByts(r, buf[:1], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen--
+
 		*cv = int8(buf[0])
 
 	case *uint8:
-		_, err := io.ReadFull(r, buf[:1])
+		err := readMessageByts(r, buf[:1], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen--
+
 		*cv = buf[0]
 
 	case *int16:
-		_, err := io.ReadFull(r, buf[:2])
+		err := readMessageByts(r, buf[:2], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 2
+
 		*cv = int16(binary.LittleEndian.Uint16(buf))
 
 	case *uint16:
-		_, err := io.ReadFull(r, buf[:2])
+		err := readMessageByts(r, buf[:2], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 2
+
 		*cv = binary.LittleEndian.Uint16(buf)
 
 	case *int32:
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
+
 		*cv = int32(binary.LittleEndian.Uint32(buf))
 
 	case *uint32:
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
+
 		*cv = binary.LittleEndian.Uint32(buf)
 
 	case *int64:
-		_, err := io.ReadFull(r, buf[:8])
+		err := readMessageByts(r, buf[:8], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 8
+
 		*cv = int64(binary.LittleEndian.Uint64(buf))
 
 	case *uint64:
-		_, err := io.ReadFull(r, buf[:8])
+		err := readMessageByts(r, buf[:8], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 8
+
 		*cv = binary.LittleEndian.Uint64(buf)
 
 	case *float32:
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
+
 		*cv = math.Float32frombits(binary.LittleEndian.Uint32(buf))
 
 	case *float64:
-		_, err := io.ReadFull(r, buf[:8])
+		err := readMessageByts(r, buf[:8], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 8
+
 		*cv = math.Float64frombits(binary.LittleEndian.Uint64(buf))
 
 	case *string:
 		// string length
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
-		le := binary.LittleEndian.Uint32(buf)
+
+		le := int64(binary.LittleEndian.Uint32(buf))
 		if le > *mlen {
-			return fmt.Errorf("invalid message length")
+			return fmt.Errorf("invalid string length")
 		}
 
+		// string
 		if le > 0 {
-			// string
 			bstr := make([]byte, le)
-			_, err = io.ReadFull(r, bstr)
+			err := readMessageBytsDoNotCheck(r, bstr, mlen)
 			if err != nil {
 				return err
 			}
-			*mlen -= le
+
 			*cv = string(bstr)
 		} else {
 			*cv = ""
 		}
 
 	case *time.Time:
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
 		secs := int32(binary.LittleEndian.Uint32(buf))
 
-		_, err = io.ReadFull(r, buf[:4])
+		err = readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
 		nano := int32(binary.LittleEndian.Uint32(buf))
 
 		// special case: zero means year zero, not 1970
@@ -156,32 +184,30 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 		}
 
 	case *time.Duration:
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
 		secs := int32(binary.LittleEndian.Uint32(buf))
 
-		_, err = io.ReadFull(r, buf[:4])
+		err = readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
 		nano := int32(binary.LittleEndian.Uint32(buf))
 
 		*cv = (time.Second * time.Duration(secs)) + (time.Nanosecond * time.Duration(nano))
 
 	case *[]uint8: // special case for performance
 		// slice length
-		_, err := io.ReadFull(r, buf[:4])
+		err := readMessageByts(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= 4
-		le := binary.LittleEndian.Uint32(buf)
+
+		le := int64(binary.LittleEndian.Uint32(buf))
 		if le > *mlen {
-			return fmt.Errorf("invalid slice length")
+			return fmt.Errorf("invalid array length")
 		}
 
 		// use preallocated slice if possible, allocate if too small
@@ -189,84 +215,72 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 			*cv = make([]uint8, le)
 		}
 
-		_, err = io.ReadFull(r, (*cv)[:le])
+		err = readMessageBytsDoNotCheck(r, (*cv)[:le], mlen)
 		if err != nil {
 			return err
 		}
-		*mlen -= le
 
 	default:
-		switch val.Elem().Kind() {
+		switch dest.Elem().Kind() {
 		case reflect.Slice:
 			// slice length
-			_, err := io.ReadFull(r, buf[:4])
+			err := readMessageByts(r, buf[:4], mlen)
 			if err != nil {
 				return err
 			}
-			*mlen -= 4
-			le := binary.LittleEndian.Uint32(buf)
-			if le > *mlen {
-				return fmt.Errorf("invalid slice length")
-			}
+
+			le := int64(binary.LittleEndian.Uint32(buf))
 
 			// slice elements
 			for i := 0; i < int(le); i++ {
-				el := reflect.New(val.Elem().Type().Elem())
+				el := reflect.New(dest.Elem().Type().Elem())
+				el2 := el
 
 				if el.Elem().Kind() == reflect.Ptr {
 					// allocate if is pointer and null
 					if el.Elem().IsNil() {
 						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
 					}
-
-					err := binaryDecodeValue(r, el.Elem(), mlen, buf)
-					if err != nil {
-						return err
-					}
-
-				} else {
-					err := binaryDecodeValue(r, el, mlen, buf)
-					if err != nil {
-						return err
-					}
+					el2 = el.Elem()
 				}
 
-				val.Elem().Set(reflect.Append(val.Elem(), el.Elem()))
+				err := binaryDecodeValue(r, el2, mlen, buf)
+				if err != nil {
+					return err
+				}
+
+				dest.Elem().Set(reflect.Append(dest.Elem(), el.Elem()))
 			}
 
 		case reflect.Array:
 			// array elements
-			le := val.Elem().Len()
+			le := dest.Elem().Len()
 			for i := 0; i < le; i++ {
-				el := reflect.New(val.Elem().Type().Elem())
+				el := reflect.New(dest.Elem().Type().Elem())
+				el2 := el
 
 				if el.Elem().Kind() == reflect.Ptr {
 					// allocate if is pointer and null
 					if el.Elem().IsNil() {
 						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
 					}
-
-					err := binaryDecodeValue(r, el.Elem(), mlen, buf)
-					if err != nil {
-						return err
-					}
-
-				} else {
-					err := binaryDecodeValue(r, el, mlen, buf)
-					if err != nil {
-						return err
-					}
+					el2 = el.Elem()
 				}
 
-				val.Elem().Index(i).Set(el.Elem())
+				err := binaryDecodeValue(r, el2, mlen, buf)
+				if err != nil {
+					return err
+				}
+
+				dest.Elem().Index(i).Set(el.Elem())
 			}
 
 		case reflect.Struct:
 			// struct fields
-			nf := val.Elem().NumField()
+			nf := dest.Elem().NumField()
 			for i := 0; i < nf; i++ {
-				f := val.Elem().Field(i)
-				ft := val.Elem().Type().Field(i)
+				f := dest.Elem().Field(i)
+				ft := dest.Elem().Type().Field(i)
 
 				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
 					continue
@@ -281,22 +295,18 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 					if f.IsNil() {
 						f.Set(reflect.New(f.Type().Elem()))
 					}
-
-					err := binaryDecodeValue(r, f, mlen, buf)
-					if err != nil {
-						return err
-					}
-
 				} else {
-					err := binaryDecodeValue(r, f.Addr(), mlen, buf)
-					if err != nil {
-						return err
-					}
+					f = f.Addr()
+				}
+
+				err := binaryDecodeValue(r, f, mlen, buf)
+				if err != nil {
+					return err
 				}
 			}
 
 		default:
-			return fmt.Errorf("unsupported field type '%s'", val.Elem().Type())
+			return fmt.Errorf("unsupported field type '%s'", dest.Elem().Type())
 		}
 	}
 
@@ -304,27 +314,23 @@ func binaryDecodeValue(r io.Reader, val reflect.Value, mlen *uint32, buf []byte)
 }
 
 // MessageDecode decodes a message in binary format.
-func MessageDecode(r io.Reader, msg interface{}) error {
-	// check target
-	rv := reflect.ValueOf(msg)
-	if rv.Kind() != reflect.Ptr {
-		return fmt.Errorf("invalid message kind: expected ptr, got %s", rv.Kind())
-	}
-	if rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("invalid message kind: expected struct, got %s", rv.Kind())
+func MessageDecode(r io.Reader, dest interface{}) error {
+	rv := reflect.ValueOf(dest)
+	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("destination must be a pointer to a struct")
 	}
 
 	// use a shared buffer for performance reasons
 	buf := make([]byte, 8)
 
-	// read message length
+	// message length
 	_, err := io.ReadFull(r, buf[:4])
 	if err != nil {
 		return err
 	}
-	mlen := binary.LittleEndian.Uint32(buf)
+	mlen := int64(binary.LittleEndian.Uint32(buf))
 
-	// read message
+	// message
 	err = binaryDecodeValue(r, rv, &mlen, buf)
 	if err != nil {
 		return err
@@ -337,8 +343,8 @@ func MessageDecode(r io.Reader, msg interface{}) error {
 	return nil
 }
 
-func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
-	switch cv := val.Elem().Interface().(type) {
+func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
+	switch cv := src.Elem().Interface().(type) {
 	case bool:
 		b := uint8(0x00)
 		if cv {
@@ -362,57 +368,57 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		}
 
 	case int16:
-		binary.LittleEndian.PutUint16(buf, uint16(cv))
-		_, err := w.Write(buf[:2])
+		binary.LittleEndian.PutUint16(dest, uint16(cv))
+		_, err := w.Write(dest[:2])
 		if err != nil {
 			return err
 		}
 
 	case uint16:
-		binary.LittleEndian.PutUint16(buf, cv)
-		_, err := w.Write(buf[:2])
+		binary.LittleEndian.PutUint16(dest, cv)
+		_, err := w.Write(dest[:2])
 		if err != nil {
 			return err
 		}
 
 	case int32:
-		binary.LittleEndian.PutUint32(buf, uint32(cv))
-		_, err := w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, uint32(cv))
+		_, err := w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
 
 	case uint32:
-		binary.LittleEndian.PutUint32(buf, cv)
-		_, err := w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, cv)
+		_, err := w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
 
 	case int64:
-		binary.LittleEndian.PutUint64(buf, uint64(cv))
-		_, err := w.Write(buf[:8])
+		binary.LittleEndian.PutUint64(dest, uint64(cv))
+		_, err := w.Write(dest[:8])
 		if err != nil {
 			return err
 		}
 
 	case uint64:
-		binary.LittleEndian.PutUint64(buf, cv)
-		_, err := w.Write(buf[:8])
+		binary.LittleEndian.PutUint64(dest, cv)
+		_, err := w.Write(dest[:8])
 		if err != nil {
 			return err
 		}
 
 	case float32:
-		binary.LittleEndian.PutUint32(buf, math.Float32bits(cv))
-		_, err := w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, math.Float32bits(cv))
+		_, err := w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
 
 	case float64:
-		binary.LittleEndian.PutUint64(buf, math.Float64bits(cv))
-		_, err := w.Write(buf[:8])
+		binary.LittleEndian.PutUint64(dest, math.Float64bits(cv))
+		_, err := w.Write(dest[:8])
 		if err != nil {
 			return err
 		}
@@ -421,8 +427,8 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 		bstr := []byte(cv)
 
 		// string length
-		binary.LittleEndian.PutUint32(buf, uint32(len(bstr)))
-		_, err := w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, uint32(len(bstr)))
+		_, err := w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
@@ -444,14 +450,14 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 			nano = cv.UnixNano()
 		}
 
-		binary.LittleEndian.PutUint32(buf, uint32(nano/1000000000))
-		_, err := w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, uint32(nano/1000000000))
+		_, err := w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
 
-		binary.LittleEndian.PutUint32(buf, uint32(nano%1000000000))
-		_, err = w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, uint32(nano%1000000000))
+		_, err = w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
@@ -459,73 +465,67 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 	case time.Duration:
 		nano := cv.Nanoseconds()
 
-		binary.LittleEndian.PutUint32(buf, uint32(nano/1000000000))
-		_, err := w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, uint32(nano/1000000000))
+		_, err := w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
 
-		binary.LittleEndian.PutUint32(buf, uint32(nano%1000000000))
-		_, err = w.Write(buf[:4])
+		binary.LittleEndian.PutUint32(dest, uint32(nano%1000000000))
+		_, err = w.Write(dest[:4])
 		if err != nil {
 			return err
 		}
 
 	default:
-		switch val.Elem().Kind() {
+		switch src.Elem().Kind() {
 		case reflect.Slice:
-			le := val.Elem().Len()
+			le := src.Elem().Len()
 
 			// slice length
-			binary.LittleEndian.PutUint32(buf, uint32(le))
-			_, err := w.Write(buf[:4])
+			binary.LittleEndian.PutUint32(dest, uint32(le))
+			_, err := w.Write(dest[:4])
 			if err != nil {
 				return err
 			}
 
 			// slice elements
 			for i := 0; i < le; i++ {
-				el := val.Elem().Index(i)
+				el := src.Elem().Index(i)
 
-				if el.Kind() == reflect.Ptr {
-					err := binaryEncodeValue(w, el, buf)
-					if err != nil {
-						return err
-					}
-				} else {
-					err := binaryEncodeValue(w, el.Addr(), buf)
-					if err != nil {
-						return err
-					}
+				if el.Kind() != reflect.Ptr {
+					el = el.Addr()
+				}
+
+				err := binaryEncodeValue(w, el, dest)
+				if err != nil {
+					return err
 				}
 			}
 
 		case reflect.Array:
-			le := val.Elem().Len()
+			le := src.Elem().Len()
 
 			// array elements
 			for i := 0; i < le; i++ {
-				el := val.Elem().Index(i)
+				el := src.Elem().Index(i)
 
-				if el.Kind() == reflect.Ptr {
-					err := binaryEncodeValue(w, el, buf)
-					if err != nil {
-						return err
-					}
-				} else {
-					err := binaryEncodeValue(w, el.Addr(), buf)
-					if err != nil {
-						return err
-					}
+				if el.Kind() != reflect.Ptr {
+					el = el.Addr()
+				}
+
+				err := binaryEncodeValue(w, el, dest)
+				if err != nil {
+					return err
 				}
 			}
 
 		case reflect.Struct:
 			// struct fields
-			nf := val.Elem().NumField()
+			nf := src.Elem().NumField()
 			for i := 0; i < nf; i++ {
-				f := val.Elem().Field(i)
-				ft := val.Elem().Type().Field(i)
+				f := src.Elem().Field(i)
+				ft := src.Elem().Type().Field(i)
 
 				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
 					continue
@@ -535,21 +535,18 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 					continue
 				}
 
-				if f.Kind() == reflect.Ptr {
-					err := binaryEncodeValue(w, f, buf)
-					if err != nil {
-						return err
-					}
-				} else {
-					err := binaryEncodeValue(w, f.Addr(), buf)
-					if err != nil {
-						return err
-					}
+				if f.Kind() != reflect.Ptr {
+					f = f.Addr()
+				}
+
+				err := binaryEncodeValue(w, f, dest)
+				if err != nil {
+					return err
 				}
 			}
 
 		default:
-			return fmt.Errorf("unsupported type '%s'", val.Elem().Type())
+			return fmt.Errorf("unsupported type '%s'", src.Elem().Type())
 		}
 	}
 
@@ -557,17 +554,13 @@ func binaryEncodeValue(w io.Writer, val reflect.Value, buf []byte) error {
 }
 
 // MessageEncode encodes a message in binary format.
-func MessageEncode(w io.Writer, msg interface{}) error {
-	// check target
-	rv := reflect.ValueOf(msg)
-	if rv.Kind() != reflect.Ptr {
-		return fmt.Errorf("invalid message kind: expected ptr, got %s", rv.Kind())
-	}
-	if rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("invalid message kind: expected struct, got %s", rv.Kind())
+func MessageEncode(w io.Writer, src interface{}) error {
+	rv := reflect.ValueOf(src)
+	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("src must be a pointer to a struct")
 	}
 
-	// use a shared buffer for performance reasons
+	// use a shared buffer to improve performance
 	buf := make([]byte, 8)
 
 	// encode message

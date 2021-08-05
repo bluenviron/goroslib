@@ -97,9 +97,9 @@ var casesHeader = []struct {
 func TestHeaderDecode(t *testing.T) {
 	for _, ca := range casesHeader {
 		t.Run(ca.name, func(t *testing.T) {
-			header := reflect.New(reflect.TypeOf(ca.header).Elem()).Interface().(Header)
 			raw, err := HeaderRawDecode(bytes.NewBuffer(ca.byts))
 			require.NoError(t, err)
+			header := reflect.New(reflect.TypeOf(ca.header).Elem()).Interface().(Header)
 			err = HeaderDecode(raw, header)
 			require.NoError(t, err)
 			require.Equal(t, ca.header, header)
@@ -114,6 +114,25 @@ func TestHeaderEncode(t *testing.T) {
 			err := HeaderEncode(&buf, ca.header)
 			require.NoError(t, err)
 			require.Equal(t, ca.byts, buf.Bytes())
+		})
+	}
+}
+
+func TestHeaderDecodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		byts []byte
+		err  string
+	}{
+		{
+			"length missing",
+			[]byte{},
+			"EOF",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := HeaderRawDecode(bytes.NewBuffer(ca.byts))
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }

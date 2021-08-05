@@ -95,14 +95,10 @@ type Header interface {
 }
 
 // HeaderDecode decodes an header in binary format.
-func HeaderDecode(raw HeaderRaw, header Header) error {
-	// check input
-	rv := reflect.ValueOf(header)
-	if rv.Kind() != reflect.Ptr {
-		return fmt.Errorf("invalid message kind: expected ptr, got %s", rv.Kind())
-	}
-	if rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("invalid message kind: expected struct, got %s", rv.Kind())
+func HeaderDecode(raw HeaderRaw, dest Header) error {
+	rv := reflect.ValueOf(dest)
+	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("dest must be a pointer to a struct")
 	}
 
 	for key, val := range raw {
@@ -141,17 +137,13 @@ func HeaderDecode(raw HeaderRaw, header Header) error {
 }
 
 // HeaderEncode encodes an header in binary format.
-func HeaderEncode(w io.Writer, header Header) error {
-	// check input
-	rv := reflect.ValueOf(header)
-	if rv.Kind() != reflect.Ptr {
-		return fmt.Errorf("invalid message kind: expected ptr, got %s", rv.Kind())
-	}
-	if rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("invalid message kind: expected struct, got %s", rv.Kind())
+func HeaderEncode(w io.Writer, src Header) error {
+	rv := reflect.ValueOf(src)
+	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("src must be a pointer to a struct")
 	}
 
-	// use a shared buffer for performance reasons
+	// use a shared buffer to improve performance
 	buf := make([]byte, 8)
 
 	// compute header

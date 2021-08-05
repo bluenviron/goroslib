@@ -65,9 +65,7 @@ var casesMessage = []caseMessage{
 		"empty string",
 		&struct {
 			A string
-		}{
-			"",
-		},
+		}{""},
 		[]byte{
 			0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		},
@@ -76,9 +74,7 @@ var casesMessage = []caseMessage{
 		"empty time",
 		&struct {
 			A time.Time
-		}{
-			time.Time{},
-		},
+		}{time.Time{}},
 		[]byte{
 			0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00,
@@ -88,9 +84,7 @@ var casesMessage = []caseMessage{
 		"empty duration",
 		&struct {
 			A time.Duration
-		}{
-			time.Duration(0),
-		},
+		}{time.Duration(0)},
 		[]byte{
 			0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00,
@@ -101,9 +95,7 @@ var casesMessage = []caseMessage{
 		&struct {
 			A uint8
 			B []uint32
-		}{
-			1, []uint32{2, 3},
-		},
+		}{1, []uint32{2, 3}},
 		[]byte{
 			0x0d, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,
 			0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00,
@@ -111,13 +103,18 @@ var casesMessage = []caseMessage{
 		},
 	},
 	{
+		"uint8 array",
+		&struct {
+			A []uint8
+		}{[]uint8{0x01, 0x02, 0x03, 0x04}},
+		[]byte{0x8, 0x0, 0x0, 0x0, 0x4, 0x0, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4},
+	},
+	{
 		"fixed array",
 		&struct {
 			A uint8
 			B [2]uint32
-		}{
-			1, [2]uint32{2, 3},
-		},
+		}{1, [2]uint32{2, 3}},
 		[]byte{
 			0x09, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,
 			0x00, 0x03, 0x00, 0x00, 0x00,
@@ -127,9 +124,7 @@ var casesMessage = []caseMessage{
 		"variable array of pointers",
 		&struct {
 			A []*uint32
-		}{
-			[]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]},
-		},
+		}{[]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]}},
 		[]byte{
 			0x0c, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
 			0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
@@ -139,9 +134,7 @@ var casesMessage = []caseMessage{
 		"fixed array of pointers",
 		&struct {
 			A [2]*uint32
-		}{
-			[2]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]},
-		},
+		}{[2]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]}},
 		[]byte{
 			0x08, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
 			0x03, 0x00, 0x00, 0x00,
@@ -152,9 +145,7 @@ var casesMessage = []caseMessage{
 		&struct {
 			A uint8
 			B []Parent
-		}{
-			1, []Parent{{"abc"}, {"def"}},
-		},
+		}{1, []Parent{{"abc"}, {"def"}}},
 		[]byte{
 			0x13, 0x00, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00,
 			0x00, 0x03, 0x00, 0x00, 0x00, 0x61, 0x62, 0x63,
@@ -166,9 +157,7 @@ var casesMessage = []caseMessage{
 		&struct {
 			A uint8
 			B [2]Parent
-		}{
-			1, [2]Parent{{"abc"}, {"def"}},
-		},
+		}{1, [2]Parent{{"abc"}, {"def"}}},
 		[]byte{
 			0x0f, 0x00, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00,
 			0x00, 0x61, 0x62, 0x63, 0x03, 0x00, 0x00, 0x00,
@@ -181,9 +170,7 @@ var casesMessage = []caseMessage{
 			msg.Package `ros:"testing"`
 			A           int32
 		}{0, 123},
-		[]byte{
-			0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00,
-		},
+		[]byte{0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00},
 	},
 	{
 		"with definition",
@@ -191,9 +178,7 @@ var casesMessage = []caseMessage{
 			msg.Definitions `ros:"uint8 A=0,uint8 B=1"`
 			A               int32
 		}{0, 123},
-		[]byte{
-			0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00,
-		},
+		[]byte{0x04, 0x00, 0x00, 0x00, 0x7b, 0x00, 0x00, 0x00},
 	},
 }
 
@@ -215,6 +200,237 @@ func TestMessageEncode(t *testing.T) {
 			err := MessageEncode(&buf, ca.msg)
 			require.NoError(t, err)
 			require.Equal(t, ca.byts, buf.Bytes())
+		})
+	}
+}
+
+func TestMessageDecodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		byts []byte
+		msg  interface{}
+		err  string
+	}{
+		{
+			"dest invalid 1",
+			[]byte{},
+			struct {
+				A bool
+			}{},
+			"destination must be a pointer to a struct",
+		},
+		{
+			"message length missing",
+			[]byte{},
+			&struct {
+				A bool
+			}{},
+			"EOF",
+		},
+		{
+			"message partially parsed",
+			[]byte{0x06, 0x00, 0x00, 0x00, 0x01},
+			&struct {
+				A bool
+			}{},
+			"message was partially parsed, 5 bytes are unread",
+		},
+		{
+			"message length too short",
+			[]byte{0x00, 0x00, 0x00, 0x00, 0x01},
+			&struct {
+				A bool
+			}{},
+			"message length is too short",
+		},
+		{
+			"bool missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A bool
+			}{},
+			"EOF",
+		},
+		{
+			"int8 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A int8
+			}{},
+			"EOF",
+		},
+		{
+			"uint8 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A uint8
+			}{},
+			"EOF",
+		},
+		{
+			"int16 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A int16
+			}{},
+			"EOF",
+		},
+		{
+			"uint16 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A uint16
+			}{},
+			"EOF",
+		},
+		{
+			"int32 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A int32
+			}{},
+			"EOF",
+		},
+		{
+			"uint32 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A uint32
+			}{},
+			"EOF",
+		},
+		{
+			"int64 missing",
+			[]byte{0x08, 0x00, 0x00, 0x00},
+			&struct {
+				A int64
+			}{},
+			"EOF",
+		},
+		{
+			"uint64 missing",
+			[]byte{0x08, 0x00, 0x00, 0x00},
+			&struct {
+				A uint64
+			}{},
+			"EOF",
+		},
+		{
+			"float32 missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A float32
+			}{},
+			"EOF",
+		},
+		{
+			"float64 missing",
+			[]byte{0x08, 0x00, 0x00, 0x00},
+			&struct {
+				A float64
+			}{},
+			"EOF",
+		},
+		{
+			"string length missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A string
+			}{},
+			"EOF",
+		},
+		{
+			"string length invalid",
+			[]byte{0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			&struct {
+				A string
+			}{},
+			"invalid string length",
+		},
+		{
+			"string content missing",
+			[]byte{0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			&struct {
+				A string
+			}{},
+			"EOF",
+		},
+		{
+			"time missing 1",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A time.Time
+			}{},
+			"EOF",
+		},
+		{
+			"time missing 2",
+			[]byte{0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+			&struct {
+				A time.Time
+			}{},
+			"EOF",
+		},
+		{
+			"duration missing 1",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A time.Duration
+			}{},
+			"EOF",
+		},
+		{
+			"duration missing 2",
+			[]byte{0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+			&struct {
+				A time.Duration
+			}{},
+			"EOF",
+		},
+		{
+			"uint8 array length missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			&struct {
+				A []uint8
+			}{},
+			"EOF",
+		},
+		{
+			"uint8 array length invalid",
+			[]byte{0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			&struct {
+				A []uint8
+			}{},
+			"EOF",
+		},
+		{
+			"uint8 array content missing",
+			[]byte{0x09, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			&struct {
+				A []uint8
+			}{},
+			"EOF",
+		},
+		{
+			"array length missing",
+			[]byte{0x05, 0x00, 0x00, 0x00},
+			&struct {
+				A []string
+			}{},
+			"EOF",
+		},
+		{
+			"array content missing",
+			[]byte{0x09, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00},
+			&struct {
+				A []string
+			}{},
+			"EOF",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			err := MessageDecode(bytes.NewBuffer(ca.byts), ca.msg)
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }
