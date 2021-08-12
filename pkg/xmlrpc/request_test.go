@@ -77,17 +77,6 @@ func TestRequestDecode(t *testing.T) {
 	}
 }
 
-func TestRequestEncode(t *testing.T) {
-	for _, ca := range casesRequest {
-		t.Run(ca.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			err := requestEncode(&buf, ca.method, ca.params)
-			require.NoError(t, err)
-			require.Equal(t, ca.benc, buf.Bytes())
-		})
-	}
-}
-
 func TestRequestDecodeErrors(t *testing.T) {
 	for _, ca := range []struct {
 		name string
@@ -187,6 +176,17 @@ func TestRequestDecodeErrors(t *testing.T) {
 
 			err = requestDecode(raw, ca.dest)
 			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}
+
+func TestRequestEncode(t *testing.T) {
+	for _, ca := range casesRequest {
+		t.Run(ca.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			err := requestEncode(&buf, ca.method, ca.params)
+			require.NoError(t, err)
+			require.Equal(t, ca.benc, buf.Bytes())
 		})
 	}
 }

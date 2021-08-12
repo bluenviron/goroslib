@@ -193,17 +193,6 @@ func TestMessageDecode(t *testing.T) {
 	}
 }
 
-func TestMessageEncode(t *testing.T) {
-	for _, ca := range casesMessage {
-		t.Run(ca.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			err := MessageEncode(&buf, ca.msg)
-			require.NoError(t, err)
-			require.Equal(t, ca.byts, buf.Bytes())
-		})
-	}
-}
-
 func TestMessageDecodeErrors(t *testing.T) {
 	for _, ca := range []struct {
 		name string
@@ -431,6 +420,17 @@ func TestMessageDecodeErrors(t *testing.T) {
 		t.Run(ca.name, func(t *testing.T) {
 			err := MessageDecode(bytes.NewBuffer(ca.byts), ca.msg)
 			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}
+
+func TestMessageEncode(t *testing.T) {
+	for _, ca := range casesMessage {
+		t.Run(ca.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			err := MessageEncode(&buf, ca.msg)
+			require.NoError(t, err)
+			require.Equal(t, ca.byts, buf.Bytes())
 		})
 	}
 }

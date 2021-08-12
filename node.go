@@ -326,14 +326,22 @@ func NewNode(conf NodeConf) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	n.apiSlaveServerURL = xmlrpc.ServerURL(nodeAddr, n.apiSlaveServer.Port())
+
+	n.apiSlaveServerURL = xmlrpc.ServerURL(
+		nodeAddr.IP,
+		n.apiSlaveServer.Port(),
+		nodeAddr.Zone)
 
 	n.tcprosServer, err = prototcp.NewServer(":" + strconv.FormatInt(int64(conf.TcprosPort), 10))
 	if err != nil {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
-	n.tcprosServerURL = prototcp.ServerURL(nodeAddr, n.tcprosServer.Port())
+
+	n.tcprosServerURL = prototcp.ServerURL(
+		nodeAddr.IP,
+		n.tcprosServer.Port(),
+		nodeAddr.Zone)
 
 	n.udprosServer, err = protoudp.NewServer(":" + strconv.FormatInt(int64(conf.UdprosPort), 10))
 	if err != nil {

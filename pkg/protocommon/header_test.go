@@ -107,17 +107,6 @@ func TestHeaderDecode(t *testing.T) {
 	}
 }
 
-func TestHeaderEncode(t *testing.T) {
-	for _, ca := range casesHeader {
-		t.Run(ca.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			err := HeaderEncode(&buf, ca.header)
-			require.NoError(t, err)
-			require.Equal(t, ca.byts, buf.Bytes())
-		})
-	}
-}
-
 func TestHeaderDecodeErrors(t *testing.T) {
 	for _, ca := range []struct {
 		name string
@@ -133,6 +122,17 @@ func TestHeaderDecodeErrors(t *testing.T) {
 		t.Run(ca.name, func(t *testing.T) {
 			_, err := HeaderRawDecode(bytes.NewBuffer(ca.byts))
 			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}
+
+func TestHeaderEncode(t *testing.T) {
+	for _, ca := range casesHeader {
+		t.Run(ca.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			err := HeaderEncode(&buf, ca.header)
+			require.NoError(t, err)
+			require.Equal(t, ca.byts, buf.Bytes())
 		})
 	}
 }

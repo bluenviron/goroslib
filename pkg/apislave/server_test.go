@@ -87,3 +87,51 @@ func TestServer(t *testing.T) {
 		require.Equal(t, ResponseShutdown{Code: 1}, res)
 	}()
 }
+
+func TestServerErrors(t *testing.T) {
+	t.Run("double listen", func(t *testing.T) {
+		s, err := NewServer("localhost:9906")
+		require.NoError(t, err)
+		defer s.Close()
+
+		_, err = NewServer("localhost:9906")
+		require.Error(t, err)
+	})
+
+	t.Run("invalid method", func(t *testing.T) {
+		s, err := NewServer("localhost:9906")
+		require.NoError(t, err)
+		defer s.Close()
+
+		go s.Serve(func(req Request) Response {
+			return ErrorRes{}
+		})
+
+		c := xmlrpc.NewClient("localhost:9906")
+
+		var res ResponseGetBusInfo
+		err = c.Do("invalidMethod", RequestGetBusInfo{CallerID: "mycaller"}, &res)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid payload", func(t *testing.T) {
+		s, err := NewServer("localhost:9906")
+		require.NoError(t, err)
+		defer s.Close()
+
+		go s.Serve(func(req Request) Response {
+			if _, ok := req.(*RequestShutdown); ok {
+				require.Equal(t, &RequestShutdown{CallerID: "mycaller"}, req)
+				return ResponseShutdown{Code: 1}
+			}
+
+			return ErrorRes{}
+		})
+
+		c := xmlrpc.NewClient("localhost:9906")
+
+		var res ResponseGetBusInfo
+		err = c.Do("shutdown", RequestGetBusInfo{CallerID: "mycaller"}, &res)
+		require.Error(t, err)
+	})
+}

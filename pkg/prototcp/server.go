@@ -6,13 +6,13 @@ import (
 )
 
 // ServerURL returns the URL of a PROTOTCP server.
-func ServerURL(address *net.TCPAddr, port int) string {
+func ServerURL(ip net.IP, port int, zone string) string {
 	return (&url.URL{
 		Scheme: "rosrpc",
 		Host: (&net.TCPAddr{
-			IP:   address.IP,
+			IP:   ip,
 			Port: port,
-			Zone: address.Zone,
+			Zone: zone,
 		}).String(),
 	}).String()
 }

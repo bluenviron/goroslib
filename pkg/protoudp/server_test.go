@@ -12,6 +12,8 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	defer s.Close()
 
+	require.NotEqual(t, 0, s.Port())
+
 	serverDone := make(chan struct{})
 	defer func() { <-serverDone }()
 

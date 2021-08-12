@@ -13,14 +13,14 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
-// ServerURL returns a XMLRPC server url.
-func ServerURL(address *net.TCPAddr, port int) string {
+// ServerURL returns a XMLRPC server URL.
+func ServerURL(ip net.IP, port int, zone string) string {
 	return (&url.URL{
 		Scheme: "http",
 		Host: (&net.TCPAddr{
-			IP:   address.IP,
+			IP:   ip,
 			Port: port,
-			Zone: address.Zone,
+			Zone: zone,
 		}).String(),
 	}).String()
 }

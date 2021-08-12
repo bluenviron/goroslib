@@ -111,53 +111,147 @@ func TestClient(t *testing.T) {
 func TestClientError(t *testing.T) {
 	c := NewClient("localhost:9998", "test")
 
-	func() {
-		err := c.DeleteParam("mykey")
-		require.Error(t, err)
-	}()
+	t.Run("no server", func(t *testing.T) {
+		func() {
+			err := c.DeleteParam("mykey")
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.GetParamNames()
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.GetParamNames()
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.GetParamBool("mykey1")
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.GetParamBool("mykey1")
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.GetParamInt("mykey2")
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.GetParamInt("mykey2")
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.GetParamString("mykey3")
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.GetParamString("mykey3")
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.HasParam("mykey")
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.HasParam("mykey")
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.SearchParam("mykey")
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.SearchParam("mykey")
+			require.Error(t, err)
+		}()
 
-	func() {
-		err := c.SetParamBool("mykey", true)
-		require.Error(t, err)
-	}()
+		func() {
+			err := c.SetParamBool("mykey", true)
+			require.Error(t, err)
+		}()
 
-	func() {
-		err := c.SetParamInt("mykey", 123)
-		require.Error(t, err)
-	}()
+		func() {
+			err := c.SetParamInt("mykey", 123)
+			require.Error(t, err)
+		}()
 
-	func() {
-		err := c.SetParamString("mykey", "myval")
-		require.Error(t, err)
-	}()
+		func() {
+			err := c.SetParamString("mykey", "myval")
+			require.Error(t, err)
+		}()
+	})
+
+	t.Run("server error", func(t *testing.T) {
+		s, err := xmlrpc.NewServer("localhost:9998")
+		require.NoError(t, err)
+		defer s.Close()
+
+		go s.Serve(func(raw *xmlrpc.RequestRaw) interface{} {
+			switch raw.Method {
+			case "getParamNames":
+				return ResponseGetParamNames{Code: 0, List: []string{"val1", "val2"}}
+
+			case "deleteParam":
+				return ResponseDeleteParam{Code: 0}
+
+			case "getParam":
+				var req RequestGetParam
+				err := raw.Decode(&req)
+				require.NoError(t, err)
+
+				switch req.Key {
+				case "mykey1":
+					return ResponseGetParamBool{Code: 0, Res: true}
+
+				case "mykey2":
+					return ResponseGetParamInt{Code: 0, Res: 123}
+
+				case "mykey3":
+					return ResponseGetParamString{Code: 0, Res: "mystring"}
+				}
+
+			case "hasParam":
+				return ResponseHasParam{Code: 0, KeyOut: "mykey", Res: true}
+
+			case "searchParam":
+				return ResponseSearchParam{Code: 0, FoundKey: "mykey"}
+
+			case "setParam":
+				return ResponseSetParam{Code: 0}
+			}
+			return xmlrpc.ErrorRes{}
+		})
+
+		func() {
+			err := c.DeleteParam("mykey")
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.GetParamNames()
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.GetParamBool("mykey1")
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.GetParamInt("mykey2")
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.GetParamString("mykey3")
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.HasParam("mykey")
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.SearchParam("mykey")
+			require.Error(t, err)
+		}()
+
+		func() {
+			err := c.SetParamBool("mykey", true)
+			require.Error(t, err)
+		}()
+
+		func() {
+			err := c.SetParamInt("mykey", 123)
+			require.Error(t, err)
+		}()
+
+		func() {
+			err := c.SetParamString("mykey", "myval")
+			require.Error(t, err)
+		}()
+	})
 }

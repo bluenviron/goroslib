@@ -56,26 +56,71 @@ func TestClient(t *testing.T) {
 	}()
 }
 
-func TestClientError(t *testing.T) {
+func TestClientErrors(t *testing.T) {
 	c := NewClient("localhost:9905", "test")
 
-	func() {
-		_, err := c.GetPid()
-		require.Error(t, err)
-	}()
+	t.Run("no server", func(t *testing.T) {
+		func() {
+			_, err := c.GetPid()
+			require.Error(t, err)
+		}()
 
-	func() {
-		err := c.Shutdown("myreason")
-		require.Error(t, err)
-	}()
+		func() {
+			err := c.Shutdown("myreason")
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
+			require.Error(t, err)
+		}()
 
-	func() {
-		_, err := c.GetBusInfo()
-		require.Error(t, err)
-	}()
+		func() {
+			_, err := c.GetBusInfo()
+			require.Error(t, err)
+		}()
+	})
+
+	t.Run("server error", func(t *testing.T) {
+		s, err := xmlrpc.NewServer("localhost:9905")
+		require.NoError(t, err)
+		defer s.Close()
+
+		go s.Serve(func(raw *xmlrpc.RequestRaw) interface{} {
+			switch raw.Method {
+			case "getPid":
+				return ResponseGetPid{Code: 0, Pid: 123}
+
+			case "shutdown":
+				return ResponseShutdown{Code: 0}
+
+			case "requestTopic":
+				return ResponseRequestTopic{Code: 0, Protocol: []interface{}{"myproto"}}
+
+			case "getBusInfo":
+				return ResponseGetBusInfo{Code: 0}
+			}
+			return xmlrpc.ErrorRes{}
+		})
+
+		func() {
+			_, err := c.GetPid()
+			require.Error(t, err)
+		}()
+
+		func() {
+			err := c.Shutdown("myreason")
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
+			require.Error(t, err)
+		}()
+
+		func() {
+			_, err := c.GetBusInfo()
+			require.Error(t, err)
+		}()
+	})
 }

@@ -2,11 +2,20 @@ package xmlrpc
 
 import (
 	"bytes"
+	"net"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestServerURL(t *testing.T) {
+	u := ServerURL(
+		net.ParseIP("192.168.2.1"),
+		123,
+		"")
+	require.Equal(t, "http://192.168.2.1:123", u)
+}
 
 func TestServer(t *testing.T) {
 	type myRequest struct {
@@ -20,6 +29,8 @@ func TestServer(t *testing.T) {
 	s, err := NewServer("localhost:9904")
 	require.NoError(t, err)
 	defer s.Close()
+
+	require.NotEqual(t, 0, s.Port())
 
 	go s.Serve(func(raw *RequestRaw) interface{} {
 		require.Equal(t, "mymethod", raw.Method)
