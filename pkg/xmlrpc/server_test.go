@@ -55,3 +55,12 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, myResponse{Param: "myresponse"}, xres)
 }
+
+func TestServerError(t *testing.T) {
+	s, err := NewServer("localhost:9904")
+	require.NoError(t, err)
+	defer s.Close()
+
+	_, err = NewServer("localhost:9904")
+	require.Error(t, err)
+}

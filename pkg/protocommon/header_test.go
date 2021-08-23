@@ -118,6 +118,31 @@ func TestHeaderDecodeErrors(t *testing.T) {
 			[]byte{},
 			"EOF",
 		},
+		{
+			"length invalid",
+			[]byte{0x00, 0x00, 0x00, 0x00},
+			"invalid header length",
+		},
+		{
+			"field length missing",
+			[]byte{0x04, 0x00, 0x00, 0x00},
+			"EOF",
+		},
+		{
+			"field length invalid",
+			[]byte{0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			"invalid field length",
+		},
+		{
+			"field missing",
+			[]byte{0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			"EOF",
+		},
+		{
+			"field invalid",
+			[]byte{0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 'a'},
+			"missing separator",
+		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			_, err := HeaderRawDecode(bytes.NewBuffer(ca.byts))

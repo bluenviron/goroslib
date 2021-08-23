@@ -13,7 +13,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-func readMessageByts(r io.Reader, buf []byte, mlen *int64) error {
+func readLimited(r io.Reader, buf []byte, mlen *int64) error {
 	lb := int64(len(buf))
 
 	if *mlen < lb {
@@ -30,7 +30,7 @@ func readMessageByts(r io.Reader, buf []byte, mlen *int64) error {
 	return nil
 }
 
-func readMessageBytsDoNotCheck(r io.Reader, buf []byte, mlen *int64) error {
+func readLimitedDoNotCheck(r io.Reader, buf []byte, mlen *int64) error {
 	lb := int64(len(buf))
 
 	_, err := io.ReadFull(r, buf)
@@ -46,7 +46,7 @@ func readMessageBytsDoNotCheck(r io.Reader, buf []byte, mlen *int64) error {
 func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte) error {
 	switch cv := dest.Interface().(type) {
 	case *bool:
-		err := readMessageByts(r, buf[:1], mlen)
+		err := readLimited(r, buf[:1], mlen)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = b
 
 	case *int8:
-		err := readMessageByts(r, buf[:1], mlen)
+		err := readLimited(r, buf[:1], mlen)
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = int8(buf[0])
 
 	case *uint8:
-		err := readMessageByts(r, buf[:1], mlen)
+		err := readLimited(r, buf[:1], mlen)
 		if err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = buf[0]
 
 	case *int16:
-		err := readMessageByts(r, buf[:2], mlen)
+		err := readLimited(r, buf[:2], mlen)
 		if err != nil {
 			return err
 		}
@@ -82,7 +82,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = int16(binary.LittleEndian.Uint16(buf))
 
 	case *uint16:
-		err := readMessageByts(r, buf[:2], mlen)
+		err := readLimited(r, buf[:2], mlen)
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = binary.LittleEndian.Uint16(buf)
 
 	case *int32:
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -98,7 +98,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = int32(binary.LittleEndian.Uint32(buf))
 
 	case *uint32:
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = binary.LittleEndian.Uint32(buf)
 
 	case *int64:
-		err := readMessageByts(r, buf[:8], mlen)
+		err := readLimited(r, buf[:8], mlen)
 		if err != nil {
 			return err
 		}
@@ -114,7 +114,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = int64(binary.LittleEndian.Uint64(buf))
 
 	case *uint64:
-		err := readMessageByts(r, buf[:8], mlen)
+		err := readLimited(r, buf[:8], mlen)
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = binary.LittleEndian.Uint64(buf)
 
 	case *float32:
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -130,7 +130,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		*cv = math.Float32frombits(binary.LittleEndian.Uint32(buf))
 
 	case *float64:
-		err := readMessageByts(r, buf[:8], mlen)
+		err := readLimited(r, buf[:8], mlen)
 		if err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 
 	case *string:
 		// string length
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -152,7 +152,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		// string
 		if le > 0 {
 			bstr := make([]byte, le)
-			err := readMessageBytsDoNotCheck(r, bstr, mlen)
+			err := readLimitedDoNotCheck(r, bstr, mlen)
 			if err != nil {
 				return err
 			}
@@ -163,13 +163,13 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		}
 
 	case *time.Time:
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
 		secs := int32(binary.LittleEndian.Uint32(buf))
 
-		err = readMessageByts(r, buf[:4], mlen)
+		err = readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -184,13 +184,13 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		}
 
 	case *time.Duration:
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
 		secs := int32(binary.LittleEndian.Uint32(buf))
 
-		err = readMessageByts(r, buf[:4], mlen)
+		err = readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -200,7 +200,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 
 	case *[]uint8: // special case for performance
 		// slice length
-		err := readMessageByts(r, buf[:4], mlen)
+		err := readLimited(r, buf[:4], mlen)
 		if err != nil {
 			return err
 		}
@@ -215,7 +215,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 			*cv = make([]uint8, le)
 		}
 
-		err = readMessageBytsDoNotCheck(r, (*cv)[:le], mlen)
+		err = readLimitedDoNotCheck(r, (*cv)[:le], mlen)
 		if err != nil {
 			return err
 		}
@@ -224,7 +224,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 		switch dest.Elem().Kind() {
 		case reflect.Slice:
 			// slice length
-			err := readMessageByts(r, buf[:4], mlen)
+			err := readLimited(r, buf[:4], mlen)
 			if err != nil {
 				return err
 			}

@@ -50,30 +50,28 @@ func HeaderRawDecode(r io.Reader) (HeaderRaw, error) {
 	if err != nil {
 		return nil, err
 	}
-	hlen := binary.LittleEndian.Uint32(buf)
+	hlen := int64(binary.LittleEndian.Uint32(buf))
 	if hlen == 0 {
 		return nil, fmt.Errorf("invalid header length")
 	}
 
 	for hlen > 0 {
-		// read field length
-		_, err := r.Read(buf[:4])
+		// field length
+		err := readLimited(r, buf[:4], &hlen)
 		if err != nil {
 			return nil, err
 		}
-		hlen -= 4
-		flen := binary.LittleEndian.Uint32(buf)
+		flen := int64(binary.LittleEndian.Uint32(buf))
 		if flen == 0 || flen > hlen {
 			return nil, fmt.Errorf("invalid field length")
 		}
 
-		// read field
-		field := make([]byte, int(flen))
-		_, err = io.ReadFull(r, field)
+		// field
+		field := make([]byte, flen)
+		err = readLimitedDoNotCheck(r, field, &hlen)
 		if err != nil {
 			return nil, err
 		}
-		hlen -= flen
 
 		i := bytes.IndexByte(field, '=')
 		if i < 0 {
