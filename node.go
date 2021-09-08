@@ -52,10 +52,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gookit/color"
+
 	"github.com/aler9/goroslib/pkg/apimaster"
 	"github.com/aler9/goroslib/pkg/apiparam"
 	"github.com/aler9/goroslib/pkg/apislave"
 	"github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs"
+	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/protoudp"
 	"github.com/aler9/goroslib/pkg/xmlrpc"
@@ -124,6 +127,18 @@ type simtimeSleep struct {
 	done  chan struct{}
 }
 
+// NodeLogLevel is a standard ROS log level.
+type NodeLogLevel int
+
+// standard ROS log levels (http://wiki.ros.org/roscpp/Overview/Logging)
+const (
+	NodeLogLevelDebug NodeLogLevel = iota + 1
+	NodeLogLevelInfo
+	NodeLogLevelWarn
+	NodeLogLevelError
+	NodeLogLevelFatal
+)
+
 // NodeConf is the configuration of a Node.
 type NodeConf struct {
 	// (optional) hostname (or ip) and port of the master node.
@@ -139,20 +154,25 @@ type NodeConf struct {
 
 	// (optional) hostname or ip of this node, needed by other nodes
 	// in order to communicate with it.
-	// if not provided, it will be set automatically.
+	// It defaults to an automatic IP.
 	Host string
 
 	// (optional) port of the Slave API server of this node.
-	// if not provided, it will be chosen automatically.
+	// It defaults to a random port.
 	ApislavePort int
 
 	// (optional) port of the TCPROS server of this node.
-	// if not provided, it will be chosen automatically.
+	// It defaults to a random port.
 	TcprosPort int
 
 	// (optional) port of the UDPROS server of this node.
-	// if not provided, it will be chosen automatically.
+	// It defaults to a random port.
 	UdprosPort int
+
+	// (optional) minimum severity level of log messages that will be
+	// written to stdout/stderr or sent to /rosout.
+	// It defaults to NodeLogLevelInfo.
+	Verbosity NodeLogLevel
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
@@ -232,6 +252,10 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	if len(conf.MasterAddress) == 0 {
 		conf.MasterAddress = "127.0.0.1:11311"
+	}
+
+	if conf.Verbosity == 0 {
+		conf.Verbosity = NodeLogLevelInfo
 	}
 
 	// support ROS-style master address, in order to increase interoperability
@@ -420,6 +444,69 @@ func (n *Node) Close() error {
 	n.ctxCancel()
 	<-n.done
 	return nil
+}
+
+// Log writes a log message.
+// This is implemented like the reference C++ implementation,
+// except for the log file.
+// (http://wiki.ros.org/roscpp/Overview/Logging)
+func (n *Node) Log(level NodeLogLevel, format string, args ...interface{}) {
+	if level < n.conf.Verbosity {
+		return
+	}
+
+	msg := fmt.Sprintf(format, args...)
+	now := time.Now()
+
+	// print to stdout / stderr
+	func() {
+		formatted := msg
+
+		switch level {
+		case NodeLogLevelDebug:
+			formatted = "[DEBUG] " + formatted
+		case NodeLogLevelInfo:
+			formatted = "[INFO] " + formatted
+		case NodeLogLevelWarn:
+			formatted = "[WARN] " + formatted
+		case NodeLogLevelError:
+			formatted = "[ERROR] " + formatted
+		case NodeLogLevelFatal:
+			formatted = "[FATAL] " + formatted
+		}
+
+		formatted = now.Format("[2006/01/02 15:04:05]") + " " + formatted
+
+		switch level {
+		case NodeLogLevelDebug, NodeLogLevelInfo:
+			os.Stdout.WriteString(formatted)
+
+		case NodeLogLevelWarn, NodeLogLevelError, NodeLogLevelFatal:
+			os.Stderr.WriteString(color.RenderString(color.Red.Code(), formatted) + "\n")
+		}
+	}()
+
+	// print to /rosout
+	n.rosoutPublisher.Write(&rosgraph_msgs.Log{
+		Header: std_msgs.Header{
+			Stamp: now,
+		},
+		Level: func() int8 {
+			switch level {
+			case NodeLogLevelDebug:
+				return rosgraph_msgs.Log_DEBUG
+			case NodeLogLevelInfo:
+				return rosgraph_msgs.Log_INFO
+			case NodeLogLevelWarn:
+				return rosgraph_msgs.Log_WARN
+			case NodeLogLevelError:
+				return rosgraph_msgs.Log_ERROR
+			}
+			return rosgraph_msgs.Log_FATAL
+		}(),
+		Name: n.absoluteName(),
+		Msg:  msg,
+	})
 }
 
 func (n *Node) absoluteTopicName(topic string) string {

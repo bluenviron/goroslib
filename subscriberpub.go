@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"reflect"
 	"strconv"
@@ -60,6 +61,10 @@ func (sp *subscriberPublisher) run() {
 			err := sp.runInner()
 			if err == errSubscriberPubTerminate {
 				return false
+			}
+
+			if err != io.EOF {
+				sp.sub.conf.Node.Log(NodeLogLevelError, err.Error())
 			}
 
 			t := time.NewTimer(5 * time.Second)
