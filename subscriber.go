@@ -3,7 +3,6 @@ package goroslib
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"reflect"
 	"sync"
 
@@ -130,12 +129,12 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		done:                make(chan struct{}),
 	}
 
+	s.conf.Node.Log(NodeLogLevelDebug, "subscriber '%s' created",
+		s.conf.Node.absoluteTopicName(s.conf.Topic))
+
 	cerr := make(chan error)
 	select {
-	case conf.Node.subscriberNew <- subscriberNewReq{
-		sub: s,
-		err: cerr,
-	}:
+	case conf.Node.subscriberNew <- subscriberNewReq{sub: s, res: cerr}:
 		err = <-cerr
 		if err != nil {
 			return nil, err
@@ -154,6 +153,9 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 func (s *Subscriber) Close() error {
 	s.ctxCancel()
 	<-s.done
+
+	s.conf.Node.Log(NodeLogLevelDebug, "subscriber '%s' destroyed",
+		s.conf.Node.absoluteTopicName(s.conf.Topic))
 	return nil
 }
 
@@ -181,24 +183,8 @@ outer:
 	for {
 		select {
 		case req := <-s.getBusInfo:
-			proto := func() string {
-				if s.conf.Protocol == UDP {
-					return "UDPROS"
-				}
-				return "TCPROS"
-			}()
-
-			for _, ps := range s.publishers {
-				ur := (&url.URL{
-					Scheme: "http",
-					Host:   ps.address,
-					Path:   "/",
-				}).String()
-				*req.pbusInfo = append(*req.pbusInfo,
-					[]interface{}{
-						0, ur, "i", proto,
-						s.conf.Node.absoluteTopicName(s.conf.Topic), true,
-					})
+			for _, sp := range s.publishers {
+				*req.pbusInfo = append(*req.pbusInfo, sp.busInfo())
 			}
 			close(req.done)
 

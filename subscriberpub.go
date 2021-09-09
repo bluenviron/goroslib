@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/url"
 	"reflect"
 	"strconv"
 	"time"
@@ -64,7 +65,10 @@ func (sp *subscriberPublisher) run() {
 			}
 
 			if err != io.EOF {
-				sp.sub.conf.Node.Log(NodeLogLevelError, err.Error())
+				sp.sub.conf.Node.Log(NodeLogLevelError,
+					"subscriber '%s' got an error: %s",
+					sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+					err.Error())
 			}
 
 			t := time.NewTimer(5 * time.Second)
@@ -252,7 +256,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	}
 
 	if outHeader.Md5sum != sp.sub.msgMd5 {
-		return fmt.Errorf("wrong md5")
+		return fmt.Errorf("wrong message checksum")
 	}
 
 	if sp.sub.conf.onPublisher != nil {
@@ -427,5 +431,29 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 
 			return errSubscriberPubTerminate
 		}
+	}
+}
+
+func (sp *subscriberPublisher) busInfo() []interface{} {
+	proto := func() string {
+		if sp.sub.conf.Protocol == UDP {
+			return "UDPROS"
+		}
+		return "TCPROS"
+	}()
+
+	ur := (&url.URL{
+		Scheme: "http",
+		Host:   sp.address,
+		Path:   "/",
+	}).String()
+
+	return []interface{}{
+		0,
+		ur,
+		"i",
+		proto,
+		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+		true,
 	}
 }

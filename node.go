@@ -109,17 +109,17 @@ type subscriberRequestTopicReq struct {
 
 type subscriberNewReq struct {
 	sub *Subscriber
-	err chan error
+	res chan error
 }
 
 type publisherNewReq struct {
 	pub *Publisher
-	err chan error
+	res chan error
 }
 
 type serviceProviderNewReq struct {
 	sp  *ServiceProvider
-	err chan error
+	res chan error
 }
 
 type simtimeSleep struct {
@@ -342,6 +342,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 		done:                   make(chan struct{}),
 	}
 
+	n.Log(NodeLogLevelDebug, "node '%s' created", n.absoluteName())
+
 	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName())
 
 	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
@@ -443,6 +445,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 func (n *Node) Close() error {
 	n.ctxCancel()
 	<-n.done
+	n.Log(NodeLogLevelDebug, "node '%s' destroyed", n.absoluteName())
 	return nil
 }
 
@@ -664,7 +667,7 @@ outer:
 		case req := <-n.subscriberNew:
 			_, ok := n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)]
 			if ok {
-				req.err <- fmt.Errorf("Topic %s already subscribed", req.sub.conf.Topic)
+				req.res <- fmt.Errorf("Topic %s already subscribed", req.sub.conf.Topic)
 				continue
 			}
 
@@ -673,12 +676,12 @@ outer:
 				req.sub.msgType,
 				n.apiSlaveServerURL)
 			if err != nil {
-				req.err <- err
+				req.res <- err
 				continue
 			}
 
 			n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)] = req.sub
-			req.err <- nil
+			req.res <- nil
 
 			// send initial publishers list to subscriber
 			select {
@@ -703,7 +706,7 @@ outer:
 		case req := <-n.publisherNew:
 			_, ok := n.publishers[n.absoluteTopicName(req.pub.conf.Topic)]
 			if ok {
-				req.err <- fmt.Errorf("Topic %s already published", req.pub.conf.Topic)
+				req.res <- fmt.Errorf("Topic %s already published", req.pub.conf.Topic)
 				continue
 			}
 
@@ -712,14 +715,14 @@ outer:
 				req.pub.msgType,
 				n.apiSlaveServerURL)
 			if err != nil {
-				req.err <- err
+				req.res <- err
 				continue
 			}
 
 			n.publisherLastID++
 			req.pub.id = n.publisherLastID
 			n.publishers[n.absoluteTopicName(req.pub.conf.Topic)] = req.pub
-			req.err <- nil
+			req.res <- nil
 
 		case pub := <-n.publisherClose:
 			delete(n.publishers, n.absoluteTopicName(pub.conf.Topic))
@@ -727,7 +730,7 @@ outer:
 		case req := <-n.serviceProviderNew:
 			_, ok := n.serviceProviders[n.absoluteTopicName(req.sp.conf.Name)]
 			if ok {
-				req.err <- fmt.Errorf("Service %s already provided", req.sp.conf.Name)
+				req.res <- fmt.Errorf("Service %s already provided", req.sp.conf.Name)
 				continue
 			}
 
@@ -736,12 +739,12 @@ outer:
 				n.tcprosServerURL,
 				n.apiSlaveServerURL)
 			if err != nil {
-				req.err <- err
+				req.res <- err
 				continue
 			}
 
 			n.serviceProviders[n.absoluteTopicName(req.sp.conf.Name)] = req.sp
-			req.err <- nil
+			req.res <- nil
 
 		case sp := <-n.serviceProviderClose:
 			delete(n.serviceProviders, n.absoluteTopicName(sp.conf.Name))

@@ -125,12 +125,11 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		done:          make(chan struct{}),
 	}
 
+	sp.conf.Node.Log(NodeLogLevelDebug, "service provider '%s' created", sp.conf.Node.absoluteTopicName(sp.conf.Name))
+
 	cerr := make(chan error)
 	select {
-	case conf.Node.serviceProviderNew <- serviceProviderNewReq{
-		sp:  sp,
-		err: cerr,
-	}:
+	case conf.Node.serviceProviderNew <- serviceProviderNewReq{sp: sp, res: cerr}:
 		err = <-cerr
 		if err != nil {
 			return nil, err
@@ -149,6 +148,8 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 func (sp *ServiceProvider) Close() error {
 	sp.ctxCancel()
 	<-sp.done
+
+	sp.conf.Node.Log(NodeLogLevelDebug, "service provider '%s' destroyed", sp.conf.Node.absoluteTopicName(sp.conf.Name))
 	return nil
 }
 

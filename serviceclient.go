@@ -55,11 +55,16 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, err
 	}
 
-	return &ServiceClient{
+	sc := &ServiceClient{
 		conf:   conf,
 		srvReq: srvReq,
 		srvRes: srvRes,
-	}, nil
+	}
+
+	sc.conf.Node.Log(NodeLogLevelDebug, "service client '%s' created",
+		sc.conf.Node.absoluteTopicName(conf.Name))
+
+	return sc, nil
 }
 
 // Close closes a ServiceClient and shuts down all its operations.
@@ -67,6 +72,9 @@ func (sc *ServiceClient) Close() error {
 	if sc.conn != nil {
 		sc.conn.Close()
 	}
+
+	sc.conf.Node.Log(NodeLogLevelDebug, "service client '%s' destroyed",
+		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	return nil
 }
 
@@ -191,7 +199,7 @@ func (sc *ServiceClient) createConn() error {
 
 	if outHeader.Md5sum != srvMD5 {
 		conn.Close()
-		return fmt.Errorf("wrong md5sum: expected %s, got %s",
+		return fmt.Errorf("wrong message checksum: expected %s, got %s",
 			srvMD5, outHeader.Md5sum)
 	}
 

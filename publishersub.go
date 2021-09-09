@@ -11,10 +11,10 @@ import (
 )
 
 type publisherSubscriber struct {
-	pub       *Publisher
-	callerID  string
-	tcpClient *prototcp.Conn
-	udpAddr   *net.UDPAddr
+	pub      *Publisher
+	callerID string
+	tcpConn  *prototcp.Conn
+	udpAddr  *net.UDPAddr
 
 	ctx          context.Context
 	ctxCancel    func()
@@ -24,14 +24,14 @@ type publisherSubscriber struct {
 func newPublisherSubscriber(
 	pub *Publisher,
 	callerID string,
-	tcpClient *prototcp.Conn,
+	tcpConn *prototcp.Conn,
 	udpAddr *net.UDPAddr) {
 	ctx, ctxCancel := context.WithCancel(pub.ctx)
 
 	ps := &publisherSubscriber{
 		pub:       pub,
 		callerID:  callerID,
-		tcpClient: tcpClient,
+		tcpConn:   tcpConn,
 		udpAddr:   udpAddr,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
@@ -51,7 +51,7 @@ func (ps *publisherSubscriber) close() {
 func (ps *publisherSubscriber) run() {
 	defer ps.pub.subscribersWg.Done()
 
-	if ps.tcpClient != nil {
+	if ps.tcpConn != nil {
 		ps.runTCP()
 	} else {
 		ps.runUDP()
@@ -69,7 +69,7 @@ func (ps *publisherSubscriber) runTCP() {
 
 		buf := make([]byte, 64)
 		for {
-			_, err := ps.tcpClient.NetConn().Read(buf)
+			_, err := ps.tcpConn.NetConn().Read(buf)
 			if err != nil {
 				return
 			}
@@ -78,7 +78,7 @@ func (ps *publisherSubscriber) runTCP() {
 
 	select {
 	case <-readerDone:
-		ps.tcpClient.Close()
+		ps.tcpConn.Close()
 
 		select {
 		case ps.pub.subscriberTCPClose <- ps:
@@ -88,7 +88,7 @@ func (ps *publisherSubscriber) runTCP() {
 		<-ps.ctx.Done()
 
 	case <-ps.ctx.Done():
-		ps.tcpClient.Close()
+		ps.tcpConn.Close()
 		<-readerDone
 	}
 }
@@ -102,8 +102,15 @@ func (ps *publisherSubscriber) runUDP() {
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {
-	if ps.tcpClient != nil {
-		ps.tcpClient.WriteMessage(msg)
+	if ps.tcpConn != nil {
+		err := ps.tcpConn.WriteMessage(msg)
+		if err != nil {
+			ps.pub.conf.Node.Log(NodeLogLevelError,
+				"publisher '%s' is unable to write a TCP message to client '%s': %s",
+				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+				ps.tcpConn.NetConn().RemoteAddr(),
+				err)
+		}
 	} else {
 		ps.curMessageID++
 
@@ -120,7 +127,32 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 			byts)
 
 		for _, f := range frames {
-			ps.pub.conf.Node.udprosServer.WriteFrame(f, ps.udpAddr)
+			err := ps.pub.conf.Node.udprosServer.WriteFrame(f, ps.udpAddr)
+			if err != nil {
+				ps.pub.conf.Node.Log(NodeLogLevelError,
+					"publisher '%s' is unable to write a UDP frame to client '%s': %s",
+					ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+					ps.udpAddr,
+					err)
+			}
 		}
+	}
+}
+
+func (ps *publisherSubscriber) busInfo() []interface{} {
+	proto := func() string {
+		if ps.tcpConn != nil {
+			return "TCPROS"
+		}
+		return "UDPROS"
+	}()
+
+	return []interface{}{
+		0,
+		ps.callerID,
+		"o",
+		proto,
+		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+		true,
 	}
 }

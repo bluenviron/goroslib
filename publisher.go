@@ -109,12 +109,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		done:               make(chan struct{}),
 	}
 
+	p.conf.Node.Log(NodeLogLevelDebug, "publisher '%s' created",
+		p.conf.Node.absoluteTopicName(p.conf.Topic))
+
 	cerr := make(chan error)
 	select {
-	case conf.Node.publisherNew <- publisherNewReq{
-		pub: p,
-		err: cerr,
-	}:
+	case conf.Node.publisherNew <- publisherNewReq{pub: p, res: cerr}:
 		err = <-cerr
 		if err != nil {
 			return nil, err
@@ -133,6 +133,9 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 func (p *Publisher) Close() error {
 	p.ctxCancel()
 	<-p.done
+
+	p.conf.Node.Log(NodeLogLevelDebug, "publisher '%s' destroyed",
+		p.conf.Node.absoluteTopicName(p.conf.Topic))
 	return nil
 }
 
@@ -144,17 +147,7 @@ outer:
 		select {
 		case req := <-p.getBusInfo:
 			for _, ps := range p.subscribers {
-				proto := func() string {
-					if ps.tcpClient != nil {
-						return "TCPROS"
-					}
-					return "UDPROS"
-				}()
-				*req.pbusInfo = append(*req.pbusInfo,
-					[]interface{}{
-						0, ps.callerID, "o", proto,
-						p.conf.Node.absoluteTopicName(p.conf.Topic), true,
-					})
+				*req.pbusInfo = append(*req.pbusInfo, ps.busInfo())
 			}
 			close(req.done)
 
@@ -237,7 +230,7 @@ outer:
 					}
 
 					if header.Md5sum != p.msgMd5 {
-						return fmt.Errorf("wrong md5: expected '%s', got '%s'",
+						return fmt.Errorf("wrong message checksum, expected '%s', got '%s'",
 							p.msgMd5, header.Md5sum)
 					}
 
@@ -330,7 +323,7 @@ outer:
 
 				// wildcard is used by rostopic hz
 				if req.header.Md5sum != "*" && req.header.Md5sum != p.msgMd5 {
-					return fmt.Errorf("wrong md5: expected '%s', got '%s'",
+					return fmt.Errorf("wrong message checksum, expected '%s', got '%s'",
 						p.msgMd5, req.header.Md5sum)
 				}
 
@@ -365,6 +358,12 @@ outer:
 				return nil
 			}()
 			if err != nil {
+				p.conf.Node.Log(NodeLogLevelError,
+					"publisher '%s' is unable to accept subscriber '%s': %s",
+					p.conf.Node.absoluteTopicName(p.conf.Topic),
+					req.conn.NetConn().RemoteAddr(),
+					err)
+
 				req.conn.WriteHeader(&prototcp.HeaderError{
 					Error: err.Error(),
 				})
