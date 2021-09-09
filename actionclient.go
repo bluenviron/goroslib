@@ -58,12 +58,18 @@ type ActionClientTerminalState int
 
 // standard goal terminal states.
 const (
-	ActionClientTerminalStateRecalled  ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_RECALLED)
-	ActionClientTerminalStateRejected  ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_REJECTED)
-	ActionClientTerminalStatePreempted ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_PREEMPTED)
-	ActionClientTerminalStateAborted   ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_ABORTED)
-	ActionClientTerminalStateSucceeded ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_SUCCEEDED)
-	ActionClientTerminalStateLost      ActionClientTerminalState = ActionClientTerminalState(actionlib_msgs.GoalStatus_LOST)
+	ActionClientTerminalStateRecalled ActionClientTerminalState = ActionClientTerminalState(
+		actionlib_msgs.GoalStatus_RECALLED)
+	ActionClientTerminalStateRejected ActionClientTerminalState = ActionClientTerminalState(
+		actionlib_msgs.GoalStatus_REJECTED)
+	ActionClientTerminalStatePreempted ActionClientTerminalState = ActionClientTerminalState(
+		actionlib_msgs.GoalStatus_PREEMPTED)
+	ActionClientTerminalStateAborted ActionClientTerminalState = ActionClientTerminalState(
+		actionlib_msgs.GoalStatus_ABORTED)
+	ActionClientTerminalStateSucceeded ActionClientTerminalState = ActionClientTerminalState(
+		actionlib_msgs.GoalStatus_SUCCEEDED)
+	ActionClientTerminalStateLost ActionClientTerminalState = ActionClientTerminalState(
+		actionlib_msgs.GoalStatus_LOST)
 )
 
 // String implements fmt.Stringer.
@@ -652,7 +658,8 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 	goalID := actionlib_msgs.GoalID{
 		Stamp: now,
 		Id: func() string {
-			// https://github.com/ros/actionlib/blob/c3b2bd84f07ff54c36033c92861d3b63b7420590/actionlib/src/actionlib/goal_id_generator.py#L62
+			// https://github.com/ros/actionlib/blob/c3b2bd84f07ff54c36033c92861d3b63b7420590
+			// /actionlib/src/actionlib/goal_id_generator.py#L62
 			ss := ac.conf.Node.absoluteName() + "-"
 			ac.goalCount++
 			ss += strconv.FormatInt(int64(ac.goalCount), 10) + "-"

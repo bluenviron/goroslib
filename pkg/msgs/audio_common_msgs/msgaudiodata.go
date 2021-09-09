@@ -1,4 +1,4 @@
-//nolint:golint
+//nolint:golint,lll
 package audio_common_msgs
 
 import (

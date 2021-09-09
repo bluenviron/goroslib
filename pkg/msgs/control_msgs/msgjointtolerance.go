@@ -1,4 +1,4 @@
-//nolint:golint
+//nolint:golint,lll
 package control_msgs
 
 import (

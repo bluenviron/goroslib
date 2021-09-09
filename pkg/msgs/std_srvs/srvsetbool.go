@@ -1,4 +1,4 @@
-//nolint:golint
+//nolint:golint,lll
 package std_srvs
 
 import (

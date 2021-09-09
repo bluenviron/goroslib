@@ -1,4 +1,4 @@
-//nolint:golint
+//nolint:golint,lll
 package mavros_msgs
 
 import (
@@ -11,5 +11,5 @@ type ESCInfoItem struct {
 	Header       std_msgs.Header
 	FailureFlags uint16
 	ErrorCount   uint32
-	Temperature  uint8
+	Temperature  int32
 }

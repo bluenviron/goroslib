@@ -1,4 +1,4 @@
-//nolint:golint
+//nolint:golint,lll
 package tf2_msgs
 
 import (

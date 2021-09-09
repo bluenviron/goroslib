@@ -1,4 +1,4 @@
-//nolint:golint
+//nolint:golint,lll
 package mavros_msgs
 
 import (
@@ -13,5 +13,5 @@ const (
 type OverrideRCIn struct {
 	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint16 CHAN_RELEASE=0,uint16 CHAN_NOCHANGE=65535"`
-	Channels        [8]uint16
+	Channels        [18]uint16
 }
