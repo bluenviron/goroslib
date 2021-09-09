@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/pkg/msgs/sensor_msgs"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
@@ -192,12 +191,9 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	require.NoError(t, err)
 	defer n.Close()
 
-	// a publisher/subscriber is needed for the node to be listed
-	// standard nodes creates some default publishers, subscribers and
-	// services during initialization, while goroslib does not do this yet
 	pub, err := NewPublisher(PublisherConf{
 		Node:  n,
-		Topic: "test_topic",
+		Topic: "test_pub",
 		Msg:   &std_msgs.Float64{},
 	})
 	require.NoError(t, err)
@@ -205,8 +201,8 @@ func TestNodeRosnodeInfo(t *testing.T) {
 
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:     n,
-		Topic:    "test_topic",
-		Callback: func(msg *sensor_msgs.Imu) {},
+		Topic:    "test_sub",
+		Callback: func(msg *std_msgs.Int32) {},
 	})
 	require.NoError(t, err)
 	defer sub.Close()
@@ -229,11 +225,11 @@ func TestNodeRosnodeInfo(t *testing.T) {
 		"^--------------------------------------------------------------------------------\n"+
 			"Node \\[/myns/goroslib\\]\n"+
 			"Publications: \n"+
-			" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
+			" \\* /myns/test_pub \\[std_msgs/Float64\\]\n"+
 			" \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
 			"\n"+
 			"Subscriptions: \n"+
-			" \\* /myns/test_topic \\[std_msgs/Float64\\]\n"+
+			" \\* /myns/test_sub \\[unknown type\\]\n"+
 			"\n"+
 			"Services: \n"+
 			" \\* /myns/test_srv\n"+
@@ -245,10 +241,6 @@ func TestNodeRosnodeInfo(t *testing.T) {
 			" \\* topic: /rosout\n"+
 			"    \\* to: /rosout\n"+
 			"    \\* direction: outbound\n"+
-			"    \\* transport: TCPROS\n"+
-			" \\* topic: /myns/test_topic\n"+
-			"    \\* to: http://.+?/\n"+
-			"    \\* direction: inbound\n"+
 			"    \\* transport: TCPROS\n"+
 			"\n$"), rt.waitOutput())
 }
