@@ -105,7 +105,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 	if ps.tcpConn != nil {
 		err := ps.tcpConn.WriteMessage(msg)
 		if err != nil {
-			ps.pub.conf.Node.Log(NodeLogLevelError,
+			ps.pub.conf.Node.Log(LogLevelError,
 				"publisher '%s' is unable to write a TCP message to client '%s': %s",
 				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
 				ps.tcpConn.NetConn().RemoteAddr(),
@@ -129,7 +129,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 		for _, f := range frames {
 			err := ps.pub.conf.Node.udprosServer.WriteFrame(f, ps.udpAddr)
 			if err != nil {
-				ps.pub.conf.Node.Log(NodeLogLevelError,
+				ps.pub.conf.Node.Log(LogLevelError,
 					"publisher '%s' is unable to write a UDP frame to client '%s': %s",
 					ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
 					ps.udpAddr,

@@ -109,7 +109,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		done:               make(chan struct{}),
 	}
 
-	p.conf.Node.Log(NodeLogLevelDebug, "publisher '%s' created",
+	p.conf.Node.Log(LogLevelDebug, "publisher '%s' created",
 		p.conf.Node.absoluteTopicName(p.conf.Topic))
 
 	cerr := make(chan error)
@@ -134,7 +134,7 @@ func (p *Publisher) Close() error {
 	p.ctxCancel()
 	<-p.done
 
-	p.conf.Node.Log(NodeLogLevelDebug, "publisher '%s' destroyed",
+	p.conf.Node.Log(LogLevelDebug, "publisher '%s' destroyed",
 		p.conf.Node.absoluteTopicName(p.conf.Topic))
 	return nil
 }
@@ -358,7 +358,7 @@ outer:
 				return nil
 			}()
 			if err != nil {
-				p.conf.Node.Log(NodeLogLevelError,
+				p.conf.Node.Log(LogLevelError,
 					"publisher '%s' is unable to accept subscriber '%s': %s",
 					p.conf.Node.absoluteTopicName(p.conf.Topic),
 					req.conn.NetConn().RemoteAddr(),

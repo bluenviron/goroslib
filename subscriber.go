@@ -129,7 +129,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		done:                make(chan struct{}),
 	}
 
-	s.conf.Node.Log(NodeLogLevelDebug, "subscriber '%s' created",
+	s.conf.Node.Log(LogLevelDebug, "subscriber '%s' created",
 		s.conf.Node.absoluteTopicName(s.conf.Topic))
 
 	cerr := make(chan error)
@@ -154,7 +154,7 @@ func (s *Subscriber) Close() error {
 	s.ctxCancel()
 	<-s.done
 
-	s.conf.Node.Log(NodeLogLevelDebug, "subscriber '%s' destroyed",
+	s.conf.Node.Log(LogLevelDebug, "subscriber '%s' destroyed",
 		s.conf.Node.absoluteTopicName(s.conf.Topic))
 	return nil
 }

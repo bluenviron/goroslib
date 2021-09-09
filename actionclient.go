@@ -451,7 +451,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		cancelPubOk:    make(chan struct{}),
 	}
 
-	ac.conf.Node.Log(NodeLogLevelDebug, "action client '%s' created",
+	ac.conf.Node.Log(LogLevelDebug, "action client '%s' created",
 		ac.conf.Node.absoluteTopicName(ac.conf.Name))
 
 	ac.statusSub, err = NewSubscriber(SubscriberConf{
@@ -559,7 +559,7 @@ func (ac *ActionClient) Close() error {
 	ac.feedbackSub.Close()
 	ac.statusSub.Close()
 
-	ac.conf.Node.Log(NodeLogLevelDebug, "action client '%s' destroyed",
+	ac.conf.Node.Log(LogLevelDebug, "action client '%s' destroyed",
 		ac.conf.Node.absoluteTopicName(ac.conf.Name))
 	return nil
 }

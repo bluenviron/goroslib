@@ -65,7 +65,7 @@ func (sp *subscriberPublisher) run() {
 			}
 
 			if err != io.EOF {
-				sp.sub.conf.Node.Log(NodeLogLevelError,
+				sp.sub.conf.Node.Log(LogLevelError,
 					"subscriber '%s' got an error: %s",
 					sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
 					err.Error())

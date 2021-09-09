@@ -296,7 +296,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		done:           make(chan struct{}),
 	}
 
-	as.conf.Node.Log(NodeLogLevelDebug, "action server '%s' created", conf.Name)
+	as.conf.Node.Log(LogLevelDebug, "action server '%s' created", conf.Name)
 
 	if conf.OnGoal != nil {
 		cbt := reflect.TypeOf(conf.OnGoal)
@@ -387,7 +387,7 @@ func (as *ActionServer) Close() error {
 	as.ctxCancel()
 	<-as.done
 
-	as.conf.Node.Log(NodeLogLevelDebug, "action server '%s' destroyed", as.conf.Name)
+	as.conf.Node.Log(LogLevelDebug, "action server '%s' destroyed", as.conf.Name)
 	return nil
 }
 

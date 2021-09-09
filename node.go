@@ -127,16 +127,26 @@ type simtimeSleep struct {
 	done  chan struct{}
 }
 
-// NodeLogLevel is a standard ROS log level.
-type NodeLogLevel int
+// LogLevel is the level of a log message.
+type LogLevel int
 
-// standard ROS log levels (http://wiki.ros.org/roscpp/Overview/Logging)
+// standard log levels (http://wiki.ros.org/roscpp/Overview/Logging)
 const (
-	NodeLogLevelDebug NodeLogLevel = iota + 1
-	NodeLogLevelInfo
-	NodeLogLevelWarn
-	NodeLogLevelError
-	NodeLogLevelFatal
+	LogLevelDebug LogLevel = iota + 1
+	LogLevelInfo
+	LogLevelWarn
+	LogLevelError
+	LogLevelFatal
+)
+
+// LogDestination is the destination of a log message.
+type LogDestination int
+
+// available destinations.
+const (
+	LogDestinationConsole  LogDestination = 0x01
+	LogDestinationRosout   LogDestination = 0x02
+	LogDestinationCallback LogDestination = 0x04
 )
 
 // NodeConf is the configuration of a Node.
@@ -171,8 +181,16 @@ type NodeConf struct {
 
 	// (optional) minimum severity level of log messages that will be
 	// written to stdout/stderr or sent to /rosout.
-	// It defaults to NodeLogLevelInfo.
-	Verbosity NodeLogLevel
+	// It defaults to LogLevelInfo.
+	LogVerbosity LogLevel
+
+	// (optional) destinations of log messages.
+	// It defaults to LogDestinationConsole | LogDestinationRosout | LogDestinationCallback
+	LogDestinations LogDestination
+
+	// (optional) a function that will be called for every log message.
+	// It defaults to nil.
+	OnLog func(LogLevel, string)
 }
 
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers
@@ -254,8 +272,11 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.MasterAddress = "127.0.0.1:11311"
 	}
 
-	if conf.Verbosity == 0 {
-		conf.Verbosity = NodeLogLevelInfo
+	if conf.LogVerbosity == 0 {
+		conf.LogVerbosity = LogLevelInfo
+	}
+	if conf.LogDestinations == 0 {
+		conf.LogDestinations = LogDestinationConsole | LogDestinationCallback | LogDestinationRosout
 	}
 
 	// support ROS-style master address, in order to increase interoperability
@@ -342,7 +363,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		done:                   make(chan struct{}),
 	}
 
-	n.Log(NodeLogLevelDebug, "node '%s' created", n.absoluteName())
+	n.Log(LogLevelDebug, "node '%s' created", n.absoluteName())
 
 	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName())
 
@@ -445,7 +466,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 func (n *Node) Close() error {
 	n.ctxCancel()
 	<-n.done
-	n.Log(NodeLogLevelDebug, "node '%s' destroyed", n.absoluteName())
+	n.Log(LogLevelDebug, "node '%s' destroyed", n.absoluteName())
 	return nil
 }
 
@@ -453,63 +474,67 @@ func (n *Node) Close() error {
 // This is implemented like the reference C++ implementation,
 // except for the log file.
 // (http://wiki.ros.org/roscpp/Overview/Logging)
-func (n *Node) Log(level NodeLogLevel, format string, args ...interface{}) {
-	if level < n.conf.Verbosity {
+func (n *Node) Log(level LogLevel, format string, args ...interface{}) {
+	if level < n.conf.LogVerbosity {
 		return
 	}
 
 	msg := fmt.Sprintf(format, args...)
 	now := time.Now()
 
-	// print to stdout / stderr
-	func() {
+	if (n.conf.LogDestinations & LogDestinationConsole) != 0 {
 		formatted := msg
 
 		switch level {
-		case NodeLogLevelDebug:
+		case LogLevelDebug:
 			formatted = "[DEBUG] " + formatted
-		case NodeLogLevelInfo:
+		case LogLevelInfo:
 			formatted = "[INFO] " + formatted
-		case NodeLogLevelWarn:
+		case LogLevelWarn:
 			formatted = "[WARN] " + formatted
-		case NodeLogLevelError:
+		case LogLevelError:
 			formatted = "[ERROR] " + formatted
-		case NodeLogLevelFatal:
+		case LogLevelFatal:
 			formatted = "[FATAL] " + formatted
 		}
 
 		formatted = now.Format("[2006/01/02 15:04:05]") + " " + formatted
 
 		switch level {
-		case NodeLogLevelDebug, NodeLogLevelInfo:
+		case LogLevelDebug, LogLevelInfo:
 			os.Stdout.WriteString(formatted)
 
-		case NodeLogLevelWarn, NodeLogLevelError, NodeLogLevelFatal:
+		case LogLevelWarn, LogLevelError, LogLevelFatal:
 			os.Stderr.WriteString(color.RenderString(color.Red.Code(), formatted) + "\n")
 		}
-	}()
+	}
 
-	// print to /rosout
-	n.rosoutPublisher.Write(&rosgraph_msgs.Log{
-		Header: std_msgs.Header{
-			Stamp: now,
-		},
-		Level: func() int8 {
-			switch level {
-			case NodeLogLevelDebug:
-				return rosgraph_msgs.Log_DEBUG
-			case NodeLogLevelInfo:
-				return rosgraph_msgs.Log_INFO
-			case NodeLogLevelWarn:
-				return rosgraph_msgs.Log_WARN
-			case NodeLogLevelError:
-				return rosgraph_msgs.Log_ERROR
-			}
-			return rosgraph_msgs.Log_FATAL
-		}(),
-		Name: n.absoluteName(),
-		Msg:  msg,
-	})
+	if (n.conf.LogDestinations & LogDestinationRosout) != 0 {
+		n.rosoutPublisher.Write(&rosgraph_msgs.Log{
+			Header: std_msgs.Header{
+				Stamp: now,
+			},
+			Level: func() int8 {
+				switch level {
+				case LogLevelDebug:
+					return rosgraph_msgs.Log_DEBUG
+				case LogLevelInfo:
+					return rosgraph_msgs.Log_INFO
+				case LogLevelWarn:
+					return rosgraph_msgs.Log_WARN
+				case LogLevelError:
+					return rosgraph_msgs.Log_ERROR
+				}
+				return rosgraph_msgs.Log_FATAL
+			}(),
+			Name: n.absoluteName(),
+			Msg:  msg,
+		})
+	}
+
+	if (n.conf.LogDestinations&LogDestinationCallback) != 0 && n.conf.OnLog != nil {
+		n.conf.OnLog(level, msg)
+	}
 }
 
 func (n *Node) absoluteTopicName(topic string) string {

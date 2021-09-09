@@ -61,7 +61,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		srvRes: srvRes,
 	}
 
-	sc.conf.Node.Log(NodeLogLevelDebug, "service client '%s' created",
+	sc.conf.Node.Log(LogLevelDebug, "service client '%s' created",
 		sc.conf.Node.absoluteTopicName(conf.Name))
 
 	return sc, nil
@@ -73,7 +73,7 @@ func (sc *ServiceClient) Close() error {
 		sc.conn.Close()
 	}
 
-	sc.conf.Node.Log(NodeLogLevelDebug, "service client '%s' destroyed",
+	sc.conf.Node.Log(LogLevelDebug, "service client '%s' destroyed",
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	return nil
 }
