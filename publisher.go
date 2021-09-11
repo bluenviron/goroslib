@@ -50,11 +50,11 @@ type Publisher struct {
 	id            int
 
 	// in
-	getBusInfo         chan getBusInfoSubReq
-	requestTopic       chan subscriberRequestTopicReq
-	subscriberTCPNew   chan tcpConnSubscriberReq
-	subscriberTCPClose chan *publisherSubscriber
-	write              chan interface{}
+	getBusInfo       chan getBusInfoSubReq
+	requestTopic     chan subscriberRequestTopicReq
+	subscriberTCPNew chan tcpConnSubscriberReq
+	subscriberClose  chan *publisherSubscriber
+	write            chan interface{}
 
 	// out
 	done chan struct{}
@@ -95,18 +95,18 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
 
 	p := &Publisher{
-		conf:               conf,
-		ctx:                ctx,
-		ctxCancel:          ctxCancel,
-		msgType:            msgType,
-		msgMd5:             msgMd5,
-		subscribers:        make(map[string]*publisherSubscriber),
-		getBusInfo:         make(chan getBusInfoSubReq),
-		requestTopic:       make(chan subscriberRequestTopicReq),
-		subscriberTCPNew:   make(chan tcpConnSubscriberReq),
-		subscriberTCPClose: make(chan *publisherSubscriber),
-		write:              make(chan interface{}),
-		done:               make(chan struct{}),
+		conf:             conf,
+		ctx:              ctx,
+		ctxCancel:        ctxCancel,
+		msgType:          msgType,
+		msgMd5:           msgMd5,
+		subscribers:      make(map[string]*publisherSubscriber),
+		getBusInfo:       make(chan getBusInfoSubReq),
+		requestTopic:     make(chan subscriberRequestTopicReq),
+		subscriberTCPNew: make(chan tcpConnSubscriberReq),
+		subscriberClose:  make(chan *publisherSubscriber),
+		write:            make(chan interface{}),
+		done:             make(chan struct{}),
 	}
 
 	p.conf.Node.Log(LogLevelDebug, "publisher '%s' created",
@@ -269,8 +269,9 @@ outer:
 						udpAddr.IP = net.IPv4(127, 0, 0, 1)
 					}
 
-					newPublisherSubscriber(p,
+					ps := newPublisherSubscriber(p,
 						header.Callerid, nil, udpAddr)
+					p.subscribers[header.Callerid] = ps
 
 					req.res <- apislave.ResponseRequestTopic{
 						Code:          1,
@@ -348,18 +349,19 @@ outer:
 					req.conn.NetConn().(*net.TCPConn).SetNoDelay(false)
 				}
 
-				newPublisherSubscriber(p,
+				ps := newPublisherSubscriber(p,
 					req.header.Callerid, req.conn, nil)
+				p.subscribers[req.header.Callerid] = ps
 
 				if p.conf.Latch && p.lastMessage != nil {
-					p.subscribers[req.header.Callerid].writeMessage(p.lastMessage)
+					ps.writeMessage(p.lastMessage)
 				}
 
 				return nil
 			}()
 			if err != nil {
 				p.conf.Node.Log(LogLevelError,
-					"publisher '%s' is unable to accept subscriber '%s': %s",
+					"publisher '%s' is unable to accept TCP subscriber '%s': %s",
 					p.conf.Node.absoluteTopicName(p.conf.Topic),
 					req.conn.NetConn().RemoteAddr(),
 					err)
@@ -371,8 +373,8 @@ outer:
 				continue
 			}
 
-		case sub := <-p.subscriberTCPClose:
-			sub.close()
+		case ps := <-p.subscriberClose:
+			delete(p.subscribers, ps.callerID)
 
 		case msg := <-p.write:
 			if p.conf.Latch {

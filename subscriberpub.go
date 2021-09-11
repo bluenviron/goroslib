@@ -3,7 +3,6 @@ package goroslib
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -18,7 +17,9 @@ import (
 	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
-var errSubscriberPubTerminate = errors.New("subscriberPublisher terminated")
+const (
+	subscriberPubRestartPause = 5 * time.Second
+)
 
 type subscriberPublisher struct {
 	sub     *Subscriber
@@ -33,7 +34,10 @@ type subscriberPublisher struct {
 	udpFrame chan *protoudp.Frame
 }
 
-func newSubscriberPublisher(sub *Subscriber, address string) {
+func newSubscriberPublisher(
+	sub *Subscriber,
+	address string,
+) *subscriberPublisher {
 	ctx, ctxCancel := context.WithCancel(sub.ctx)
 
 	sp := &subscriberPublisher{
@@ -43,47 +47,38 @@ func newSubscriberPublisher(sub *Subscriber, address string) {
 		ctxCancel: ctxCancel,
 	}
 
-	sub.publishers[address] = sp
-
 	sub.publishersWg.Add(1)
 	go sp.run()
+
+	return sp
 }
 
 func (sp *subscriberPublisher) close() {
-	delete(sp.sub.publishers, sp.address)
 	sp.ctxCancel()
 }
 
 func (sp *subscriberPublisher) run() {
 	defer sp.sub.publishersWg.Done()
 
+outer:
 	for {
-		ok := func() bool {
-			err := sp.runInner()
-			if err == errSubscriberPubTerminate {
-				return false
-			}
+		err := sp.runInner()
+		if err == nil { // terminated
+			break outer
+		}
 
-			if err != io.EOF {
-				sp.sub.conf.Node.Log(LogLevelError,
-					"subscriber '%s' got an error: %s",
-					sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
-					err.Error())
-			}
+		if err != io.EOF {
+			sp.sub.conf.Node.Log(LogLevelError,
+				"subscriber '%s' got an error: %s",
+				sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+				err.Error())
+		}
 
-			t := time.NewTimer(5 * time.Second)
-			defer t.Stop()
+		select {
+		case <-time.After(subscriberPubRestartPause):
 
-			select {
-			case <-t.C:
-				return true
-
-			case <-sp.ctx.Done():
-				return false
-			}
-		}()
-		if !ok {
-			break
+		case <-sp.ctx.Done():
+			break outer
 		}
 	}
 
@@ -91,6 +86,10 @@ func (sp *subscriberPublisher) run() {
 }
 
 func (sp *subscriberPublisher) runInner() error {
+	sp.sub.conf.Node.Log(LogLevelDebug, "subscriber '%s' is connecting to publisher '%s'",
+		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+		sp.address)
+
 	xcs := apislave.NewClient(sp.address, sp.sub.conf.Node.absoluteName())
 
 	subDone := make(chan struct{}, 1)
@@ -130,7 +129,7 @@ func (sp *subscriberPublisher) runInner() error {
 	case <-subDone:
 	case <-sp.ctx.Done():
 		<-subDone
-		return errSubscriberPubTerminate
+		return nil
 	}
 
 	if err != nil {
@@ -180,7 +179,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	select {
 	case <-subDone:
 	case <-sp.ctx.Done():
-		return errSubscriberPubTerminate
+		return nil
 	}
 
 	if err != nil {
@@ -241,7 +240,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	case <-sp.ctx.Done():
 		conn.Close()
 		<-subDone
-		return errSubscriberPubTerminate
+		return nil
 	}
 
 	if err != nil {
@@ -295,7 +294,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	case <-sp.ctx.Done():
 		conn.Close()
 		<-subDone
-		return errSubscriberPubTerminate
+		return nil
 	}
 }
 
@@ -429,7 +428,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 				<-readerDone
 			}
 
-			return errSubscriberPubTerminate
+			return nil
 		}
 	}
 }

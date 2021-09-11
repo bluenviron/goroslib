@@ -192,10 +192,11 @@ outer:
 				continue
 			}
 
-			newServiceProviderClient(sp, req.header.Callerid, req.conn)
+			spc := newServiceProviderClient(sp, req.header.Callerid, req.conn)
+			sp.clients[req.header.Callerid] = spc
 
 		case spc := <-sp.clientClose:
-			spc.close()
+			delete(sp.clients, spc.callerID)
 
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})

@@ -25,7 +25,8 @@ func newPublisherSubscriber(
 	pub *Publisher,
 	callerID string,
 	tcpConn *prototcp.Conn,
-	udpAddr *net.UDPAddr) {
+	udpAddr *net.UDPAddr,
+) *publisherSubscriber {
 	ctx, ctxCancel := context.WithCancel(pub.ctx)
 
 	ps := &publisherSubscriber{
@@ -37,32 +38,34 @@ func newPublisherSubscriber(
 		ctxCancel: ctxCancel,
 	}
 
-	pub.subscribers[callerID] = ps
-
 	pub.subscribersWg.Add(1)
 	go ps.run()
-}
 
-func (ps *publisherSubscriber) close() {
-	delete(ps.pub.subscribers, ps.callerID)
-	ps.ctxCancel()
+	return ps
 }
 
 func (ps *publisherSubscriber) run() {
 	defer ps.pub.subscribersWg.Done()
+
+	if ps.pub.conf.onSubscriber != nil {
+		ps.pub.conf.onSubscriber()
+	}
 
 	if ps.tcpConn != nil {
 		ps.runTCP()
 	} else {
 		ps.runUDP()
 	}
+
+	ps.ctxCancel()
+
+	select {
+	case ps.pub.subscriberClose <- ps:
+	case <-ps.pub.ctx.Done():
+	}
 }
 
 func (ps *publisherSubscriber) runTCP() {
-	if ps.pub.conf.onSubscriber != nil {
-		ps.pub.conf.onSubscriber()
-	}
-
 	readerDone := make(chan struct{})
 	go func() {
 		defer close(readerDone)
@@ -80,13 +83,6 @@ func (ps *publisherSubscriber) runTCP() {
 	case <-readerDone:
 		ps.tcpConn.Close()
 
-		select {
-		case ps.pub.subscriberTCPClose <- ps:
-		case <-ps.pub.ctx.Done():
-		}
-
-		<-ps.ctx.Done()
-
 	case <-ps.ctx.Done():
 		ps.tcpConn.Close()
 		<-readerDone
@@ -94,10 +90,6 @@ func (ps *publisherSubscriber) runTCP() {
 }
 
 func (ps *publisherSubscriber) runUDP() {
-	if ps.pub.conf.onSubscriber != nil {
-		ps.pub.conf.onSubscriber()
-	}
-
 	<-ps.ctx.Done()
 }
 

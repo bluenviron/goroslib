@@ -205,14 +205,16 @@ outer:
 				validPublishers[addr] = struct{}{}
 
 				if _, ok := s.publishers[addr]; !ok {
-					newSubscriberPublisher(s, addr)
+					sp := newSubscriberPublisher(s, addr)
+					s.publishers[addr] = sp
 				}
 			}
 
 			// remove outdated publishers
-			for addr, pub := range s.publishers {
+			for addr, sp := range s.publishers {
 				if _, ok := validPublishers[addr]; !ok {
-					pub.close()
+					delete(s.publishers, sp.address)
+					sp.close()
 				}
 			}
 

@@ -21,7 +21,7 @@ func newServiceProviderClient(
 	sp *ServiceProvider,
 	callerID string,
 	conn *prototcp.Conn,
-) {
+) *serviceProviderClient {
 	ctx, ctxCancel := context.WithCancel(sp.ctx)
 
 	spc := &serviceProviderClient{
@@ -32,15 +32,10 @@ func newServiceProviderClient(
 		ctxCancel: ctxCancel,
 	}
 
-	sp.clients[callerID] = spc
-
 	sp.clientsWg.Add(1)
 	go spc.run()
-}
 
-func (spc *serviceProviderClient) close() {
-	delete(spc.sp.clients, spc.callerID)
-	spc.ctxCancel()
+	return spc
 }
 
 func (spc *serviceProviderClient) run() {
