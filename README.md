@@ -61,9 +61,7 @@ Features:
    * [serviceclient](examples/serviceclient/main.go)
    * [serviceprovider](examples/serviceprovider/main.go)
    * [simpleactionclient](examples/simpleactionclient/main.go)
-   * [simpleactionclient-custom](examples/simpleactionclient-custom/main.go)
    * [simpleactionserver](examples/simpleactionserver/main.go)
-   * [simpleactionserver-custom](examples/simpleactionserver-custom/main.go)
    * [param-set-get](examples/param-set-get/main.go)
    * [cluster-info](examples/cluster-info/main.go)
 
