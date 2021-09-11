@@ -17,7 +17,11 @@ type serviceProviderClient struct {
 	ctxCancel func()
 }
 
-func newServiceProviderClient(sp *ServiceProvider, callerID string, conn *prototcp.Conn) {
+func newServiceProviderClient(
+	sp *ServiceProvider,
+	callerID string,
+	conn *prototcp.Conn,
+) {
 	ctx, ctxCancel := context.WithCancel(sp.ctx)
 
 	spc := &serviceProviderClient{
@@ -54,8 +58,8 @@ func (spc *serviceProviderClient) run() {
 
 				select {
 				case spc.sp.clientRequest <- serviceProviderClientRequestReq{
-					callerID: spc.callerID,
-					req:      req,
+					spc: spc,
+					req: req,
 				}:
 				case <-spc.sp.ctx.Done():
 					return fmt.Errorf("terminated")

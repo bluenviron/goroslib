@@ -11,8 +11,8 @@ import (
 )
 
 type serviceProviderClientRequestReq struct {
-	callerID string
-	req      interface{}
+	spc *serviceProviderClient
+	req interface{}
 }
 
 // ServiceProviderConf is the configuration of a ServiceProvider.
@@ -162,25 +162,32 @@ outer:
 	for {
 		select {
 		case req := <-sp.clientNew:
-			_, ok := sp.clients[req.header.Callerid]
-			if ok {
-				req.conn.Close()
-				continue
-			}
+			err := func() error {
+				_, ok := sp.clients[req.header.Callerid]
+				if ok {
+					return fmt.Errorf("a client with id '%s' is already connected to the provider",
+						req.header.Callerid)
+				}
 
-			if req.header.Md5sum != "*" && req.header.Md5sum != sp.srvMD5 {
-				req.conn.Close()
-				continue
-			}
+				if req.header.Md5sum != "*" && req.header.Md5sum != sp.srvMD5 {
+					return fmt.Errorf("wrong service checksum: expected %s, got %s",
+						sp.srvMD5, req.header.Md5sum)
+				}
 
-			err := req.conn.WriteHeader(&prototcp.HeaderServiceProvider{
-				Callerid:     sp.conf.Node.absoluteName(),
-				Md5sum:       sp.srvMD5,
-				RequestType:  sp.srvType + "Request",
-				ResponseType: sp.srvType + "Response",
-				Type:         sp.srvType,
-			})
+				return req.conn.WriteHeader(&prototcp.HeaderServiceProvider{
+					Callerid:     sp.conf.Node.absoluteName(),
+					Md5sum:       sp.srvMD5,
+					RequestType:  sp.srvType + "Request",
+					ResponseType: sp.srvType + "Response",
+					Type:         sp.srvType,
+				})
+			}()
 			if err != nil {
+				sp.conf.Node.Log(LogLevelError,
+					"service provider '%s' is unable to accept client '%s': %s",
+					sp.conf.Node.absoluteTopicName(sp.conf.Name),
+					req.conn.NetConn().RemoteAddr(),
+					err)
 				req.conn.Close()
 				continue
 			}
@@ -193,17 +200,22 @@ outer:
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
 
-			client, ok := sp.clients[req.callerID]
-			if !ok {
-				continue
-			}
+			err := func() error {
+				err := req.spc.conn.WriteServiceResState(1)
+				if err != nil {
+					return err
+				}
 
-			err := client.conn.WriteServiceResState(1)
+				return req.spc.conn.WriteMessage(res[0].Interface())
+			}()
 			if err != nil {
+				sp.conf.Node.Log(LogLevelError,
+					"service provider '%s' is unable to write to client '%s': %s",
+					sp.conf.Node.absoluteTopicName(sp.conf.Name),
+					req.spc.conn.NetConn().RemoteAddr(),
+					err)
 				continue
 			}
-
-			client.conn.WriteMessage(res[0].Interface())
 
 		case <-sp.ctx.Done():
 			break outer
