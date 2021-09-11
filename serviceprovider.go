@@ -26,8 +26,8 @@ type ServiceProviderConf struct {
 	// an instance of the service type.
 	Srv interface{}
 
-	// function in the form func(*NameOfRequest) *NameOfReply{}  that will be called
-	// whenever a request arrives.
+	// function in the form func(*NameOfRequest) (*NameOfReply{}, bool)
+	// that will be called when a request arrives.
 	Callback interface{}
 }
 
@@ -86,27 +86,31 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")
 	}
+
 	if cbt.NumIn() != 1 {
 		return nil, fmt.Errorf("Callback must accept a single argument")
 	}
-	if cbt.NumOut() != 1 {
-		return nil, fmt.Errorf("Callback must return a single argument")
-	}
-
-	cbIn := cbt.In(0)
-	if cbIn.Kind() != reflect.Ptr {
+	vin := cbt.In(0)
+	if vin.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("argument must be a pointer")
 	}
-	if cbIn.Elem() != reflect.TypeOf(srvReq) {
+	if vin.Elem() != reflect.TypeOf(srvReq) {
 		return nil, fmt.Errorf("invalid callback argument")
 	}
 
-	cbOut := cbt.Out(0)
-	if cbOut.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("return value must be a pointer")
+	if cbt.NumOut() != 2 {
+		return nil, fmt.Errorf("Callback must return 2 values")
 	}
-	if cbOut.Elem() != reflect.TypeOf(srvRes) {
+	vout := cbt.Out(0)
+	if vout.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("first return value must be a pointer")
+	}
+	if vout.Elem() != reflect.TypeOf(srvRes) {
 		return nil, fmt.Errorf("invalid callback return value")
+	}
+	vout = cbt.Out(1)
+	if vout.Kind() != reflect.Bool {
+		return nil, fmt.Errorf("second return value must be a bool")
 	}
 
 	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
@@ -201,13 +205,20 @@ outer:
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
 
+			state := res[1].Interface().(bool)
+			msg := res[0].Interface()
+
 			err := func() error {
-				err := req.spc.conn.WriteServiceResState(1)
+				err := req.spc.conn.WriteServiceResState(state)
 				if err != nil {
 					return err
 				}
 
-				return req.spc.conn.WriteMessage(res[0].Interface())
+				if state {
+					return req.spc.conn.WriteMessage(msg)
+				}
+
+				return nil
 			}()
 			if err != nil {
 				sp.conf.Node.Log(LogLevelError,

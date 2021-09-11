@@ -28,8 +28,8 @@ type SubscriberConf struct {
 	// name of the topic from which messages will be read.
 	Topic string
 
-	// function in the form func(msg *NameOfMessage) that will be called
-	// whenever a message arrives.
+	// function in the form func(msg *NameOfMessage)
+	// that will be called when a message arrives.
 	Callback interface{}
 
 	// (optional) protocol that will be used to receive messages
@@ -88,19 +88,20 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	if cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")
 	}
+
 	if cbt.NumIn() != 1 {
 		return nil, fmt.Errorf("Callback must accept a single argument")
 	}
-	if cbt.NumOut() != 0 {
-		return nil, fmt.Errorf("Callback must not return any value")
-	}
-
 	msgMsg := cbt.In(0)
 	if msgMsg.Kind() != reflect.Ptr {
 		return nil, fmt.Errorf("Message must be a pointer")
 	}
 	if msgMsg.Elem().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("Message must be a pointer to a struct")
+	}
+
+	if cbt.NumOut() != 0 {
+		return nil, fmt.Errorf("Callback must not return any value")
 	}
 
 	msgType, err := msgproc.Type(reflect.New(msgMsg.Elem()).Interface())

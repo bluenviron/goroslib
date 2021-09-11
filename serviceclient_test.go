@@ -52,12 +52,12 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &TestService{},
-					Callback: func(req *TestServiceReq) *TestServiceRes {
+					Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {
 							c = 123
 						}
-						return &TestServiceRes{C: c}
+						return &TestServiceRes{C: c}, true
 					},
 				})
 				require.NoError(t, err)
@@ -163,12 +163,12 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &TestService{},
-					Callback: func(req *TestServiceReq) *TestServiceRes {
+					Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {
 							c = 123
 						}
-						return &TestServiceRes{C: c}
+						return &TestServiceRes{C: c}, true
 					},
 				})
 				require.NoError(t, err)

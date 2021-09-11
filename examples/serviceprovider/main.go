@@ -7,12 +7,12 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_srvs"
 )
 
-func onService(req *std_srvs.SetBoolReq) *std_srvs.SetBoolRes {
+func onService(req *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
 	fmt.Println("request:", req)
 	return &std_srvs.SetBoolRes{
 		Success: true,
 		Message: "test message",
-	}
+	}, true
 }
 
 func main() {

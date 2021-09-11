@@ -211,8 +211,8 @@ func TestNodeRosnodeInfo(t *testing.T) {
 		Node: n,
 		Name: "test_srv",
 		Srv:  &TestService{},
-		Callback: func(req *TestServiceReq) *TestServiceRes {
-			return &TestServiceRes{}
+		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+			return &TestServiceRes{}, true
 		},
 	})
 	require.NoError(t, err)

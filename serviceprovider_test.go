@@ -26,13 +26,13 @@ func TestServiceProviderRegister(t *testing.T) {
 		Node: n,
 		Name: "test_srv",
 		Srv:  &TestService{},
-		Callback: func(req *TestServiceReq) *TestServiceRes {
+		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
 			c := float64(0)
 			if req.A == 123 && req.B == "456" {
 				c = 123
 			}
 
-			return &TestServiceRes{C: c}
+			return &TestServiceRes{C: c}, true
 		},
 	})
 	require.NoError(t, err)
@@ -79,11 +79,11 @@ func TestServiceProviderInfo(t *testing.T) {
 		Node: n,
 		Name: "test_srv",
 		Srv:  &std_srvs.SetBool{},
-		Callback: func(req *std_srvs.SetBoolReq) *std_srvs.SetBoolRes {
+		Callback: func(req *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
 			return &std_srvs.SetBoolRes{
 				Success: true,
 				Message: "ok",
-			}
+			}, true
 		},
 	})
 	require.NoError(t, err)
@@ -123,12 +123,13 @@ func TestServiceProviderResponse(t *testing.T) {
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &TestService{},
-					Callback: func(req *TestServiceReq) *TestServiceRes {
+					Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
 						c := float64(0)
 						if req.A == 123 && req.B == "456" {
 							c = 123
 						}
-						return &TestServiceRes{C: c}
+
+						return &TestServiceRes{C: c}, true
 					},
 				})
 				require.NoError(t, err)
@@ -139,11 +140,11 @@ func TestServiceProviderResponse(t *testing.T) {
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &std_srvs.SetBool{},
-					Callback: func(req *std_srvs.SetBoolReq) *std_srvs.SetBoolRes {
+					Callback: func(req *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
 						return &std_srvs.SetBoolRes{
 							Success: true,
 							Message: "ok",
-						}
+						}, true
 					},
 				})
 				require.NoError(t, err)

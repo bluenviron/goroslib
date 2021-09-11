@@ -215,12 +215,12 @@ type ActionServerConf struct {
 	// It defaults to 5 secs.
 	DeleteGoalAfter time.Duration
 
-	// (optional) function in the form func(*ActionServerGoalHandler, *ActionGoal) that will be called
-	// whenever a goal arrives.
+	// (optional) function in the form func(*ActionServerGoalHandler, *ActionGoal)
+	// that will be called when a goal arrives.
 	OnGoal interface{}
 
-	// (optional) function in the form func(*ActionServerGoalHandler) that will be called
-	// whenever a goal cancellation request arrives.
+	// (optional) function in the form func(*ActionServerGoalHandler)
+	// that will be called when a goal cancellation request arrives.
 	OnCancel func(gh *ActionServerGoalHandler)
 }
 
@@ -303,11 +303,9 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		if cbt.Kind() != reflect.Func {
 			return nil, fmt.Errorf("OnGoal is not a function")
 		}
+
 		if cbt.NumIn() != 2 {
 			return nil, fmt.Errorf("OnGoal must accept 2 arguments")
-		}
-		if cbt.NumOut() != 0 {
-			return nil, fmt.Errorf("OnGoal must not return any value")
 		}
 		if cbt.In(0) != reflect.TypeOf(&ActionServerGoalHandler{}) {
 			return nil, fmt.Errorf("OnGoal 1st argument must be %s, while is %v",
@@ -316,6 +314,10 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		if cbt.In(1) != reflect.PtrTo(as.goalType) {
 			return nil, fmt.Errorf("OnGoal 2nd argument must be %s, while is %v",
 				reflect.PtrTo(as.goalType), cbt.In(1))
+		}
+
+		if cbt.NumOut() != 0 {
+			return nil, fmt.Errorf("OnGoal must not return any value")
 		}
 	}
 

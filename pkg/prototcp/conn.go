@@ -52,19 +52,24 @@ func (c *Conn) WriteHeader(header protocommon.Header) error {
 }
 
 // ReadServiceResState reads the response of a service state request.
-func (c *Conn) ReadServiceResState() (uint8, error) {
+func (c *Conn) ReadServiceResState() (bool, error) {
 	byt := make([]byte, 1)
 	_, err := io.ReadFull(c.readBuf, byt)
 	if err != nil {
-		return 0, err
+		return false, err
 	}
 
-	return byt[0], nil
+	return (byt[0] == 1), nil
 }
 
 // WriteServiceResState writes the response of a service state request.
-func (c *Conn) WriteServiceResState(v uint8) error {
-	_, err := c.writeBuf.Write([]byte{v})
+func (c *Conn) WriteServiceResState(v bool) error {
+	b := byte(0)
+	if v {
+		b = 1
+	}
+
+	_, err := c.writeBuf.Write([]byte{b})
 	// do not flush, since WriteServiceResState() is always called before a WriteMessage()
 	return err
 }

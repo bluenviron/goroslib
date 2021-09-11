@@ -613,15 +613,17 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 		if cbt.Kind() != reflect.Func {
 			return nil, fmt.Errorf("OnTransition is not a function")
 		}
+
 		if cbt.NumIn() != 2 {
 			return nil, fmt.Errorf("OnTransition must accept 2 arguments")
-		}
-		if cbt.NumOut() != 0 {
-			return nil, fmt.Errorf("OnTransition must not return any value")
 		}
 		if cbt.In(0) != reflect.TypeOf(&ActionClientGoalHandler{}) {
 			return nil, fmt.Errorf("OnTransition 1st argument must be %s, while is %v",
 				reflect.TypeOf(&ActionClientGoalHandler{}), cbt.In(0))
+		}
+
+		if cbt.NumOut() != 0 {
+			return nil, fmt.Errorf("OnTransition must not return any value")
 		}
 		if cbt.In(1) != reflect.PtrTo(ac.resType) {
 			return nil, fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",

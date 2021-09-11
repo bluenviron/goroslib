@@ -103,11 +103,9 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 		if cbt.Kind() != reflect.Func {
 			return fmt.Errorf("OnDone is not a function")
 		}
+
 		if cbt.NumIn() != 2 {
 			return fmt.Errorf("OnDone must accept 2 arguments")
-		}
-		if cbt.NumOut() != 0 {
-			return fmt.Errorf("OnDone must not return any value")
 		}
 		if cbt.In(0) != reflect.TypeOf(SimpleActionClientGoalState(0)) {
 			return fmt.Errorf("OnDone 1st argument must be %s, while is %v",
@@ -117,6 +115,10 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 			return fmt.Errorf("OnDone 2nd argument must be %s, while is %v",
 				reflect.PtrTo(sac.ac.resType), cbt.In(1))
 		}
+
+		if cbt.NumOut() != 0 {
+			return fmt.Errorf("OnDone must not return any value")
+		}
 	}
 
 	if conf.OnFeedback != nil {
@@ -124,15 +126,17 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 		if cbt.Kind() != reflect.Func {
 			return fmt.Errorf("OnFeedback is not a function")
 		}
+
 		if cbt.NumIn() != 1 {
 			return fmt.Errorf("OnFeedback must accept a single argument")
-		}
-		if cbt.NumOut() != 0 {
-			return fmt.Errorf("OnFeedback must not return any value")
 		}
 		if cbt.In(0) != reflect.PtrTo(sac.ac.fbType) {
 			return fmt.Errorf("OnFeedback 1st argument must be %s, while is %v",
 				reflect.PtrTo(sac.ac.fbType), cbt.In(0))
+		}
+
+		if cbt.NumOut() != 0 {
+			return fmt.Errorf("OnFeedback must not return any value")
 		}
 	}
 

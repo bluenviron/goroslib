@@ -25,11 +25,11 @@ type TestService struct {
 	TestServiceRes
 }
 
-func onService(req *TestServiceReq) *TestServiceRes {
+func onService(req *TestServiceReq) (*TestServiceRes, bool) {
 	fmt.Println("request:", req)
 	return &TestServiceRes{
 		C: 123,
-	}
+	}, true
 }
 
 func main() {

@@ -88,7 +88,7 @@ func TestConn(t *testing.T) {
 		"type":               "mytype",
 	}, raw)
 
-	err = tconn.WriteServiceResState(1)
+	err = tconn.WriteServiceResState(true)
 	require.NoError(t, err)
 
 	err = tconn.WriteMessage(&struct{}{})
@@ -96,7 +96,7 @@ func TestConn(t *testing.T) {
 
 	state, err := tconn.ReadServiceResState()
 	require.NoError(t, err)
-	require.Equal(t, uint8(1), state)
+	require.Equal(t, true, state)
 
 	var msg struct{}
 	err = tconn.ReadMessage(&msg)

@@ -112,11 +112,6 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 	}
 
 	state, err := sc.conn.ReadServiceResState()
-
-	if err == nil && state != 1 {
-		err = fmt.Errorf("service returned an error")
-	}
-
 	if err != nil {
 		sc.conn.Close()
 		sc.conn = nil
@@ -129,6 +124,12 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 		}
 
 		return err
+	}
+
+	if !state {
+		sc.conn.Close()
+		sc.conn = nil
+		return fmt.Errorf("service returned a failure state")
 	}
 
 	err = sc.conn.ReadMessage(res)

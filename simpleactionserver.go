@@ -72,11 +72,9 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 		if cbt.Kind() != reflect.Func {
 			return nil, fmt.Errorf("OnExecute is not a function")
 		}
+
 		if cbt.NumIn() != 2 {
 			return nil, fmt.Errorf("OnExecute must accept 2 arguments")
-		}
-		if cbt.NumOut() != 0 {
-			return nil, fmt.Errorf("OnExecute must not return any value")
 		}
 		if cbt.In(0) != reflect.TypeOf(&SimpleActionServer{}) {
 			return nil, fmt.Errorf("OnExecute 1st argument must be %s, while is %v",
@@ -85,6 +83,10 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 		if cbt.In(1) != reflect.PtrTo(reflect.TypeOf(goal)) {
 			return nil, fmt.Errorf("OnExecute 2nd argument must be %s, while is %v",
 				reflect.PtrTo(reflect.TypeOf(goal)), cbt.In(1))
+		}
+
+		if cbt.NumOut() != 0 {
+			return nil, fmt.Errorf("OnExecute must not return any value")
 		}
 	}
 
