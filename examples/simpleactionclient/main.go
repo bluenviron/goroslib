@@ -38,7 +38,7 @@ func main() {
 		Goal: &actionlib.TestActionGoal{
 			Goal: 1234312,
 		},
-		OnDone: func(res *actionlib.TestActionResult) {
+		OnDone: func(state goroslib.SimpleActionClientGoalState, res *actionlib.TestActionResult) {
 			fmt.Println("result:", res)
 		},
 		OnFeedback: func(fb *actionlib.TestActionFeedback) {

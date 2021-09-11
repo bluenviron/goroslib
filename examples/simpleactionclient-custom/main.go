@@ -60,7 +60,7 @@ func main() {
 		Goal: &DoSomethingActionGoal{
 			Input: 1234312,
 		},
-		OnDone: func(res *DoSomethingActionResult) {
+		OnDone: func(state goroslib.SimpleActionClientGoalState, res *DoSomethingActionResult) {
 			fmt.Println("result:", res)
 		},
 		OnFeedback: func(fb *DoSomethingActionFeedback) {
