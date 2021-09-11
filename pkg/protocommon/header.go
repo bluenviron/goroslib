@@ -109,12 +109,6 @@ func HeaderDecode(raw HeaderRaw, dest Header) error {
 			continue
 		}
 
-		if rf.Kind() == reflect.Ptr {
-			ptr := reflect.New(rf.Type().Elem())
-			rf.Set(ptr)
-			rf = ptr.Elem()
-		}
-
 		switch rf.Kind() {
 		case reflect.String:
 			rf.SetString(val)
@@ -127,7 +121,7 @@ func HeaderDecode(raw HeaderRaw, dest Header) error {
 			rf.SetInt(i)
 
 		default:
-			return fmt.Errorf("invalid field kind: %s", rf.Kind())
+			return fmt.Errorf("unsupported field type: %s", rf.Type())
 		}
 	}
 
@@ -151,13 +145,6 @@ func HeaderEncode(w io.Writer, src Header) error {
 		key := camelToSnake(rv.Elem().Type().Field(i).Name)
 		val := rv.Elem().Field(i)
 
-		if val.Kind() == reflect.Ptr {
-			if val.IsNil() {
-				continue
-			}
-			val = val.Elem()
-		}
-
 		flen := uint32(0)
 
 		bkey := []byte(key)
@@ -166,14 +153,12 @@ func HeaderEncode(w io.Writer, src Header) error {
 		flen++
 
 		bval := func() []byte {
-			switch val.Kind() {
-			case reflect.String:
+			if val.Kind() == reflect.String {
 				return []byte(val.Interface().(string))
-
-			case reflect.Int:
-				return []byte(strconv.FormatInt(int64(val.Interface().(int)), 10))
 			}
-			return nil
+
+			// reflect.Int
+			return []byte(strconv.FormatInt(int64(val.Interface().(int)), 10))
 		}()
 		flen += uint32(len(bval))
 
@@ -184,20 +169,9 @@ func HeaderEncode(w io.Writer, src Header) error {
 			return err
 		}
 
-		_, err = he.Write(bkey)
-		if err != nil {
-			return err
-		}
-
-		_, err = he.Write([]byte{'='})
-		if err != nil {
-			return err
-		}
-
-		_, err = he.Write(bval)
-		if err != nil {
-			return err
-		}
+		he.Write(bkey)
+		he.Write([]byte{'='})
+		he.Write(bval)
 	}
 
 	// write header length

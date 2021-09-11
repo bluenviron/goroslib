@@ -304,9 +304,6 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 					return err
 				}
 			}
-
-		default:
-			return fmt.Errorf("unsupported field type '%s'", dest.Elem().Type())
 		}
 	}
 
