@@ -2,6 +2,7 @@ package protocommon
 
 import (
 	"bytes"
+	"io"
 	"reflect"
 	"testing"
 	"time"
@@ -181,7 +182,7 @@ func TestMessageDecodeErrors(t *testing.T) {
 		err  string
 	}{
 		{
-			"dest invalid 1",
+			"dest invalid",
 			[]byte{},
 			struct {
 				A bool
@@ -381,7 +382,7 @@ func TestMessageDecodeErrors(t *testing.T) {
 			"EOF",
 		},
 		{
-			"array length missing",
+			"variable array length missing",
 			[]byte{0x05, 0x00, 0x00, 0x00},
 			&struct {
 				A []string
@@ -389,12 +390,20 @@ func TestMessageDecodeErrors(t *testing.T) {
 			"EOF",
 		},
 		{
-			"array content missing",
+			"variable array content missing",
 			[]byte{0x09, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00},
 			&struct {
 				A []string
 			}{},
 			"EOF",
+		},
+		{
+			"fixed array content invalid",
+			[]byte{0x09, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00},
+			&struct {
+				A [2]string
+			}{},
+			"invalid string length",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
@@ -411,6 +420,35 @@ func TestMessageEncode(t *testing.T) {
 			err := MessageEncode(&buf, ca.msg)
 			require.NoError(t, err)
 			require.Equal(t, ca.byts, buf.Bytes())
+		})
+	}
+}
+
+func TestMessageEncodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		msg  interface{}
+		dest io.Writer
+		err  string
+	}{
+		{
+			"src invalid",
+			nil,
+			nil,
+			"src must be a pointer to a struct",
+		},
+		{
+			"write error",
+			&struct {
+				A uint32
+			}{},
+			&limitedBuffer{cap: 0},
+			"capacity reached",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			err := MessageEncode(ca.dest, ca.msg)
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }

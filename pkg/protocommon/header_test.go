@@ -250,7 +250,7 @@ func TestHeaderEncodeErrors(t *testing.T) {
 	for _, ca := range []struct {
 		name   string
 		header Header
-		w      io.Writer
+		dest   io.Writer
 		err    string
 	}{
 		{
@@ -273,7 +273,7 @@ func TestHeaderEncodeErrors(t *testing.T) {
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
-			err := HeaderEncode(ca.w, ca.header)
+			err := HeaderEncode(ca.dest, ca.header)
 			require.Equal(t, ca.err, err.Error())
 		})
 	}

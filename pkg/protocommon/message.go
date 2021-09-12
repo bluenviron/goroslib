@@ -317,101 +317,62 @@ func MessageDecode(r io.Reader, dest interface{}) error {
 	return nil
 }
 
-func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
+func binaryEncodeValue(w *bytes.Buffer, src reflect.Value, dest []byte) {
 	switch cv := src.Elem().Interface().(type) {
 	case bool:
 		b := uint8(0x00)
 		if cv {
 			b = 0x01
 		}
-		_, err := w.Write([]byte{b})
-		if err != nil {
-			return err
-		}
+		w.Write([]byte{b})
 
 	case int8:
-		_, err := w.Write([]byte{uint8(cv)})
-		if err != nil {
-			return err
-		}
+		w.Write([]byte{uint8(cv)})
 
 	case uint8:
-		_, err := w.Write([]byte{cv})
-		if err != nil {
-			return err
-		}
+		w.Write([]byte{cv})
 
 	case int16:
 		binary.LittleEndian.PutUint16(dest, uint16(cv))
-		_, err := w.Write(dest[:2])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:2])
 
 	case uint16:
 		binary.LittleEndian.PutUint16(dest, cv)
-		_, err := w.Write(dest[:2])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:2])
 
 	case int32:
 		binary.LittleEndian.PutUint32(dest, uint32(cv))
-		_, err := w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 	case uint32:
 		binary.LittleEndian.PutUint32(dest, cv)
-		_, err := w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 	case int64:
 		binary.LittleEndian.PutUint64(dest, uint64(cv))
-		_, err := w.Write(dest[:8])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:8])
 
 	case uint64:
 		binary.LittleEndian.PutUint64(dest, cv)
-		_, err := w.Write(dest[:8])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:8])
 
 	case float32:
 		binary.LittleEndian.PutUint32(dest, math.Float32bits(cv))
-		_, err := w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 	case float64:
 		binary.LittleEndian.PutUint64(dest, math.Float64bits(cv))
-		_, err := w.Write(dest[:8])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:8])
 
 	case string:
 		bstr := []byte(cv)
 
 		// string length
 		binary.LittleEndian.PutUint32(dest, uint32(len(bstr)))
-		_, err := w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 		// string
-		_, err = w.Write(bstr)
-		if err != nil {
-			return err
-		}
+		w.Write(bstr)
 
 	case time.Time:
 		// special case: zero means year zero, not 1970
@@ -425,31 +386,19 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 		}
 
 		binary.LittleEndian.PutUint32(dest, uint32(nano/1000000000))
-		_, err := w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 		binary.LittleEndian.PutUint32(dest, uint32(nano%1000000000))
-		_, err = w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 	case time.Duration:
 		nano := cv.Nanoseconds()
 
 		binary.LittleEndian.PutUint32(dest, uint32(nano/1000000000))
-		_, err := w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 		binary.LittleEndian.PutUint32(dest, uint32(nano%1000000000))
-		_, err = w.Write(dest[:4])
-		if err != nil {
-			return err
-		}
+		w.Write(dest[:4])
 
 	default:
 		switch src.Elem().Kind() {
@@ -458,19 +407,13 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 
 			// slice length
 			binary.LittleEndian.PutUint32(dest, uint32(le))
-			_, err := w.Write(dest[:4])
-			if err != nil {
-				return err
-			}
+			w.Write(dest[:4])
 
 			// slice elements
 			for i := 0; i < le; i++ {
 				el := src.Elem().Index(i).Addr()
 
-				err := binaryEncodeValue(w, el, dest)
-				if err != nil {
-					return err
-				}
+				binaryEncodeValue(w, el, dest)
 			}
 
 		case reflect.Array:
@@ -480,10 +423,7 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 			for i := 0; i < le; i++ {
 				el := src.Elem().Index(i).Addr()
 
-				err := binaryEncodeValue(w, el, dest)
-				if err != nil {
-					return err
-				}
+				binaryEncodeValue(w, el, dest)
 			}
 
 		case reflect.Struct:
@@ -501,18 +441,10 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 				}
 
 				f := src.Elem().Field(i).Addr()
-				err := binaryEncodeValue(w, f, dest)
-				if err != nil {
-					return err
-				}
+				binaryEncodeValue(w, f, dest)
 			}
-
-		default:
-			return fmt.Errorf("unsupported type '%s'", src.Elem().Type())
 		}
 	}
-
-	return nil
 }
 
 // MessageEncode encodes a message in binary format.
@@ -527,14 +459,11 @@ func MessageEncode(w io.Writer, src interface{}) error {
 
 	// encode message
 	var vw bytes.Buffer
-	err := binaryEncodeValue(&vw, rv, buf)
-	if err != nil {
-		return err
-	}
+	binaryEncodeValue(&vw, rv, buf)
 
 	// write message length
 	binary.LittleEndian.PutUint32(buf, uint32(vw.Len()))
-	_, err = w.Write(buf[:4])
+	_, err := w.Write(buf[:4])
 	if err != nil {
 		return err
 	}
