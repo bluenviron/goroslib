@@ -33,27 +33,70 @@ func TestServer(t *testing.T) {
 	require.NotEqual(t, 0, s.Port())
 
 	go s.Serve(func(raw *RequestRaw) interface{} {
-		require.Equal(t, "mymethod", raw.Method)
-
-		var req myRequest
-		err := raw.Decode(&req)
-		require.NoError(t, err)
-
-		return myResponse{Param: "myresponse"}
+		if raw.Method == "mymethod" {
+			var req myRequest
+			err := raw.Decode(&req)
+			require.NoError(t, err)
+			return myResponse{Param: "myresponse"}
+		}
+		return ErrorRes{}
 	})
 
-	var buf bytes.Buffer
-	err = requestEncode(&buf, "mymethod", myRequest{Param: "myrequest"})
-	require.NoError(t, err)
+	t.Run("standard request", func(t *testing.T) {
+		var buf bytes.Buffer
+		err = requestEncode(&buf, "mymethod", myRequest{Param: "myrequest"})
+		require.NoError(t, err)
 
-	res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
-	require.NoError(t, err)
-	defer res.Body.Close()
+		res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
+		require.NoError(t, err)
+		defer res.Body.Close()
 
-	var xres myResponse
-	err = responseDecode(res.Body, &xres)
+		var xres myResponse
+		err = responseDecode(res.Body, &xres)
+		require.NoError(t, err)
+		require.Equal(t, myResponse{Param: "myresponse"}, xres)
+	})
+
+	t.Run("wrong path", func(t *testing.T) {
+		res, err := http.Post("http://localhost:9904/wrong", "text/xml", nil)
+		require.NoError(t, err)
+		defer res.Body.Close()
+		require.Equal(t, 404, res.StatusCode)
+	})
+
+	t.Run("wrong method", func(t *testing.T) {
+		res, err := http.Get("http://localhost:9904/RPC2")
+		require.NoError(t, err)
+		defer res.Body.Close()
+		require.Equal(t, 404, res.StatusCode)
+	})
+
+	t.Run("invalid request", func(t *testing.T) {
+		var buf bytes.Buffer
+		buf.WriteString("wrong")
+		res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
+		require.NoError(t, err)
+		defer res.Body.Close()
+		require.Equal(t, 400, res.StatusCode)
+	})
+
+	t.Run("wrong xml method", func(t *testing.T) {
+		var buf bytes.Buffer
+		err = requestEncode(&buf, "wrong", myRequest{Param: "myrequest"})
+		require.NoError(t, err)
+
+		res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
+		require.NoError(t, err)
+		defer res.Body.Close()
+		require.Equal(t, 400, res.StatusCode)
+	})
+}
+
+func TestServerServeAfterClose(t *testing.T) {
+	s, err := NewServer("localhost:9904")
 	require.NoError(t, err)
-	require.Equal(t, myResponse{Param: "myresponse"}, xres)
+	s.Close()
+	s.Serve(nil)
 }
 
 func TestServerError(t *testing.T) {

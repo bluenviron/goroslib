@@ -50,3 +50,47 @@ func TestClient(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, myResponse{Param: "myparam"}, res)
 }
+
+func TestClientErrors(t *testing.T) {
+	t.Run("invalid request", func(t *testing.T) {
+		c := NewClient("localhost:9908")
+		err := c.Do("mymethod", struct {
+			Param int64
+		}{123}, nil)
+		require.Equal(t, "unhandled value type: int64", err.Error())
+	})
+
+	t.Run("server error", func(t *testing.T) {
+		c := NewClient("127.0.0.1:9908")
+		err := c.Do("mymethod", struct {
+			Param int
+		}{123}, nil)
+		require.Equal(t, "Post \"http://127.0.0.1:9908/RPC2\": "+
+			"dial tcp 127.0.0.1:9908: connect: connection refused", err.Error())
+	})
+
+	t.Run("invalid response", func(t *testing.T) {
+		type myResponse struct {
+			Param string
+		}
+
+		hs := &http.Server{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				w.Write([]byte("invalid"))
+			}),
+		}
+		defer hs.Shutdown(context.Background())
+
+		l, err := net.Listen("tcp", "localhost:9908")
+		require.NoError(t, err)
+		defer l.Close()
+
+		go hs.Serve(l)
+
+		c := NewClient("localhost:9908")
+		err = c.Do("mymethod", struct {
+			Param int
+		}{123}, &myResponse{})
+		require.Equal(t, "expected xml.ProcInst, got xml.CharData", err.Error())
+	})
+}

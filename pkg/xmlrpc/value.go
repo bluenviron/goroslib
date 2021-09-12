@@ -364,7 +364,7 @@ func valueEncode(w io.Writer, src reflect.Value) error {
 			}
 
 		default:
-			return fmt.Errorf("unhandled value type: %s", src.Kind())
+			return fmt.Errorf("unhandled value type: %s", src.Type())
 		}
 	}
 

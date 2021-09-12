@@ -63,7 +63,6 @@ func requestDecode(raw *RequestRaw, dest interface{}) error {
 		return err
 	}
 
-	// read each param
 	rv := reflect.ValueOf(dest).Elem()
 	nf := rv.NumField()
 	for i := 0; i < nf; i++ {
@@ -100,7 +99,6 @@ func requestEncode(w io.Writer, method string, params interface{}) error {
 		return err
 	}
 
-	// write each param
 	rv := reflect.ValueOf(params)
 	nf := rv.NumField()
 	for i := 0; i < nf; i++ {

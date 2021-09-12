@@ -3,6 +3,7 @@ package xmlrpc
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"reflect"
 	"strings"
@@ -403,6 +404,124 @@ func TestValueEncode(t *testing.T) {
 			err := valueEncode(&b, reflect.ValueOf(ca.v))
 			require.NoError(t, err)
 			require.Equal(t, ca.benc, b.Bytes())
+		})
+	}
+}
+
+type limitedBuffer struct {
+	cap int
+	n   int
+}
+
+func (b *limitedBuffer) Write(p []byte) (int, error) {
+	b.n += len(p)
+	if b.n > b.cap {
+		return 0, fmt.Errorf("capacity reached")
+	}
+	return len(p), nil
+}
+
+func TestValueEncodeError(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		v    interface{}
+		dest io.Writer
+		err  string
+	}{
+		{
+			"open tag write error",
+			nil,
+			&limitedBuffer{cap: 0},
+			"capacity reached",
+		},
+		{
+			"close tag write error",
+			true,
+			&limitedBuffer{cap: 32},
+			"capacity reached",
+		},
+		{
+			"bool write error",
+			true,
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"int write error",
+			123,
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"double write error",
+			float64(123),
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"string write error",
+			"testing",
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"base64 write error",
+			[]byte("testing"),
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"struct open tag write error",
+			struct {
+				A string
+			}{"testing"},
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"struct field write error",
+			struct {
+				A string
+			}{"testing"},
+			&limitedBuffer{cap: 20},
+			"capacity reached",
+		},
+		{
+			"struct close tag write error",
+			struct {
+				A string
+			}{"testing"},
+			&limitedBuffer{cap: 50},
+			"capacity reached",
+		},
+		{
+			"slice open tag write error",
+			[]string{"testing"},
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"slice element write error",
+			[]string{"testing"},
+			&limitedBuffer{cap: 20},
+			"capacity reached",
+		},
+		{
+			"slice close tag write error",
+			[]string{"testing"},
+			&limitedBuffer{cap: 50},
+			"capacity reached",
+		},
+		{
+			"unhandled value type",
+			int64(123),
+			bytes.NewBuffer(nil),
+			"unhandled value type: int64",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			err := valueEncode(ca.dest, reflect.ValueOf(ca.v))
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }

@@ -2,6 +2,7 @@ package xmlrpc
 
 import (
 	"bytes"
+	"io"
 	"reflect"
 	"testing"
 
@@ -187,6 +188,63 @@ func TestRequestEncode(t *testing.T) {
 			err := requestEncode(&buf, ca.method, ca.params)
 			require.NoError(t, err)
 			require.Equal(t, ca.benc, buf.Bytes())
+		})
+	}
+}
+
+func TestRequestEncodeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name   string
+		method string
+		params interface{}
+		dest   io.Writer
+		err    string
+	}{
+		{
+			"open tag write error",
+			"myMethod",
+			nil,
+			&limitedBuffer{cap: 10},
+			"capacity reached",
+		},
+		{
+			"close tag write error",
+			"myMethod",
+			struct{}{},
+			&limitedBuffer{cap: 80},
+			"capacity reached",
+		},
+		{
+			"param open tag write error",
+			"myMethod",
+			struct {
+				A string
+			}{"testing"},
+			&limitedBuffer{cap: 80},
+			"capacity reached",
+		},
+		{
+			"param content write error",
+			"myMethod",
+			struct {
+				A string
+			}{"testing"},
+			&limitedBuffer{cap: 90},
+			"capacity reached",
+		},
+		{
+			"param close tag write error",
+			"myMethod",
+			struct {
+				A string
+			}{"testing"},
+			&limitedBuffer{cap: 110},
+			"capacity reached",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			err := requestEncode(ca.dest, ca.method, ca.params)
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }
