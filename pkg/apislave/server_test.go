@@ -1,6 +1,8 @@
 package apislave
 
 import (
+	"bytes"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -116,8 +118,25 @@ func TestServerErrors(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("invalid payload", func(t *testing.T) {
-		s, err := NewServer("localhost:9906")
+	t.Run("invalid payload 1", func(t *testing.T) {
+		s, err := NewServer("localhost:9909")
+		require.NoError(t, err)
+		defer s.Close()
+
+		go s.Serve(func(req Request) Response {
+			return ErrorRes{}
+		})
+
+		var buf bytes.Buffer
+		buf.Write([]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params>`))
+		res, err := http.Post("http://localhost:9909/RPC2", "text/xml", &buf)
+		require.NoError(t, err)
+		defer res.Body.Close()
+		require.Equal(t, 400, res.StatusCode)
+	})
+
+	t.Run("invalid payload 2", func(t *testing.T) {
+		s, err := NewServer("localhost:9909")
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -130,7 +149,7 @@ func TestServerErrors(t *testing.T) {
 			return ErrorRes{}
 		})
 
-		c := xmlrpc.NewClient("localhost:9906")
+		c := xmlrpc.NewClient("localhost:9909")
 
 		var res ResponseGetBusInfo
 		err = c.Do("shutdown", RequestGetBusInfo{CallerID: "mycaller"}, &res)

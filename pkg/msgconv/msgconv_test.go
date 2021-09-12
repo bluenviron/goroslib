@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMessageDefinition(t *testing.T) {
+func TestParseMessageDefinition(t *testing.T) {
 	for _, ca := range []struct {
 		name   string
 		ros    string
@@ -63,17 +63,21 @@ func TestMessageDefinition(t *testing.T) {
 			"int32 VAL1=  3\n" +
 				"int32 VAL2   =\t4\n" +
 				"int32 VAL3   =5\n" +
+				"byte VAL4 = 6\n" +
+				"char VAL5 = 7\n" +
 				"\n" +
 				"int32 var\n",
 			"\n\nconst (\n" +
 				"    Msgname_VAL1 int32 = 3\n" +
 				"    Msgname_VAL2 int32 = 4\n" +
 				"    Msgname_VAL3 int32 = 5\n" +
+				"    Msgname_VAL4 int8 = 6\n" +
+				"    Msgname_VAL5 uint8 = 7\n" +
 				")\n" +
 				"\n" +
 				"type Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
-				"    msg.Definitions `ros:\"int32 VAL1=3,int32 VAL2=4,int32 VAL3=5\"`\n" +
+				"    msg.Definitions `ros:\"int32 VAL1=3,int32 VAL2=4,int32 VAL3=5,byte VAL4=6,char VAL5=7\"`\n" +
 				"    Var int32\n" +
 				"}\n",
 		},
@@ -141,6 +145,22 @@ func TestMessageDefinition(t *testing.T) {
 				"    Msg otherpackage.Othermsg\n" +
 				"}\n",
 		},
+		{
+			"implicit package",
+			"Othermessage v",
+			"\n\ntype Msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    V Othermessage\n" +
+				"}\n",
+		},
+		{
+			"implicit package, std_msgs",
+			"Bool v",
+			"\n\ntype Msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    V std_msgs.Bool\n" +
+				"}\n",
+		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			def, err := ParseMessageDefinition("gopkg", "rospkg", "msgname", ca.ros)
@@ -148,6 +168,25 @@ func TestMessageDefinition(t *testing.T) {
 			golang, err := def.Write()
 			require.NoError(t, err)
 			require.Equal(t, ca.golang, golang)
+		})
+	}
+}
+
+func TestParseMessageDefinitionErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		ros  string
+		err  string
+	}{
+		{
+			"name missing",
+			"int32\n",
+			"unable to parse line (int32)",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := ParseMessageDefinition("gopkg", "rospkg", "msgname", ca.ros)
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }

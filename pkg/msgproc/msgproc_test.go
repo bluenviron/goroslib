@@ -144,6 +144,46 @@ func TestMD5(t *testing.T) {
 	}
 }
 
+func TestMD5Errors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		msg  interface{}
+		err  string
+	}{
+		{
+			"message invalid 1",
+			123,
+			"unsupported message type 'int'",
+		},
+		{
+			"message invalid 2",
+			&struct {
+				A interface{}
+			}{nil},
+			"unsupported field type 'interface {}'",
+		},
+		{
+			"message invalid 3",
+			&struct {
+				A []interface{}
+			}{nil},
+			"unsupported field type 'interface {}'",
+		},
+		{
+			"message invalid 4",
+			&struct {
+				A [2]interface{}
+			}{[2]interface{}{1, 2}},
+			"unsupported field type 'interface {}'",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := MD5(ca.msg)
+			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}
+
 type MsgExplicitPackage struct {
 	msg.Package `ros:"my_package"`
 	Value       uint16

@@ -93,7 +93,7 @@ type MessageDefinition struct {
 	Imports        map[string]struct{}
 }
 
-func parseField(rosPkgName string, res *MessageDefinition, typ string, name string) error {
+func parseField(rosPkgName string, res *MessageDefinition, typ string, name string) {
 	f := Field{}
 
 	// use NameOverride if a bidirectional conversion between snake and
@@ -161,10 +161,9 @@ func parseField(rosPkgName string, res *MessageDefinition, typ string, name stri
 	}()
 
 	res.Fields = append(res.Fields, f)
-	return nil
 }
 
-func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name string, val string) error {
+func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name string, val string) {
 	d := Definition{
 		RosType: typ,
 		Name:    name,
@@ -185,7 +184,6 @@ func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name
 	}()
 
 	res.Definitions = append(res.Definitions, d)
-	return nil
 }
 
 // ParseMessageDefinition parses a message definition.
@@ -218,19 +216,13 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 		i = strings.IndexByte(line, '=')
 		if i < 0 {
 			name := line
-			err := parseField(rosPkgName, res, typ, name)
-			if err != nil {
-				return nil, err
-			}
+			parseField(rosPkgName, res, typ, name)
 
 		} else {
 			name, val := line[:i], line[i+1:]
 			name = strings.TrimRight(name, " \t")
 			val = strings.TrimLeft(val, " \t")
-			err := parseDefinition(rosPkgName, res, typ, name, val)
-			if err != nil {
-				return nil, err
-			}
+			parseDefinition(rosPkgName, res, typ, name, val)
 		}
 	}
 
@@ -263,10 +255,6 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 // Write converts a message definition into a Go structure.
 func (res *MessageDefinition) Write() (string, error) {
 	var buf bytes.Buffer
-	err := tpl.Execute(&buf, res)
-	if err != nil {
-		return "", err
-	}
-
+	tpl.Execute(&buf, res)
 	return buf.String(), nil
 }
