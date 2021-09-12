@@ -6,12 +6,14 @@ import (
 )
 
 type UpdateGeographicMapReq struct {
-	Updates GeographicMapChanges
+	msg.Package `ros:"geographic_msgs"`
+	Updates     GeographicMapChanges
 }
 
 type UpdateGeographicMapRes struct {
-	Success bool
-	Status  string
+	msg.Package `ros:"geographic_msgs"`
+	Success     bool
+	Status      string
 }
 
 type UpdateGeographicMap struct {

@@ -5,10 +5,13 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type FrameGraphReq struct{}
+type FrameGraphReq struct {
+	msg.Package `ros:"tf"`
+}
 
 type FrameGraphRes struct {
-	DotGraph string
+	msg.Package `ros:"tf"`
+	DotGraph    string
 }
 
 type FrameGraph struct {

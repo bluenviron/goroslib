@@ -7,12 +7,14 @@ import (
 )
 
 type SetMapReq struct {
+	msg.Package `ros:"nav_msgs"`
 	Map         OccupancyGrid
 	InitialPose geometry_msgs.PoseWithCovarianceStamped
 }
 
 type SetMapRes struct {
-	Success bool
+	msg.Package `ros:"nav_msgs"`
+	Success     bool
 }
 
 type SetMap struct {

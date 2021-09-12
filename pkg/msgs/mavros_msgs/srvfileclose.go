@@ -6,12 +6,14 @@ import (
 )
 
 type FileCloseReq struct {
-	FilePath string
+	msg.Package `ros:"mavros_msgs"`
+	FilePath    string
 }
 
 type FileCloseRes struct {
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	RErrno      int32
 }
 
 type FileClose struct {

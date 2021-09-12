@@ -6,13 +6,15 @@ import (
 )
 
 type FileChecksumReq struct {
-	FilePath string
+	msg.Package `ros:"mavros_msgs"`
+	FilePath    string
 }
 
 type FileChecksumRes struct {
-	Crc32   uint32
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Crc32       uint32
+	Success     bool
+	RErrno      int32
 }
 
 type FileChecksum struct {

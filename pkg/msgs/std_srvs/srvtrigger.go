@@ -5,11 +5,14 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type TriggerReq struct{}
+type TriggerReq struct {
+	msg.Package `ros:"std_srvs"`
+}
 
 type TriggerRes struct {
-	Success bool
-	Message string
+	msg.Package `ros:"std_srvs"`
+	Success     bool
+	Message     string
 }
 
 type Trigger struct {

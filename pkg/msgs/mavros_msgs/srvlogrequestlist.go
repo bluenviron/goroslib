@@ -6,12 +6,14 @@ import (
 )
 
 type LogRequestListReq struct {
-	Start uint16
-	End   uint16
+	msg.Package `ros:"mavros_msgs"`
+	Start       uint16
+	End         uint16
 }
 
 type LogRequestListRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type LogRequestList struct {

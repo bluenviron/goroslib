@@ -7,18 +7,20 @@ import (
 )
 
 type GetGeoPathReq struct {
-	Start GeoPoint
-	Goal  GeoPoint
+	msg.Package `ros:"geographic_msgs"`
+	Start       GeoPoint
+	Goal        GeoPoint
 }
 
 type GetGeoPathRes struct {
-	Success  bool
-	Status   string
-	Plan     GeoPath
-	Network  uuid_msgs.UniqueID
-	StartSeg uuid_msgs.UniqueID
-	GoalSeg  uuid_msgs.UniqueID
-	Distance float64
+	msg.Package `ros:"geographic_msgs"`
+	Success     bool
+	Status      string
+	Plan        GeoPath
+	Network     uuid_msgs.UniqueID
+	StartSeg    uuid_msgs.UniqueID
+	GoalSeg     uuid_msgs.UniqueID
+	Distance    float64
 }
 
 type GetGeoPath struct {

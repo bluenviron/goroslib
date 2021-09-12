@@ -6,6 +6,7 @@ import (
 )
 
 type CommandIntReq struct {
+	msg.Package  `ros:"mavros_msgs"`
 	Broadcast    bool
 	Frame        uint8
 	Command      uint16
@@ -21,7 +22,8 @@ type CommandIntReq struct {
 }
 
 type CommandIntRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type CommandInt struct {

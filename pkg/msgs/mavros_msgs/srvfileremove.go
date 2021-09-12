@@ -6,12 +6,14 @@ import (
 )
 
 type FileRemoveReq struct {
-	FilePath string
+	msg.Package `ros:"mavros_msgs"`
+	FilePath    string
 }
 
 type FileRemoveRes struct {
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	RErrno      int32
 }
 
 type FileRemove struct {

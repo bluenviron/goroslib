@@ -6,6 +6,7 @@ import (
 )
 
 type CommandAckReq struct {
+	msg.Package  `ros:"mavros_msgs"`
 	Command      uint16
 	Result       uint8
 	Progress     uint8
@@ -13,8 +14,9 @@ type CommandAckReq struct {
 }
 
 type CommandAckRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandAck struct {

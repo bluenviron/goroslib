@@ -6,10 +6,12 @@ import (
 )
 
 type GripperCommandActionGoal struct {
-	Command GripperCommand
+	msg.Package `ros:"control_msgs"`
+	Command     GripperCommand
 }
 
 type GripperCommandActionResult struct {
+	msg.Package `ros:"control_msgs"`
 	Position    float64
 	Effort      float64
 	Stalled     bool
@@ -17,6 +19,7 @@ type GripperCommandActionResult struct {
 }
 
 type GripperCommandActionFeedback struct {
+	msg.Package `ros:"control_msgs"`
 	Position    float64
 	Effort      float64
 	Stalled     bool

@@ -10,6 +10,7 @@ import (
 )
 
 type FollowJointTrajectoryActionGoal struct {
+	msg.Package       `ros:"control_msgs"`
 	Trajectory        trajectory_msgs.JointTrajectory
 	PathTolerance     []JointTolerance
 	GoalTolerance     []JointTolerance
@@ -26,17 +27,19 @@ const (
 )
 
 type FollowJointTrajectoryActionResult struct {
+	msg.Package     `ros:"control_msgs"`
 	msg.Definitions `ros:"int32 SUCCESSFUL=0,int32 INVALID_GOAL=-1,int32 INVALID_JOINTS=-2,int32 OLD_HEADER_TIMESTAMP=-3,int32 PATH_TOLERANCE_VIOLATED=-4,int32 GOAL_TOLERANCE_VIOLATED=-5"`
 	ErrorCode       int32
 	ErrorString     string
 }
 
 type FollowJointTrajectoryActionFeedback struct {
-	Header     std_msgs.Header
-	JointNames []string
-	Desired    trajectory_msgs.JointTrajectoryPoint
-	Actual     trajectory_msgs.JointTrajectoryPoint
-	Error      trajectory_msgs.JointTrajectoryPoint
+	msg.Package `ros:"control_msgs"`
+	Header      std_msgs.Header
+	JointNames  []string
+	Desired     trajectory_msgs.JointTrajectoryPoint
+	Actual      trajectory_msgs.JointTrajectoryPoint
+	Error       trajectory_msgs.JointTrajectoryPoint
 }
 
 type FollowJointTrajectoryAction struct {

@@ -6,13 +6,15 @@ import (
 )
 
 type FileListReq struct {
-	DirPath string
+	msg.Package `ros:"mavros_msgs"`
+	DirPath     string
 }
 
 type FileListRes struct {
-	List    []FileEntry
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	List        []FileEntry
+	Success     bool
+	RErrno      int32
 }
 
 type FileList struct {

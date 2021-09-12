@@ -11,6 +11,7 @@ const (
 )
 
 type VehicleInfoGetReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 GET_MY_SYSID=0,uint8 GET_MY_COMPID=0"`
 	Sysid           uint8
 	Compid          uint8
@@ -18,8 +19,9 @@ type VehicleInfoGetReq struct {
 }
 
 type VehicleInfoGetRes struct {
-	Success  bool
-	Vehicles []VehicleInfo
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Vehicles    []VehicleInfo
 }
 
 type VehicleInfoGet struct {

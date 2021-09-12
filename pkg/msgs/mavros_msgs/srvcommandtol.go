@@ -6,16 +6,18 @@ import (
 )
 
 type CommandTOLReq struct {
-	MinPitch  float32
-	Yaw       float32
-	Latitude  float32
-	Longitude float32
-	Altitude  float32
+	msg.Package `ros:"mavros_msgs"`
+	MinPitch    float32
+	Yaw         float32
+	Latitude    float32
+	Longitude   float32
+	Altitude    float32
 }
 
 type CommandTOLRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandTOL struct {

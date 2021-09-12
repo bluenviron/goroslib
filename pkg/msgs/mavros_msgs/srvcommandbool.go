@@ -6,12 +6,14 @@ import (
 )
 
 type CommandBoolReq struct {
-	Value bool
+	msg.Package `ros:"mavros_msgs"`
+	Value       bool
 }
 
 type CommandBoolRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandBool struct {

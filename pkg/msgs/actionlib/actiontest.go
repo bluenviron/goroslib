@@ -6,15 +6,18 @@ import (
 )
 
 type TestActionGoal struct {
-	Goal int32
+	msg.Package `ros:"actionlib"`
+	Goal        int32
 }
 
 type TestActionResult struct {
-	Result int32
+	msg.Package `ros:"actionlib"`
+	Result      int32
 }
 
 type TestActionFeedback struct {
-	Feedback int32
+	msg.Package `ros:"actionlib"`
+	Feedback    int32
 }
 
 type TestAction struct {

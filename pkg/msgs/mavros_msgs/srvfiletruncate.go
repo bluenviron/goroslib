@@ -6,13 +6,15 @@ import (
 )
 
 type FileTruncateReq struct {
-	FilePath string
-	Length   uint64
+	msg.Package `ros:"mavros_msgs"`
+	FilePath    string
+	Length      uint64
 }
 
 type FileTruncateRes struct {
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	RErrno      int32
 }
 
 type FileTruncate struct {

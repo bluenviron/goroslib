@@ -6,11 +6,13 @@ import (
 )
 
 type WaypointPushReq struct {
-	StartIndex uint16
-	Waypoints  []Waypoint
+	msg.Package `ros:"mavros_msgs"`
+	StartIndex  uint16
+	Waypoints   []Waypoint
 }
 
 type WaypointPushRes struct {
+	msg.Package  `ros:"mavros_msgs"`
 	Success      bool
 	WpTransfered uint32
 }

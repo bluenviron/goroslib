@@ -6,10 +6,12 @@ import (
 )
 
 type SetCameraInfoReq struct {
-	CameraInfo CameraInfo
+	msg.Package `ros:"sensor_msgs"`
+	CameraInfo  CameraInfo
 }
 
 type SetCameraInfoRes struct {
+	msg.Package   `ros:"sensor_msgs"`
 	Success       bool
 	StatusMessage string
 }

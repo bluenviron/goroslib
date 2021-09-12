@@ -18,13 +18,16 @@ const (
 )
 
 type StreamRateReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 STREAM_ALL=0,uint8 STREAM_RAW_SENSORS=1,uint8 STREAM_EXTENDED_STATUS=2,uint8 STREAM_RC_CHANNELS=3,uint8 STREAM_RAW_CONTROLLER=4,uint8 STREAM_POSITION=6,uint8 STREAM_EXTRA1=10,uint8 STREAM_EXTRA2=11,uint8 STREAM_EXTRA3=12"`
 	StreamId        uint8
 	MessageRate     uint16
 	OnOff           bool
 }
 
-type StreamRateRes struct{}
+type StreamRateRes struct {
+	msg.Package `ros:"mavros_msgs"`
+}
 
 type StreamRate struct {
 	msg.Package `ros:"mavros_msgs"`

@@ -93,7 +93,7 @@ type MessageDefinition struct {
 	Imports        map[string]struct{}
 }
 
-func parseField(goPkgName string, res *MessageDefinition, typ string, name string) error {
+func parseField(rosPkgName string, res *MessageDefinition, typ string, name string) error {
 	f := Field{}
 
 	// use NameOverride if a bidirectional conversion between snake and
@@ -117,7 +117,7 @@ func parseField(goPkgName string, res *MessageDefinition, typ string, name strin
 		parts := strings.Split(f.Type, "/")
 		if len(parts) == 2 {
 			// type of same package
-			if parts[0] == goPkgName {
+			if parts[0] == rosPkgName {
 				return "", parts[1]
 			}
 
@@ -126,7 +126,7 @@ func parseField(goPkgName string, res *MessageDefinition, typ string, name strin
 		}
 
 		// implicit package, type of std_msgs
-		if goPkgName != "std_msgs" {
+		if rosPkgName != "std_msgs" {
 			switch f.Type {
 			case "Bool", "ColorRGBA",
 				"Duration", "Empty", "Float32MultiArray", "Float32",
@@ -164,7 +164,7 @@ func parseField(goPkgName string, res *MessageDefinition, typ string, name strin
 	return nil
 }
 
-func parseDefinition(goPkgName string, res *MessageDefinition, typ string, name string, val string) error {
+func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name string, val string) error {
 	d := Definition{
 		RosType: typ,
 		Name:    name,
@@ -218,7 +218,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 		i = strings.IndexByte(line, '=')
 		if i < 0 {
 			name := line
-			err := parseField(goPkgName, res, typ, name)
+			err := parseField(rosPkgName, res, typ, name)
 			if err != nil {
 				return nil, err
 			}
@@ -227,7 +227,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 			name, val := line[:i], line[i+1:]
 			name = strings.TrimRight(name, " \t")
 			val = strings.TrimLeft(val, " \t")
-			err := parseDefinition(goPkgName, res, typ, name, val)
+			err := parseDefinition(rosPkgName, res, typ, name, val)
 			if err != nil {
 				return nil, err
 			}

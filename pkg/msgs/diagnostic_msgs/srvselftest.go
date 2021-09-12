@@ -5,12 +5,15 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type SelfTestReq struct{}
+type SelfTestReq struct {
+	msg.Package `ros:"diagnostic_msgs"`
+}
 
 type SelfTestRes struct {
-	Id     string
-	Passed int8 `rostype:"byte"`
-	Status []DiagnosticStatus
+	msg.Package `ros:"diagnostic_msgs"`
+	Id          string
+	Passed      int8 `rostype:"byte"`
+	Status      []DiagnosticStatus
 }
 
 type SelfTest struct {

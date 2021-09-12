@@ -6,12 +6,14 @@ import (
 )
 
 type SetBoolReq struct {
-	Data bool
+	msg.Package `ros:"std_srvs"`
+	Data        bool
 }
 
 type SetBoolRes struct {
-	Success bool
-	Message string
+	msg.Package `ros:"std_srvs"`
+	Success     bool
+	Message     string
 }
 
 type SetBool struct {

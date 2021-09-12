@@ -7,15 +7,17 @@ import (
 )
 
 type GetRoutePlanReq struct {
-	Network uuid_msgs.UniqueID
-	Start   uuid_msgs.UniqueID
-	Goal    uuid_msgs.UniqueID
+	msg.Package `ros:"geographic_msgs"`
+	Network     uuid_msgs.UniqueID
+	Start       uuid_msgs.UniqueID
+	Goal        uuid_msgs.UniqueID
 }
 
 type GetRoutePlanRes struct {
-	Success bool
-	Status  string
-	Plan    RoutePath
+	msg.Package `ros:"geographic_msgs"`
+	Success     bool
+	Status      string
+	Plan        RoutePath
 }
 
 type GetRoutePlan struct {

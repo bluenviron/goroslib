@@ -6,15 +6,19 @@ import (
 )
 
 type TwoIntsActionGoal struct {
-	A int64
-	B int64
+	msg.Package `ros:"actionlib"`
+	A           int64
+	B           int64
 }
 
 type TwoIntsActionResult struct {
-	Sum int64
+	msg.Package `ros:"actionlib"`
+	Sum         int64
 }
 
-type TwoIntsActionFeedback struct{}
+type TwoIntsActionFeedback struct {
+	msg.Package `ros:"actionlib"`
+}
 
 type TwoIntsAction struct {
 	msg.Package `ros:"actionlib"`

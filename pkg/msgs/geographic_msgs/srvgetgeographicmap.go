@@ -6,14 +6,16 @@ import (
 )
 
 type GetGeographicMapReq struct {
-	Url    string
-	Bounds BoundingBox
+	msg.Package `ros:"geographic_msgs"`
+	Url         string
+	Bounds      BoundingBox
 }
 
 type GetGeographicMapRes struct {
-	Success bool
-	Status  string
-	Map     GeographicMap
+	msg.Package `ros:"geographic_msgs"`
+	Success     bool
+	Status      string
+	Map         GeographicMap
 }
 
 type GetGeographicMap struct {

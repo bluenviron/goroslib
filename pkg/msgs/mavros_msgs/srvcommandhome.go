@@ -6,16 +6,18 @@ import (
 )
 
 type CommandHomeReq struct {
-	CurrentGps bool
-	Yaw        float32
-	Latitude   float32
-	Longitude  float32
-	Altitude   float32
+	msg.Package `ros:"mavros_msgs"`
+	CurrentGps  bool
+	Yaw         float32
+	Latitude    float32
+	Longitude   float32
+	Altitude    float32
 }
 
 type CommandHomeRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandHome struct {

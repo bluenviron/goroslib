@@ -12,15 +12,17 @@ const (
 )
 
 type FileOpenReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 MODE_READ=0,uint8 MODE_WRITE=1,uint8 MODE_CREATE=2"`
 	FilePath        string
 	Mode            uint8
 }
 
 type FileOpenRes struct {
-	Size    uint32
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Size        uint32
+	Success     bool
+	RErrno      int32
 }
 
 type FileOpen struct {

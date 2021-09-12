@@ -6,11 +6,13 @@ import (
 )
 
 type WaypointSetCurrentReq struct {
-	WpSeq uint16
+	msg.Package `ros:"mavros_msgs"`
+	WpSeq       uint16
 }
 
 type WaypointSetCurrentRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type WaypointSetCurrent struct {

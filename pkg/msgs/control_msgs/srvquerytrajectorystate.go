@@ -8,10 +8,12 @@ import (
 )
 
 type QueryTrajectoryStateReq struct {
-	Time time.Time
+	msg.Package `ros:"control_msgs"`
+	Time        time.Time
 }
 
 type QueryTrajectoryStateRes struct {
+	msg.Package  `ros:"control_msgs"`
 	Name         []string
 	Position     []float64
 	Velocity     []float64

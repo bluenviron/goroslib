@@ -97,12 +97,12 @@ func run() error {
 		return fmt.Errorf("definition must contain a request and a response")
 	}
 
-	reqDef, err := msgconv.ParseMessageDefinition(goPkgName, "", name+"Req", parts[0])
+	reqDef, err := msgconv.ParseMessageDefinition(goPkgName, goPkgName, name+"Req", parts[0])
 	if err != nil {
 		return err
 	}
 
-	resDef, err := msgconv.ParseMessageDefinition(goPkgName, "", name+"Res", parts[1])
+	resDef, err := msgconv.ParseMessageDefinition(goPkgName, goPkgName, name+"Res", parts[1])
 	if err != nil {
 		return err
 	}

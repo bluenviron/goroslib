@@ -6,12 +6,14 @@ import (
 )
 
 type MessageIntervalReq struct {
+	msg.Package `ros:"mavros_msgs"`
 	MessageId   uint32
 	MessageRate float32
 }
 
 type MessageIntervalRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type MessageInterval struct {

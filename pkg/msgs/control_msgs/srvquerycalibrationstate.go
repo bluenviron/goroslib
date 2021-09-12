@@ -5,9 +5,12 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type QueryCalibrationStateReq struct{}
+type QueryCalibrationStateReq struct {
+	msg.Package `ros:"control_msgs"`
+}
 
 type QueryCalibrationStateRes struct {
+	msg.Package  `ros:"control_msgs"`
 	IsCalibrated bool
 }
 

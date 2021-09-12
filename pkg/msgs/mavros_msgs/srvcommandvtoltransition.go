@@ -12,14 +12,16 @@ const (
 )
 
 type CommandVtolTransitionReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 STATE_MC=3,uint8 STATE_FW=4"`
 	Header          std_msgs.Header
 	State           uint8
 }
 
 type CommandVtolTransitionRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandVtolTransition struct {

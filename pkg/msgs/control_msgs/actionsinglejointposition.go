@@ -9,18 +9,22 @@ import (
 )
 
 type SingleJointPositionActionGoal struct {
+	msg.Package `ros:"control_msgs"`
 	Position    float64
 	MinDuration time.Duration
 	MaxVelocity float64
 }
 
-type SingleJointPositionActionResult struct{}
+type SingleJointPositionActionResult struct {
+	msg.Package `ros:"control_msgs"`
+}
 
 type SingleJointPositionActionFeedback struct {
-	Header   std_msgs.Header
-	Position float64
-	Velocity float64
-	Error    float64
+	msg.Package `ros:"control_msgs"`
+	Header      std_msgs.Header
+	Position    float64
+	Velocity    float64
+	Error       float64
 }
 
 type SingleJointPositionAction struct {

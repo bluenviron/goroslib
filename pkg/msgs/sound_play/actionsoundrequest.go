@@ -8,17 +8,20 @@ import (
 )
 
 type SoundRequestActionGoal struct {
+	msg.Package  `ros:"sound_play"`
 	SoundRequest SoundRequest
 }
 
 type SoundRequestActionResult struct {
-	Playing bool
-	Stamp   time.Time
+	msg.Package `ros:"sound_play"`
+	Playing     bool
+	Stamp       time.Time
 }
 
 type SoundRequestActionFeedback struct {
-	Playing bool
-	Stamp   time.Time
+	msg.Package `ros:"sound_play"`
+	Playing     bool
+	Stamp       time.Time
 }
 
 type SoundRequestAction struct {

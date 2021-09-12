@@ -109,6 +109,38 @@ func TestMessageDefinition(t *testing.T) {
 				"}\n" +
 				"",
 		},
+		{
+			"snake case",
+			"int32 a_b",
+			"\n\ntype Msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    AB int32\n" +
+				"}\n",
+		},
+		{
+			"name override",
+			"int32 aB",
+			"\n\ntype Msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    AB int32`rosname:\"aB\"`\n" +
+				"}\n",
+		},
+		{
+			"explicit package, same package",
+			"rospkg/Othermsg msg",
+			"\n\ntype Msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    Msg Othermsg\n" +
+				"}\n",
+		},
+		{
+			"explicit package, other package",
+			"otherpackage/Othermsg msg",
+			"\n\ntype Msgname struct {\n" +
+				"    msg.Package `ros:\"rospkg\"`\n" +
+				"    Msg otherpackage.Othermsg\n" +
+				"}\n",
+		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			def, err := ParseMessageDefinition("gopkg", "rospkg", "msgname", ca.ros)

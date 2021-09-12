@@ -7,12 +7,17 @@ import (
 )
 
 type JointTrajectoryActionGoal struct {
-	Trajectory trajectory_msgs.JointTrajectory
+	msg.Package `ros:"control_msgs"`
+	Trajectory  trajectory_msgs.JointTrajectory
 }
 
-type JointTrajectoryActionResult struct{}
+type JointTrajectoryActionResult struct {
+	msg.Package `ros:"control_msgs"`
+}
 
-type JointTrajectoryActionFeedback struct{}
+type JointTrajectoryActionFeedback struct {
+	msg.Package `ros:"control_msgs"`
+}
 
 type JointTrajectoryAction struct {
 	msg.Package `ros:"control_msgs"`

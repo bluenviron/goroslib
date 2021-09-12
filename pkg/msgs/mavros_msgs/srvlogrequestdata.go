@@ -6,13 +6,15 @@ import (
 )
 
 type LogRequestDataReq struct {
-	Id     uint16
-	Offset uint32
-	Count  uint32
+	msg.Package `ros:"mavros_msgs"`
+	Id          uint16
+	Offset      uint32
+	Count       uint32
 }
 
 type LogRequestDataRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type LogRequestData struct {

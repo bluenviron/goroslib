@@ -9,6 +9,7 @@ import (
 )
 
 type LookupTransformActionGoal struct {
+	msg.Package `ros:"tf2_msgs"`
 	TargetFrame string
 	SourceFrame string
 	SourceTime  time.Time
@@ -19,11 +20,14 @@ type LookupTransformActionGoal struct {
 }
 
 type LookupTransformActionResult struct {
-	Transform geometry_msgs.TransformStamped
-	Error     TF2Error
+	msg.Package `ros:"tf2_msgs"`
+	Transform   geometry_msgs.TransformStamped
+	Error       TF2Error
 }
 
-type LookupTransformActionFeedback struct{}
+type LookupTransformActionFeedback struct {
+	msg.Package `ros:"tf2_msgs"`
+}
 
 type LookupTransformAction struct {
 	msg.Package `ros:"tf2_msgs"`

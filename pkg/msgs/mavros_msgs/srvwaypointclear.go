@@ -5,10 +5,13 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type WaypointClearReq struct{}
+type WaypointClearReq struct {
+	msg.Package `ros:"mavros_msgs"`
+}
 
 type WaypointClearRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type WaypointClear struct {

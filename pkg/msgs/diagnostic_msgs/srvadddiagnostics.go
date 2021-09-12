@@ -6,12 +6,14 @@ import (
 )
 
 type AddDiagnosticsReq struct {
+	msg.Package   `ros:"diagnostic_msgs"`
 	LoadNamespace string
 }
 
 type AddDiagnosticsRes struct {
-	Success bool
-	Message string
+	msg.Package `ros:"diagnostic_msgs"`
+	Success     bool
+	Message     string
 }
 
 type AddDiagnostics struct {

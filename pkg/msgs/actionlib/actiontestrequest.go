@@ -17,6 +17,7 @@ const (
 )
 
 type TestRequestActionGoal struct {
+	msg.Package     `ros:"actionlib"`
 	msg.Definitions `ros:"int32 TERMINATE_SUCCESS=0,int32 TERMINATE_ABORTED=1,int32 TERMINATE_REJECTED=2,int32 TERMINATE_LOSE=3,int32 TERMINATE_DROP=4,int32 TERMINATE_EXCEPTION=5"`
 	TerminateStatus int32
 	IgnoreCancel    bool
@@ -29,11 +30,14 @@ type TestRequestActionGoal struct {
 }
 
 type TestRequestActionResult struct {
+	msg.Package    `ros:"actionlib"`
 	TheResult      int32
 	IsSimpleServer bool
 }
 
-type TestRequestActionFeedback struct{}
+type TestRequestActionFeedback struct {
+	msg.Package `ros:"actionlib"`
+}
 
 type TestRequestAction struct {
 	msg.Package `ros:"actionlib"`

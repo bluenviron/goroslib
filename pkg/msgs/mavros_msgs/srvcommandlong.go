@@ -6,6 +6,7 @@ import (
 )
 
 type CommandLongReq struct {
+	msg.Package  `ros:"mavros_msgs"`
 	Broadcast    bool
 	Command      uint16
 	Confirmation uint8
@@ -19,8 +20,9 @@ type CommandLongReq struct {
 }
 
 type CommandLongRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandLong struct {

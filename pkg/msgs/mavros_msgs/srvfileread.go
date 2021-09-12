@@ -6,15 +6,17 @@ import (
 )
 
 type FileReadReq struct {
-	FilePath string
-	Offset   uint64
-	Size     uint64
+	msg.Package `ros:"mavros_msgs"`
+	FilePath    string
+	Offset      uint64
+	Size        uint64
 }
 
 type FileReadRes struct {
-	Data    []uint8
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Data        []uint8
+	Success     bool
+	RErrno      int32
 }
 
 type FileRead struct {

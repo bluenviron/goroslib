@@ -6,13 +6,15 @@ import (
 )
 
 type ParamSetReq struct {
-	ParamId string
-	Value   ParamValue
+	msg.Package `ros:"mavros_msgs"`
+	ParamId     string
+	Value       ParamValue
 }
 
 type ParamSetRes struct {
-	Success bool
-	Value   ParamValue
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Value       ParamValue
 }
 
 type ParamSet struct {

@@ -6,14 +6,16 @@ import (
 )
 
 type CommandTriggerControlReq struct {
+	msg.Package   `ros:"mavros_msgs"`
 	TriggerEnable bool
 	SequenceReset bool
 	TriggerPause  bool
 }
 
 type CommandTriggerControlRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandTriggerControl struct {

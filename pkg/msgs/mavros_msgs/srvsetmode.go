@@ -20,13 +20,15 @@ const (
 )
 
 type SetModeReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 MAV_MODE_PREFLIGHT=0,uint8 MAV_MODE_STABILIZE_DISARMED=80,uint8 MAV_MODE_STABILIZE_ARMED=208,uint8 MAV_MODE_MANUAL_DISARMED=64,uint8 MAV_MODE_MANUAL_ARMED=192,uint8 MAV_MODE_GUIDED_DISARMED=88,uint8 MAV_MODE_GUIDED_ARMED=216,uint8 MAV_MODE_AUTO_DISARMED=92,uint8 MAV_MODE_AUTO_ARMED=220,uint8 MAV_MODE_TEST_DISARMED=66,uint8 MAV_MODE_TEST_ARMED=194"`
 	BaseMode        uint8
 	CustomMode      string
 }
 
 type SetModeRes struct {
-	ModeSent bool
+	msg.Package `ros:"mavros_msgs"`
+	ModeSent    bool
 }
 
 type SetMode struct {

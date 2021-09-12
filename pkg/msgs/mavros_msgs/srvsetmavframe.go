@@ -31,12 +31,14 @@ const (
 )
 
 type SetMavFrameReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 FRAME_GLOBAL=0,uint8 FRAME_LOCAL_NED=1,uint8 FRAME_MISSION=2,uint8 FRAME_GLOBAL_RELATIVE_ALT=3,uint8 FRAME_LOCAL_ENU=4,uint8 FRAME_GLOBAL_INT=5,uint8 FRAME_GLOBAL_RELATIVE_ALT_INT=6,uint8 FRAME_LOCAL_OFFSET_NED=7,uint8 FRAME_BODY_NED=8,uint8 FRAME_BODY_OFFSET_NED=9,uint8 FRAME_GLOBAL_TERRAIN_ALT=10,uint8 FRAME_GLOBAL_TERRAIN_ALT_INT=11,uint8 FRAME_BODY_FRD=12,uint8 FRAME_RESERVED_13=13,uint8 FRAME_RESERVED_14=14,uint8 FRAME_RESERVED_15=15,uint8 FRAME_RESERVED_16=16,uint8 FRAME_RESERVED_17=17,uint8 FRAME_RESERVED_18=18,uint8 FRAME_RESERVED_19=19,uint8 FRAME_LOCAL_FRD=20,uint8 FRAME_LOCAL_FLU=21"`
 	MavFrame        uint8
 }
 
 type SetMavFrameRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type SetMavFrame struct {

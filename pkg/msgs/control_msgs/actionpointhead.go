@@ -9,6 +9,7 @@ import (
 )
 
 type PointHeadActionGoal struct {
+	msg.Package   `ros:"control_msgs"`
 	Target        geometry_msgs.PointStamped
 	PointingAxis  geometry_msgs.Vector3
 	PointingFrame string
@@ -16,9 +17,12 @@ type PointHeadActionGoal struct {
 	MaxVelocity   float64
 }
 
-type PointHeadActionResult struct{}
+type PointHeadActionResult struct {
+	msg.Package `ros:"control_msgs"`
+}
 
 type PointHeadActionFeedback struct {
+	msg.Package        `ros:"control_msgs"`
 	PointingAngleError float64
 }
 

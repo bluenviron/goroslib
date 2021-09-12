@@ -5,10 +5,13 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
-type LogRequestEndReq struct{}
+type LogRequestEndReq struct {
+	msg.Package `ros:"mavros_msgs"`
+}
 
 type LogRequestEndRes struct {
-	Success bool
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
 }
 
 type LogRequestEnd struct {

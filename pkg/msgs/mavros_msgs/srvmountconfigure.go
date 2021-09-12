@@ -18,6 +18,7 @@ const (
 )
 
 type MountConfigureReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	msg.Definitions `ros:"uint8 MODE_RETRACT=0,uint8 MODE_NEUTRAL=1,uint8 MODE_MAVLINK_TARGETING=2,uint8 MODE_RC_TARGETING=3,uint8 MODE_GPS_POINT=4,uint8 INPUT_ANGLE_BODY_FRAME=0,uint8 INPUT_ANGULAR_RATE=1,uint8 INPUT_ANGLE_ABSOLUTE_FRAME=2"`
 	Header          std_msgs.Header
 	Mode            uint8
@@ -30,8 +31,9 @@ type MountConfigureReq struct {
 }
 
 type MountConfigureRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type MountConfigure struct {

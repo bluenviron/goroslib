@@ -6,13 +6,15 @@ import (
 )
 
 type FileRenameReq struct {
-	OldPath string
-	NewPath string
+	msg.Package `ros:"mavros_msgs"`
+	OldPath     string
+	NewPath     string
 }
 
 type FileRenameRes struct {
-	Success bool
-	RErrno  int32
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	RErrno      int32
 }
 
 type FileRename struct {

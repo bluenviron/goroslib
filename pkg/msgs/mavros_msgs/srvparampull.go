@@ -6,10 +6,12 @@ import (
 )
 
 type ParamPullReq struct {
-	ForcePull bool
+	msg.Package `ros:"mavros_msgs"`
+	ForcePull   bool
 }
 
 type ParamPullRes struct {
+	msg.Package   `ros:"mavros_msgs"`
 	Success       bool
 	ParamReceived uint32
 }

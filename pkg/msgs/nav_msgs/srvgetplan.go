@@ -7,13 +7,15 @@ import (
 )
 
 type GetPlanReq struct {
-	Start     geometry_msgs.PoseStamped
-	Goal      geometry_msgs.PoseStamped
-	Tolerance float32
+	msg.Package `ros:"nav_msgs"`
+	Start       geometry_msgs.PoseStamped
+	Goal        geometry_msgs.PoseStamped
+	Tolerance   float32
 }
 
 type GetPlanRes struct {
-	Plan Path
+	msg.Package `ros:"nav_msgs"`
+	Plan        Path
 }
 
 type GetPlan struct {

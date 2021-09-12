@@ -6,13 +6,15 @@ import (
 )
 
 type CommandTriggerIntervalReq struct {
+	msg.Package     `ros:"mavros_msgs"`
 	CycleTime       float32
 	IntegrationTime float32
 }
 
 type CommandTriggerIntervalRes struct {
-	Success bool
-	Result  uint8
+	msg.Package `ros:"mavros_msgs"`
+	Success     bool
+	Result      uint8
 }
 
 type CommandTriggerInterval struct {
