@@ -164,10 +164,7 @@ func HeaderEncode(w io.Writer, src Header) error {
 
 		// write field length
 		binary.LittleEndian.PutUint32(buf, flen)
-		_, err := he.Write(buf[:4])
-		if err != nil {
-			return err
-		}
+		he.Write(buf[:4])
 
 		he.Write(bkey)
 		he.Write([]byte{'='})

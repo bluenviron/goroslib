@@ -121,26 +121,6 @@ var casesMessage = []caseMessage{
 		},
 	},
 	{
-		"variable array of pointers",
-		&struct {
-			A []*uint32
-		}{[]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]}},
-		[]byte{
-			0x0c, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
-			0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-		},
-	},
-	{
-		"fixed array of pointers",
-		&struct {
-			A [2]*uint32
-		}{[2]*uint32{&[]uint32{2}[0], &[]uint32{3}[0]}},
-		[]byte{
-			0x08, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
-			0x03, 0x00, 0x00, 0x00,
-		},
-	},
-	{
 		"variable array of parent",
 		&struct {
 			A uint8

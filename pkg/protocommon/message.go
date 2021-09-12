@@ -236,14 +236,6 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 				el := reflect.New(dest.Elem().Type().Elem())
 				el2 := el
 
-				if el.Elem().Kind() == reflect.Ptr {
-					// allocate if is pointer and null
-					if el.Elem().IsNil() {
-						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
-					}
-					el2 = el.Elem()
-				}
-
 				err := binaryDecodeValue(r, el2, mlen, buf)
 				if err != nil {
 					return err
@@ -258,14 +250,6 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 			for i := 0; i < le; i++ {
 				el := reflect.New(dest.Elem().Type().Elem())
 				el2 := el
-
-				if el.Elem().Kind() == reflect.Ptr {
-					// allocate if is pointer and null
-					if el.Elem().IsNil() {
-						el.Elem().Set(reflect.New(el.Elem().Type().Elem()))
-					}
-					el2 = el.Elem()
-				}
 
 				err := binaryDecodeValue(r, el2, mlen, buf)
 				if err != nil {
@@ -290,14 +274,7 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 					continue
 				}
 
-				if f.Kind() == reflect.Ptr {
-					// allocate if is pointer and null
-					if f.IsNil() {
-						f.Set(reflect.New(f.Type().Elem()))
-					}
-				} else {
-					f = f.Addr()
-				}
+				f = f.Addr()
 
 				err := binaryDecodeValue(r, f, mlen, buf)
 				if err != nil {
@@ -488,11 +465,7 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 
 			// slice elements
 			for i := 0; i < le; i++ {
-				el := src.Elem().Index(i)
-
-				if el.Kind() != reflect.Ptr {
-					el = el.Addr()
-				}
+				el := src.Elem().Index(i).Addr()
 
 				err := binaryEncodeValue(w, el, dest)
 				if err != nil {
@@ -505,11 +478,7 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 
 			// array elements
 			for i := 0; i < le; i++ {
-				el := src.Elem().Index(i)
-
-				if el.Kind() != reflect.Ptr {
-					el = el.Addr()
-				}
+				el := src.Elem().Index(i).Addr()
 
 				err := binaryEncodeValue(w, el, dest)
 				if err != nil {
@@ -521,7 +490,6 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 			// struct fields
 			nf := src.Elem().NumField()
 			for i := 0; i < nf; i++ {
-				f := src.Elem().Field(i)
 				ft := src.Elem().Type().Field(i)
 
 				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
@@ -532,10 +500,7 @@ func binaryEncodeValue(w io.Writer, src reflect.Value, dest []byte) error {
 					continue
 				}
 
-				if f.Kind() != reflect.Ptr {
-					f = f.Addr()
-				}
-
+				f := src.Elem().Field(i).Addr()
 				err := binaryEncodeValue(w, f, dest)
 				if err != nil {
 					return err
