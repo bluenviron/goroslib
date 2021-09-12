@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
@@ -100,7 +101,7 @@ func (c *container) waitOutput() string {
 	return string(out)
 }
 
-func TestNodeMasterOpen(t *testing.T) {
+func TestNodeOpen(t *testing.T) {
 	t.Run("normal", func(t *testing.T) {
 		m, err := newContainerMaster()
 		require.NoError(t, err)
@@ -128,15 +129,15 @@ func TestNodeMasterOpen(t *testing.T) {
 		require.NoError(t, err)
 		defer n.Close()
 	})
+}
 
-	t.Run("not running", func(t *testing.T) {
-		_, err := NewNode(NodeConf{
-			Namespace:     "/myns",
-			Name:          "goroslib",
-			MasterAddress: "127.0.0.1:11311",
-		})
-		require.Error(t, err)
+func TestNodeOpenError(t *testing.T) {
+	_, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: "127.0.0.1:11311",
 	})
+	require.Error(t, err)
 }
 
 func TestNodeNamespace(t *testing.T) {
@@ -243,4 +244,99 @@ func TestNodeRosnodeInfo(t *testing.T) {
 			"    \\* direction: outbound\n"+
 			"    \\* transport: TCPROS\n"+
 			"\n$"), rt.waitOutput())
+}
+
+func TestNodeLog(t *testing.T) {
+	t.Run("rosout", func(t *testing.T) {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		n1, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib1",
+			MasterAddress: m.IP() + ":11311",
+			LogVerbosity:  LogLevelDebug,
+		})
+		require.NoError(t, err)
+		defer n1.Close()
+
+		n2, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib2",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n2.Close()
+
+		recv := 0
+		done := make(chan struct{})
+
+		sub, err := NewSubscriber(SubscriberConf{
+			Node:  n2,
+			Topic: "/rosout",
+			Callback: func(msg *rosgraph_msgs.Log) {
+				switch msg.Level {
+				case rosgraph_msgs.Log_INFO,
+					rosgraph_msgs.Log_WARN,
+					rosgraph_msgs.Log_ERROR,
+					rosgraph_msgs.Log_FATAL:
+					recv++
+
+					if recv >= 4 {
+						close(done)
+					}
+				}
+			},
+		})
+		require.NoError(t, err)
+		defer sub.Close()
+
+		time.Sleep(500 * time.Millisecond)
+
+		n1.Log(LogLevelInfo, "test info")
+		n1.Log(LogLevelWarn, "test warn")
+		n1.Log(LogLevelError, "test error")
+		n1.Log(LogLevelFatal, "test fatal")
+
+		<-done
+	})
+
+	t.Run("callback", func(t *testing.T) {
+		m, err := newContainerMaster()
+		require.NoError(t, err)
+		defer m.close()
+
+		recv := 0
+		done := make(chan struct{})
+
+		n, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib",
+			MasterAddress: m.IP() + ":11311",
+			LogVerbosity:  LogLevelDebug,
+			OnLog: func(level LogLevel, msg string) {
+				switch level {
+				case LogLevelInfo,
+					LogLevelWarn,
+					LogLevelError,
+					LogLevelFatal:
+					recv++
+
+					if recv >= 4 {
+						close(done)
+					}
+				}
+			},
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		n.Log(LogLevelInfo, "test info")
+		n.Log(LogLevelWarn, "test warn")
+		n.Log(LogLevelError, "test error")
+		n.Log(LogLevelFatal, "test fatal")
+
+		<-done
+	})
 }

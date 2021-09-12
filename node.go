@@ -363,8 +363,6 @@ func NewNode(conf NodeConf) (*Node, error) {
 		done:                   make(chan struct{}),
 	}
 
-	n.Log(LogLevelDebug, "node '%s' created", n.absoluteName())
-
 	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName())
 
 	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
@@ -408,6 +406,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 		n.Close()
 		return nil, err
 	}
+
+	n.Log(LogLevelDebug, "node '%s' created", n.absoluteName())
 
 	isSet, err := n.ParamIsSet("/use_sim_time")
 	if err != nil {
@@ -501,15 +501,21 @@ func (n *Node) Log(level LogLevel, format string, args ...interface{}) {
 		formatted = now.Format("[2006/01/02 15:04:05]") + " " + formatted
 
 		switch level {
-		case LogLevelDebug, LogLevelInfo:
-			os.Stdout.WriteString(formatted)
+		case LogLevelDebug:
+			os.Stderr.WriteString(color.RenderString(color.Gray.Code(), formatted) + "\n")
 
-		case LogLevelWarn, LogLevelError, LogLevelFatal:
+		case LogLevelInfo:
+			os.Stdout.WriteString(formatted + "\n")
+
+		case LogLevelWarn:
+			os.Stderr.WriteString(color.RenderString(color.Yellow.Code(), formatted) + "\n")
+
+		case LogLevelError, LogLevelFatal:
 			os.Stderr.WriteString(color.RenderString(color.Red.Code(), formatted) + "\n")
 		}
 	}
 
-	if (n.conf.LogDestinations & LogDestinationRosout) != 0 {
+	if (n.conf.LogDestinations&LogDestinationRosout) != 0 && n.rosoutPublisher != nil {
 		n.rosoutPublisher.Write(&rosgraph_msgs.Log{
 			Header: std_msgs.Header{
 				Stamp: now,
