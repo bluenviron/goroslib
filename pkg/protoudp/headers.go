@@ -9,9 +9,6 @@ type HeaderSubscriber struct {
 	Md5sum   string
 }
 
-// IsHeader implements protocommon.Header.
-func (*HeaderSubscriber) IsHeader() {}
-
 // HeaderPublisher is a publisher header.
 type HeaderPublisher struct {
 	Callerid          string
@@ -20,6 +17,3 @@ type HeaderPublisher struct {
 	Md5sum            string
 	MessageDefinition string
 }
-
-// IsHeader implements protocommon.Header.
-func (*HeaderPublisher) IsHeader() {}

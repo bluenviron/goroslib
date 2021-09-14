@@ -8,8 +8,6 @@ import (
 // requests.
 type ErrorRes xmlrpc.ErrorRes
 
-func (ErrorRes) isResponse() {}
-
 // Server is a Slave API server.
 type Server struct {
 	xs *xmlrpc.Server

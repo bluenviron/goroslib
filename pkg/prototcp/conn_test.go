@@ -68,6 +68,8 @@ func TestConn(t *testing.T) {
 	tconn := newConn(conn)
 	defer tconn.Close()
 
+	require.NotEqual(t, nil, tconn.NetConn())
+
 	err = tconn.WriteHeader(&HeaderPublisher{
 		Topic:    "mytopic",
 		Type:     "mytype",
@@ -105,20 +107,14 @@ func TestConn(t *testing.T) {
 }
 
 func TestConnErrors(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-	}{
-		{
-			"write_header",
-		},
-		{
-			"read_service_res_state",
-		},
-		{
-			"write_message",
-		},
+	for _, ca := range []string{
+		"invalid_header",
+		"write_header",
+		"read_service_res_state",
+		"invalid_message",
+		"write_message",
 	} {
-		t.Run(ca.name, func(t *testing.T) {
+		t.Run(ca, func(t *testing.T) {
 			l, err := net.Listen("tcp", "localhost:9907")
 			require.NoError(t, err)
 			defer l.Close()
@@ -140,7 +136,11 @@ func TestConnErrors(t *testing.T) {
 			tconn := newConn(conn)
 			tconn.Close()
 
-			switch ca.name {
+			switch ca {
+			case "invalid_header":
+				err := tconn.WriteHeader(123)
+				require.Error(t, err)
+
 			case "write_header":
 				err := tconn.WriteHeader(&HeaderPublisher{
 					Topic:    "mytopic",
@@ -153,6 +153,10 @@ func TestConnErrors(t *testing.T) {
 
 			case "read_service_res_state":
 				_, err = tconn.ReadServiceResState()
+				require.Error(t, err)
+
+			case "invalid_message":
+				err := tconn.WriteMessage(123)
 				require.Error(t, err)
 
 			case "write_message":

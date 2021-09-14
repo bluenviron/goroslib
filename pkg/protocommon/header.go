@@ -88,9 +88,7 @@ func HeaderRawDecode(r io.Reader) (HeaderRaw, error) {
 }
 
 // Header is an header.
-type Header interface {
-	IsHeader()
-}
+type Header interface{}
 
 // HeaderDecode decodes an header in binary format.
 func HeaderDecode(raw HeaderRaw, dest Header) error {

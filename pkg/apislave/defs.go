@@ -4,21 +4,15 @@
 package apislave
 
 // Request is a slave API request.
-type Request interface {
-	isRequest()
-}
+type Request interface{}
 
 // Response is a slave API response.
-type Response interface {
-	isResponse()
-}
+type Response interface{}
 
 // RequestGetBusInfo is a getBusInfo request.
 type RequestGetBusInfo struct {
 	CallerID string
 }
-
-func (RequestGetBusInfo) isRequest() {}
 
 // ResponseGetBusInfo is the response to a getBusInfo request.
 type ResponseGetBusInfo struct {
@@ -27,14 +21,10 @@ type ResponseGetBusInfo struct {
 	BusInfo       [][]interface{}
 }
 
-func (ResponseGetBusInfo) isResponse() {}
-
 // RequestGetPid is a getPid request.
 type RequestGetPid struct {
 	CallerID string
 }
-
-func (RequestGetPid) isRequest() {}
 
 // ResponseGetPid is the response to a getPid request.
 type ResponseGetPid struct {
@@ -43,14 +33,10 @@ type ResponseGetPid struct {
 	Pid           int
 }
 
-func (ResponseGetPid) isResponse() {}
-
 // RequestGetPublications is a getPublications request.
 type RequestGetPublications struct {
 	CallerID string
 }
-
-func (RequestGetPublications) isRequest() {}
 
 // ResponseGetPublications is the response to a getPublications request.
 type ResponseGetPublications struct {
@@ -59,16 +45,12 @@ type ResponseGetPublications struct {
 	TopicList     [][]string
 }
 
-func (ResponseGetPublications) isResponse() {}
-
 // RequestPublisherUpdate is a publisherUpdate request.
 type RequestPublisherUpdate struct {
 	CallerID      string
 	Topic         string
 	PublisherURLs []string
 }
-
-func (RequestPublisherUpdate) isRequest() {}
 
 // ResponsePublisherUpdate is the response to a publisherUpdate request.
 type ResponsePublisherUpdate struct {
@@ -77,16 +59,12 @@ type ResponsePublisherUpdate struct {
 	Ignore        int
 }
 
-func (ResponsePublisherUpdate) isResponse() {}
-
 // RequestRequestTopic is a requestTopic request.
 type RequestRequestTopic struct {
 	CallerID  string
 	Topic     string
 	Protocols [][]interface{}
 }
-
-func (RequestRequestTopic) isRequest() {}
 
 // ResponseRequestTopic is the response to a requestTopic request.
 type ResponseRequestTopic struct {
@@ -95,15 +73,11 @@ type ResponseRequestTopic struct {
 	Protocol      []interface{}
 }
 
-func (ResponseRequestTopic) isResponse() {}
-
 // RequestShutdown is a shutdown request.
 type RequestShutdown struct {
 	CallerID string
 	Reason   string
 }
-
-func (RequestShutdown) isRequest() {}
 
 // ResponseShutdown is the response to a shutdown request.
 type ResponseShutdown struct {
@@ -111,5 +85,3 @@ type ResponseShutdown struct {
 	StatusMessage string
 	Ignore        int
 }
-
-func (ResponseShutdown) isResponse() {}

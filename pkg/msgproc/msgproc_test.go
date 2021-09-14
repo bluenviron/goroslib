@@ -209,11 +209,37 @@ func TestType(t *testing.T) {
 			&MsgImplicitPackage{},
 			"goroslib/MsgImplicitPackage",
 		},
+		{
+			"anonymous",
+			&struct {
+				A int
+			}{},
+			"goroslib/Msg",
+		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			typ, err := Type(ca.msg)
 			require.NoError(t, err)
 			require.Equal(t, ca.typ, typ)
+		})
+	}
+}
+
+func TestTypeErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		msg  interface{}
+		err  string
+	}{
+		{
+			"wrong message type",
+			123,
+			"unsupported message type 'int'",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := Type(ca.msg)
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }

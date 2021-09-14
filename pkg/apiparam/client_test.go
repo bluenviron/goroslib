@@ -193,7 +193,15 @@ func TestClientError(t *testing.T) {
 				}
 
 			case "hasParam":
-				return ResponseHasParam{Code: 0, KeyOut: "mykey", Res: true}
+				var req RequestHasParam
+				err := raw.Decode(&req)
+				require.NoError(t, err)
+
+				if req.Key == "mykey" {
+					return ResponseHasParam{Code: 0, KeyOut: "mykey", Res: true}
+				}
+
+				return ResponseHasParam{Code: 1, KeyOut: "mykey_wrong", Res: true}
 
 			case "searchParam":
 				return ResponseSearchParam{Code: 0, FoundKey: "mykey"}
@@ -204,54 +212,37 @@ func TestClientError(t *testing.T) {
 			return xmlrpc.ErrorRes{}
 		})
 
-		func() {
-			err := c.DeleteParam("mykey")
-			require.Error(t, err)
-		}()
+		err = c.DeleteParam("mykey")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetParamNames()
-			require.Error(t, err)
-		}()
+		_, err = c.GetParamNames()
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetParamBool("mykey1")
-			require.Error(t, err)
-		}()
+		_, err = c.GetParamBool("mykey1")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetParamInt("mykey2")
-			require.Error(t, err)
-		}()
+		_, err = c.GetParamInt("mykey2")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetParamString("mykey3")
-			require.Error(t, err)
-		}()
+		_, err = c.GetParamString("mykey3")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.HasParam("mykey")
-			require.Error(t, err)
-		}()
+		_, err = c.HasParam("mykey")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.SearchParam("mykey")
-			require.Error(t, err)
-		}()
+		_, err = c.HasParam("mykey2")
+		require.Error(t, err)
 
-		func() {
-			err := c.SetParamBool("mykey", true)
-			require.Error(t, err)
-		}()
+		_, err = c.SearchParam("mykey")
+		require.Error(t, err)
 
-		func() {
-			err := c.SetParamInt("mykey", 123)
-			require.Error(t, err)
-		}()
+		err = c.SetParamBool("mykey", true)
+		require.Error(t, err)
 
-		func() {
-			err := c.SetParamString("mykey", "myval")
-			require.Error(t, err)
-		}()
+		err = c.SetParamInt("mykey", 123)
+		require.Error(t, err)
+
+		err = c.SetParamString("mykey", "myval")
+		require.Error(t, err)
 	})
 }

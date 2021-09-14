@@ -24,7 +24,7 @@ func RequestResponse(srv interface{}) (interface{}, interface{}, error) {
 		srvv = srvv.Elem()
 	}
 	if srvv.Kind() != reflect.Struct {
-		return nil, nil, fmt.Errorf("unsupported service type '%s'", srvv.String())
+		return nil, nil, fmt.Errorf("unsupported service type '%s'", srvv.Type())
 	}
 
 	var req interface{}

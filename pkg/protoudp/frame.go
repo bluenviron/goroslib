@@ -58,9 +58,9 @@ func (f *Frame) encode() ([]byte, error) {
 // FramesForPayload generates frames for the given payload.
 func FramesForPayload(connID uint32, messageID uint8, payload []byte) []*Frame {
 	var ret []*Frame
-	lbyts := len(payload)
+	payloadSize := len(payload)
 
-	for i := 0; i < lbyts; i += maxPayloadSize {
+	for i := 0; i < payloadSize; i += maxPayloadSize {
 		f := &Frame{
 			ConnectionID: connID,
 			Opcode: func() Opcode {
@@ -73,10 +73,10 @@ func FramesForPayload(connID uint32, messageID uint8, payload []byte) []*Frame {
 			BlockID: func() uint16 {
 				// return block count
 				if i == 0 {
-					if (lbyts % maxPayloadSize) == 0 {
-						return uint16(lbyts / maxPayloadSize)
+					if (payloadSize % maxPayloadSize) == 0 {
+						return uint16(payloadSize / maxPayloadSize)
 					}
-					return uint16((lbyts / maxPayloadSize) + 1)
+					return uint16((payloadSize / maxPayloadSize) + 1)
 				}
 
 				// return current block id
@@ -84,8 +84,8 @@ func FramesForPayload(connID uint32, messageID uint8, payload []byte) []*Frame {
 			}(),
 			Payload: func() []byte {
 				j := i + maxPayloadSize
-				if j > lbyts {
-					j = lbyts
+				if j > payloadSize {
+					j = payloadSize
 				}
 				return payload[i:j]
 			}(),

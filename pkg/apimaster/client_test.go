@@ -228,7 +228,13 @@ func TestClientErrors(t *testing.T) {
 				return ResponseRegister{Code: 0, URIs: []string{"myurl"}}
 
 			case "unregisterSubscriber":
-				return ResponseUnregister{Code: 0, NumUnregistered: 1}
+				var req RequestUnregister
+				err := raw.Decode(&req)
+				require.NoError(t, err)
+				if req.Topic == "mytopic" {
+					return ResponseUnregister{Code: 0, NumUnregistered: 1}
+				}
+				return ResponseUnregister{Code: 1, NumUnregistered: 0}
 
 			case "unregisterPublisher":
 				return ResponseUnregister{Code: 0, NumUnregistered: 1}
@@ -237,69 +243,57 @@ func TestClientErrors(t *testing.T) {
 				return ResponseRegisterService{Code: 0}
 
 			case "unregisterService":
-				return ResponseServiceUnregister{Code: 0, NumUnregistered: 1}
+				var req RequestUnregisterService
+				err := raw.Decode(&req)
+				require.NoError(t, err)
+				if req.Service == "myservice" {
+					return ResponseServiceUnregister{Code: 0, NumUnregistered: 1}
+				}
+				return ResponseServiceUnregister{Code: 1, NumUnregistered: 0}
 			}
 			return xmlrpc.ErrorRes{}
 		})
 
-		func() {
-			_, err := c.GetPublishedTopics("mysubgraph")
-			require.Error(t, err)
-		}()
+		_, err = c.GetPublishedTopics("mysubgraph")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetSystemState()
-			require.Error(t, err)
-		}()
+		_, err = c.GetSystemState()
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetTopicTypes()
-			require.Error(t, err)
-		}()
+		_, err = c.GetTopicTypes()
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetURI()
-			require.Error(t, err)
-		}()
+		_, err = c.GetURI()
+		require.Error(t, err)
 
-		func() {
-			_, err := c.LookupNode("mynode")
-			require.Error(t, err)
-		}()
+		_, err = c.LookupNode("mynode")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.LookupService("myservice")
-			require.Error(t, err)
-		}()
+		_, err = c.LookupService("myservice")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.RegisterSubscriber("mytopic", "mytype", "myurl")
-			require.Error(t, err)
-		}()
+		_, err = c.RegisterSubscriber("mytopic", "mytype", "myurl")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.RegisterPublisher("mytopic", "mytype", "myurl")
-			require.Error(t, err)
-		}()
+		_, err = c.RegisterPublisher("mytopic", "mytype", "myurl")
+		require.Error(t, err)
 
-		func() {
-			err := c.UnregisterSubscriber("mytopic", "myurl")
-			require.Error(t, err)
-		}()
+		err = c.UnregisterSubscriber("mytopic", "myurl")
+		require.Error(t, err)
 
-		func() {
-			err := c.UnregisterPublisher("mytopic", "myurl")
-			require.Error(t, err)
-		}()
+		err = c.UnregisterSubscriber("mytopic2", "myurl")
+		require.Error(t, err)
 
-		func() {
-			err := c.RegisterService("myservice", "serviceurl", "myurl")
-			require.Error(t, err)
-		}()
+		err = c.UnregisterPublisher("mytopic", "myurl")
+		require.Error(t, err)
 
-		func() {
-			err := c.UnregisterService("myservice", "serviceurl")
-			require.Error(t, err)
-		}()
+		err = c.RegisterService("myservice", "serviceurl", "myurl")
+		require.Error(t, err)
+
+		err = c.UnregisterService("myservice", "serviceurl")
+		require.Error(t, err)
+
+		err = c.UnregisterService("myservice2", "serviceurl")
+		require.Error(t, err)
 	})
 }

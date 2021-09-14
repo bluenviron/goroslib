@@ -103,24 +103,16 @@ func TestClientErrors(t *testing.T) {
 			return xmlrpc.ErrorRes{}
 		})
 
-		func() {
-			_, err := c.GetPid()
-			require.Error(t, err)
-		}()
+		_, err = c.GetPid()
+		require.Error(t, err)
 
-		func() {
-			err := c.Shutdown("myreason")
-			require.Error(t, err)
-		}()
+		err = c.Shutdown("myreason")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
-			require.Error(t, err)
-		}()
+		_, err = c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetBusInfo()
-			require.Error(t, err)
-		}()
+		_, err = c.GetBusInfo()
+		require.Error(t, err)
 	})
 }

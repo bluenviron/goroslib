@@ -43,6 +43,32 @@ func TestRequestResponse(t *testing.T) {
 	}
 }
 
+func TestRequestResponseErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		srv  interface{}
+		err  string
+	}{
+		{
+			"invalid type",
+			123,
+			"unsupported service type 'int'",
+		},
+		{
+			"missing response",
+			&struct {
+				A struct{}
+			}{},
+			"service request or response not found",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, _, err := RequestResponse(ca.srv)
+			require.Equal(t, ca.err, err.Error())
+		})
+	}
+}
+
 func TestMD5(t *testing.T) {
 	for _, ca := range []struct {
 		name string
@@ -52,6 +78,7 @@ func TestMD5(t *testing.T) {
 		{
 			"base",
 			&struct {
+				msg.Package `ros:"my_package"`
 				ServiceReq
 				ServiceRes
 			}{},
@@ -62,6 +89,48 @@ func TestMD5(t *testing.T) {
 			md5, err := MD5(ca.srv)
 			require.NoError(t, err)
 			require.Equal(t, ca.sum, md5)
+		})
+	}
+}
+
+func TestMD5Errors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		srv  interface{}
+		err  string
+	}{
+		{
+			"wrong type",
+			123,
+			"unsupported service type 'int'",
+		},
+		{
+			"invalid service",
+			&struct {
+				A int
+			}{},
+			"service request or response not found",
+		},
+		{
+			"invalid request",
+			&struct {
+				A int
+				B int
+			}{},
+			"unsupported field type 'int'",
+		},
+		{
+			"invalid response",
+			&struct {
+				A struct{}
+				B int
+			}{},
+			"unsupported field type 'int'",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := MD5(ca.srv)
+			require.Equal(t, ca.err, err.Error())
 		})
 	}
 }

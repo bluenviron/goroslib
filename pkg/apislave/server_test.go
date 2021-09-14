@@ -128,7 +128,7 @@ func TestServerErrors(t *testing.T) {
 		})
 
 		var buf bytes.Buffer
-		buf.Write([]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params>`))
+		buf.Write([]byte(`<?xml version="1.0"?><methodCall><methodName>shutdown</methodName><params>`))
 		res, err := http.Post("http://localhost:9909/RPC2", "text/xml", &buf)
 		require.NoError(t, err)
 		defer res.Body.Close()

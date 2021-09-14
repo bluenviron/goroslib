@@ -19,8 +19,6 @@ type headerSubscriber struct {
 	TcpNodelay        int //nolint:golint
 }
 
-func (*headerSubscriber) IsHeader() {}
-
 type headerPublisher struct {
 	Topic    string
 	Type     string
@@ -29,25 +27,17 @@ type headerPublisher struct {
 	Latching int
 }
 
-func (*headerPublisher) IsHeader() {}
-
 type headerError struct {
 	Error string
 }
-
-func (*headerError) IsHeader() {}
 
 type headerTest1 struct {
 	A float64
 }
 
-func (*headerTest1) IsHeader() {}
-
 type headerTest2 struct {
 	A int
 }
-
-func (*headerTest2) IsHeader() {}
 
 var casesHeader = []struct {
 	name   string

@@ -18,6 +18,16 @@ func TestFramesForPayload(t *testing.T) {
 		},
 	}, frames)
 
+	frames = FramesForPayload(2, 1, bytes.Repeat([]byte{0x01}, 1492))
+	require.Equal(t, []*Frame{
+		{
+			ConnectionID: 2,
+			MessageID:    1,
+			BlockID:      1,
+			Payload:      bytes.Repeat([]byte{0x01}, 1492),
+		},
+	}, frames)
+
 	frames = FramesForPayload(3, 2, bytes.Repeat([]byte{0x01, 0x02, 0x03, 0x04}, 500))
 	require.Equal(t, []*Frame{
 		{
