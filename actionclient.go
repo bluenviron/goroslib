@@ -139,7 +139,7 @@ func (gh *ActionClientGoalHandler) Cancel() {
 	}
 }
 
-func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool) {
+func findStatusByID(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool) {
 	for _, sta := range statusList {
 		if sta.GoalId.Id == id {
 			return sta.Status, true
@@ -148,30 +148,10 @@ func findStatus(statusList []actionlib_msgs.GoalStatus, id string) (uint8, bool)
 	return 0, false
 }
 
-func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStatus) bool {
-	if gh.commState == ActionClientCommStateDone {
-		return false
-	}
-
-	// https://github.com/ros/actionlib/blob/noetic-devel/actionlib/src/actionlib/action_client.py#L332
-
-	goalStatus, ok := findStatus(statusList, gh.id)
-	if !ok {
-		switch gh.commState {
-		case ActionClientCommStateWaitingForGoalAck,
-			ActionClientCommStateWaitingForResult:
-			return true
-
-		default:
-			gh.terminalState = ActionClientTerminalStateLost
-			gh.transitionTo(ActionClientCommStateDone)
-			return false
-		}
-	}
-
+func (gh *ActionClientGoalHandler) onStatus(status uint8) {
 	switch gh.commState {
 	case ActionClientCommStateWaitingForGoalAck:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 			gh.transitionTo(ActionClientCommStatePending)
 		case actionlib_msgs.GoalStatus_ACTIVE:
@@ -201,7 +181,7 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		}
 
 	case ActionClientCommStatePending:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 			gh.transitionTo(ActionClientCommStateActive)
@@ -228,7 +208,7 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		}
 
 	case ActionClientCommStateActive:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
@@ -246,7 +226,7 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		}
 
 	case ActionClientCommStateWaitingForResult:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
@@ -259,7 +239,7 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		}
 
 	case ActionClientCommStateWaitingForCancelAck:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
@@ -283,7 +263,7 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		}
 
 	case ActionClientCommStateRecalling:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
@@ -305,7 +285,7 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		}
 
 	case ActionClientCommStatePreempting:
-		switch goalStatus {
+		switch status {
 		case actionlib_msgs.GoalStatus_PENDING:
 		case actionlib_msgs.GoalStatus_ACTIVE:
 		case actionlib_msgs.GoalStatus_REJECTED:
@@ -320,8 +300,6 @@ func (gh *ActionClientGoalHandler) onStatus(statusList []actionlib_msgs.GoalStat
 		case actionlib_msgs.GoalStatus_PREEMPTING:
 		}
 	}
-
-	return true
 }
 
 func (gh *ActionClientGoalHandler) onFeedback(fbAction reflect.Value) {
@@ -702,17 +680,40 @@ func (ac *ActionClient) CancelAllGoals() {
 }
 
 func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
-	func() {
-		ac.mutex.Lock()
-		defer ac.mutex.Unlock()
+	ac.mutex.Lock()
+	defer ac.mutex.Unlock()
 
-		for id, gh := range ac.goals {
-			ok := gh.onStatus(msg.StatusList)
-			if !ok {
+	// ref
+	// https://github.com/ros/actionlib/blob/noetic-devel/actionlib/src/actionlib/action_client.py#L332
+
+	for id, gh := range ac.goals {
+		// delete goals in "done" state
+		if gh.commState == ActionClientCommStateDone {
+			delete(ac.goals, id)
+			continue
+		}
+
+		status, ok := findStatusByID(msg.StatusList, id)
+
+		// goal not found inside status list
+		if !ok {
+			switch gh.commState {
+			// goal is still waiting to be created on the server
+			case ActionClientCommStateWaitingForGoalAck,
+				ActionClientCommStateWaitingForResult:
+				continue
+
+			// goal doesn't exist on the server, delete it
+			default:
+				gh.terminalState = ActionClientTerminalStateLost
+				gh.transitionTo(ActionClientCommStateDone)
 				delete(ac.goals, id)
+				continue
 			}
 		}
-	}()
+
+		gh.onStatus(status)
+	}
 }
 
 func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
@@ -728,6 +729,8 @@ func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
 	if !ok {
 		return []reflect.Value{}
 	}
+
+	gh.onStatus(goalStatus.Status)
 
 	gh.onFeedback(fbAction)
 
@@ -747,6 +750,8 @@ func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
 	if !ok {
 		return []reflect.Value{}
 	}
+
+	gh.onStatus(goalStatus.Status)
 
 	ok = gh.onResult(resAction)
 	if !ok {
