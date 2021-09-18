@@ -29,28 +29,24 @@ const (
 	ActionClientCommStateLost
 )
 
+var actionClientLabels = map[ActionClientCommState]string{
+	ActionClientCommStateWaitingForGoalAck:   "waitingForGoalAck",
+	ActionClientCommStatePending:             "pending",
+	ActionClientCommStateActive:              "active",
+	ActionClientCommStateWaitingForResult:    "waitingForResult",
+	ActionClientCommStateWaitingForCancelAck: "waitingForCancelAck",
+	ActionClientCommStateRecalling:           "recalling",
+	ActionClientCommStatePreempting:          "preempting",
+	ActionClientCommStateDone:                "done",
+	ActionClientCommStateLost:                "lost",
+}
+
 // String implements fmt.Stringer.
 func (s ActionClientCommState) String() string {
-	switch s {
-	case ActionClientCommStateWaitingForGoalAck:
-		return "waitingForGoalAck"
-	case ActionClientCommStatePending:
-		return "pending"
-	case ActionClientCommStateActive:
-		return "active"
-	case ActionClientCommStateWaitingForResult:
-		return "waitingForResult"
-	case ActionClientCommStateWaitingForCancelAck:
-		return "waitingForCancelAck"
-	case ActionClientCommStateRecalling:
-		return "recalling"
-	case ActionClientCommStatePreempting:
-		return "preempting"
-	case ActionClientCommStateDone:
-		return "done"
-	default:
-		return "lost"
+	if l, ok := actionClientLabels[s]; ok {
+		return l
 	}
+	return "unknown"
 }
 
 // ActionClientTerminalState is the terminal state of the goal of an action client.
@@ -72,22 +68,21 @@ const (
 		actionlib_msgs.GoalStatus_LOST)
 )
 
+var actionClientTerminalStateLabels = map[ActionClientTerminalState]string{
+	ActionClientTerminalStateRecalled:  "recalled",
+	ActionClientTerminalStateRejected:  "rejected",
+	ActionClientTerminalStatePreempted: "preempted",
+	ActionClientTerminalStateAborted:   "aborted",
+	ActionClientTerminalStateSucceeded: "succeeded",
+	ActionClientTerminalStateLost:      "lost",
+}
+
 // String implements fmt.Stringer.
 func (s ActionClientTerminalState) String() string {
-	switch s {
-	case ActionClientTerminalStateRecalled:
-		return "recalled"
-	case ActionClientTerminalStateRejected:
-		return "rejected"
-	case ActionClientTerminalStatePreempted:
-		return "preempted"
-	case ActionClientTerminalStateAborted:
-		return "aborted"
-	case ActionClientTerminalStateSucceeded:
-		return "succeeded"
-	default:
-		return "lost"
+	if l, ok := actionClientTerminalStateLabels[s]; ok {
+		return l
 	}
+	return "unknown"
 }
 
 // ActionClientGoalConf is the configuration of SendGoal().
