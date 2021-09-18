@@ -1,13 +1,16 @@
 package goroslib
 
 import (
-	"sync"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/aler9/goroslib/pkg/actionproc"
 	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/aler9/goroslib/pkg/msgs/actionlib_msgs"
+	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
 type DoSomethingActionGoal struct {
@@ -27,6 +30,40 @@ type DoSomethingAction struct {
 	DoSomethingActionGoal
 	DoSomethingActionResult
 	DoSomethingActionFeedback
+}
+
+func writeFeedback(feedbackPub *Publisher, fbAction interface{}, goalID actionlib_msgs.GoalID,
+	status uint8, fb interface{}) {
+	fba := reflect.New(reflect.TypeOf(fbAction))
+	fba.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
+		Stamp: time.Now(),
+	}))
+	fba.Elem().FieldByName("Status").Set(reflect.ValueOf(actionlib_msgs.GoalStatus{
+		GoalId: actionlib_msgs.GoalID{
+			Id:    goalID.Id,
+			Stamp: goalID.Stamp,
+		},
+		Status: status,
+	}))
+	fba.Elem().FieldByName("Feedback").Set(reflect.ValueOf(fb).Elem())
+	feedbackPub.Write(fba.Interface())
+}
+
+func writeResult(resultPub *Publisher, resAction interface{}, goalID actionlib_msgs.GoalID,
+	status uint8, res interface{}) {
+	rea := reflect.New(reflect.TypeOf(resAction))
+	rea.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
+		Stamp: time.Now(),
+	}))
+	rea.Elem().FieldByName("Status").Set(reflect.ValueOf(actionlib_msgs.GoalStatus{
+		GoalId: actionlib_msgs.GoalID{
+			Id:    goalID.Id,
+			Stamp: goalID.Stamp,
+		},
+		Status: status,
+	}))
+	rea.Elem().FieldByName("Result").Set(reflect.ValueOf(res).Elem())
+	resultPub.Write(rea.Interface())
 }
 
 func TestActionClient(t *testing.T) {
@@ -60,42 +97,93 @@ func TestActionClient(t *testing.T) {
 					require.NoError(t, err)
 					defer ns.Close()
 
-					as, err := NewActionServer(ActionServerConf{
-						Node:   ns,
-						Name:   "test_action",
-						Action: &DoSomethingAction{},
-						OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
-							go func() {
-								if goal.Input == 1 {
-									gh.SetRejected(&DoSomethingActionResult{})
-									return
-								}
-								gh.SetAccepted()
+					goalAction, resAction, fbAction, err := actionproc.Messages(&DoSomethingAction{})
+					require.NoError(t, err)
 
-								if goal.Input == 3 {
-									return
-								}
+					statusPub, err := NewPublisher(PublisherConf{
+						Node:  ns,
+						Topic: "test_action/status",
+						Msg:   &actionlib_msgs.GoalStatusArray{},
+					})
+					require.NoError(t, err)
+					defer statusPub.Close()
 
-								time.Sleep(500 * time.Millisecond)
+					feedbackPub, err := NewPublisher(PublisherConf{
+						Node:  ns,
+						Topic: "test_action/feedback",
+						Msg:   reflect.New(reflect.TypeOf(fbAction)).Interface(),
+					})
+					require.NoError(t, err)
+					defer feedbackPub.Close()
 
-								gh.PublishFeedback(&DoSomethingActionFeedback{PercentComplete: 0.5})
+					resultPub, err := NewPublisher(PublisherConf{
+						Node:  ns,
+						Topic: "test_action/result",
+						Msg:   reflect.New(reflect.TypeOf(resAction)).Interface(),
+					})
+					require.NoError(t, err)
+					defer resultPub.Close()
 
-								time.Sleep(500 * time.Millisecond)
+					goalSub, err := NewSubscriber(SubscriberConf{
+						Node:  ns,
+						Topic: "test_action/goal",
+						Callback: reflect.MakeFunc(
+							reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
+							func(in []reflect.Value) []reflect.Value {
+								go func() {
+									goalID := in[0].Elem().FieldByName("GoalId").
+										Interface().(actionlib_msgs.GoalID)
+									goal := in[0].Elem().FieldByName("Goal").Interface().(DoSomethingActionGoal)
 
-								if goal.Input == 2 {
-									gh.SetAborted(&DoSomethingActionResult{})
-									return
-								}
+									// reject
+									if goal.Input == 1 {
+										writeResult(resultPub, resAction, goalID,
+											actionlib_msgs.GoalStatus_REJECTED, &DoSomethingActionResult{})
+										return
+									}
 
-								gh.SetSucceeded(&DoSomethingActionResult{Output: 123456})
-							}()
-						},
-						OnCancel: func(gh *ActionServerGoalHandler) {
-							gh.SetCanceled(&DoSomethingActionResult{})
+									// cancel
+									if goal.Input == 3 {
+										return
+									}
+
+									writeFeedback(feedbackPub, fbAction, goalID,
+										actionlib_msgs.GoalStatus_ACTIVE, &DoSomethingActionFeedback{
+											0.5,
+										})
+
+									// feedback must be received before result
+									time.Sleep(500 * time.Millisecond)
+
+									// abort
+									if goal.Input == 2 {
+										writeResult(resultPub, resAction, goalID,
+											actionlib_msgs.GoalStatus_ABORTED, &DoSomethingActionResult{})
+										return
+									}
+
+									writeResult(resultPub, resAction, goalID,
+										actionlib_msgs.GoalStatus_SUCCEEDED, &DoSomethingActionResult{
+											goal.Input + 1,
+										})
+								}()
+								return nil
+							},
+						).Interface(),
+					})
+					require.NoError(t, err)
+					defer goalSub.Close()
+
+					cancelSub, err := NewSubscriber(SubscriberConf{
+						Node:  ns,
+						Topic: "test_action/cancel",
+						Callback: func(msg *actionlib_msgs.GoalID) {
+							writeResult(resultPub, resAction, *msg,
+								actionlib_msgs.GoalStatus_PREEMPTED, &DoSomethingActionResult{})
 						},
 					})
 					require.NoError(t, err)
-					defer as.Close()
+					defer cancelSub.Close()
 				}
 
 				nc, err := NewNode(NodeConf{
@@ -150,7 +238,7 @@ func TestActionClient(t *testing.T) {
 
 							default:
 								require.Equal(t, ActionClientTerminalStateSucceeded, ts)
-								require.Equal(t, &DoSomethingActionResult{123456}, res)
+								require.Equal(t, &DoSomethingActionResult{1234312 + 1}, res)
 							}
 
 							close(resDone)
@@ -176,138 +264,5 @@ func TestActionClient(t *testing.T) {
 				<-resDone
 			})
 		}
-	}
-}
-
-func TestActionClientDoubleGoal(t *testing.T) {
-	for _, server := range []string{
-		"cpp",
-		"go",
-	} {
-		t.Run(server, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
-			defer m.close()
-
-			switch server {
-			case "cpp":
-				p, err := newContainer("node-actionserver", m.IP())
-				require.NoError(t, err)
-				defer p.close()
-
-			case "go":
-				ns, err := NewNode(NodeConf{
-					Namespace:     "/myns",
-					Name:          "goroslib-server",
-					MasterAddress: m.IP() + ":11311",
-				})
-				require.NoError(t, err)
-				defer ns.Close()
-
-				as, err := NewActionServer(ActionServerConf{
-					Node:   ns,
-					Name:   "test_action",
-					Action: &DoSomethingAction{},
-					OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
-						go func() {
-							if goal.Input == 1 {
-								gh.SetRejected(&DoSomethingActionResult{})
-								return
-							}
-							gh.SetAccepted()
-
-							if goal.Input == 3 {
-								return
-							}
-
-							time.Sleep(500 * time.Millisecond)
-
-							gh.PublishFeedback(&DoSomethingActionFeedback{
-								PercentComplete: 0.5,
-							})
-
-							time.Sleep(500 * time.Millisecond)
-
-							if goal.Input == 2 {
-								gh.SetAborted(&DoSomethingActionResult{})
-								return
-							}
-
-							gh.SetSucceeded(&DoSomethingActionResult{
-								Output: 123456,
-							})
-						}()
-					},
-					OnCancel: func(gh *ActionServerGoalHandler) {
-						gh.SetCanceled(&DoSomethingActionResult{})
-					},
-				})
-				require.NoError(t, err)
-				defer as.Close()
-			}
-
-			nc, err := NewNode(NodeConf{
-				Namespace:     "/myns",
-				Name:          "goroslib",
-				MasterAddress: m.IP() + ":11311",
-			})
-			require.NoError(t, err)
-			defer nc.Close()
-
-			ac, err := NewActionClient(ActionClientConf{
-				Node:   nc,
-				Name:   "test_action",
-				Action: &DoSomethingAction{},
-			})
-			require.NoError(t, err)
-			defer ac.Close()
-
-			ac.WaitForServer()
-
-			var wg sync.WaitGroup
-			wg.Add(4)
-
-			_, err = ac.SendGoal(ActionClientGoalConf{
-				Goal: &DoSomethingActionGoal{
-					Input: 1234312,
-				},
-				OnTransition: func(gh *ActionClientGoalHandler, res *DoSomethingActionResult) {
-					if gh.CommState() == ActionClientCommStateDone {
-						ts, err := gh.TerminalState()
-						require.NoError(t, err)
-						require.Equal(t, ActionClientTerminalStateSucceeded, ts)
-						require.Equal(t, &DoSomethingActionResult{123456}, res)
-						wg.Done()
-					}
-				},
-				OnFeedback: func(fb *DoSomethingActionFeedback) {
-					require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
-					wg.Done()
-				},
-			})
-			require.NoError(t, err)
-
-			_, err = ac.SendGoal(ActionClientGoalConf{
-				Goal: &DoSomethingActionGoal{
-					Input: 1234312,
-				},
-				OnTransition: func(gh *ActionClientGoalHandler, res *DoSomethingActionResult) {
-					if gh.CommState() == ActionClientCommStateDone {
-						ts, err := gh.TerminalState()
-						require.NoError(t, err)
-						require.Equal(t, ActionClientTerminalStateSucceeded, ts)
-						require.Equal(t, &DoSomethingActionResult{123456}, res)
-						wg.Done()
-					}
-				},
-				OnFeedback: func(fb *DoSomethingActionFeedback) {
-					require.Equal(t, &DoSomethingActionFeedback{0.5}, fb)
-					wg.Done()
-				},
-			})
-			require.NoError(t, err)
-
-			wg.Wait()
-		})
 	}
 }

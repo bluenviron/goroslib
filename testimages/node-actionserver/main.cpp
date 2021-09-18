@@ -6,17 +6,18 @@
 #include <shared_actions/DoSomethingAction.h>
 
 void handleGoal(actionlib::ServerGoalHandle<shared_actions::DoSomethingAction> gh) {
+    // reject
     if (gh.getGoal()->input == 1) {
         gh.setRejected();
         return;
     }
+
     gh.setAccepted();
 
+    // cancel
     if (gh.getGoal()->input == 3) {
         return;
     }
-
-    ros::Duration(0.5).sleep();
 
     shared_actions::DoSomethingFeedback fb;
     fb.percent_complete = 0.5;
@@ -24,13 +25,14 @@ void handleGoal(actionlib::ServerGoalHandle<shared_actions::DoSomethingAction> g
 
     ros::Duration(0.5).sleep();
 
+    // abort
     if (gh.getGoal()->input == 2) {
         gh.setAborted();
         return;
     }
 
     shared_actions::DoSomethingResult res;
-    res.output = 123456;
+    res.output = gh.getGoal()->input + 1;
     gh.setSucceeded(res);
 }
 
