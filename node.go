@@ -288,7 +288,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, fmt.Errorf("unable to solve master address: %s", err)
 	}
 	if masterAddr.Zone != "" {
-		return nil, fmt.Errorf("the master address has a stateless IPv6, which is not supported")
+		return nil, fmt.Errorf("stateless IPv6 master addresses are not supported")
 	}
 
 	// find an ip in the same subnet of the master

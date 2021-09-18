@@ -182,11 +182,12 @@ func MD5(msg interface{}) (string, error) {
 // Type returns the type of a message.
 func Type(m interface{}) (string, error) {
 	rt := reflect.TypeOf(m)
-	if rt.Kind() == reflect.Ptr {
-		rt = rt.Elem()
+	if rt.Kind() != reflect.Ptr {
+		return "", fmt.Errorf("message must be a pointer")
 	}
+	rt = rt.Elem()
 	if rt.Kind() != reflect.Struct {
-		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
+		return "", fmt.Errorf("message must be a pointer to a struct")
 	}
 
 	name := rt.Name()

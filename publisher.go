@@ -74,14 +74,6 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg is empty")
 	}
 
-	msgt := reflect.TypeOf(conf.Msg)
-	if msgt.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Msg must be a pointer")
-	}
-	if msgt.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Msg must be a pointer to a struct")
-	}
-
 	msgType, err := msgproc.Type(conf.Msg)
 	if err != nil {
 		return nil, err

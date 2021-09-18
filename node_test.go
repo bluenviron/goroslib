@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strconv"
 	"testing"
 	"time"
@@ -132,11 +133,53 @@ func TestNodeOpen(t *testing.T) {
 	})
 }
 
-func TestNodeOpenError(t *testing.T) {
+func TestNodeOpenErrors(t *testing.T) {
 	_, err := NewNode(NodeConf{
+		Namespace: "/myns",
+		Name:      "goroslib",
+	})
+	require.Error(t, err)
+
+	_, err = NewNode(NodeConf{
+		Namespace: "myns",
+		Name:      "goroslib",
+	})
+	require.Error(t, err)
+
+	_, err = NewNode(NodeConf{
+		Namespace: "myns/",
+		Name:      "goroslib",
+	})
+	require.Error(t, err)
+
+	_, err = NewNode(NodeConf{
+		Namespace: "/myns",
+		Name:      "",
+	})
+	require.Error(t, err)
+
+	_, err = NewNode(NodeConf{
 		Namespace:     "/myns",
 		Name:          "goroslib",
-		MasterAddress: "127.0.0.1:11311",
+		MasterAddress: "unresolved",
+	})
+	require.Equal(t, "unable to solve master address: address unresolved: missing port in address", err.Error())
+
+	_, err = NewNode(NodeConf{
+		Namespace: "/myns",
+		Name:      "goroslib",
+		MasterAddress: (&net.TCPAddr{
+			IP:   net.ParseIP("::1"),
+			Zone: "lo",
+			Port: 123,
+		}).String(),
+	})
+	require.Equal(t, "stateless IPv6 master addresses are not supported", err.Error())
+
+	_, err = NewNode(NodeConf{
+		Namespace: "/myns",
+		Name:      "goroslib",
+		Host:      "nonexistent",
 	})
 	require.Error(t, err)
 }
@@ -368,8 +411,11 @@ func TestNodeGetPublications(t *testing.T) {
 
 	res, err := c.GetPublications()
 	require.NoError(t, err)
+	sort.Slice(res, func(a, b int) bool {
+		return res[a][0] < res[b][0]
+	})
 	require.Equal(t, [][]string{
-		{"/rosout", "rosgraph_msgs/Log"},
 		{"/myns/test_pub", "std_msgs/Float64"},
+		{"/rosout", "rosgraph_msgs/Log"},
 	}, res)
 }

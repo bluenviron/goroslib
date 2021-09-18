@@ -168,3 +168,38 @@ func TestActionServer(t *testing.T) {
 		})
 	}
 }
+
+func TestActionServerErrors(t *testing.T) {
+	_, err := NewActionServer(ActionServerConf{})
+	require.Error(t, err)
+
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib-server",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	_, err = NewActionServer(ActionServerConf{
+		Node: n,
+	})
+	require.Error(t, err)
+
+	_, err = NewActionServer(ActionServerConf{
+		Node: n,
+		Name: "test_action",
+	})
+	require.Error(t, err)
+
+	_, err = NewActionServer(ActionServerConf{
+		Node:   n,
+		Name:   "test_action",
+		Action: 123,
+	})
+	require.Error(t, err)
+}

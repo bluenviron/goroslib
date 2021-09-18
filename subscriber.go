@@ -85,31 +85,24 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	}
 
 	cbt := reflect.TypeOf(conf.Callback)
-	if cbt.Kind() != reflect.Func {
+	if cbt == nil || cbt.Kind() != reflect.Func {
 		return nil, fmt.Errorf("Callback is not a function")
 	}
 
 	if cbt.NumIn() != 1 {
 		return nil, fmt.Errorf("Callback must accept a single argument")
 	}
-	msgMsg := cbt.In(0)
-	if msgMsg.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Message must be a pointer")
-	}
-	if msgMsg.Elem().Kind() != reflect.Struct {
-		return nil, fmt.Errorf("Message must be a pointer to a struct")
-	}
 
 	if cbt.NumOut() != 0 {
 		return nil, fmt.Errorf("Callback must not return any value")
 	}
 
-	msgType, err := msgproc.Type(reflect.New(msgMsg.Elem()).Interface())
+	msgType, err := msgproc.Type(reflect.New(cbt.In(0).Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msgproc.MD5(reflect.New(msgMsg.Elem()).Interface())
+	msgMd5, err := msgproc.MD5(reflect.New(cbt.In(0).Elem()).Interface())
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +113,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		conf:                conf,
 		ctx:                 ctx,
 		ctxCancel:           ctxCancel,
-		msgMsg:              msgMsg.Elem(),
+		msgMsg:              cbt.In(0).Elem(),
 		msgType:             msgType,
 		msgMd5:              msgMd5,
 		publishers:          make(map[string]*subscriberPublisher),

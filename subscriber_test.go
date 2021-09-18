@@ -26,7 +26,7 @@ type TestMessage struct {
 	D [2]uint32
 }
 
-func TestSubscriberRegister(t *testing.T) {
+func TestSubscriberOpen(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -73,6 +73,41 @@ func TestSubscriberRegister(t *testing.T) {
 
 	_, ok = topic.Subscribers["/myns/goroslib"]
 	require.Equal(t, false, ok)
+}
+
+func TestSubscriberOpenErrors(t *testing.T) {
+	_, err := NewSubscriber(SubscriberConf{})
+	require.Error(t, err)
+
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib-server",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	_, err = NewSubscriber(SubscriberConf{
+		Node: n,
+	})
+	require.Error(t, err)
+
+	_, err = NewSubscriber(SubscriberConf{
+		Node:  n,
+		Topic: "mytopic",
+	})
+	require.Error(t, err)
+
+	_, err = NewSubscriber(SubscriberConf{
+		Node:     n,
+		Topic:    "mytopic",
+		Callback: 123,
+	})
+	require.Error(t, err)
 }
 
 func TestSubscriberReadAfterPub(t *testing.T) {
