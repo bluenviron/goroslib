@@ -29,30 +29,25 @@ const (
 	ActionServerGoalStateLost       ActionServerGoalState = ActionServerGoalState(actionlib_msgs.GoalStatus_LOST)
 )
 
+var actionServerGoalStateLabels = map[ActionServerGoalState]string{
+	ActionServerGoalStatePending:    "pending",
+	ActionServerGoalStateActive:     "active",
+	ActionServerGoalStatePreempted:  "preempted",
+	ActionServerGoalStateSucceeded:  "succeeded",
+	ActionServerGoalStateAborted:    "aborted",
+	ActionServerGoalStateRejected:   "rejected",
+	ActionServerGoalStatePreempting: "preempting",
+	ActionServerGoalStateRecalling:  "recalling",
+	ActionServerGoalStateRecalled:   "recalled",
+	ActionServerGoalStateLost:       "lost",
+}
+
 // String implements fmt.Stringer.
 func (s ActionServerGoalState) String() string {
-	switch s {
-	case ActionServerGoalStatePending:
-		return "pending"
-	case ActionServerGoalStateActive:
-		return "active"
-	case ActionServerGoalStatePreempted:
-		return "preempted"
-	case ActionServerGoalStateSucceeded:
-		return "succeeded"
-	case ActionServerGoalStateAborted:
-		return "aborted"
-	case ActionServerGoalStateRejected:
-		return "rejected"
-	case ActionServerGoalStatePreempting:
-		return "preempting"
-	case ActionServerGoalStateRecalling:
-		return "recalling"
-	case ActionServerGoalStateRecalled:
-		return "recalled"
-	default:
-		return "lost"
+	if l, ok := actionServerGoalStateLabels[s]; ok {
+		return l
 	}
+	return "unknown"
 }
 
 // ActionServerGoalHandler is a goal handler of an ActionServer.
