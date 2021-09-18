@@ -258,6 +258,10 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 		return fmt.Errorf("wrong message checksum")
 	}
 
+	sp.sub.conf.Node.Log(LogLevelDebug, "subscriber '%s' is reading from publisher '%s' with TCP",
+		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+		sp.address)
+
 	if sp.sub.conf.onPublisher != nil {
 		sp.sub.conf.onPublisher()
 	}
@@ -351,6 +355,10 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 		}
 		close(sp.udpFrame)
 	}()
+
+	sp.sub.conf.Node.Log(LogLevelDebug, "subscriber '%s' is reading from publisher '%s' with UDP",
+		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+		sp.address)
 
 	if sp.sub.conf.onPublisher != nil {
 		sp.sub.conf.onPublisher()
