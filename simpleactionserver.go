@@ -153,7 +153,7 @@ func (sas *SimpleActionServer) onGoal(in []reflect.Value) []reflect.Value {
 	case <-sas.ctx.Done():
 	}
 
-	return []reflect.Value{}
+	return nil
 }
 
 func (sas *SimpleActionServer) onCancel(gh *ActionServerGoalHandler) {

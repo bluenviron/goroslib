@@ -477,7 +477,7 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 		})
 	}
 
-	return []reflect.Value{}
+	return nil
 }
 
 func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {

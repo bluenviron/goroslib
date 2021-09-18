@@ -727,14 +727,14 @@ func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
 
 	gh, ok := ac.goals[goalStatus.GoalId.Id]
 	if !ok {
-		return []reflect.Value{}
+		return nil
 	}
 
 	gh.onStatus(goalStatus.Status)
 
 	gh.onFeedback(fbAction)
 
-	return []reflect.Value{}
+	return nil
 }
 
 func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
@@ -748,7 +748,7 @@ func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
 
 	gh, ok := ac.goals[goalStatus.GoalId.Id]
 	if !ok {
-		return []reflect.Value{}
+		return nil
 	}
 
 	gh.onStatus(goalStatus.Status)
@@ -758,5 +758,5 @@ func (ac *ActionClient) onResult(in []reflect.Value) []reflect.Value {
 		delete(ac.goals, goalStatus.GoalId.Id)
 	}
 
-	return []reflect.Value{}
+	return nil
 }

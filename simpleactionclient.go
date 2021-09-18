@@ -195,7 +195,7 @@ func (sac *SimpleActionClient) onTransition(
 	defer sac.mutex.Unlock()
 
 	if sgh != sac.sgh {
-		return []reflect.Value{}
+		return nil
 	}
 
 	gh := in[0].Interface().(*ActionClientGoalHandler)
@@ -234,7 +234,7 @@ func (sac *SimpleActionClient) onTransition(
 		}
 	}
 
-	return []reflect.Value{}
+	return nil
 }
 
 func (sac *SimpleActionClient) onFeedback(
@@ -244,14 +244,14 @@ func (sac *SimpleActionClient) onFeedback(
 	defer sac.mutex.Unlock()
 
 	if sgh != sac.sgh {
-		return []reflect.Value{}
+		return nil
 	}
 
 	if sgh.conf.OnFeedback != nil {
 		reflect.ValueOf(sgh.conf.OnFeedback).Call([]reflect.Value{in[0]})
 	}
 
-	return []reflect.Value{}
+	return nil
 }
 
 func (sac *SimpleActionClient) fullState() SimpleActionClientGoalState {
