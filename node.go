@@ -193,8 +193,8 @@ type NodeConf struct {
 	OnLog func(LogLevel, string)
 }
 
-// Node is a ROS Node, an entity that can create subscribers, publishers, service providers
-// and service clients.
+// Node is a ROS Node, an entity that can create subscribers, publishers, service providers,
+// service clients, action servers and action clients.
 type Node struct {
 	conf NodeConf
 
