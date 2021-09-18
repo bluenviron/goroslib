@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/aler9/goroslib/pkg/apislave"
 	"github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs"
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
@@ -179,73 +180,6 @@ func TestNodeNamespace(t *testing.T) {
 	})
 }
 
-func TestNodeRosnodeInfo(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
-	defer m.close()
-
-	n, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib",
-		MasterAddress: m.IP() + ":11311",
-	})
-	require.NoError(t, err)
-	defer n.Close()
-
-	pub, err := NewPublisher(PublisherConf{
-		Node:  n,
-		Topic: "test_pub",
-		Msg:   &std_msgs.Float64{},
-	})
-	require.NoError(t, err)
-	defer pub.Close()
-
-	sub, err := NewSubscriber(SubscriberConf{
-		Node:     n,
-		Topic:    "test_sub",
-		Callback: func(msg *std_msgs.Int32) {},
-	})
-	require.NoError(t, err)
-	defer sub.Close()
-
-	sp, err := NewServiceProvider(ServiceProviderConf{
-		Node: n,
-		Name: "test_srv",
-		Srv:  &TestService{},
-		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
-			return &TestServiceRes{}, true
-		},
-	})
-	require.NoError(t, err)
-	defer sp.Close()
-
-	rt, err := newContainer("rosnode-info", m.IP())
-	require.NoError(t, err)
-
-	require.Regexp(t, regexp.MustCompile(
-		"^--------------------------------------------------------------------------------\n"+
-			"Node \\[/myns/goroslib\\]\n"+
-			"Publications: \n"+
-			" \\* /myns/test_pub \\[std_msgs/Float64\\]\n"+
-			" \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
-			"\n"+
-			"Subscriptions: \n"+
-			" \\* /myns/test_sub \\[unknown type\\]\n"+
-			"\n"+
-			"Services: \n"+
-			" \\* /myns/test_srv\n"+
-			"\n"+
-			"\n"+
-			"contacting node http://.+? ...\n"+
-			"Pid: [0-9]+\n"+
-			"Connections:\n"+
-			" \\* topic: /rosout\n"+
-			"    \\* to: /rosout\n"+
-			"    \\* direction: outbound\n"+
-			"    \\* transport: TCPROS\n"+
-			"\n$"), rt.waitOutput())
-}
-
 func TestNodeLog(t *testing.T) {
 	t.Run("rosout", func(t *testing.T) {
 		m, err := newContainerMaster()
@@ -339,4 +273,103 @@ func TestNodeLog(t *testing.T) {
 
 		<-done
 	})
+}
+
+func TestNodeRosnodeInfo(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	pub, err := NewPublisher(PublisherConf{
+		Node:  n,
+		Topic: "test_pub",
+		Msg:   &std_msgs.Float64{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
+
+	sub, err := NewSubscriber(SubscriberConf{
+		Node:     n,
+		Topic:    "test_sub",
+		Callback: func(msg *std_msgs.Int32) {},
+	})
+	require.NoError(t, err)
+	defer sub.Close()
+
+	sp, err := NewServiceProvider(ServiceProviderConf{
+		Node: n,
+		Name: "test_srv",
+		Srv:  &TestService{},
+		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+			return &TestServiceRes{}, true
+		},
+	})
+	require.NoError(t, err)
+	defer sp.Close()
+
+	rt, err := newContainer("rosnode-info", m.IP())
+	require.NoError(t, err)
+
+	require.Regexp(t, regexp.MustCompile(
+		"^--------------------------------------------------------------------------------\n"+
+			"Node \\[/myns/goroslib\\]\n"+
+			"Publications: \n"+
+			" \\* /myns/test_pub \\[std_msgs/Float64\\]\n"+
+			" \\* /rosout \\[rosgraph_msgs/Log\\]\n"+
+			"\n"+
+			"Subscriptions: \n"+
+			" \\* /myns/test_sub \\[unknown type\\]\n"+
+			"\n"+
+			"Services: \n"+
+			" \\* /myns/test_srv\n"+
+			"\n"+
+			"\n"+
+			"contacting node http://.+? ...\n"+
+			"Pid: [0-9]+\n"+
+			"Connections:\n"+
+			" \\* topic: /rosout\n"+
+			"    \\* to: /rosout\n"+
+			"    \\* direction: outbound\n"+
+			"    \\* transport: TCPROS\n"+
+			"\n$"), rt.waitOutput())
+}
+
+func TestNodeGetPublications(t *testing.T) {
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.IP() + ":11311",
+		ApislavePort:  9906,
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	pub, err := NewPublisher(PublisherConf{
+		Node:  n,
+		Topic: "test_pub",
+		Msg:   &std_msgs.Float64{},
+	})
+	require.NoError(t, err)
+	defer pub.Close()
+
+	c := apislave.NewClient("localhost:9906", "mycallerid")
+
+	res, err := c.GetPublications()
+	require.NoError(t, err)
+	require.Equal(t, [][]string{
+		{"/rosout", "rosgraph_msgs/Log"},
+		{"/myns/test_pub", "std_msgs/Float64"},
+	}, res)
 }

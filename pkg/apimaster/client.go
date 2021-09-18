@@ -34,7 +34,7 @@ func (c *Client) GetPublishedTopics(subgraph string) ([][]string, error) {
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -54,7 +54,7 @@ func (c *Client) GetSystemState() (*SystemState, error) {
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -74,7 +74,7 @@ func (c *Client) GetTopicTypes() ([]TopicType, error) {
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -94,7 +94,7 @@ func (c *Client) GetURI() (string, error) {
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return "", fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -114,7 +114,7 @@ func (c *Client) lookup(method string, name string) (string, error) {
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return "", fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -147,7 +147,7 @@ func (c *Client) register(method string, topic string, topicType string,
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -184,7 +184,7 @@ func (c *Client) unregister(method string, topic string, callerURL string) error
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
@@ -224,7 +224,7 @@ func (c *Client) RegisterService(
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return nil
@@ -247,7 +247,7 @@ func (c *Client) UnregisterService(
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code,
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code,
 			res.StatusMessage)
 	}
 
