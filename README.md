@@ -35,7 +35,6 @@ Features:
   * [Use standard messages, services and actions](#use-standard-messages-services-and-actions)
   * [Define custom messages, services and actions](#define-custom-messages-services-and-actions)
   * [Import existing messages, services and actions](#import-existing-messages-services-and-actions)
-  * [Change namespace](#change-namespace)
   * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
   * [Edit the library](#edit-the-library)
 * [Links](#links)
@@ -256,20 +255,6 @@ Another one is provided to convert existing `.action` files into their equivalen
 go get github.com/aler9/goroslib/cmd/action-import
 action-import --rospackage=my_package myaction.action > myaction.go
 ```
-
-### Change namespace
-
-There's a field `Namespace` in the `Node` configuration:
-
-```go
-goroslib.NewNode(goroslib.NodeConf{
-    Namespace:     "/mynamespace",
-    Name:          "goroslib",
-    MasterAddress: "127.0.0.1:11311",
-})
-```
-
-The default namespace is `/` (global namespace).
 
 ### Compile a node for another operating system
 
