@@ -459,6 +459,14 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Node:     conf.Node,
 		Topic:    conf.Name + "/status",
 		Callback: ac.onStatus,
+		onPublisher: func() {
+			select {
+			case <-ac.statusSubOk:
+				return
+			default:
+			}
+			close(ac.statusSubOk)
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -705,13 +713,6 @@ func (ac *ActionClient) onStatus(msg *actionlib_msgs.GoalStatusArray) {
 			}
 		}
 	}()
-
-	select {
-	case <-ac.statusSubOk:
-		return
-	default:
-	}
-	close(ac.statusSubOk)
 }
 
 func (ac *ActionClient) onFeedback(in []reflect.Value) []reflect.Value {
