@@ -256,7 +256,7 @@ func TestNodeLog(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib1",
 			MasterAddress: m.IP() + ":11311",
-			LogVerbosity:  LogLevelDebug,
+			LogLevel:      LogLevelDebug,
 		})
 		require.NoError(t, err)
 		defer n1.Close()
@@ -314,7 +314,7 @@ func TestNodeLog(t *testing.T) {
 			Namespace:     "/myns",
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
-			LogVerbosity:  LogLevelDebug,
+			LogLevel:      LogLevelDebug,
 			OnLog: func(level LogLevel, msg string) {
 				switch level {
 				case LogLevelInfo,

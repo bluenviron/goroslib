@@ -182,7 +182,7 @@ type NodeConf struct {
 	// (optional) minimum severity level of log messages that will be
 	// written to stdout/stderr or sent to /rosout.
 	// It defaults to LogLevelInfo.
-	LogVerbosity LogLevel
+	LogLevel LogLevel
 
 	// (optional) destinations of log messages.
 	// It defaults to LogDestinationConsole | LogDestinationRosout | LogDestinationCallback
@@ -272,8 +272,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.MasterAddress = "127.0.0.1:11311"
 	}
 
-	if conf.LogVerbosity == 0 {
-		conf.LogVerbosity = LogLevelInfo
+	if conf.LogLevel == 0 {
+		conf.LogLevel = LogLevelInfo
 	}
 	if conf.LogDestinations == 0 {
 		conf.LogDestinations = LogDestinationConsole | LogDestinationCallback | LogDestinationRosout
@@ -475,7 +475,7 @@ func (n *Node) Close() error {
 // except for the log file.
 // (http://wiki.ros.org/roscpp/Overview/Logging)
 func (n *Node) Log(level LogLevel, format string, args ...interface{}) {
-	if level < n.conf.LogVerbosity {
+	if level < n.conf.LogLevel {
 		return
 	}
 
