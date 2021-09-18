@@ -581,7 +581,10 @@ outer:
 		case req := <-n.getPublications:
 			res := [][]string{}
 			for _, pub := range n.publishers {
-				res = append(res, []string{pub.conf.Topic, pub.msgType})
+				res = append(res, []string{
+					n.absoluteTopicName(pub.conf.Topic),
+					pub.msgType,
+				})
 			}
 			req.res <- res
 

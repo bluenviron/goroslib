@@ -34,7 +34,7 @@ func (c *Client) DeleteParam(key string) error {
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d)", res.Code)
+		return fmt.Errorf("server returned an error (code %d)", res.Code)
 	}
 
 	return nil
@@ -53,7 +53,7 @@ func (c *Client) GetParamNames() ([]string, error) {
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.List, nil
@@ -73,7 +73,7 @@ func (c *Client) GetParamBool(key string) (bool, error) {
 	}
 
 	if res.Code != 1 {
-		return false, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return false, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.Res, nil
@@ -93,7 +93,7 @@ func (c *Client) GetParamInt(key string) (int, error) {
 	}
 
 	if res.Code != 1 {
-		return 0, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return 0, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.Res, nil
@@ -113,7 +113,7 @@ func (c *Client) GetParamString(key string) (string, error) {
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return "", fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.Res, nil
@@ -133,7 +133,7 @@ func (c *Client) HasParam(key string) (bool, error) {
 	}
 
 	if res.Code != 1 {
-		return false, fmt.Errorf("server returned an error (%d)", res.Code)
+		return false, fmt.Errorf("server returned an error (code %d)", res.Code)
 	}
 
 	if res.KeyOut != req.Key {
@@ -157,7 +157,7 @@ func (c *Client) SearchParam(key string) (string, error) {
 	}
 
 	if res.Code != 1 {
-		return "", fmt.Errorf("server returned an error (%d)", res.Code)
+		return "", fmt.Errorf("server returned an error (code %d)", res.Code)
 	}
 
 	return res.FoundKey, nil
@@ -178,7 +178,7 @@ func (c *Client) SetParamBool(key string, val bool) error {
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return nil
@@ -199,7 +199,7 @@ func (c *Client) SetParamInt(key string, val int) error {
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return nil
@@ -220,7 +220,7 @@ func (c *Client) SetParamString(key string, val string) error {
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return nil

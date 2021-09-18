@@ -26,6 +26,9 @@ func TestClient(t *testing.T) {
 
 		case "getBusInfo":
 			return ResponseGetBusInfo{Code: 1}
+
+		case "getPublications":
+			return ResponseGetPublications{Code: 1, TopicList: [][]string{{"mytopic"}}}
 		}
 		return xmlrpc.ErrorRes{}
 	})
@@ -54,6 +57,12 @@ func TestClient(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, [][]interface{}(nil), res)
 	}()
+
+	func() {
+		res, err := c.GetPublications()
+		require.NoError(t, err)
+		require.Equal(t, [][]string{{"mytopic"}}, res)
+	}()
 }
 
 func TestClientErrors(t *testing.T) {
@@ -65,20 +74,17 @@ func TestClientErrors(t *testing.T) {
 			require.Error(t, err)
 		}()
 
-		func() {
-			err := c.Shutdown("myreason")
-			require.Error(t, err)
-		}()
+		err := c.Shutdown("myreason")
+		require.Error(t, err)
 
-		func() {
-			_, err := c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
-			require.Error(t, err)
-		}()
+		_, err = c.RequestTopic("mytopic", [][]interface{}{{"testing"}})
+		require.Error(t, err)
 
-		func() {
-			_, err := c.GetBusInfo()
-			require.Error(t, err)
-		}()
+		_, err = c.GetBusInfo()
+		require.Error(t, err)
+
+		_, err = c.GetPublications()
+		require.Error(t, err)
 	})
 
 	t.Run("server error", func(t *testing.T) {
@@ -99,6 +105,9 @@ func TestClientErrors(t *testing.T) {
 
 			case "getBusInfo":
 				return ResponseGetBusInfo{Code: 0}
+
+			case "getPublications":
+				return ResponseGetPublications{Code: 0}
 			}
 			return xmlrpc.ErrorRes{}
 		})
@@ -113,6 +122,9 @@ func TestClientErrors(t *testing.T) {
 		require.Error(t, err)
 
 		_, err = c.GetBusInfo()
+		require.Error(t, err)
+
+		_, err = c.GetPublications()
 		require.Error(t, err)
 	})
 }

@@ -33,7 +33,7 @@ func (c *Client) GetPid() (int, error) {
 	}
 
 	if res.Code != 1 {
-		return 0, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return 0, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.Pid, nil
@@ -53,7 +53,7 @@ func (c *Client) Shutdown(reason string) error {
 	}
 
 	if res.Code != 1 {
-		return fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.Protocol, nil
@@ -94,8 +94,27 @@ func (c *Client) GetBusInfo() ([][]interface{}, error) {
 	}
 
 	if res.Code != 1 {
-		return nil, fmt.Errorf("server returned an error (%d): %s", res.Code, res.StatusMessage)
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
 	}
 
 	return res.BusInfo, nil
+}
+
+// GetPublications writes a getPublications request.
+func (c *Client) GetPublications() ([][]string, error) {
+	req := RequestGetPublications{
+		CallerID: c.callerID,
+	}
+	var res ResponseGetPublications
+
+	err := c.xc.Do("getPublications", req, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Code != 1 {
+		return nil, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
+	}
+
+	return res.TopicList, nil
 }
