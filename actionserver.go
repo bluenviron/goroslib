@@ -80,10 +80,10 @@ func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
 
 	status := actionlib_msgs.GoalStatus{
 		GoalId: actionlib_msgs.GoalID{
-			Id: gh.id,
+			Id:    gh.id,
+			Stamp: gh.stamp,
 		},
 		Status: uint8(gh.state),
-		Text:   "",
 	}
 	fbAction.Elem().FieldByName("Status").Set(reflect.ValueOf(status))
 
@@ -109,10 +109,10 @@ func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
 
 	status := actionlib_msgs.GoalStatus{
 		GoalId: actionlib_msgs.GoalID{
-			Id: gh.id,
+			Id:    gh.id,
+			Stamp: gh.stamp,
 		},
 		Status: uint8(gh.state),
-		Text:   "",
 	}
 	resAction.Elem().FieldByName("Status").Set(reflect.ValueOf(status))
 
@@ -417,8 +417,8 @@ outer:
 				for id, gh := range as.goals {
 					ret = append(ret, actionlib_msgs.GoalStatus{
 						GoalId: actionlib_msgs.GoalID{
-							Stamp: gh.stamp,
 							Id:    id,
+							Stamp: gh.stamp,
 						},
 						Status: uint8(gh.state),
 					})
