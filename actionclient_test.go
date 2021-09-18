@@ -266,3 +266,38 @@ func TestActionClient(t *testing.T) {
 		}
 	}
 }
+
+func TestActionClientErrors(t *testing.T) {
+	_, err := NewActionClient(ActionClientConf{})
+	require.Error(t, err)
+
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	_, err = NewActionClient(ActionClientConf{
+		Node: n,
+	})
+	require.Error(t, err)
+
+	_, err = NewActionClient(ActionClientConf{
+		Node: n,
+		Name: "myaction",
+	})
+	require.Error(t, err)
+
+	_, err = NewActionClient(ActionClientConf{
+		Node:   n,
+		Name:   "myaction",
+		Action: 123,
+	})
+	require.Error(t, err)
+}

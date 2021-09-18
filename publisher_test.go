@@ -12,7 +12,7 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 )
 
-func TestPublisherRegister(t *testing.T) {
+func TestPublisherOpen(t *testing.T) {
 	m, err := newContainerMaster()
 	require.NoError(t, err)
 	defer m.close()
@@ -58,6 +58,41 @@ func TestPublisherRegister(t *testing.T) {
 
 	_, ok = topic.Publishers["/myns/goroslib"]
 	require.Equal(t, false, ok)
+}
+
+func TestPublisherOpenErrors(t *testing.T) {
+	_, err := NewPublisher(PublisherConf{})
+	require.Error(t, err)
+
+	m, err := newContainerMaster()
+	require.NoError(t, err)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib-server",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	_, err = NewPublisher(PublisherConf{
+		Node: n,
+	})
+	require.Error(t, err)
+
+	_, err = NewPublisher(PublisherConf{
+		Node:  n,
+		Topic: "mytopic",
+	})
+	require.Error(t, err)
+
+	_, err = NewPublisher(PublisherConf{
+		Node:  n,
+		Topic: "mytopic",
+		Msg:   123,
+	})
+	require.Error(t, err)
 }
 
 func TestPublisherWriteAfterSub(t *testing.T) {

@@ -234,7 +234,15 @@ func TestTypeErrors(t *testing.T) {
 		{
 			"wrong message type",
 			123,
-			"unsupported message type 'int'",
+			"message must be a pointer",
+		},
+		{
+			"wrong message type",
+			func() interface{} {
+				v := 123
+				return &v
+			}(),
+			"message must be a pointer to a struct",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
