@@ -55,6 +55,7 @@ type ActionServerGoalHandler struct {
 	as      *ActionServer
 	id      string
 	created time.Time
+	stamp   time.Time
 	state   ActionServerGoalState
 }
 
@@ -416,7 +417,8 @@ outer:
 				for id, gh := range as.goals {
 					ret = append(ret, actionlib_msgs.GoalStatus{
 						GoalId: actionlib_msgs.GoalID{
-							Id: id,
+							Stamp: gh.stamp,
+							Id:    id,
 						},
 						Status: uint8(gh.state),
 					})
@@ -458,6 +460,7 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 		as:      as,
 		id:      goalID.Id,
 		created: time.Now(),
+		stamp:   goalID.Stamp,
 	}
 
 	func() {
