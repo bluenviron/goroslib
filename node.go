@@ -46,6 +46,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -63,6 +64,15 @@ import (
 	"github.com/aler9/goroslib/pkg/protoudp"
 	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
+
+func urlToAddress(in string) (string, error) {
+	u, err := url.Parse(in)
+	if err != nil {
+		return "", err
+	}
+
+	return u.Host, nil
+}
 
 type getPublicationsReq struct {
 	res chan [][]string
