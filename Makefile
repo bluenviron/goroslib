@@ -55,6 +55,9 @@ test:
 	temp \
 	make test-nodocker
 
+test-cmd:
+	go build -o /dev/null ./cmd/...
+
 test-examples:
 	go build -o /dev/null ./examples/...
 
@@ -66,7 +69,7 @@ test-root:
 	docker build -q testimages/$(IMG) -t goroslib-test-$(IMG)$(NL))
 	go test -v -race -coverprofile=coverage-root.txt .
 
-test-nodocker: test-examples test-pkg test-root
+test-nodocker: test-cmd test-examples test-pkg test-root
 
 lint:
 	docker run --rm -v $(PWD):/app -w /app \
