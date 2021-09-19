@@ -184,7 +184,7 @@ func TestNodeOpenErrors(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestNodeNamespace(t *testing.T) {
+func TestNodeNamespaceFromEnv(t *testing.T) {
 	t.Run("from environment", func(t *testing.T) {
 		os.Setenv("ROS_NAMESPACE", "/myns")
 		defer os.Unsetenv("ROS_NAMESPACE")
@@ -219,7 +219,7 @@ func TestNodeNamespace(t *testing.T) {
 		require.NoError(t, err)
 		defer n.Close()
 
-		require.Equal(t, "/myns2", n.conf.Namespace)
+		require.Equal(t, "/myns1", n.conf.Namespace)
 	})
 }
 

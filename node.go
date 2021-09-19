@@ -258,7 +258,7 @@ type Node struct {
 
 // NewNode allocates a Node. See NodeConf for the options.
 func NewNode(conf NodeConf) (*Node, error) {
-	if conf.Namespace == "" && os.Getenv("ROS_NAMESPACE") != "" {
+	if os.Getenv("ROS_NAMESPACE") != "" {
 		conf.Namespace = os.Getenv("ROS_NAMESPACE")
 	}
 	if conf.Namespace == "" {
