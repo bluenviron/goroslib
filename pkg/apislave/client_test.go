@@ -29,6 +29,9 @@ func TestClient(t *testing.T) {
 
 		case "getPublications":
 			return ResponseGetPublications{Code: 1, TopicList: [][]string{{"mytopic"}}}
+
+		case "publisherUpdate":
+			return ResponsePublisherUpdate{Code: 1}
 		}
 		return xmlrpc.ErrorRes{}
 	})
@@ -63,6 +66,11 @@ func TestClient(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, [][]string{{"mytopic"}}, res)
 	}()
+
+	func() {
+		err := c.PublisherUpdate("mytopic", []string{"myurl1", "myurl2"})
+		require.NoError(t, err)
+	}()
 }
 
 func TestClientErrors(t *testing.T) {
@@ -84,6 +92,9 @@ func TestClientErrors(t *testing.T) {
 		require.Error(t, err)
 
 		_, err = c.GetPublications()
+		require.Error(t, err)
+
+		err = c.PublisherUpdate("mytopic", []string{"myurl1", "myurl2"})
 		require.Error(t, err)
 	})
 
@@ -108,6 +119,9 @@ func TestClientErrors(t *testing.T) {
 
 			case "getPublications":
 				return ResponseGetPublications{Code: 0}
+
+			case "publisherUpdate":
+				return ResponsePublisherUpdate{Code: 0}
 			}
 			return xmlrpc.ErrorRes{}
 		})
@@ -125,6 +139,9 @@ func TestClientErrors(t *testing.T) {
 		require.Error(t, err)
 
 		_, err = c.GetPublications()
+		require.Error(t, err)
+
+		err = c.PublisherUpdate("mytopic", []string{"myurl1", "myurl2"})
 		require.Error(t, err)
 	})
 }

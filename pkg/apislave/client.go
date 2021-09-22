@@ -118,3 +118,24 @@ func (c *Client) GetPublications() ([][]string, error) {
 
 	return res.TopicList, nil
 }
+
+// PublisherUpdate writes a publisherUpdate request.
+func (c *Client) PublisherUpdate(topic string, urls []string) error {
+	req := RequestPublisherUpdate{
+		CallerID:      c.callerID,
+		Topic:         topic,
+		PublisherURLs: urls,
+	}
+	var res ResponsePublisherUpdate
+
+	err := c.xc.Do("publisherUpdate", req, &res)
+	if err != nil {
+		return err
+	}
+
+	if res.Code != 1 {
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
+	}
+
+	return nil
+}

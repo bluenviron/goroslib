@@ -89,5 +89,5 @@ https://wiki.ros.org/ROS/Slave_API
 |getSubscriptions|||
 |getPublications|:heavy_check_mark:|:heavy_check_mark:|
 |paramUpdate|||
-|publisherUpdate||:heavy_check_mark:|
+|publisherUpdate|:heavy_check_mark:|:heavy_check_mark:|
 |requestTopic|:heavy_check_mark:|:heavy_check_mark:|
