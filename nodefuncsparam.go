@@ -2,38 +2,22 @@ package goroslib
 
 // ParamIsSet returns whether a parameter is set into the master.
 func (n *Node) ParamIsSet(key string) (bool, error) {
-	res, err := n.apiParamClient.HasParam(key)
-	if err != nil {
-		return false, err
-	}
-	return res, nil
+	return n.apiParamClient.HasParam(key)
 }
 
 // ParamGetBool returns a bool parameter from the master.
 func (n *Node) ParamGetBool(key string) (bool, error) {
-	res, err := n.apiParamClient.GetParamBool(key)
-	if err != nil {
-		return false, err
-	}
-	return res, nil
+	return n.apiParamClient.GetParamBool(key)
 }
 
 // ParamGetInt returns an int parameter from the master.
 func (n *Node) ParamGetInt(key string) (int, error) {
-	res, err := n.apiParamClient.GetParamInt(key)
-	if err != nil {
-		return 0, err
-	}
-	return res, nil
+	return n.apiParamClient.GetParamInt(key)
 }
 
 // ParamGetString returns a string parameter from the master.
 func (n *Node) ParamGetString(key string) (string, error) {
-	res, err := n.apiParamClient.GetParamString(key)
-	if err != nil {
-		return "", err
-	}
-	return res, nil
+	return n.apiParamClient.GetParamString(key)
 }
 
 // ParamSetBool sets a bool parameter in the master.
