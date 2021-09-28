@@ -55,6 +55,7 @@ type ActionServerGoalHandler struct {
 	as      *ActionServer
 	id      string
 	created time.Time
+	ended   *time.Time
 	stamp   time.Time
 	state   ActionServerGoalState
 }
@@ -73,20 +74,16 @@ func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
 
 	now := time.Now()
 
-	header := std_msgs.Header{
+	fbAction.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
 		Stamp: now,
-	}
-	fbAction.Elem().FieldByName("Header").Set(reflect.ValueOf(header))
-
-	status := actionlib_msgs.GoalStatus{
+	}))
+	fbAction.Elem().FieldByName("Status").Set(reflect.ValueOf(actionlib_msgs.GoalStatus{
 		GoalId: actionlib_msgs.GoalID{
 			Id:    gh.id,
 			Stamp: gh.stamp,
 		},
 		Status: uint8(gh.state),
-	}
-	fbAction.Elem().FieldByName("Status").Set(reflect.ValueOf(status))
-
+	}))
 	fbAction.Elem().FieldByName("Feedback").Set(reflect.ValueOf(fb).Elem())
 
 	gh.as.feedbackPub.Write(fbAction.Interface())
@@ -102,20 +99,18 @@ func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
 
 	now := time.Now()
 
-	header := std_msgs.Header{
-		Stamp: now,
-	}
-	resAction.Elem().FieldByName("Header").Set(reflect.ValueOf(header))
+	gh.ended = &now
 
-	status := actionlib_msgs.GoalStatus{
+	resAction.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
+		Stamp: now,
+	}))
+	resAction.Elem().FieldByName("Status").Set(reflect.ValueOf(actionlib_msgs.GoalStatus{
 		GoalId: actionlib_msgs.GoalID{
 			Id:    gh.id,
 			Stamp: gh.stamp,
 		},
 		Status: uint8(gh.state),
-	}
-	resAction.Elem().FieldByName("Status").Set(reflect.ValueOf(status))
-
+	}))
 	resAction.Elem().FieldByName("Result").Set(reflect.ValueOf(res).Elem())
 
 	gh.as.resultPub.Write(resAction.Interface())
@@ -207,7 +202,8 @@ type ActionServerConf struct {
 	// It defaults to 200 ms.
 	StatusPeriod time.Duration
 
-	// (optional) goals are deleted after this duration.
+	// (optional) goals are deleted after they are ended and
+	// after this duration.
 	// It defaults to 5 secs.
 	DeleteGoalAfter time.Duration
 
@@ -407,10 +403,11 @@ outer:
 				as.mutex.Lock()
 				defer as.mutex.Unlock()
 
-				// remove expired goals
+				// remove ended goals
 				now := time.Now()
 				for id, gh := range as.goals {
-					if now.Sub(gh.created) >= as.conf.DeleteGoalAfter {
+					if gh.ended != nil &&
+						now.Sub(*gh.ended) >= as.conf.DeleteGoalAfter {
 						delete(as.goals, id)
 					}
 				}
