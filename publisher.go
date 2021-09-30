@@ -301,6 +301,11 @@ outer:
 				return fmt.Errorf("invalid protocol")
 			}()
 			if err != nil {
+				p.conf.Node.Log(LogLevelError,
+					"publisher '%s' can't reply to topic request: %s",
+					p.conf.Node.absoluteTopicName(p.conf.Topic),
+					err)
+
 				req.res <- apislave.ResponseRequestTopic{
 					Code:          0,
 					StatusMessage: err.Error(),
