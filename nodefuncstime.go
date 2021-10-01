@@ -17,15 +17,14 @@ func (n *Node) TimeNow() time.Time {
 	return n.simtimeValue
 }
 
-// TimeSleep sleeps for the given amount of time.
+// TimeSleepChan returns a channel that allows to sleeps for the given amount of time.
 // It supports simulated clocks provided by ROS clock servers.
-func (n *Node) TimeSleep(d time.Duration) {
+func (n *Node) TimeSleepChan(d time.Duration) <-chan time.Time {
 	if !n.simtimeEnabled {
-		time.Sleep(d)
-		return
+		return time.After(d)
 	}
 
-	done := make(chan struct{})
+	done := make(chan time.Time)
 	func() {
 		n.simtimeMutex.Lock()
 		defer n.simtimeMutex.Unlock()
@@ -33,7 +32,13 @@ func (n *Node) TimeSleep(d time.Duration) {
 		n.simtimeSleeps = append(n.simtimeSleeps,
 			&simtimeSleep{n.simtimeValue.Add(d), done})
 	}()
-	<-done
+	return done
+}
+
+// TimeSleep sleeps for the given amount of time.
+// It supports simulated clocks provided by ROS clock servers.
+func (n *Node) TimeSleep(d time.Duration) {
+	<-n.TimeSleepChan(d)
 }
 
 // NodeRate allows to sleep with a given period.
@@ -43,9 +48,9 @@ type NodeRate struct {
 	lastSleep *simtimeSleep
 }
 
-// Sleep sleeps with a given period.
+// SleepChan returns a channel that allows to sleep with a given period.
 // It supports simulated clocks provided by ROS clock servers.
-func (nr *NodeRate) Sleep() {
+func (nr *NodeRate) SleepChan() <-chan time.Time {
 	if !nr.n.simtimeEnabled {
 		now := time.Now()
 
@@ -55,11 +60,10 @@ func (nr *NodeRate) Sleep() {
 			nr.lastSleep = &simtimeSleep{nr.lastSleep.value.Add(nr.d), nil}
 		}
 
-		time.Sleep(nr.lastSleep.value.Sub(now))
-		return
+		return time.After(nr.lastSleep.value.Sub(now))
 	}
 
-	done := make(chan struct{})
+	done := make(chan time.Time)
 	func() {
 		nr.n.simtimeMutex.Lock()
 		defer nr.n.simtimeMutex.Unlock()
@@ -73,7 +77,13 @@ func (nr *NodeRate) Sleep() {
 		nr.n.simtimeSleeps = append(nr.n.simtimeSleeps,
 			nr.lastSleep)
 	}()
-	<-done
+	return done
+}
+
+// Sleep sleeps with a given period.
+// It supports simulated clocks provided by ROS clock servers.
+func (nr *NodeRate) Sleep() {
+	<-nr.SleepChan()
 }
 
 // TimeRate returns an object that can be used to sleep periodically.

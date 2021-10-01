@@ -134,7 +134,7 @@ type serviceProviderNewReq struct {
 
 type simtimeSleep struct {
 	value time.Time
-	done  chan struct{}
+	done  chan time.Time
 }
 
 // LogLevel is the level of a log message.
