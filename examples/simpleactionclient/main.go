@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 
 	"github.com/aler9/goroslib"
 	"github.com/aler9/goroslib/pkg/msg"
@@ -55,6 +57,8 @@ func main() {
 	// wait for the server
 	sac.WaitForServer()
 
+	done := make(chan struct{})
+
 	// send a goal
 	err = sac.SendGoal(goroslib.SimpleActionClientGoalConf{
 		Goal: &DoSomethingActionGoal{
@@ -62,6 +66,7 @@ func main() {
 		},
 		OnDone: func(state goroslib.SimpleActionClientGoalState, res *DoSomethingActionResult) {
 			fmt.Println("result:", res)
+			close(done)
 		},
 		OnFeedback: func(fb *DoSomethingActionFeedback) {
 			fmt.Println("feedback", fb)
@@ -71,6 +76,14 @@ func main() {
 		panic(err)
 	}
 
-	// freeze main loop
-	select {}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	select {
+	// goal is done
+	case <-done:
+
+	// handle CTRL-C
+	case <-c:
+	}
 }

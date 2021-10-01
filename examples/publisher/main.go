@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/aler9/goroslib"
@@ -31,20 +33,28 @@ func main() {
 	}
 	defer pub.Close()
 
-	// publish a message every second
 	r := n.TimeRate(1 * time.Second)
 
-	for {
-		msg := &sensor_msgs.Imu{
-			AngularVelocity: geometry_msgs.Vector3{
-				X: 23.5,
-				Y: 22.1,
-				Z: -7.5,
-			},
-		}
-		fmt.Printf("Outgoing: %+v\n", msg)
-		pub.Write(msg)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-		r.Sleep()
+	for {
+		select {
+		// publish a message every second
+		case <-r.SleepChan():
+			msg := &sensor_msgs.Imu{
+				AngularVelocity: geometry_msgs.Vector3{
+					X: 23.5,
+					Y: 22.1,
+					Z: -7.5,
+				},
+			}
+			fmt.Printf("Outgoing: %+v\n", msg)
+			pub.Write(msg)
+
+		// handle CTRL-C
+		case <-c:
+			return
+		}
 	}
 }
