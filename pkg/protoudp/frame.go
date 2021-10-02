@@ -43,7 +43,7 @@ func (f *Frame) decode(byts []byte) error {
 	return nil
 }
 
-func (f *Frame) encode() ([]byte, error) {
+func (f *Frame) encode() []byte {
 	byts := make([]byte, 8+len(f.Payload))
 
 	binary.LittleEndian.PutUint32(byts[:4], f.ConnectionID)
@@ -52,7 +52,7 @@ func (f *Frame) encode() ([]byte, error) {
 	binary.LittleEndian.PutUint16(byts[6:8], f.BlockID)
 	copy(byts[8:], f.Payload)
 
-	return byts, nil
+	return byts
 }
 
 // FramesForPayload generates frames for the given payload.

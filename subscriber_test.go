@@ -51,7 +51,7 @@ func newTestPublisher(t *testing.T, masterIP string,
 	nodeAddr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(host, "0"))
 	require.NoError(t, err)
 
-	tcprosServer, err := prototcp.NewServer(":9912", nodeAddr.IP, nodeAddr.Zone)
+	tcprosServer, err := prototcp.NewServer(nodeAddr.IP.String()+":9912", nodeAddr.IP, nodeAddr.Zone)
 	require.NoError(t, err)
 
 	go func() {
@@ -69,7 +69,7 @@ func newTestPublisher(t *testing.T, masterIP string,
 		cb(header, conn)
 	}()
 
-	apiSlaveServer, err := apislave.NewServer(":9911", nodeAddr.IP, nodeAddr.Zone)
+	apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone)
 	require.NoError(t, err)
 
 	go apiSlaveServer.Serve(func(req apislave.Request) apislave.Response {
@@ -433,7 +433,7 @@ func TestSubscriberReadUDP(t *testing.T) {
 				require.NoError(t, err)
 				defer udprosServer.Close()
 
-				apiSlaveServer, err := apislave.NewServer(":9911", nodeAddr.IP, nodeAddr.Zone)
+				apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone)
 				require.NoError(t, err)
 				defer apiSlaveServer.Close()
 
