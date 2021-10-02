@@ -3,6 +3,7 @@
 
 [![Test](https://github.com/aler9/goroslib/workflows/test/badge.svg)](https://github.com/aler9/goroslib/actions?query=workflow:test)
 [![Lint](https://github.com/aler9/goroslib/workflows/lint/badge.svg)](https://github.com/aler9/goroslib/actions?query=workflow:lint)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
 [![CodeCov](https://codecov.io/gh/aler9/goroslib/branch/main/graph/badge.svg)](https://codecov.io/gh/aler9/goroslib/branch/main)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/aler9/goroslib)](https://pkg.go.dev/github.com/aler9/goroslib#pkg-index)
 
