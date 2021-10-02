@@ -356,7 +356,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 	}
 }
 
-func TestPublisherWriteUdp(t *testing.T) {
+func TestPublisherWriteUDP(t *testing.T) {
 	sent := &std_msgs.Int64MultiArray{}
 	for i := int64(1); i <= 400; i++ {
 		sent.Data = append(sent.Data, i)

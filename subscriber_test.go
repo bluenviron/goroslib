@@ -340,7 +340,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 	}
 }
 
-func TestSubscriberReadUdp(t *testing.T) {
+func TestSubscriberReadUDP(t *testing.T) {
 	expected := std_msgs.Int64MultiArray{}
 	for i := int64(0); i < 400; i++ {
 		expected.Data = append(expected.Data, i)
