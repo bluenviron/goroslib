@@ -629,9 +629,8 @@ outer:
 			}
 
 			req.res <- apislave.ResponseGetBusInfo{
-				Code:          1,
-				StatusMessage: "",
-				BusInfo:       busInfo,
+				Code:    1,
+				BusInfo: busInfo,
 			}
 
 		case <-n.ctx.Done():

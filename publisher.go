@@ -166,8 +166,7 @@ outer:
 				case "TCPROS":
 					nodeIP, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
 					req.res <- apislave.ResponseRequestTopic{
-						Code:          1,
-						StatusMessage: "",
+						Code: 1,
 						Protocol: []interface{}{
 							"TCPROS",
 							nodeIP,
@@ -268,8 +267,7 @@ outer:
 					p.subscribers[header.Callerid] = ps
 
 					req.res <- apislave.ResponseRequestTopic{
-						Code:          1,
-						StatusMessage: "",
+						Code: 1,
 						Protocol: []interface{}{
 							"UDPROS",
 							func() string {

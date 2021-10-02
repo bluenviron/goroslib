@@ -30,9 +30,8 @@ func (n *Node) handleAPISlaveServer(req apislave.Request) apislave.Response {
 
 	case *apislave.RequestGetPid:
 		return apislave.ResponseGetPid{
-			Code:          1,
-			StatusMessage: "",
-			Pid:           os.Getpid(),
+			Code: 1,
+			Pid:  os.Getpid(),
 		}
 
 	case *apislave.RequestGetPublications:
@@ -41,16 +40,14 @@ func (n *Node) handleAPISlaveServer(req apislave.Request) apislave.Response {
 		select {
 		case n.getPublications <- getPublicationsReq{res}:
 			return apislave.ResponseGetPublications{
-				Code:          1,
-				StatusMessage: "",
-				TopicList:     <-res,
+				Code:      1,
+				TopicList: <-res,
 			}
 
 		case <-n.ctx.Done():
 			return apislave.ResponseGetPublications{
-				Code:          1,
-				StatusMessage: "",
-				TopicList:     [][]string{},
+				Code:      1,
+				TopicList: [][]string{},
 			}
 		}
 
@@ -64,8 +61,7 @@ func (n *Node) handleAPISlaveServer(req apislave.Request) apislave.Response {
 		}
 
 		return apislave.ResponsePublisherUpdate{
-			Code:          1,
-			StatusMessage: "",
+			Code: 1,
 		}
 
 	case *apislave.RequestRequestTopic:
@@ -85,8 +81,7 @@ func (n *Node) handleAPISlaveServer(req apislave.Request) apislave.Response {
 		n.ctxCancel()
 
 		return apislave.ResponseShutdown{
-			Code:          1,
-			StatusMessage: "",
+			Code: 1,
 		}
 	}
 
