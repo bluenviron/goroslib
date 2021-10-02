@@ -164,12 +164,11 @@ outer:
 
 				switch protoName {
 				case "TCPROS":
-					nodeIP, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
 					req.res <- apislave.ResponseRequestTopic{
 						Code: 1,
 						Protocol: []interface{}{
 							"TCPROS",
-							nodeIP,
+							p.conf.Node.nodeAddr.IP.String(),
 							p.conf.Node.tcprosServer.Port(),
 						},
 					}
@@ -274,8 +273,7 @@ outer:
 								if isLocalhost {
 									return "127.0.0.1"
 								}
-								nodeIP, _, _ := net.SplitHostPort(p.conf.Node.nodeAddr.String())
-								return nodeIP
+								return p.conf.Node.nodeAddr.IP.String()
 							}(),
 							p.conf.Node.udprosServer.Port(),
 							p.id,

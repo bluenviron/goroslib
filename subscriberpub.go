@@ -104,7 +104,6 @@ func (sp *subscriberPublisher) runInner() error {
 				return [][]interface{}{{"TCPROS"}}
 			}
 
-			nodeIP, _, _ := net.SplitHostPort(sp.sub.conf.Node.nodeAddr.String())
 			return [][]interface{}{{
 				"UDPROS",
 				func() []byte {
@@ -117,7 +116,7 @@ func (sp *subscriberPublisher) runInner() error {
 					})
 					return buf.Bytes()[4:]
 				}(),
-				nodeIP,
+				sp.sub.conf.Node.nodeAddr.IP.String(),
 				sp.sub.conf.Node.udprosServer.Port(),
 				1500,
 			}}
