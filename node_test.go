@@ -21,7 +21,7 @@ type containerMaster struct {
 	ip string
 }
 
-func newContainerMaster() (*containerMaster, error) {
+func newContainerMaster(t *testing.T) *containerMaster {
 	exec.Command("docker", "kill", "goroslib-test-master").Run()
 	exec.Command("docker", "wait", "goroslib-test-master").Run()
 	exec.Command("docker", "rm", "goroslib-test-master").Run()
@@ -29,9 +29,7 @@ func newContainerMaster() (*containerMaster, error) {
 	cmd := []string{"docker", "run", "--rm", "-d", "--name=goroslib-test-master"}
 	cmd = append(cmd, "goroslib-test-master")
 	err := exec.Command(cmd[0], cmd[1:]...).Run()
-	if err != nil {
-		return nil, err
-	}
+	require.NoError(t, err)
 
 	// get master ip
 	byts, _ := exec.Command("docker", "inspect", "-f",
@@ -53,7 +51,7 @@ func newContainerMaster() (*containerMaster, error) {
 
 	return &containerMaster{
 		ip: ip,
-	}, nil
+	}
 }
 
 func (m *containerMaster) IP() string {
@@ -69,7 +67,7 @@ type container struct {
 	name string
 }
 
-func newContainer(name string, masterIP string) (*container, error) {
+func newContainer(t *testing.T, name string, masterIP string) *container {
 	exec.Command("docker", "kill", "goroslib-test-"+name).Run()
 	exec.Command("docker", "wait", "goroslib-test-"+name).Run()
 	exec.Command("docker", "rm", "goroslib-test-"+name).Run()
@@ -78,16 +76,14 @@ func newContainer(name string, masterIP string) (*container, error) {
 	cmd = append(cmd, "-e", "MASTER_IP="+masterIP)
 	cmd = append(cmd, "goroslib-test-"+name)
 	err := exec.Command(cmd[0], cmd[1:]...).Run()
-	if err != nil {
-		return nil, err
-	}
+	require.NoError(t, err)
 
 	// wait for node initialization
 	time.Sleep(1 * time.Second)
 
 	return &container{
 		name: name,
-	}, nil
+	}
 }
 
 func (c *container) close() {
@@ -105,8 +101,7 @@ func (c *container) waitOutput() string {
 
 func TestNodeOpen(t *testing.T) {
 	t.Run("normal", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -119,8 +114,7 @@ func TestNodeOpen(t *testing.T) {
 	})
 
 	t.Run("http", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -189,8 +183,7 @@ func TestNodeNamespaceFromEnv(t *testing.T) {
 		os.Setenv("ROS_NAMESPACE", "/myns")
 		defer os.Unsetenv("ROS_NAMESPACE")
 
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -207,8 +200,7 @@ func TestNodeNamespaceFromEnv(t *testing.T) {
 		os.Setenv("ROS_NAMESPACE", "/myns1")
 		defer os.Unsetenv("ROS_NAMESPACE")
 
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -224,8 +216,7 @@ func TestNodeNamespaceFromEnv(t *testing.T) {
 }
 
 func TestNodeCliRemapping(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -242,8 +233,7 @@ func TestNodeCliRemapping(t *testing.T) {
 
 func TestNodeLog(t *testing.T) {
 	t.Run("rosout", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n1, err := NewNode(NodeConf{
@@ -297,8 +287,7 @@ func TestNodeLog(t *testing.T) {
 	})
 
 	t.Run("callback", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		recv := 0
@@ -336,8 +325,7 @@ func TestNodeLog(t *testing.T) {
 }
 
 func TestNodeRosnodeInfo(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -375,8 +363,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	require.NoError(t, err)
 	defer sp.Close()
 
-	rt, err := newContainer("rosnode-info", m.IP())
-	require.NoError(t, err)
+	rt := newContainer(t, "rosnode-info", m.IP())
 
 	require.Regexp(t, regexp.MustCompile(
 		"^--------------------------------------------------------------------------------\n"+
@@ -403,8 +390,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 }
 
 func TestNodeGetPublications(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{

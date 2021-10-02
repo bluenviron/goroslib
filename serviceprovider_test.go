@@ -10,8 +10,7 @@ import (
 )
 
 func TestServiceProviderRegister(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -63,8 +62,7 @@ func TestServiceProviderRegister(t *testing.T) {
 }
 
 func TestServiceProviderInfo(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -89,8 +87,7 @@ func TestServiceProviderInfo(t *testing.T) {
 	require.NoError(t, err)
 	defer sp.Close()
 
-	cc, err := newContainer("rosservice-info", m.IP())
-	require.NoError(t, err)
+	cc := newContainer(t, "rosservice-info", m.IP())
 
 	require.Regexp(t, "Node: /myns/goroslib\n"+
 		"URI: rosrpc://172.17.0.[0-9]:[0-9]+\n"+
@@ -105,8 +102,7 @@ func TestServiceProviderResponse(t *testing.T) {
 		"rosservice call",
 	} {
 		t.Run(client, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			nsp, err := NewNode(NodeConf{
@@ -153,7 +149,7 @@ func TestServiceProviderResponse(t *testing.T) {
 
 			switch client {
 			case "cpp":
-				cc, err := newContainer("node-serviceclient", m.IP())
+				cc := newContainer(t, "node-serviceclient", m.IP())
 				require.NoError(t, err)
 				require.Equal(t, "123.000000\n", cc.waitOutput())
 
@@ -186,8 +182,7 @@ func TestServiceProviderResponse(t *testing.T) {
 				require.Equal(t, expected, res)
 
 			case "rosservice call":
-				cc, err := newContainer("rosservice-call", m.IP())
-				require.NoError(t, err)
+				cc := newContainer(t, "rosservice-call", m.IP())
 				require.Equal(t, "success: True\n"+
 					"message: \"ok\"\n", cc.waitOutput())
 			}

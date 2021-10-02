@@ -26,8 +26,7 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 		"go",
 	} {
 		t.Run(provider, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			var p *container
@@ -36,11 +35,10 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 
 			switch provider {
 			case "cpp":
-				var err error
-				p, err = newContainer("node-serviceprovider", m.IP())
-				require.NoError(t, err)
+				p = newContainer(t, "node-serviceprovider", m.IP())
 
 			case "go":
+				var err error
 				nsp, err = NewNode(NodeConf{
 					Namespace:     "/myns",
 					Name:          "goroslib_sp",
@@ -116,8 +114,7 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 		"go",
 	} {
 		t.Run(provider, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
@@ -146,8 +143,7 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 
 			switch provider {
 			case "cpp":
-				p, err := newContainer("node-serviceprovider", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-serviceprovider", m.IP())
 				defer p.close()
 
 			case "go":

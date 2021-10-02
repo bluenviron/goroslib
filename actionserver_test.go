@@ -18,8 +18,7 @@ func TestActionServer(t *testing.T) {
 		"go",
 	} {
 		t.Run(client, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			ns, err := NewNode(NodeConf{
@@ -73,8 +72,7 @@ func TestActionServer(t *testing.T) {
 
 			switch client {
 			case "cpp":
-				c, err := newContainer("node-actionclient", m.IP())
-				require.NoError(t, err)
+				c := newContainer(t, "node-actionclient", m.IP())
 				defer c.close()
 				require.Equal(t, "0.50\nSUCCEEDED\n123456\n", c.waitOutput())
 
@@ -173,8 +171,7 @@ func TestActionServerErrors(t *testing.T) {
 	_, err := NewActionServer(ActionServerConf{})
 	require.Error(t, err)
 
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{

@@ -25,8 +25,7 @@ func enableSimTime(m *containerMaster) error {
 
 func TestNodeTimeNow(t *testing.T) {
 	t.Run("real", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -48,11 +47,10 @@ func TestNodeTimeNow(t *testing.T) {
 	})
 
 	t.Run("simulated", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
-		err = enableSimTime(m)
+		err := enableSimTime(m)
 		require.NoError(t, err)
 
 		cs, err := NewNode(NodeConf{
@@ -94,8 +92,7 @@ func TestNodeTimeNow(t *testing.T) {
 
 func TestNodeTimeSleep(t *testing.T) {
 	t.Run("real", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -126,11 +123,10 @@ func TestNodeTimeSleep(t *testing.T) {
 	})
 
 	t.Run("simulated, before first clock message", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
-		err = enableSimTime(m)
+		err := enableSimTime(m)
 		require.NoError(t, err)
 
 		cs, err := NewNode(NodeConf{
@@ -187,11 +183,10 @@ func TestNodeTimeSleep(t *testing.T) {
 	})
 
 	t.Run("simulated, after first clock message", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
-		err = enableSimTime(m)
+		err := enableSimTime(m)
 		require.NoError(t, err)
 
 		cs, err := NewNode(NodeConf{
@@ -250,8 +245,7 @@ func TestNodeTimeSleep(t *testing.T) {
 
 func TestNodeTimeRate(t *testing.T) {
 	t.Run("real", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
 		n, err := NewNode(NodeConf{
@@ -286,11 +280,10 @@ func TestNodeTimeRate(t *testing.T) {
 	})
 
 	t.Run("simulated, before first clock message", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
-		err = enableSimTime(m)
+		err := enableSimTime(m)
 		require.NoError(t, err)
 
 		cs, err := NewNode(NodeConf{
@@ -373,11 +366,10 @@ func TestNodeTimeRate(t *testing.T) {
 	})
 
 	t.Run("simulated, after first clock message", func(t *testing.T) {
-		m, err := newContainerMaster()
-		require.NoError(t, err)
+		m := newContainerMaster(t)
 		defer m.close()
 
-		err = enableSimTime(m)
+		err := enableSimTime(m)
 		require.NoError(t, err)
 
 		cs, err := NewNode(NodeConf{

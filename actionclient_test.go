@@ -78,14 +78,12 @@ func TestActionClient(t *testing.T) {
 			"go",
 		} {
 			t.Run(ca+"_"+server, func(t *testing.T) {
-				m, err := newContainerMaster()
-				require.NoError(t, err)
+				m := newContainerMaster(t)
 				defer m.close()
 
 				switch server {
 				case "cpp":
-					p, err := newContainer("node-actionserver", m.IP())
-					require.NoError(t, err)
+					p := newContainer(t, "node-actionserver", m.IP())
 					defer p.close()
 
 				case "go":
@@ -271,8 +269,7 @@ func TestActionClientErrors(t *testing.T) {
 	_, err := NewActionClient(ActionClientConf{})
 	require.Error(t, err)
 
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{

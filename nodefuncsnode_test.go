@@ -13,14 +13,12 @@ func TestNodeNodePing(t *testing.T) {
 		"go",
 	} {
 		t.Run(node, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			switch node {
 			case "cpp":
-				p, err := newContainer("node-gen", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-gen", m.IP())
 				defer p.close()
 
 			case "go":
@@ -61,14 +59,12 @@ func TestNodeNodeKill(t *testing.T) {
 		"go",
 	} {
 		t.Run(node, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			switch node {
 			case "cpp":
-				p, err := newContainer("node-gen", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-gen", m.IP())
 				defer p.close()
 
 			case "go":

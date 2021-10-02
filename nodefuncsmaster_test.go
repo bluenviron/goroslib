@@ -11,12 +11,10 @@ import (
 )
 
 func TestNodeMasterGetNodes(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
-	p, err := newContainer("node-gen", m.IP())
-	require.NoError(t, err)
+	p := newContainer(t, "node-gen", m.IP())
 	defer p.close()
 
 	n1, err := NewNode(NodeConf{
@@ -60,12 +58,10 @@ func TestNodeMasterGetNodes(t *testing.T) {
 }
 
 func TestNodeMasterGetMachines(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
-	p, err := newContainer("node-gen", m.IP())
-	require.NoError(t, err)
+	p := newContainer(t, "node-gen", m.IP())
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
@@ -83,12 +79,10 @@ func TestNodeMasterGetMachines(t *testing.T) {
 }
 
 func TestNodeMasterGetTopics(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
-	p, err := newContainer("node-pub", m.IP())
-	require.NoError(t, err)
+	p := newContainer(t, "node-pub", m.IP())
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
@@ -111,12 +105,10 @@ func TestNodeMasterGetTopics(t *testing.T) {
 }
 
 func TestNodeMasterGetServices(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
-	p, err := newContainer("node-serviceprovider", m.IP())
-	require.NoError(t, err)
+	p := newContainer(t, "node-serviceprovider", m.IP())
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
@@ -142,18 +134,15 @@ func TestNodeNodeGetConns(t *testing.T) {
 		"go",
 	} {
 		t.Run(node, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			switch node {
 			case "cpp":
-				en1, err := newContainer("node-businfo1", m.IP())
-				require.NoError(t, err)
+				en1 := newContainer(t, "node-businfo1", m.IP())
 				defer en1.close()
 
-				en2, err := newContainer("node-businfo2", m.IP())
-				require.NoError(t, err)
+				en2 := newContainer(t, "node-businfo2", m.IP())
 				defer en2.close()
 
 				time.Sleep(1 * time.Second)

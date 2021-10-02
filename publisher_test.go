@@ -13,8 +13,7 @@ import (
 )
 
 func TestPublisherOpen(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -64,8 +63,7 @@ func TestPublisherOpenErrors(t *testing.T) {
 	_, err := NewPublisher(PublisherConf{})
 	require.Error(t, err)
 
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -111,8 +109,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 		"go",
 	} {
 		t.Run(sub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			var subc *container
@@ -120,9 +117,7 @@ func TestPublisherWriteAfterSub(t *testing.T) {
 
 			switch sub {
 			case "cpp":
-				var err error
-				subc, err = newContainer("node-sub", m.IP())
-				require.NoError(t, err)
+				subc = newContainer(t, "node-sub", m.IP())
 
 			case "go":
 				ns, err := NewNode(NodeConf{
@@ -195,8 +190,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 		"rostopic echo",
 	} {
 		t.Run(sub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
@@ -230,9 +224,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 
 			switch sub {
 			case "cpp":
-				var err error
-				subc, err = newContainer("node-sub", m.IP())
-				require.NoError(t, err)
+				subc = newContainer(t, "node-sub", m.IP())
 
 			case "go":
 				ns, err := NewNode(NodeConf{
@@ -256,9 +248,7 @@ func TestPublisherWriteBeforeSubNoLatch(t *testing.T) {
 				defer sub.Close()
 
 			case "rostopic echo":
-				var err error
-				subc, err = newContainer("rostopic-echo", m.IP())
-				require.NoError(t, err)
+				subc = newContainer(t, "rostopic-echo", m.IP())
 			}
 
 			time.Sleep(1 * time.Second)
@@ -298,8 +288,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 		"rostopic echo",
 	} {
 		t.Run(sub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
@@ -341,8 +330,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 
 			switch sub {
 			case "cpp":
-				subc, err := newContainer("node-sub", m.IP())
-				require.NoError(t, err)
+				subc := newContainer(t, "node-sub", m.IP())
 				require.Equal(t, "1 other test 5776731014620\n", subc.waitOutput())
 
 			case "go":
@@ -361,8 +349,7 @@ func TestPublisherWriteBeforeSubLatch(t *testing.T) {
 				require.Equal(t, expected, <-recv)
 
 			case "rostopic echo":
-				subc, err := newContainer("rostopic-echo", m.IP())
-				require.NoError(t, err)
+				subc := newContainer(t, "rostopic-echo", m.IP())
 				require.Equal(t, "data: 45.5\n---\n", subc.waitOutput())
 			}
 		})
@@ -380,8 +367,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 		"go",
 	} {
 		t.Run(sub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			ns, err := NewNode(NodeConf{
@@ -397,9 +383,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 
 			switch sub {
 			case "cpp":
-				var err error
-				subc, err = newContainer("node-sub-udp", m.IP())
-				require.NoError(t, err)
+				subc = newContainer(t, "node-sub-udp", m.IP())
 
 			case "go":
 				recv = make(chan *std_msgs.Int64MultiArray)
@@ -453,8 +437,7 @@ func TestPublisherWriteUdp(t *testing.T) {
 }
 
 func TestPublisherRostopicHz(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -494,8 +477,7 @@ func TestPublisherRostopicHz(t *testing.T) {
 		}
 	}()
 
-	rt, err := newContainer("rostopic-hz", m.IP())
-	require.NoError(t, err)
+	rt := newContainer(t, "rostopic-hz", m.IP())
 
 	recv := rt.waitOutput()
 	lines := strings.Split(recv, "\n")

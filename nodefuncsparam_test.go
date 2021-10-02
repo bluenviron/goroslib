@@ -12,14 +12,12 @@ func TestNodeSetGetParam(t *testing.T) {
 		"go",
 	} {
 		t.Run(lang, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			switch lang {
 			case "cpp":
-				p, err := newContainer("node-setparam", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-setparam", m.IP())
 				defer p.close()
 
 			case "go":

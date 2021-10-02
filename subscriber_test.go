@@ -27,8 +27,7 @@ type TestMessage struct {
 }
 
 func TestSubscriberOpen(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -79,8 +78,7 @@ func TestSubscriberOpenErrors(t *testing.T) {
 	_, err := NewSubscriber(SubscriberConf{})
 	require.Error(t, err)
 
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	n, err := NewNode(NodeConf{
@@ -149,16 +147,14 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 		"rostopic",
 	} {
 		t.Run(pub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			var expected interface{}
 			switch pub {
 			case "cpp":
 				expected = expected1
-				p, err := newContainer("node-pub", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-pub", m.IP())
 				defer p.close()
 
 			case "go":
@@ -199,8 +195,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 
 			case "rostopic":
 				expected = expected2
-				p, err := newContainer("rostopic-pub", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "rostopic-pub", m.IP())
 				defer p.close()
 			}
 
@@ -275,8 +270,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 		"go",
 	} {
 		t.Run(pub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			n, err := NewNode(NodeConf{
@@ -301,8 +295,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 			switch pub {
 			case "cpp":
-				p, err := newContainer("node-pub", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-pub", m.IP())
 				defer p.close()
 
 			case "go":
@@ -358,14 +351,12 @@ func TestSubscriberReadUdp(t *testing.T) {
 		"go",
 	} {
 		t.Run(pub, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			switch pub {
 			case "cpp":
-				p, err := newContainer("node-pub-udp", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-pub-udp", m.IP())
 				defer p.close()
 
 			case "go":
@@ -432,8 +423,7 @@ func TestSubscriberReadUdp(t *testing.T) {
 }
 
 func TestSubscriberQueue(t *testing.T) {
-	m, err := newContainerMaster()
-	require.NoError(t, err)
+	m := newContainerMaster(t)
 	defer m.close()
 
 	p, err := NewNode(NodeConf{

@@ -18,14 +18,12 @@ func TestSimpleActionClient(t *testing.T) {
 			"go",
 		} {
 			t.Run(ca+"_"+server, func(t *testing.T) {
-				m, err := newContainerMaster()
-				require.NoError(t, err)
+				m := newContainerMaster(t)
 				defer m.close()
 
 				switch server {
 				case "cpp":
-					p, err := newContainer("node-simpleactionserver", m.IP())
-					require.NoError(t, err)
+					p := newContainer(t, "node-simpleactionserver", m.IP())
 					defer p.close()
 
 				case "go":
@@ -147,14 +145,12 @@ func TestSimpleActionClientGoalOverride(t *testing.T) {
 		"go",
 	} {
 		t.Run(server, func(t *testing.T) {
-			m, err := newContainerMaster()
-			require.NoError(t, err)
+			m := newContainerMaster(t)
 			defer m.close()
 
 			switch server {
 			case "cpp":
-				p, err := newContainer("node-simpleactionserver", m.IP())
-				require.NoError(t, err)
+				p := newContainer(t, "node-simpleactionserver", m.IP())
 				defer p.close()
 
 			case "go":
