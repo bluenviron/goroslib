@@ -21,14 +21,45 @@ const (
 	subscriberPubRestartPause = 5 * time.Second
 )
 
+type localIPs map[string]struct{}
+
+func loadLocalIPs() localIPs {
+	ret := make(localIPs)
+
+	ifaces, err := net.Interfaces()
+	if err == nil {
+		for _, i := range ifaces {
+			addrs, err := i.Addrs()
+			if err != nil {
+				continue
+			}
+
+			for _, addr := range addrs {
+				if v, ok := addr.(*net.IPNet); ok {
+					ret[v.IP.String()] = struct{}{}
+				}
+			}
+		}
+	}
+
+	return ret
+}
+
+func (l localIPs) contains(ip net.IP) bool {
+	_, ok := l[ip.String()]
+	return ok
+}
+
 type subscriberPublisher struct {
 	sub     *Subscriber
 	address string
 
-	ctx       context.Context
-	ctxCancel func()
-	udpAddr   *net.UDPAddr
-	udpID     uint32
+	ctx            context.Context
+	ctxCancel      func()
+	localIPs       localIPs
+	udpAddrIsLocal bool
+	udpAddr        *net.UDPAddr
+	udpID          uint32
 
 	// in
 	udpFrame chan *protoudp.Frame
@@ -330,10 +361,16 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 		return fmt.Errorf("wrong protoName")
 	}
 
-	// solve host and port
+	// solve remote host and port
 	addr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10)))
 	if err != nil {
 		return fmt.Errorf("unable to solve host")
+	}
+
+	sp.localIPs = loadLocalIPs()
+
+	if sp.localIPs.contains(addr.IP) {
+		sp.udpAddrIsLocal = true
 	}
 
 	sp.udpAddr = addr

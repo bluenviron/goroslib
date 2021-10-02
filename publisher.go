@@ -231,36 +231,6 @@ outer:
 						return fmt.Errorf("unable to solve udp address)")
 					}
 
-					// if subscriber is in localhost, send packets from localhost to localhost
-					// this avoids a bug in which the source ip is randomly chosen
-					// from all available interfaces, making ip-based filtering unpractical
-					isLocalhost := func() bool {
-						ifaces, err := net.Interfaces()
-						if err != nil {
-							return false
-						}
-
-						for _, i := range ifaces {
-							addrs, err := i.Addrs()
-							if err != nil {
-								continue
-							}
-
-							for _, addr := range addrs {
-								if v, ok := addr.(*net.IPNet); ok {
-									if v.IP.Equal(udpAddr.IP) {
-										return true
-									}
-								}
-							}
-						}
-						return false
-					}()
-
-					if isLocalhost {
-						udpAddr.IP = net.IPv4(127, 0, 0, 1)
-					}
-
 					ps := newPublisherSubscriber(p,
 						header.Callerid, nil, udpAddr)
 					p.subscribers[header.Callerid] = ps
@@ -269,12 +239,7 @@ outer:
 						Code: 1,
 						Protocol: []interface{}{
 							"UDPROS",
-							func() string {
-								if isLocalhost {
-									return "127.0.0.1"
-								}
-								return p.conf.Node.nodeAddr.IP.String()
-							}(),
+							p.conf.Node.nodeAddr.IP.String(),
 							p.conf.Node.udprosServer.Port(),
 							p.id,
 							1500,

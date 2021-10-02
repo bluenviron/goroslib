@@ -410,7 +410,7 @@ func TestNodeGetPublications(t *testing.T) {
 	require.NoError(t, err)
 	defer pub.Close()
 
-	c := apislave.NewClient("localhost:9906", "mycallerid")
+	c := apislave.NewClient(n.nodeAddr.IP.String()+":9906", "mycallerid")
 
 	res, err := c.GetPublications()
 	require.NoError(t, err)

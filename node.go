@@ -382,20 +382,20 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
 
-	n.apiSlaveServer, err = apislave.NewServer(":"+strconv.FormatInt(int64(conf.ApislavePort), 10),
+	n.apiSlaveServer, err = apislave.NewServer(nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.ApislavePort), 10),
 		nodeAddr.IP, nodeAddr.Zone)
 	if err != nil {
 		return nil, err
 	}
 
-	n.tcprosServer, err = prototcp.NewServer(":"+strconv.FormatInt(int64(conf.TcprosPort), 10),
+	n.tcprosServer, err = prototcp.NewServer(nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.TcprosPort), 10),
 		nodeAddr.IP, nodeAddr.Zone)
 	if err != nil {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
 
-	n.udprosServer, err = protoudp.NewServer(":" + strconv.FormatInt(int64(conf.UdprosPort), 10))
+	n.udprosServer, err = protoudp.NewServer(nodeAddr.IP.String() + ":" + strconv.FormatInt(int64(conf.UdprosPort), 10))
 	if err != nil {
 		n.tcprosServer.Close()
 		n.apiSlaveServer.Close()
@@ -687,7 +687,8 @@ outer:
 		case req := <-n.udpFrame:
 			for sp := range n.udprosSubPublishers {
 				if req.frame.ConnectionID == sp.udpID &&
-					req.source.IP.Equal(sp.udpAddr.IP) {
+					(req.source.IP.Equal(sp.udpAddr.IP) ||
+						(sp.udpAddrIsLocal && sp.localIPs.contains(req.source.IP))) {
 
 					select {
 					case sp.udpFrame <- req.frame:
