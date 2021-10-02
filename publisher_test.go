@@ -433,7 +433,7 @@ func TestPublisherWriteUDP(t *testing.T) {
 				msgMd5, err := msgproc.MD5(&std_msgs.Int64MultiArray{})
 				require.NoError(t, err)
 
-				udprosServer, err := protoudp.NewServer(":3334")
+				udprosServer, err := protoudp.NewServer(ns.nodeAddr.IP.String() + ":3334")
 				require.NoError(t, err)
 
 				proto, err := xcs.RequestTopic(
@@ -564,4 +564,126 @@ func TestPublisherRostopicHz(t *testing.T) {
 	v, _ = strconv.ParseFloat(ma[2], 64)
 	require.Greater(t, v, 0.192)
 	require.Less(t, v, 0.208)
+}
+
+func TestPublisherAcceptErrors(t *testing.T) {
+	t.Run("invalid header", func(t *testing.T) {
+		m := newContainerMaster(t)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "test_topic",
+			Msg:   &std_msgs.Float64{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		ns, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslibsub",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer ns.Close()
+
+		uris, err := ns.apiMasterClient.RegisterSubscriber(
+			ns.absoluteTopicName("test_topic"),
+			"std_msgs/Int64MultiArray",
+			ns.apiSlaveServer.URL())
+		require.NoError(t, err)
+
+		addr, err := urlToAddress(uris[0])
+		require.NoError(t, err)
+
+		xcs := apislave.NewClient(addr, ns.absoluteName())
+
+		proto, err := xcs.RequestTopic(
+			ns.absoluteTopicName("test_topic"),
+			[][]interface{}{{"TCPROS"}})
+		require.NoError(t, err)
+
+		addr = net.JoinHostPort(proto[1].(string),
+			strconv.FormatInt(int64(proto[2].(int)), 10))
+
+		conn, err := prototcp.NewClient(addr)
+		require.NoError(t, err)
+		defer conn.Close()
+
+		conn.NetConn().Write([]byte{0x01})
+
+		buf := make([]byte, 1024)
+		_, err = conn.NetConn().Read(buf)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid header 2", func(t *testing.T) {
+		m := newContainerMaster(t)
+		defer m.close()
+
+		n, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslib",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer n.Close()
+
+		pub, err := NewPublisher(PublisherConf{
+			Node:  n,
+			Topic: "test_topic",
+			Msg:   &std_msgs.Float64{},
+		})
+		require.NoError(t, err)
+		defer pub.Close()
+
+		ns, err := NewNode(NodeConf{
+			Namespace:     "/myns",
+			Name:          "goroslibsub",
+			MasterAddress: m.IP() + ":11311",
+		})
+		require.NoError(t, err)
+		defer ns.Close()
+
+		uris, err := ns.apiMasterClient.RegisterSubscriber(
+			ns.absoluteTopicName("test_topic"),
+			"std_msgs/Int64MultiArray",
+			ns.apiSlaveServer.URL())
+		require.NoError(t, err)
+
+		addr, err := urlToAddress(uris[0])
+		require.NoError(t, err)
+
+		xcs := apislave.NewClient(addr, ns.absoluteName())
+
+		proto, err := xcs.RequestTopic(
+			ns.absoluteTopicName("test_topic"),
+			[][]interface{}{{"TCPROS"}})
+		require.NoError(t, err)
+
+		addr = net.JoinHostPort(proto[1].(string),
+			strconv.FormatInt(int64(proto[2].(int)), 10))
+
+		conn, err := prototcp.NewClient(addr)
+		require.NoError(t, err)
+		defer conn.Close()
+
+		type HeaderInvalid struct {
+			Topic string
+		}
+
+		conn.WriteHeader(&HeaderInvalid{Topic: "invalid"})
+
+		buf := make([]byte, 1024)
+		_, err = conn.NetConn().Read(buf)
+		require.Error(t, err)
+	})
 }

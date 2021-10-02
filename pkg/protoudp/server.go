@@ -58,12 +58,7 @@ func (s *Server) ReadFrame() (*Frame, *net.UDPAddr, error) {
 
 // WriteFrame writes a frame.
 func (s *Server) WriteFrame(f *Frame, dest *net.UDPAddr) error {
-	byts, err := f.encode()
-	if err != nil {
-		return err
-	}
-
-	_, err = s.ln.WriteTo(byts, dest)
+	_, err := s.ln.WriteTo(f.encode(), dest)
 	return err
 }
 

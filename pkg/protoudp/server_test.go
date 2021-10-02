@@ -39,10 +39,7 @@ func TestServer(t *testing.T) {
 
 	frames := FramesForPayload(3, 2, []byte{0x01, 0x02, 0x03, 0x04})
 	for _, f := range frames {
-		byts, err := f.encode()
-		require.NoError(t, err)
-
-		_, err = conn.Write(byts)
+		_, err = conn.Write(f.encode())
 		require.NoError(t, err)
 	}
 
@@ -62,10 +59,48 @@ func TestServer(t *testing.T) {
 }
 
 func TestServerError(t *testing.T) {
-	s1, err := NewServer("127.0.0.1:9902")
-	require.NoError(t, err)
-	defer s1.Close()
+	t.Run("double listen", func(t *testing.T) {
+		s1, err := NewServer("127.0.0.1:9902")
+		require.NoError(t, err)
+		defer s1.Close()
 
-	_, err = NewServer("127.0.0.1:9902")
-	require.Error(t, err)
+		_, err = NewServer("127.0.0.1:9902")
+		require.Error(t, err)
+	})
+
+	t.Run("read error", func(t *testing.T) {
+		s, err := NewServer("127.0.0.1:9902")
+		require.NoError(t, err)
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			_, _, err := s.ReadFrame()
+			require.Error(t, err)
+		}()
+
+		s.Close()
+		<-done
+	})
+
+	t.Run("invalid frame", func(t *testing.T) {
+		s, err := NewServer("127.0.0.1:9902")
+		require.NoError(t, err)
+		defer s.Close()
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			_, _, err := s.ReadFrame()
+			require.Error(t, err)
+		}()
+
+		conn, err := net.Dial("udp", "127.0.0.1:9902")
+		require.NoError(t, err)
+
+		_, err = conn.Write([]byte{0x01})
+		require.NoError(t, err)
+
+		<-done
+	})
 }
