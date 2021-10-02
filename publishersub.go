@@ -1,13 +1,10 @@
 package goroslib
 
 import (
-	"bytes"
 	"context"
 	"net"
 
-	"github.com/aler9/goroslib/pkg/protocommon"
 	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
 type publisherSubscriber struct {
@@ -106,27 +103,17 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 	} else {
 		ps.curMessageID++
 
-		var rawMessage bytes.Buffer
-		err := protocommon.MessageEncode(&rawMessage, msg)
-		if err != nil {
-			return
-		}
-		byts := rawMessage.Bytes()
-
-		frames := protoudp.FramesForPayload(
-			uint32(ps.pub.id),
+		err := ps.pub.conf.Node.udprosServer.WriteMessage(
+			ps.pub.id,
 			ps.curMessageID,
-			byts)
-
-		for _, f := range frames {
-			err := ps.pub.conf.Node.udprosServer.WriteFrame(f, ps.udpAddr)
-			if err != nil {
-				ps.pub.conf.Node.Log(LogLevelError,
-					"publisher '%s' is unable to write a UDP frame to client '%s': %s",
-					ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
-					ps.udpAddr,
-					err)
-			}
+			msg,
+			ps.udpAddr)
+		if err != nil {
+			ps.pub.conf.Node.Log(LogLevelError,
+				"publisher '%s' is unable to write a UDP message to client '%s': %s",
+				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+				ps.udpAddr,
+				err)
 		}
 	}
 }

@@ -29,7 +29,7 @@ func TestServer(t *testing.T) {
 			Payload:      []byte{0x01, 0x02, 0x03, 0x04},
 		}, fr)
 
-		err = s.WriteFrame(fr, addr)
+		err = s.WriteMessage(5, 3, &struct{ A string }{"asd"}, addr)
 		require.NoError(t, err)
 	}()
 
@@ -54,10 +54,10 @@ func TestServer(t *testing.T) {
 	err = fr.decode(buf[:n])
 	require.NoError(t, err)
 	require.Equal(t, Frame{
-		ConnectionID: 3,
-		MessageID:    2,
+		ConnectionID: 5,
+		MessageID:    3,
 		BlockID:      1,
-		Payload:      []byte{0x01, 0x02, 0x03, 0x04},
+		Payload:      []byte{0x7, 0x0, 0x0, 0x0, 0x3, 0x0, 0x0, 0x0, 0x61, 0x73, 0x64},
 	}, fr)
 }
 

@@ -73,6 +73,29 @@ func urlToAddress(in string) (string, error) {
 	return u.Host, nil
 }
 
+func findNodeHost(masterAddr *net.TCPAddr) string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+
+	for _, i := range ifaces {
+		addrs, err := i.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			if v, ok := addr.(*net.IPNet); ok {
+				if v.Contains(masterAddr.IP) {
+					return v.IP.String()
+				}
+			}
+		}
+	}
+	return ""
+}
+
 type getPublicationsReq struct {
 	res chan [][]string
 }
@@ -306,28 +329,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	// find an ip in the same subnet of the master
 	if conf.Host == "" {
-		conf.Host = func() string {
-			ifaces, err := net.Interfaces()
-			if err != nil {
-				return ""
-			}
-
-			for _, i := range ifaces {
-				addrs, err := i.Addrs()
-				if err != nil {
-					continue
-				}
-
-				for _, addr := range addrs {
-					if v, ok := addr.(*net.IPNet); ok {
-						if v.Contains(masterAddr.IP) {
-							return v.IP.String()
-						}
-					}
-				}
-			}
-			return ""
-		}()
+		conf.Host = findNodeHost(masterAddr)
 		if conf.Host == "" {
 			return nil, fmt.Errorf("unable to set Host automatically")
 		}
