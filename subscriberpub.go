@@ -451,7 +451,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 
 			if (curFieldID + 1) == curFieldCount {
 				msg := reflect.New(sp.sub.msgMsg).Interface()
-				err := protocommon.MessageDecode(bytes.NewBuffer(curMsg), msg)
+				err := protocommon.MessageDecode(bytes.NewReader(curMsg), msg)
 				if err != nil {
 					continue
 				}

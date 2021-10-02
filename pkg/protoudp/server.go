@@ -1,7 +1,10 @@
 package protoudp
 
 import (
+	"bytes"
 	"net"
+
+	"github.com/aler9/goroslib/pkg/protocommon"
 )
 
 const (
@@ -62,4 +65,27 @@ func (s *Server) WriteFrame(f *Frame, dest *net.UDPAddr) error {
 
 	_, err = s.ln.WriteTo(byts, dest)
 	return err
+}
+
+// WriteMessage writes a message.
+func (s *Server) WriteMessage(pubID int, messageID uint8, msg interface{}, dest *net.UDPAddr) error {
+	var rawMessage bytes.Buffer
+	err := protocommon.MessageEncode(&rawMessage, msg)
+	if err != nil {
+		return err
+	}
+
+	frames := FramesForPayload(
+		uint32(pubID),
+		messageID,
+		rawMessage.Bytes())
+
+	for _, f := range frames {
+		err := s.WriteFrame(f, dest)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
