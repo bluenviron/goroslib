@@ -7,23 +7,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestServerURL(t *testing.T) {
-	u := ServerURL(
-		net.ParseIP("192.168.2.1"),
-		123,
-		"")
-	require.Equal(t, "rosrpc://192.168.2.1:123", u)
-}
-
 func TestServer(t *testing.T) {
 	serverDone := make(chan struct{})
 	defer func() { <-serverDone }()
 
-	s, err := NewServer("localhost:9901")
+	s, err := NewServer("localhost:9901", net.ParseIP("192.168.2.1"), "")
 	require.NoError(t, err)
 	defer s.Close()
 
-	require.NotEqual(t, 0, s.Port())
+	require.Equal(t, "rosrpc://192.168.2.1:9901", s.URL())
 
 	go func() {
 		defer close(serverDone)
@@ -43,10 +35,10 @@ func TestServer(t *testing.T) {
 }
 
 func TestServerError(t *testing.T) {
-	s1, err := NewServer("localhost:9901")
+	s1, err := NewServer("localhost:9901", net.ParseIP("127.0.0.1"), "")
 	require.NoError(t, err)
 	defer s1.Close()
 
-	_, err = NewServer("localhost:9901")
+	_, err = NewServer("localhost:9901", net.ParseIP("127.0.0.1"), "")
 	require.Error(t, err)
 }

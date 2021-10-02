@@ -5,32 +5,25 @@ import (
 	"net/url"
 )
 
-// ServerURL returns the URL of a PROTOTCP server.
-func ServerURL(ip net.IP, port int, zone string) string {
-	return (&url.URL{
-		Scheme: "rosrpc",
-		Host: (&net.TCPAddr{
-			IP:   ip,
-			Port: port,
-			Zone: zone,
-		}).String(),
-	}).String()
-}
-
 // Server is a TCPROS server.
 type Server struct {
+	nodeIP   net.IP
+	nodeZone string
+
 	ln net.Listener
 }
 
 // NewServer allocates a Server.
-func NewServer(address string) (*Server, error) {
+func NewServer(address string, nodeIP net.IP, nodeZone string) (*Server, error) {
 	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server{
-		ln: ln,
+		nodeIP:   nodeIP,
+		nodeZone: nodeZone,
+		ln:       ln,
 	}, nil
 }
 
@@ -42,6 +35,18 @@ func (s *Server) Close() error {
 // Port returns the server port.
 func (s *Server) Port() int {
 	return s.ln.Addr().(*net.TCPAddr).Port
+}
+
+// URL returns the server URL.
+func (s *Server) URL() string {
+	return (&url.URL{
+		Scheme: "rosrpc",
+		Host: (&net.TCPAddr{
+			IP:   s.nodeIP,
+			Port: s.Port(),
+			Zone: s.nodeZone,
+		}).String(),
+	}).String()
 }
 
 // Accept accepts clients.

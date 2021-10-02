@@ -393,7 +393,7 @@ outer:
 
 	p.conf.Node.apiMasterClient.UnregisterPublisher(
 		p.conf.Node.absoluteTopicName(p.conf.Topic),
-		p.conf.Node.apiSlaveServerURL)
+		p.conf.Node.apiSlaveServer.URL())
 
 	p.subscribersWg.Wait()
 

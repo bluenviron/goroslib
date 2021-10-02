@@ -2,6 +2,7 @@ package apislave
 
 import (
 	"bytes"
+	"net"
 	"net/http"
 	"testing"
 
@@ -11,11 +12,11 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	s, err := NewServer("localhost:9906")
+	s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 	require.NoError(t, err)
 	defer s.Close()
 
-	require.NotEqual(t, 0, s.Port())
+	require.NotEqual(t, "", s.URL())
 
 	go s.Serve(func(req Request) Response {
 		switch req.(type) {
@@ -94,16 +95,16 @@ func TestServer(t *testing.T) {
 
 func TestServerErrors(t *testing.T) {
 	t.Run("double listen", func(t *testing.T) {
-		s, err := NewServer("localhost:9906")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 		require.NoError(t, err)
 		defer s.Close()
 
-		_, err = NewServer("localhost:9906")
+		_, err = NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 		require.Error(t, err)
 	})
 
 	t.Run("invalid method", func(t *testing.T) {
-		s, err := NewServer("localhost:9906")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -119,7 +120,7 @@ func TestServerErrors(t *testing.T) {
 	})
 
 	t.Run("invalid payload 1", func(t *testing.T) {
-		s, err := NewServer("localhost:9909")
+		s, err := NewServer("localhost:9909", net.ParseIP("127.0.0.1"), "")
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -136,7 +137,7 @@ func TestServerErrors(t *testing.T) {
 	})
 
 	t.Run("invalid payload 2", func(t *testing.T) {
-		s, err := NewServer("localhost:9909")
+		s, err := NewServer("localhost:9909", net.ParseIP("127.0.0.1"), "")
 		require.NoError(t, err)
 		defer s.Close()
 

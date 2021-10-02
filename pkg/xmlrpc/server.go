@@ -13,18 +13,6 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
-// ServerURL returns a XMLRPC server URL.
-func ServerURL(ip net.IP, port int, zone string) string {
-	return (&url.URL{
-		Scheme: "http",
-		Host: (&net.TCPAddr{
-			IP:   ip,
-			Port: port,
-			Zone: zone,
-		}).String(),
-	}).String()
-}
-
 // Server is a XML-RPC server.
 type Server struct {
 	ctx       context.Context
@@ -67,9 +55,16 @@ func (s *Server) Close() error {
 	return nil
 }
 
-// Port returns the server port.
-func (s *Server) Port() int {
-	return s.ln.Addr().(*net.TCPAddr).Port
+// URL returns the server URL.
+func (s *Server) URL(ip net.IP, zone string) string {
+	return (&url.URL{
+		Scheme: "http",
+		Host: (&net.TCPAddr{
+			IP:   ip,
+			Port: s.ln.Addr().(*net.TCPAddr).Port,
+			Zone: zone,
+		}).String(),
+	}).String()
 }
 
 func (s *Server) run() {

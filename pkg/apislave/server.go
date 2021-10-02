@@ -1,6 +1,8 @@
 package apislave
 
 import (
+	"net"
+
 	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
 
@@ -10,18 +12,23 @@ type ErrorRes xmlrpc.ErrorRes
 
 // Server is a Slave API server.
 type Server struct {
+	nodeIP   net.IP
+	nodeZone string
+
 	xs *xmlrpc.Server
 }
 
 // NewServer allocates a Server.
-func NewServer(address string) (*Server, error) {
+func NewServer(address string, nodeIP net.IP, nodeZone string) (*Server, error) {
 	xs, err := xmlrpc.NewServer(address)
 	if err != nil {
 		return nil, err
 	}
 
 	s := &Server{
-		xs: xs,
+		nodeIP:   nodeIP,
+		nodeZone: nodeZone,
+		xs:       xs,
 	}
 
 	return s, nil
@@ -32,9 +39,9 @@ func (s *Server) Close() error {
 	return s.xs.Close()
 }
 
-// Port returns the server port.
-func (s *Server) Port() int {
-	return s.xs.Port()
+// URL returns the server URL.
+func (s *Server) URL() string {
+	return s.xs.URL(s.nodeIP, s.nodeZone)
 }
 
 // Serve starts serving requests and waits until the server is closed.

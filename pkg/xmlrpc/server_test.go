@@ -9,14 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestServerURL(t *testing.T) {
-	u := ServerURL(
-		net.ParseIP("192.168.2.1"),
-		123,
-		"")
-	require.Equal(t, "http://192.168.2.1:123", u)
-}
-
 func TestServer(t *testing.T) {
 	type myRequest struct {
 		Param string
@@ -30,7 +22,7 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	defer s.Close()
 
-	require.NotEqual(t, 0, s.Port())
+	require.Equal(t, "http://192.168.2.1:9904", s.URL(net.ParseIP("192.168.2.1"), ""))
 
 	go s.Serve(func(raw *RequestRaw) interface{} {
 		if raw.Method == "mymethod" {

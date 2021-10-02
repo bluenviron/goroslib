@@ -240,7 +240,7 @@ outer:
 
 	sp.conf.Node.apiMasterClient.UnregisterService(
 		sp.conf.Node.absoluteTopicName(sp.conf.Name),
-		sp.conf.Node.tcprosServerURL)
+		sp.conf.Node.tcprosServer.URL())
 
 	sp.clientsWg.Wait()
 

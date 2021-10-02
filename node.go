@@ -62,7 +62,6 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/protoudp"
-	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
 
 func urlToAddress(in string) (string, error) {
@@ -217,9 +216,7 @@ type Node struct {
 	apiMasterClient     *apimaster.Client
 	apiParamClient      *apiparam.Client
 	apiSlaveServer      *apislave.Server
-	apiSlaveServerURL   string
 	tcprosServer        *prototcp.Server
-	tcprosServerURL     string
 	udprosServer        *protoudp.Server
 	tcprosConns         map[*prototcp.Conn]struct{}
 	udprosSubPublishers map[*subscriberPublisher]struct{}
@@ -385,26 +382,18 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
 
-	n.apiSlaveServer, err = apislave.NewServer(":" + strconv.FormatInt(int64(conf.ApislavePort), 10))
+	n.apiSlaveServer, err = apislave.NewServer(":"+strconv.FormatInt(int64(conf.ApislavePort), 10),
+		nodeAddr.IP, nodeAddr.Zone)
 	if err != nil {
 		return nil, err
 	}
 
-	n.apiSlaveServerURL = xmlrpc.ServerURL(
-		nodeAddr.IP,
-		n.apiSlaveServer.Port(),
-		nodeAddr.Zone)
-
-	n.tcprosServer, err = prototcp.NewServer(":" + strconv.FormatInt(int64(conf.TcprosPort), 10))
+	n.tcprosServer, err = prototcp.NewServer(":"+strconv.FormatInt(int64(conf.TcprosPort), 10),
+		nodeAddr.IP, nodeAddr.Zone)
 	if err != nil {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
-
-	n.tcprosServerURL = prototcp.ServerURL(
-		nodeAddr.IP,
-		n.tcprosServer.Port(),
-		nodeAddr.Zone)
 
 	n.udprosServer, err = protoudp.NewServer(":" + strconv.FormatInt(int64(conf.UdprosPort), 10))
 	if err != nil {
@@ -738,7 +727,7 @@ outer:
 			uris, err := n.apiMasterClient.RegisterSubscriber(
 				n.absoluteTopicName(req.sub.conf.Topic),
 				req.sub.msgType,
-				n.apiSlaveServerURL)
+				n.apiSlaveServer.URL())
 			if err != nil {
 				req.res <- err
 				continue
@@ -777,7 +766,7 @@ outer:
 			_, err := n.apiMasterClient.RegisterPublisher(
 				n.absoluteTopicName(req.pub.conf.Topic),
 				req.pub.msgType,
-				n.apiSlaveServerURL)
+				n.apiSlaveServer.URL())
 			if err != nil {
 				req.res <- err
 				continue
@@ -800,8 +789,8 @@ outer:
 
 			err := n.apiMasterClient.RegisterService(
 				n.absoluteTopicName(req.sp.conf.Name),
-				n.tcprosServerURL,
-				n.apiSlaveServerURL)
+				n.tcprosServer.URL(),
+				n.apiSlaveServer.URL())
 			if err != nil {
 				req.res <- err
 				continue
