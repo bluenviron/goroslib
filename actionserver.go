@@ -95,6 +95,11 @@ func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
 			reflect.PtrTo(gh.as.resType), reflect.TypeOf(res)))
 	}
 
+	gh.as.conf.Node.Log(LogLevelDebug, "action server '%s' has finished goal '%s' with state '%s'",
+		gh.as.conf.Node.absoluteTopicName(gh.as.conf.Name),
+		gh.id,
+		gh.state)
+
 	resAction := reflect.New(gh.as.resActionType)
 
 	now := time.Now()
@@ -290,7 +295,8 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		done:           make(chan struct{}),
 	}
 
-	as.conf.Node.Log(LogLevelDebug, "action server '%s' created", conf.Name)
+	as.conf.Node.Log(LogLevelDebug, "action server '%s' created",
+		conf.Node.absoluteTopicName(conf.Name))
 
 	if conf.OnGoal != nil {
 		cbt := reflect.TypeOf(conf.OnGoal)
@@ -383,7 +389,8 @@ func (as *ActionServer) Close() error {
 	as.ctxCancel()
 	<-as.done
 
-	as.conf.Node.Log(LogLevelDebug, "action server '%s' destroyed", as.conf.Name)
+	as.conf.Node.Log(LogLevelDebug, "action server '%s' destroyed",
+		as.conf.Node.absoluteTopicName(as.conf.Name))
 	return nil
 }
 
@@ -469,6 +476,10 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 		as.goals[goalID.Id] = gh
 	}()
 
+	as.conf.Node.Log(LogLevelDebug, "action server '%s' has a new goal '%s'",
+		as.conf.Node.absoluteTopicName(as.conf.Name),
+		goalID.Id)
+
 	if as.conf.OnGoal != nil {
 		reflect.ValueOf(as.conf.OnGoal).Call([]reflect.Value{
 			reflect.ValueOf(gh),
@@ -481,6 +492,9 @@ func (as *ActionServer) onGoal(in []reflect.Value) []reflect.Value {
 
 func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {
 	if msg.Id == "" { // cancel all goals
+		as.conf.Node.Log(LogLevelDebug, "action server '%s' is canceling all goals",
+			as.conf.Node.absoluteTopicName(as.conf.Name))
+
 		goals := func() []*ActionServerGoalHandler {
 			as.mutex.Lock()
 			defer as.mutex.Unlock()
@@ -510,8 +524,15 @@ func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {
 			return gh
 		}()
 		if gh == nil {
+			as.conf.Node.Log(LogLevelError, "action server '%s' is unable to cancel goal '%s'",
+				as.conf.Node.absoluteTopicName(as.conf.Name),
+				msg.Id)
 			return
 		}
+
+		as.conf.Node.Log(LogLevelDebug, "action server '%s' is canceling goal '%s'",
+			as.conf.Node.absoluteTopicName(as.conf.Name),
+			msg.Id)
 
 		if as.conf.OnCancel != nil {
 			as.conf.OnCancel(gh)
