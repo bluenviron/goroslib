@@ -175,7 +175,6 @@ func TestActionServerCancelGoal(t *testing.T) {
 		Namespace:     "/myns",
 		Name:          "goroslib-server",
 		MasterAddress: m.IP() + ":11311",
-		LogLevel:      LogLevelDebug,
 	})
 	require.NoError(t, err)
 	defer ns.Close()
@@ -268,7 +267,6 @@ func TestActionServerCancelAllGoals(t *testing.T) {
 		Namespace:     "/myns",
 		Name:          "goroslib-server",
 		MasterAddress: m.IP() + ":11311",
-		LogLevel:      LogLevelDebug,
 	})
 	require.NoError(t, err)
 	defer ns.Close()
