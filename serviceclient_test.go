@@ -184,3 +184,36 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceClientErrors(t *testing.T) {
+	m := newContainerMaster(t)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib_sp",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	t.Run("missing node", func(t *testing.T) {
+		_, err := NewServiceClient(ServiceClientConf{})
+		require.Error(t, err)
+	})
+
+	t.Run("missing name", func(t *testing.T) {
+		_, err := NewServiceClient(ServiceClientConf{
+			Node: n,
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("missing srv", func(t *testing.T) {
+		_, err := NewServiceClient(ServiceClientConf{
+			Node: n,
+			Name: "test_srv",
+		})
+		require.Error(t, err)
+	})
+}
