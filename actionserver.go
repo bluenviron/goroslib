@@ -272,10 +272,8 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		return nil, err
 	}
 
-	goalAction, resAction, fbAction, err := actionproc.Messages(conf.Action)
-	if err != nil {
-		return nil, err
-	}
+	// Messages can't fail if GoalResultFeedback didn't fail
+	goalAction, resAction, fbAction, _ := actionproc.Messages(conf.Action)
 
 	conf.Name = conf.Node.applyCliRemapping(conf.Name)
 
