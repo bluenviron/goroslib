@@ -207,10 +207,10 @@ type ActionServerConf struct {
 	// It defaults to 200 ms.
 	StatusPeriod time.Duration
 
-	// (optional) goals are deleted after they are ended and
+	// (optional) goals are deleted after they are finished and
 	// after this duration.
 	// It defaults to 5 secs.
-	DeleteGoalAfter time.Duration
+	DeleteFinishedGoalAfter time.Duration
 
 	// (optional) function in the form func(*ActionServerGoalHandler, *ActionGoal)
 	// that will be called when a goal arrives.
@@ -263,8 +263,8 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		conf.StatusPeriod = 200 * time.Millisecond
 	}
 
-	if conf.DeleteGoalAfter == 0 {
-		conf.DeleteGoalAfter = 5 * time.Second
+	if conf.DeleteFinishedGoalAfter == 0 {
+		conf.DeleteFinishedGoalAfter = 5 * time.Second
 	}
 
 	goal, res, fb, err := actionproc.GoalResultFeedback(conf.Action)
@@ -412,7 +412,7 @@ outer:
 				now := time.Now()
 				for id, gh := range as.goals {
 					if gh.ended != nil &&
-						now.Sub(*gh.ended) >= as.conf.DeleteGoalAfter {
+						now.Sub(*gh.ended) >= as.conf.DeleteFinishedGoalAfter {
 						delete(as.goals, id)
 					}
 				}
