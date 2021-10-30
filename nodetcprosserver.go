@@ -48,7 +48,6 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 			case <-n.ctx.Done():
 			}
 			return true
-
 		} else if _, ok := rawHeader["service"]; ok {
 			var header prototcp.HeaderServiceClient
 			err = protocommon.HeaderDecode(rawHeader, &header)

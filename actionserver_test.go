@@ -168,187 +168,105 @@ func TestActionServer(t *testing.T) {
 }
 
 func TestActionServerCancelGoal(t *testing.T) {
-	m := newContainerMaster(t)
-	defer m.close()
+	for _, ca := range []string{"specific", "all"} {
+		t.Run(ca, func(t *testing.T) {
+			m := newContainerMaster(t)
+			defer m.close()
 
-	ns, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib-server",
-		MasterAddress: m.IP() + ":11311",
-	})
-	require.NoError(t, err)
-	defer ns.Close()
+			ns, err := NewNode(NodeConf{
+				Namespace:     "/myns",
+				Name:          "goroslib-server",
+				MasterAddress: m.IP() + ":11311",
+			})
+			require.NoError(t, err)
+			defer ns.Close()
 
-	as, err := NewActionServer(ActionServerConf{
-		Node:   ns,
-		Name:   "test_action",
-		Action: &DoSomethingAction{},
-		OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
-		},
-		OnCancel: func(gh *ActionServerGoalHandler) {
-			gh.SetCanceled(&DoSomethingActionResult{})
-		},
-	})
-	require.NoError(t, err)
-	defer as.Close()
+			as, err := NewActionServer(ActionServerConf{
+				Node:   ns,
+				Name:   "test_action",
+				Action: &DoSomethingAction{},
+				OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
+				},
+				OnCancel: func(gh *ActionServerGoalHandler) {
+					gh.SetCanceled(&DoSomethingActionResult{})
+				},
+			})
+			require.NoError(t, err)
+			defer as.Close()
 
-	nc, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib-client",
-		MasterAddress: m.IP() + ":11311",
-	})
-	require.NoError(t, err)
-	defer nc.Close()
+			nc, err := NewNode(NodeConf{
+				Namespace:     "/myns",
+				Name:          "goroslib-client",
+				MasterAddress: m.IP() + ":11311",
+			})
+			require.NoError(t, err)
+			defer nc.Close()
 
-	goalAction, resAction, _, err := actionproc.Messages(&DoSomethingAction{})
-	require.NoError(t, err)
+			goalAction, resAction, _, err := actionproc.Messages(&DoSomethingAction{})
+			require.NoError(t, err)
 
-	resRecv := make(chan struct{})
+			resRecv := make(chan struct{})
 
-	resultSub, err := NewSubscriber(SubscriberConf{
-		Node:  nc,
-		Topic: "test_action/result",
-		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
-			func(in []reflect.Value) []reflect.Value {
-				close(resRecv)
-				return nil
-			},
-		).Interface(),
-	})
-	require.NoError(t, err)
-	defer resultSub.Close()
+			resultSub, err := NewSubscriber(SubscriberConf{
+				Node:  nc,
+				Topic: "test_action/result",
+				Callback: reflect.MakeFunc(
+					reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
+					func(in []reflect.Value) []reflect.Value {
+						close(resRecv)
+						return nil
+					},
+				).Interface(),
+			})
+			require.NoError(t, err)
+			defer resultSub.Close()
 
-	cancelPub, err := NewPublisher(PublisherConf{
-		Node:  nc,
-		Topic: "test_action/cancel",
-		Msg:   &actionlib_msgs.GoalID{},
-	})
-	require.NoError(t, err)
-	defer cancelPub.Close()
+			cancelPub, err := NewPublisher(PublisherConf{
+				Node:  nc,
+				Topic: "test_action/cancel",
+				Msg:   &actionlib_msgs.GoalID{},
+			})
+			require.NoError(t, err)
+			defer cancelPub.Close()
 
-	goalPub, err := NewPublisher(PublisherConf{
-		Node:  nc,
-		Topic: "test_action/goal",
-		Msg:   reflect.New(reflect.TypeOf(goalAction)).Interface(),
-	})
-	require.NoError(t, err)
-	defer goalPub.Close()
+			goalPub, err := NewPublisher(PublisherConf{
+				Node:  nc,
+				Topic: "test_action/goal",
+				Msg:   reflect.New(reflect.TypeOf(goalAction)).Interface(),
+			})
+			require.NoError(t, err)
+			defer goalPub.Close()
 
-	time.Sleep(500 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 
-	ga := reflect.New(reflect.TypeOf(goalAction))
-	ga.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
-		Stamp: time.Now(),
-	}))
-	ga.Elem().FieldByName("GoalId").Set(reflect.ValueOf(actionlib_msgs.GoalID{
-		Stamp: time.Now(),
-		Id:    "cancelid123",
-	}))
-	ga.Elem().FieldByName("Goal").Set(reflect.ValueOf(&DoSomethingActionGoal{
-		Input: 1234312,
-	}).Elem())
-	goalPub.Write(ga.Elem().Addr().Interface())
+			ga := reflect.New(reflect.TypeOf(goalAction))
+			ga.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
+				Stamp: time.Now(),
+			}))
+			ga.Elem().FieldByName("GoalId").Set(reflect.ValueOf(actionlib_msgs.GoalID{
+				Stamp: time.Now(),
+				Id:    "cancelid123",
+			}))
+			ga.Elem().FieldByName("Goal").Set(reflect.ValueOf(&DoSomethingActionGoal{
+				Input: 1234312,
+			}).Elem())
+			goalPub.Write(ga.Elem().Addr().Interface())
 
-	time.Sleep(500 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 
-	cancelPub.Write(&actionlib_msgs.GoalID{
-		Id: "cancelid123",
-	})
+			if ca == "specific" {
+				cancelPub.Write(&actionlib_msgs.GoalID{
+					Id: "cancelid123",
+				})
+			} else {
+				cancelPub.Write(&actionlib_msgs.GoalID{
+					Id: "",
+				})
+			}
 
-	<-resRecv
-}
-
-func TestActionServerCancelAllGoals(t *testing.T) {
-	m := newContainerMaster(t)
-	defer m.close()
-
-	ns, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib-server",
-		MasterAddress: m.IP() + ":11311",
-	})
-	require.NoError(t, err)
-	defer ns.Close()
-
-	as, err := NewActionServer(ActionServerConf{
-		Node:   ns,
-		Name:   "test_action",
-		Action: &DoSomethingAction{},
-		OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
-		},
-		OnCancel: func(gh *ActionServerGoalHandler) {
-			gh.SetCanceled(&DoSomethingActionResult{})
-		},
-	})
-	require.NoError(t, err)
-	defer as.Close()
-
-	nc, err := NewNode(NodeConf{
-		Namespace:     "/myns",
-		Name:          "goroslib-client",
-		MasterAddress: m.IP() + ":11311",
-	})
-	require.NoError(t, err)
-	defer nc.Close()
-
-	goalAction, resAction, _, err := actionproc.Messages(&DoSomethingAction{})
-	require.NoError(t, err)
-
-	resRecv := make(chan struct{})
-
-	resultSub, err := NewSubscriber(SubscriberConf{
-		Node:  nc,
-		Topic: "test_action/result",
-		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
-			func(in []reflect.Value) []reflect.Value {
-				close(resRecv)
-				return nil
-			},
-		).Interface(),
-	})
-	require.NoError(t, err)
-	defer resultSub.Close()
-
-	cancelPub, err := NewPublisher(PublisherConf{
-		Node:  nc,
-		Topic: "test_action/cancel",
-		Msg:   &actionlib_msgs.GoalID{},
-	})
-	require.NoError(t, err)
-	defer cancelPub.Close()
-
-	goalPub, err := NewPublisher(PublisherConf{
-		Node:  nc,
-		Topic: "test_action/goal",
-		Msg:   reflect.New(reflect.TypeOf(goalAction)).Interface(),
-	})
-	require.NoError(t, err)
-	defer goalPub.Close()
-
-	time.Sleep(500 * time.Millisecond)
-
-	ga := reflect.New(reflect.TypeOf(goalAction))
-	ga.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
-		Stamp: time.Now(),
-	}))
-	ga.Elem().FieldByName("GoalId").Set(reflect.ValueOf(actionlib_msgs.GoalID{
-		Stamp: time.Now(),
-		Id:    "cancelid123",
-	}))
-	ga.Elem().FieldByName("Goal").Set(reflect.ValueOf(&DoSomethingActionGoal{
-		Input: 1234312,
-	}).Elem())
-	goalPub.Write(ga.Elem().Addr().Interface())
-
-	time.Sleep(500 * time.Millisecond)
-
-	cancelPub.Write(&actionlib_msgs.GoalID{
-		Id: "",
-	})
-
-	<-resRecv
+			<-resRecv
+		})
+	}
 }
 
 func TestActionServerErrors(t *testing.T) {

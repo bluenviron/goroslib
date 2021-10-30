@@ -292,7 +292,6 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 				defer sub.Close()
 
 				require.Equal(t, expected, <-recv)
-
 			} else {
 				recv := make(chan *sensor_msgs.Imu, 10)
 

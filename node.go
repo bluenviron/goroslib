@@ -691,7 +691,6 @@ outer:
 				if req.frame.ConnectionID == sp.udpID &&
 					(req.source.IP.Equal(sp.udpAddr.IP) ||
 						(sp.udpAddrIsLocal && sp.localIPs.contains(req.source.IP))) {
-
 					select {
 					case sp.udpFrame <- req.frame:
 					case <-sp.ctx.Done():

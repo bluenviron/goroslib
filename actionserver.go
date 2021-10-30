@@ -509,7 +509,6 @@ func (as *ActionServer) onCancel(msg *actionlib_msgs.GoalID) {
 				as.conf.OnCancel(gh)
 			}
 		}
-
 	} else { // cancel specific goal
 		gh := func() *ActionServerGoalHandler {
 			as.mutex.Lock()

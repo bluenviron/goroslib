@@ -41,7 +41,6 @@ func RequestResponse(srv interface{}) (interface{}, interface{}, error) {
 		if !reqFound {
 			reqFound = true
 			req = ft.Interface()
-
 		} else {
 			return req, ft.Interface(), nil
 		}

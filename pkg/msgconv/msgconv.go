@@ -217,7 +217,6 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 		if i < 0 {
 			name := line
 			parseField(rosPkgName, res, typ, name)
-
 		} else {
 			name, val := line[:i], line[i+1:]
 			name = strings.TrimRight(name, " \t")
