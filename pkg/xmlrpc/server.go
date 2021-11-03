@@ -19,6 +19,7 @@ type Server struct {
 	ctxCancel func()
 	wg        sync.WaitGroup
 	ln        net.Listener
+	handler   func(*RequestRaw) interface{}
 
 	// in
 	setHandler chan func(*RequestRaw) interface{}
@@ -70,42 +71,16 @@ func (s *Server) URL(ip net.IP, zone string) string {
 func (s *Server) run() {
 	defer s.wg.Done()
 
-	var handler func(*RequestRaw) interface{}
 	select {
-	case handler = <-s.setHandler:
+	case handler := <-s.setHandler:
+		s.handler = handler
+
 	case <-s.ctx.Done():
 		s.ln.Close()
 		return
 	}
 
-	hs := &http.Server{
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-
-			if req.Method != http.MethodPost {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-
-			raw, err := requestDecodeRaw(req.Body)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-
-			res := handler(raw)
-
-			if _, ok := res.(ErrorRes); ok {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-
-			responseEncode(w, res)
-		}),
-	}
+	hs := &http.Server{Handler: s}
 
 	s.wg.Add(1)
 	go func() {
@@ -117,6 +92,33 @@ func (s *Server) run() {
 
 	s.ln.Close()
 	hs.Shutdown(context.Background())
+}
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if req.Method != http.MethodPost {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	raw, err := requestDecodeRaw(req.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res := s.handler(raw)
+
+	if _, ok := res.(ErrorRes); ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	responseEncode(w, res)
 }
 
 // Serve starts serving requests and waits until the server is closed.
