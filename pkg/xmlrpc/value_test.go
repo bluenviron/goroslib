@@ -55,19 +55,19 @@ var casesValue = []struct {
 		"testval",
 	},
 	{
-		"string without type",
-		[]byte("<value>testval</value>"),
-		[]byte("<value>testval</value>"),
-		"testval",
-	},
-	{
 		"string empty",
 		[]byte("<value><string></string></value>"),
 		[]byte("<value></value>"),
 		"",
 	},
 	{
-		"string empty without type",
+		"string without tag",
+		[]byte("<value>testval</value>"),
+		[]byte("<value>testval</value>"),
+		"testval",
+	},
+	{
+		"string without tag, empty",
 		[]byte("<value></value>"),
 		[]byte("<value></value>"),
 		"",
@@ -291,13 +291,7 @@ func TestValueDecodeErrors(t *testing.T) {
 			"XML syntax error on line 1: unexpected EOF",
 		},
 		{
-			"string untyped not closed",
-			[]byte("<value>asd</otherval>"),
-			new(interface{}),
-			"XML syntax error on line 1: element <value> closed by </otherval>",
-		},
-		{
-			"string wrong type 1",
+			"string wrong type",
 			[]byte("<value><string>asd</string>"),
 			func() interface{} {
 				v := 123
@@ -306,8 +300,23 @@ func TestValueDecodeErrors(t *testing.T) {
 			"cannot decode a string into a int",
 		},
 		{
-			"string wrong type 2",
+			"string without tag, not closed",
+			[]byte("<value>asd</otherval>"),
+			new(interface{}),
+			"XML syntax error on line 1: element <value> closed by </otherval>",
+		},
+		{
+			"string without tag, wrong type",
 			[]byte("<value>asd</value>"),
+			func() interface{} {
+				v := 123
+				return &v
+			}(),
+			"cannot decode a string into a int",
+		},
+		{
+			"string without tag, empty, wrong type",
+			[]byte("<value></value>"),
 			func() interface{} {
 				v := 123
 				return &v

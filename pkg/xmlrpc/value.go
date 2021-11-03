@@ -252,7 +252,7 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 			return err
 		}
 
-	// content with no type (i.e. string)
+	// string without tag
 	case xml.CharData:
 		err := decodeString(ttok, dest)
 		if err != nil {
@@ -264,7 +264,7 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 			return err
 		}
 
-	// content with no type (i.e. string) and empty
+	// string without tag and empty
 	case xml.EndElement:
 		err := decodeString([]byte{}, dest)
 		if err != nil {
