@@ -3,6 +3,7 @@ package xmlrpc
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -13,11 +14,11 @@ type Client struct {
 }
 
 // NewClient allocates a Client.
-func NewClient(address string) *Client {
+func NewClient(host string) *Client {
 	return &Client{
 		url: (&url.URL{
 			Scheme: "http",
-			Host:   address,
+			Host:   host,
 			Path:   "/RPC2",
 		}).String(),
 	}
@@ -36,6 +37,10 @@ func (c *Client) Do(method string, paramsReq interface{}, paramsRes interface{})
 		return err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return fmt.Errorf("bad status code: %d", res.StatusCode)
+	}
 
 	err = responseDecode(res.Body, paramsRes)
 	if err != nil {

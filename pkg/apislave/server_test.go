@@ -100,7 +100,7 @@ func TestServerErrors(t *testing.T) {
 		defer s.Close()
 
 		_, err = NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
-		require.Error(t, err)
+		require.EqualError(t, err, "listen tcp 127.0.0.1:9906: bind: address already in use")
 	})
 
 	t.Run("invalid method", func(t *testing.T) {
@@ -116,7 +116,7 @@ func TestServerErrors(t *testing.T) {
 
 		var res ResponseGetBusInfo
 		err = c.Do("invalidMethod", RequestGetBusInfo{CallerID: "mycaller"}, &res)
-		require.Error(t, err)
+		require.EqualError(t, err, "bad status code: 400")
 	})
 
 	t.Run("invalid payload 1", func(t *testing.T) {
@@ -154,6 +154,6 @@ func TestServerErrors(t *testing.T) {
 
 		var res ResponseGetBusInfo
 		err = c.Do("shutdown", RequestGetBusInfo{CallerID: "mycaller"}, &res)
-		require.Error(t, err)
+		require.EqualError(t, err, "bad status code: 400")
 	})
 }

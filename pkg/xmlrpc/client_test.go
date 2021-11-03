@@ -68,6 +68,30 @@ func TestClientErrors(t *testing.T) {
 			"dial tcp 127.0.0.1:9908: connect: connection refused", err.Error())
 	})
 
+	t.Run("bad status code", func(t *testing.T) {
+		type myResponse struct {
+			Param string
+		}
+
+		hs := &http.Server{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				w.WriteHeader(http.StatusBadRequest)
+			}),
+		}
+		defer hs.Shutdown(context.Background())
+
+		l, err := net.Listen("tcp", "localhost:9908")
+		require.NoError(t, err)
+
+		go hs.Serve(l)
+
+		c := NewClient("localhost:9908")
+		err = c.Do("mymethod", struct {
+			Param int
+		}{123}, &myResponse{})
+		require.Equal(t, "bad status code: 400", err.Error())
+	})
+
 	t.Run("invalid response", func(t *testing.T) {
 		type myResponse struct {
 			Param string
