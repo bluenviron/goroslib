@@ -561,7 +561,7 @@ func TestSubscriberQueue(t *testing.T) {
 	require.NoError(t, err)
 	defer sub.Close()
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	<-recv
 	<-recv
