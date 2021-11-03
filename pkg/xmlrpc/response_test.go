@@ -60,6 +60,51 @@ var casesResponse = []struct {
 			"testing",
 		},
 	},
+	{
+		"base with utf8 encoding",
+		[]byte(`<?xml version="1.0" encoding="utf8"?><methodResponse><params>` +
+			`<param><value><array><data>` +
+			`<value><i4>1</i4></value>` +
+			`<value></value>` +
+			`<value><array><data>` +
+			`<value>TCPROS</value>` +
+			`<value>testing</value>` +
+			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
+			`</data></array></value>` +
+			`<value>testing</value>` +
+			`</data></array></value></param>` +
+			`</params></methodResponse>`),
+		[]byte(`<?xml version="1.0"?><methodResponse><params>` +
+			`<param><value><array><data>` +
+			`<value><i4>1</i4></value>` +
+			`<value></value>` +
+			`<value><array><data>` +
+			`<value>TCPROS</value>` +
+			`<value>testing</value>` +
+			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
+			`</data></array></value>` +
+			`<value>testing</value>` +
+			`</data></array></value></param>` +
+			`</params></methodResponse>`),
+		struct {
+			Param1 int
+			Param2 string
+			Param3 Substruct
+			Param4 string
+		}{
+			1,
+			"",
+			Substruct{
+				"TCPROS",
+				"testing",
+				123,
+				-1.324543,
+			},
+			"testing",
+		},
+	},
 }
 
 func TestResponseDecode(t *testing.T) {

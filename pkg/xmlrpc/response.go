@@ -2,12 +2,19 @@ package xmlrpc
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"reflect"
 )
 
 func responseDecode(r io.Reader, dest interface{}) error {
 	dec := xml.NewDecoder(r)
+	dec.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
+		if charset == "utf8" {
+			return input, nil
+		}
+		return nil, fmt.Errorf("unknown charset %q", charset)
+	}
 
 	err := xmlGetProcessingInstruction(dec)
 	if err != nil {

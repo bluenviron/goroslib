@@ -61,6 +61,44 @@ var casesRequest = []struct {
 			true,
 		},
 	},
+	{
+		"base with utf8 encoding",
+		[]byte(`<?xml version="1.0" encoding="utf8"?><methodCall><methodName>testMethodName</methodName><params>` +
+			`<param><value><string></string></value></param>` +
+			`<param><value><array><data>` +
+			`<value>test1</value>` +
+			`<value>test2</value>` +
+			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
+			`</data></array></value></param>` +
+			`<param><value><boolean>1</boolean></value></param>` +
+			`</params></methodCall>`),
+		[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params>` +
+			`<param><value></value></param>` +
+			`<param><value><array><data>` +
+			`<value>test1</value>` +
+			`<value>test2</value>` +
+			`<value><i4>123</i4></value>` +
+			`<value><double>-1.324543</double></value>` +
+			`</data></array></value></param>` +
+			`<param><value><boolean>1</boolean></value></param>` +
+			`</params></methodCall>`),
+		"testMethodName",
+		struct {
+			Param7 string
+			Param8 Substruct
+			Param9 bool
+		}{
+			"",
+			Substruct{
+				"test1",
+				"test2",
+				123,
+				-1.324543,
+			},
+			true,
+		},
+	},
 }
 
 func TestRequestDecode(t *testing.T) {

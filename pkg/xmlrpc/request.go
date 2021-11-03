@@ -22,6 +22,12 @@ func requestDecodeRaw(r io.Reader) (*RequestRaw, error) {
 	raw := &RequestRaw{
 		dec: xml.NewDecoder(r),
 	}
+	raw.dec.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
+		if charset == "utf8" {
+			return input, nil
+		}
+		return nil, fmt.Errorf("unknown charset %q", charset)
+	}
 
 	err := xmlGetProcessingInstruction(raw.dec)
 	if err != nil {
