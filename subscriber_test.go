@@ -519,6 +519,8 @@ func TestSubscriberQueue(t *testing.T) {
 	m := newContainerMaster(t)
 	defer m.close()
 
+	sendDone := make(chan struct{})
+
 	tp := newTestPublisher(t, m.IP(), func(header prototcp.HeaderSubscriber, conn *prototcp.Conn) {
 		msgMd5, err := msgproc.MD5(&std_msgs.Int64{})
 		require.NoError(t, err)
@@ -537,6 +539,7 @@ func TestSubscriberQueue(t *testing.T) {
 		conn.WriteMessage(&std_msgs.Int64{Data: 3})
 		conn.WriteMessage(&std_msgs.Int64{Data: 4})
 		conn.WriteMessage(&std_msgs.Int64{Data: 5})
+		close(sendDone)
 	})
 	defer tp.close()
 
@@ -548,27 +551,24 @@ func TestSubscriberQueue(t *testing.T) {
 	require.NoError(t, err)
 	defer n.Close()
 
-	recv := make(chan struct{}, 5)
+	recvCount := 0
+	recvDone := make(chan struct{})
 
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:  n,
 		Topic: "test_topic",
 		Callback: func(msg *std_msgs.Int64) {
-			recv <- struct{}{}
+			recvCount++
+
+			if recvCount >= 2 {
+				close(recvDone)
+			}
 		},
 		QueueSize: 1,
 	})
 	require.NoError(t, err)
 	defer sub.Close()
 
-	time.Sleep(2 * time.Second)
-
-	<-recv
-	<-recv
-
-	select {
-	case <-recv:
-		t.Errorf("not expected")
-	case <-time.After(1 * time.Second):
-	}
+	<-sendDone
+	<-recvDone
 }
