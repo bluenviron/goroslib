@@ -20,7 +20,7 @@ Features:
 * Get infos about other nodes, topics, services
 * Use namespaces and relative topics
 * Write logs to `/rosout`
-* Use a time API to synchronize execution with a real or simulated clock
+* Use time API to synchronize execution with a real or simulated clock
 * Support IPv6 (only stateful addresses, since stateless are not supported by the ROS master)
 * Compilation of `.msg` files is not necessary, message definitions are extracted from code
 * Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
