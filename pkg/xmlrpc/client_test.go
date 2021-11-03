@@ -40,7 +40,6 @@ func TestClient(t *testing.T) {
 
 	l, err := net.Listen("tcp", "localhost:9903")
 	require.NoError(t, err)
-	defer l.Close()
 
 	go hs.Serve(l)
 
@@ -83,7 +82,6 @@ func TestClientErrors(t *testing.T) {
 
 		l, err := net.Listen("tcp", "localhost:9908")
 		require.NoError(t, err)
-		defer l.Close()
 
 		go hs.Serve(l)
 
