@@ -20,13 +20,13 @@ func TestXMLGetProcessingInstructionErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(``)))
 		err := xmlGetProcessingInstruction(dec)
-		require.Equal(t, "EOF", err.Error())
+		require.EqualError(t, err, "EOF")
 	}()
 
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<tag>`)))
 		err := xmlGetProcessingInstruction(dec)
-		require.Equal(t, "expected xml.ProcInst, got xml.StartElement", err.Error())
+		require.EqualError(t, err, "expected xml.ProcInst, got xml.StartElement")
 	}()
 }
 
@@ -48,25 +48,25 @@ func TestXMLGetStartElementErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(``)))
 		err := xmlGetStartElement(dec, "mytag")
-		require.Equal(t, "EOF", err.Error())
+		require.EqualError(t, err, "EOF")
 	}()
 
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`</end>`)))
 		err := xmlGetStartElement(dec, "mytag")
-		require.Equal(t, "XML syntax error on line 1: unexpected end element </end>", err.Error())
+		require.EqualError(t, err, "XML syntax error on line 1: unexpected end element </end>")
 	}()
 
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<!-- comment -->`)))
 		err := xmlGetStartElement(dec, "mytag")
-		require.Equal(t, "unexpected element type: xml.Comment", err.Error())
+		require.EqualError(t, err, "unexpected element type: xml.Comment")
 	}()
 
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<tag>`)))
 		err := xmlGetStartElement(dec, "mytag")
-		require.Equal(t, "expected xml.StartElement with name 'mytag', got 'tag'", err.Error())
+		require.EqualError(t, err, "expected xml.StartElement with name 'mytag', got 'tag'")
 	}()
 }
 
@@ -84,19 +84,19 @@ func TestXMLGetEndElementErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(``)))
 		err := xmlGetEndElement(dec, false)
-		require.Equal(t, "EOF", err.Error())
+		require.EqualError(t, err, "EOF")
 	}()
 
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<tag>`)))
 		err := xmlGetEndElement(dec, false)
-		require.Equal(t, "expected xml.EndElement, got xml.StartElement", err.Error())
+		require.EqualError(t, err, "expected xml.EndElement, got xml.StartElement")
 	}()
 
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<tag>`)))
 		err := xmlGetEndElement(dec, true)
-		require.Equal(t, "unexpected element type: xml.StartElement", err.Error())
+		require.EqualError(t, err, "unexpected element type: xml.StartElement")
 	}()
 
 	func() {
@@ -104,7 +104,7 @@ func TestXMLGetEndElementErrors(t *testing.T) {
 		err := xmlGetStartElement(dec, "mytag")
 		require.NoError(t, err)
 		err = xmlGetEndElement(dec, false)
-		require.Equal(t, "XML syntax error on line 1: element <mytag> closed by </othertag>", err.Error())
+		require.EqualError(t, err, "XML syntax error on line 1: element <mytag> closed by </othertag>")
 	}()
 }
 
@@ -125,7 +125,7 @@ func TestXMLGetContentErrors(t *testing.T) {
 		err := xmlGetStartElement(dec, "mytag")
 		require.NoError(t, err)
 		_, err = xmlGetContent(dec)
-		require.Equal(t, "XML syntax error on line 1: unexpected EOF", err.Error())
+		require.EqualError(t, err, "XML syntax error on line 1: unexpected EOF")
 	}()
 
 	func() {
@@ -133,7 +133,7 @@ func TestXMLGetContentErrors(t *testing.T) {
 		err := xmlGetStartElement(dec, "mytag")
 		require.NoError(t, err)
 		_, err = xmlGetContent(dec)
-		require.Equal(t, "unexpected element type: xml.StartElement", err.Error())
+		require.EqualError(t, err, "unexpected element type: xml.StartElement")
 	}()
 
 	func() {
@@ -141,7 +141,7 @@ func TestXMLGetContentErrors(t *testing.T) {
 		err := xmlGetStartElement(dec, "mytag")
 		require.NoError(t, err)
 		_, err = xmlGetContent(dec)
-		require.Equal(t, "XML syntax error on line 1: unexpected EOF", err.Error())
+		require.EqualError(t, err, "XML syntax error on line 1: unexpected EOF")
 	}()
 }
 
@@ -159,7 +159,7 @@ func TestXMLConsumeUntilEOFErrors(t *testing.T) {
 	func() {
 		dec := xml.NewDecoder(bytes.NewReader([]byte(`<mytag>`)))
 		err := xmlConsumeUntilEOF(dec)
-		require.Equal(t, "unexpected element type: xml.StartElement", err.Error())
+		require.EqualError(t, err, "unexpected element type: xml.StartElement")
 	}()
 
 	func() {
@@ -167,6 +167,6 @@ func TestXMLConsumeUntilEOFErrors(t *testing.T) {
 		err := xmlGetStartElement(dec, "mytag")
 		require.NoError(t, err)
 		err = xmlConsumeUntilEOF(dec)
-		require.Equal(t, "XML syntax error on line 1: unexpected EOF", err.Error())
+		require.EqualError(t, err, "XML syntax error on line 1: unexpected EOF")
 	}()
 }

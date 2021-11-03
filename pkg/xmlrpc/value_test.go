@@ -401,7 +401,7 @@ func TestValueDecodeErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			err = valueDecode(dec, reflect.ValueOf(ca.dest))
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }
@@ -530,7 +530,7 @@ func TestValueEncodeError(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			err := valueEncode(ca.dest, reflect.ValueOf(ca.v))
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }

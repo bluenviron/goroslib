@@ -56,7 +56,7 @@ func TestClientErrors(t *testing.T) {
 		err := c.Do("mymethod", struct {
 			Param int64
 		}{123}, nil)
-		require.Equal(t, "unhandled value type: int64", err.Error())
+		require.EqualError(t, err, "unhandled value type: int64")
 	})
 
 	t.Run("server error", func(t *testing.T) {
@@ -64,8 +64,8 @@ func TestClientErrors(t *testing.T) {
 		err := c.Do("mymethod", struct {
 			Param int
 		}{123}, nil)
-		require.Equal(t, "Post \"http://127.0.0.1:9908/RPC2\": "+
-			"dial tcp 127.0.0.1:9908: connect: connection refused", err.Error())
+		require.EqualError(t, err, "Post \"http://127.0.0.1:9908/RPC2\": "+
+			"dial tcp 127.0.0.1:9908: connect: connection refused")
 	})
 
 	t.Run("bad status code", func(t *testing.T) {
@@ -89,7 +89,7 @@ func TestClientErrors(t *testing.T) {
 		err = c.Do("mymethod", struct {
 			Param int
 		}{123}, &myResponse{})
-		require.Equal(t, "bad status code: 400", err.Error())
+		require.EqualError(t, err, "bad status code: 400")
 	})
 
 	t.Run("invalid response", func(t *testing.T) {
@@ -113,6 +113,6 @@ func TestClientErrors(t *testing.T) {
 		err = c.Do("mymethod", struct {
 			Param int
 		}{123}, &myResponse{})
-		require.Equal(t, "expected xml.ProcInst, got xml.CharData", err.Error())
+		require.EqualError(t, err, "expected xml.ProcInst, got xml.CharData")
 	})
 }

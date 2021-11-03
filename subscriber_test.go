@@ -559,6 +559,7 @@ func TestSubscriberQueue(t *testing.T) {
 		Topic: "test_topic",
 		Callback: func(msg *std_msgs.Int64) {
 			recvCount++
+			<-sendDone
 
 			if recvCount >= 2 {
 				close(recvDone)
@@ -569,6 +570,5 @@ func TestSubscriberQueue(t *testing.T) {
 	require.NoError(t, err)
 	defer sub.Close()
 
-	<-sendDone
 	<-recvDone
 }

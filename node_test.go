@@ -157,7 +157,7 @@ func TestNodeOpenErrors(t *testing.T) {
 		Name:          "goroslib",
 		MasterAddress: "unresolved",
 	})
-	require.Equal(t, "unable to solve master address: address unresolved: missing port in address", err.Error())
+	require.EqualError(t, err, "unable to solve master address: address unresolved: missing port in address")
 
 	_, err = NewNode(NodeConf{
 		Namespace: "/myns",
@@ -168,7 +168,7 @@ func TestNodeOpenErrors(t *testing.T) {
 			Port: 123,
 		}).String(),
 	})
-	require.Equal(t, "stateless IPv6 master addresses are not supported", err.Error())
+	require.EqualError(t, err, "stateless IPv6 master addresses are not supported")
 
 	_, err = NewNode(NodeConf{
 		Namespace: "/myns",

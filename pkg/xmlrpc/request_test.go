@@ -122,7 +122,7 @@ func TestRequestDecodeErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			_, err := requestDecodeRaw(bytes.NewReader(ca.enc))
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 
@@ -176,7 +176,7 @@ func TestRequestDecodeErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			err = requestDecode(raw, ca.dest)
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }
@@ -244,7 +244,7 @@ func TestRequestEncodeErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			err := requestEncode(ca.dest, ca.method, ca.params)
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }

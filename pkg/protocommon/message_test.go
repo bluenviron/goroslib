@@ -408,7 +408,7 @@ func TestMessageDecodeErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			err := MessageDecode(bytes.NewBuffer(ca.byts), ca.msg)
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }
@@ -448,7 +448,7 @@ func TestMessageEncodeErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			err := MessageEncode(ca.dest, ca.msg)
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }

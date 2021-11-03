@@ -203,10 +203,10 @@ func TestHeaderDecodeErrors(t *testing.T) {
 		t.Run(ca.name, func(t *testing.T) {
 			raw, err := HeaderRawDecode(bytes.NewBuffer(ca.byts))
 			if err != nil {
-				require.Equal(t, ca.err, err.Error())
+				require.EqualError(t, err, ca.err)
 			} else {
 				err = HeaderDecode(raw, ca.header)
-				require.Equal(t, ca.err, err.Error())
+				require.EqualError(t, err, ca.err)
 			}
 		})
 	}
@@ -264,7 +264,7 @@ func TestHeaderEncodeErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			err := HeaderEncode(ca.dest, ca.header)
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }

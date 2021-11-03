@@ -186,7 +186,7 @@ func TestParseMessageDefinitionErrors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			_, err := ParseMessageDefinition("gopkg", "rospkg", "msgname", ca.ros)
-			require.Equal(t, ca.err, err.Error())
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }
