@@ -64,12 +64,12 @@ func MD5(srv interface{}) (string, error) {
 		return "", err
 	}
 
-	text1, _, err := msgproc.Text(reflect.TypeOf(req), "")
+	text1, err := msgproc.Text(req)
 	if err != nil {
 		return "", err
 	}
 
-	text2, _, err := msgproc.Text(reflect.TypeOf(res), "")
+	text2, err := msgproc.Text(res)
 	if err != nil {
 		return "", err
 	}
@@ -78,6 +78,6 @@ func MD5(srv interface{}) (string, error) {
 }
 
 // Type returns the type of a service.
-func Type(s interface{}) (string, error) {
-	return msgproc.Type(s)
+func Type(srv interface{}) (string, error) {
+	return msgproc.Type(srv)
 }

@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/aler9/goroslib/pkg/msg"
+	rmsg "github.com/aler9/goroslib/pkg/msg"
 )
 
 func camelToSnake(in string) string {
@@ -32,8 +32,14 @@ func md5sum(text string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// Text processes a field or message and returns its equivalent in text format.
-func Text(rt reflect.Type, rosTag string) (string, bool, error) {
+// Text processes a message and returns its equivalent in text format.
+func Text(msg interface{}) (string, error) {
+	rt := reflect.TypeOf(msg)
+	res, _, err := text(rt, "")
+	return res, err
+}
+
+func text(rt reflect.Type, rosTag string) (string, bool, error) {
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
@@ -90,7 +96,7 @@ func Text(rt reflect.Type, rosTag string) (string, bool, error) {
 
 	switch rt.Kind() {
 	case reflect.Slice:
-		text, isstruct, err := Text(rt.Elem(), "")
+		text, isstruct, err := text(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -102,7 +108,7 @@ func Text(rt reflect.Type, rosTag string) (string, bool, error) {
 		return text + "[]", false, nil
 
 	case reflect.Array:
-		text, isstruct, err := Text(rt.Elem(), "")
+		text, isstruct, err := text(rt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -119,11 +125,11 @@ func Text(rt reflect.Type, rosTag string) (string, bool, error) {
 		for i := 0; i < nf; i++ {
 			ft := rt.Field(i)
 
-			if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
+			if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Package(0)) {
 				continue
 			}
 
-			if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
+			if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Definitions(0)) {
 				for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
 					ret += def + "\n"
 				}
@@ -138,7 +144,7 @@ func Text(rt reflect.Type, rosTag string) (string, bool, error) {
 				return camelToSnake(ft.Name)
 			}()
 
-			text, isstruct, err := Text(ft.Type, ft.Tag.Get("rostype"))
+			text, isstruct, err := text(ft.Type, ft.Tag.Get("rostype"))
 			if err != nil {
 				return "", false, err
 			}
@@ -171,7 +177,7 @@ func MD5(msg interface{}) (string, error) {
 		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
 	}
 
-	text, _, err := Text(rt, "")
+	text, _, err := text(rt, "")
 	if err != nil {
 		return "", err
 	}
@@ -180,8 +186,8 @@ func MD5(msg interface{}) (string, error) {
 }
 
 // Type returns the type of a message.
-func Type(m interface{}) (string, error) {
-	rt := reflect.TypeOf(m)
+func Type(msg interface{}) (string, error) {
+	rt := reflect.TypeOf(msg)
 	if rt.Kind() != reflect.Ptr {
 		return "", fmt.Errorf("message must be a pointer")
 	}
@@ -197,7 +203,7 @@ func Type(m interface{}) (string, error) {
 
 	pkg := func() string {
 		ft, ok := rt.FieldByName("Package")
-		if !ok || !ft.Anonymous || ft.Type != reflect.TypeOf(msg.Package(0)) {
+		if !ok || !ft.Anonymous || ft.Type != reflect.TypeOf(rmsg.Package(0)) {
 			return ""
 		}
 
