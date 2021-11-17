@@ -400,7 +400,7 @@ func binaryEncodeValue(w *bytes.Buffer, src reflect.Value, dest []byte) {
 		binary.LittleEndian.PutUint32(dest, uint32(nano%1000000000))
 		w.Write(dest[:4])
 
-	case []uint8:
+	case []uint8: // special case for performance
 		binary.LittleEndian.PutUint32(dest, uint32(len(cv)))
 		w.Write(dest[:4])
 		w.Write(cv)
