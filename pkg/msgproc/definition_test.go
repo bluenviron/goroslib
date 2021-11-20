@@ -44,6 +44,8 @@ func TestDefinition(t *testing.T) {
 				N           time.Duration
 				O           int8  `rostype:"byte"`
 				P           uint8 `rostype:"char"`
+				Q           []uint32
+				R           [4]uint32
 			}{},
 			"bool a\n" +
 				"int8 b\n" +
@@ -61,28 +63,16 @@ func TestDefinition(t *testing.T) {
 				"duration n\n" +
 				"byte o\n" +
 				"char p\n" +
+				"uint32[] q\n" +
+				"uint32[4] r\n" +
 				"\n",
 		},
 		{
-			"variable array",
+			"custom name",
 			struct {
-				msg.Package `ros:"testing"`
-				A           uint8
-				B           []uint32
+				A string `rosname:"A"`
 			}{},
-			"uint8 a\n" +
-				"uint32[] b\n" +
-				"\n",
-		},
-		{
-			"fixed array",
-			struct {
-				msg.Package `ros:"testing"`
-				A           uint8
-				B           [4]uint32
-			}{},
-			"uint8 a\n" +
-				"uint32[4] b\n" +
+			"string A\n" +
 				"\n",
 		},
 		{
@@ -127,6 +117,46 @@ func TestDefinition(t *testing.T) {
 			def, err := Definition(ca.msg)
 			require.NoError(t, err)
 			require.Equal(t, ca.def, def)
+		})
+	}
+}
+
+func TestDefinitionErrors(t *testing.T) {
+	for _, ca := range []struct {
+		name string
+		msg  interface{}
+		err  string
+	}{
+		{
+			"not a message",
+			123,
+			"message must be a struct",
+		},
+		{
+			"unsupported field type 1",
+			struct {
+				A interface{}
+			}{nil},
+			"unsupported field type 'interface {}'",
+		},
+		{
+			"unsupported field type 2",
+			struct {
+				A []interface{}
+			}{nil},
+			"unsupported field type 'interface {}'",
+		},
+		{
+			"unsupported field type 3",
+			struct {
+				A [2]interface{}
+			}{[2]interface{}{1, 2}},
+			"unsupported field type 'interface {}'",
+		},
+	} {
+		t.Run(ca.name, func(t *testing.T) {
+			_, err := Definition(ca.msg)
+			require.EqualError(t, err, ca.err)
 		})
 	}
 }
