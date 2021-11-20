@@ -1,22 +1,6 @@
 
 # Library features
 
-## High level client features
-
-|name|status|
-|----|------|
-|publish to topics|:heavy_check_mark:|
-|subscribe to topics|:heavy_check_mark:|
-|provide services|:heavy_check_mark:|
-|call services|:heavy_check_mark:|
-|provide actions|:heavy_check_mark:|
-|call actions|:heavy_check_mark:|
-|provide simple actions|:heavy_check_mark:|
-|call simple actions|:heavy_check_mark:|
-|support namespaces|:heavy_check_mark:|
-|support IPv6|:heavy_check_mark:|
-|provide a time API|:heavy_check_mark:|
-
 ## Client library requirements
 
 https://wiki.ros.org/Implementing%20Client%20Libraries

@@ -13,18 +13,17 @@ The Robot Operating System (ROS) is a project that provides a specification to m
 
 Features:
 
-* Subscribe and publish to topics, with TCP or UDP
-* Provide and call services
-* Provide and call actions and simple actions
-* Get and set parameters
-* Get infos about other nodes, topics, services
-* Use namespaces and relative topics
-* Write logs to `/rosout`
-* Use time API to synchronize execution with a real or simulated clock
-* Support IPv6 (only stateful addresses, since stateless are not supported by the ROS master)
-* Compilation of `.msg` files is not necessary, message definitions are extracted from code
-* Compile or cross-compile ROS nodes for all Golang supported OSs (Linux, Windows, Mac OS X) and architectures
-* Examples provided for every feature, comprehensive test suite, continuous integration
+* publish and subscribe to topics with TCP or UDP
+* provide and call services
+* provide and call actions
+* provide and call simple actions
+* get and set parameters
+* support namespaces and relative topics
+* support IPv6 (stateful addresses only)
+* support time API
+* compilation of `.msg` files is not necessary, message definitions are extracted from code
+* compile or cross-compile for all Go supported OSs (Linux, Windows, Mac OS X) and architectures
+* examples provided for every feature, comprehensive test suite, continuous integration
 
 ## Table of contents
 
