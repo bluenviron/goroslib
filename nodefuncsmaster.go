@@ -73,7 +73,7 @@ func (n *Node) MasterGetNodes() (map[string]*InfoNode, error) {
 // MasterGetMachines returns all the machines connected to the master with a node.
 func (n *Node) MasterGetMachines() (map[string]struct{}, error) {
 	// this is like its equivalent in python
-	// https://docs.ros.org/melodic/api/rosnode/html/rosnode-pysrc.html#get_machines_by_nodes
+	// https://docs.ros.org/noetic/api/rosnode/html/rosnode-pysrc.html#get_machines_by_nodes
 
 	nodes, err := n.MasterGetNodes()
 	if err != nil {

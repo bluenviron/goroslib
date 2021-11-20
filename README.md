@@ -300,8 +300,8 @@ Other Go libraries
 
 Other non-Go libraries
 
-* (v1, C++) https://github.com/ros/ros_comm/tree/melodic-devel/clients/roscpp/src/libros (https://docs.ros.org/melodic/api/roscpp/html/classros_1_1NodeHandle.html)
-* (v1, Python) https://docs.ros.org/melodic/api/rosnode/html/
+* (v1, C++) https://github.com/ros/ros_comm/tree/noetic-devel/clients/roscpp/src/libros - https://docs.ros.org/noetic/api/roscpp/html/classros_1_1NodeHandle.html
+* (v1, Python) https://docs.ros.org/noetic/api/rosnode/html/
 * (v1, C) https://github.com/ros-industrial/cros
 * (v1, TypeScript) https://github.com/foxglove/ros1
 * (v2, misc) https://fkromer.github.io/awesome-ros2/
