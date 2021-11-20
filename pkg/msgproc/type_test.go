@@ -25,17 +25,17 @@ func TestType(t *testing.T) {
 	}{
 		{
 			"explicit package",
-			&MsgExplicitPackage{},
+			MsgExplicitPackage{},
 			"my_package/MsgExplicitPackage",
 		},
 		{
 			"implicit package",
-			&MsgImplicitPackage{},
+			MsgImplicitPackage{},
 			"goroslib/MsgImplicitPackage",
 		},
 		{
 			"anonymous",
-			&struct {
+			struct {
 				A int
 			}{},
 			"goroslib/Msg",
@@ -58,15 +58,7 @@ func TestTypeErrors(t *testing.T) {
 		{
 			"wrong message type",
 			123,
-			"message must be a pointer",
-		},
-		{
-			"wrong message type",
-			func() interface{} {
-				v := 123
-				return &v
-			}(),
-			"message must be a pointer to a struct",
+			"message must be a struct",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {

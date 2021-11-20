@@ -51,6 +51,17 @@ type SimpleActionServer struct {
 
 // NewSimpleActionServer allocates a SimpleActionServer.
 func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, error) {
+	if reflect.TypeOf(conf.Action).Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Action is not a pointer")
+	}
+
+	actionElem := reflect.ValueOf(conf.Action).Elem().Interface()
+
+	goal, _, _, err := actionproc.GoalResultFeedback(actionElem)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	sas := &SimpleActionServer{
@@ -60,11 +71,6 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 		goal:      make(chan goalHandlerPair),
 		cancel:    make(chan *ActionServerGoalHandler),
 		done:      make(chan struct{}),
-	}
-
-	goal, _, _, err := actionproc.GoalResultFeedback(conf.Action)
-	if err != nil {
-		return nil, err
 	}
 
 	if conf.OnExecute != nil {

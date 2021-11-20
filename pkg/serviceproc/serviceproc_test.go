@@ -26,7 +26,7 @@ func TestRequestResponse(t *testing.T) {
 	}{
 		{
 			"base",
-			&struct {
+			struct {
 				ServiceReq
 				ServiceRes
 			}{},
@@ -52,14 +52,14 @@ func TestRequestResponseErrors(t *testing.T) {
 		{
 			"invalid type",
 			123,
-			"unsupported service type 'int'",
+			"service must be a struct",
 		},
 		{
 			"missing response",
-			&struct {
+			struct {
 				A struct{}
 			}{},
-			"service request or response not found",
+			"request or response not found",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
@@ -77,7 +77,7 @@ func TestMD5(t *testing.T) {
 	}{
 		{
 			"base",
-			&struct {
+			struct {
 				msg.Package `ros:"my_package"`
 				ServiceReq
 				ServiceRes
@@ -102,30 +102,30 @@ func TestMD5Errors(t *testing.T) {
 		{
 			"wrong type",
 			123,
-			"unsupported service type 'int'",
+			"service must be a struct",
 		},
 		{
 			"invalid service",
-			&struct {
+			struct {
 				A int
 			}{},
-			"service request or response not found",
+			"request or response not found",
 		},
 		{
 			"invalid request",
-			&struct {
+			struct {
 				A int
 				B int
 			}{},
-			"unsupported field type 'int'",
+			"message must be a struct",
 		},
 		{
 			"invalid response",
-			&struct {
+			struct {
 				A struct{}
 				B int
 			}{},
-			"unsupported field type 'int'",
+			"message must be a struct",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
@@ -154,12 +154,12 @@ func TestType(t *testing.T) {
 	}{
 		{
 			"explicit package",
-			&SrvExplicitPackage{},
+			SrvExplicitPackage{},
 			"my_package/SrvExplicitPackage",
 		},
 		{
 			"implicit package",
-			&SrvImplicitPackage{},
+			SrvImplicitPackage{},
 			"goroslib/SrvImplicitPackage",
 		},
 	} {

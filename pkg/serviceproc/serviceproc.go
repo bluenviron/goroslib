@@ -19,44 +19,38 @@ func md5sum(text string) string {
 
 // RequestResponse returns the request and response of a service.
 func RequestResponse(srv interface{}) (interface{}, interface{}, error) {
-	srvv := reflect.ValueOf(srv)
-	if srvv.Kind() == reflect.Ptr {
-		srvv = srvv.Elem()
-	}
-	if srvv.Kind() != reflect.Struct {
-		return nil, nil, fmt.Errorf("unsupported service type '%s'", srvv.Type())
+	srvt := reflect.TypeOf(srv)
+	if srvt.Kind() != reflect.Struct {
+		return nil, nil, fmt.Errorf("service must be a struct")
 	}
 
 	var req interface{}
 	reqFound := false
 
-	nf := srvv.NumField()
+	nf := srvt.NumField()
 	for i := 0; i < nf; i++ {
-		ft := srvv.Field(i)
+		ft := srvt.Field(i)
 
-		if ft.Type() == reflect.TypeOf(msg.Package(0)) {
+		if ft.Type == reflect.TypeOf(msg.Package(0)) {
 			continue
 		}
 
 		if !reqFound {
 			reqFound = true
-			req = ft.Interface()
+			req = reflect.Zero(ft.Type).Interface()
 		} else {
-			return req, ft.Interface(), nil
+			return req, reflect.Zero(ft.Type).Interface(), nil
 		}
 	}
 
-	return nil, nil, fmt.Errorf("service request or response not found")
+	return nil, nil, fmt.Errorf("request or response not found")
 }
 
-// MD5 computes the checksum of a service.
+// MD5 returns the checksum of a service.
 func MD5(srv interface{}) (string, error) {
 	srvt := reflect.TypeOf(srv)
-	if srvt.Kind() == reflect.Ptr {
-		srvt = srvt.Elem()
-	}
 	if srvt.Kind() != reflect.Struct {
-		return "", fmt.Errorf("unsupported service type '%s'", srvt.String())
+		return "", fmt.Errorf("service must be a struct")
 	}
 
 	req, res, err := RequestResponse(srv)

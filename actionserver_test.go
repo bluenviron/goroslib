@@ -85,7 +85,7 @@ func TestActionServer(t *testing.T) {
 				require.NoError(t, err)
 				defer nc.Close()
 
-				goalAction, resAction, fbAction, err := actionproc.Messages(&DoSomethingAction{})
+				goalAction, resAction, fbAction, err := actionproc.Messages(DoSomethingAction{})
 				require.NoError(t, err)
 
 				fbRecv := make(chan struct{})
@@ -202,7 +202,7 @@ func TestActionServerCancelGoal(t *testing.T) {
 			require.NoError(t, err)
 			defer nc.Close()
 
-			goalAction, resAction, _, err := actionproc.Messages(&DoSomethingAction{})
+			goalAction, resAction, _, err := actionproc.Messages(DoSomethingAction{})
 			require.NoError(t, err)
 
 			resRecv := make(chan struct{})

@@ -97,12 +97,18 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Callback must not return any value")
 	}
 
-	msgType, err := msgproc.Type(reflect.New(cbt.In(0).Elem()).Interface())
+	if cbt.In(0).Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Msg is not a pointer")
+	}
+
+	msgElem := reflect.New(cbt.In(0).Elem()).Elem().Interface()
+
+	msgType, err := msgproc.Type(msgElem)
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msgproc.MD5(reflect.New(cbt.In(0).Elem()).Interface())
+	msgMd5, err := msgproc.MD5(msgElem)
 	if err != nil {
 		return nil, err
 	}

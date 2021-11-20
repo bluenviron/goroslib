@@ -242,7 +242,7 @@ func TestSubscriberReadAfterPub(t *testing.T) {
 			case "go":
 				expected = expected1
 				tp := newTestPublisher(t, m.IP(), func(header prototcp.HeaderSubscriber, conn *prototcp.Conn) {
-					msgMd5, err := msgproc.MD5(&TestMessage{})
+					msgMd5, err := msgproc.MD5(TestMessage{})
 					require.NoError(t, err)
 
 					require.Equal(t, "/myns/goroslib", header.Callerid)
@@ -370,7 +370,7 @@ func TestSubscriberReadBeforePub(t *testing.T) {
 
 			case "go":
 				tp := newTestPublisher(t, m.IP(), func(header prototcp.HeaderSubscriber, conn *prototcp.Conn) {
-					msgMd5, err := msgproc.MD5(&TestMessage{})
+					msgMd5, err := msgproc.MD5(TestMessage{})
 					require.NoError(t, err)
 
 					require.Equal(t, "/myns/goroslib", header.Callerid)
@@ -444,7 +444,7 @@ func TestSubscriberReadUDP(t *testing.T) {
 						protoHost := req2.Protocols[0][2].(string)
 						protoPort := req2.Protocols[0][3].(int)
 
-						msgMd5, err := msgproc.MD5(&std_msgs.Int64MultiArray{})
+						msgMd5, err := msgproc.MD5(std_msgs.Int64MultiArray{})
 						require.NoError(t, err)
 
 						udpAddr, err := net.ResolveUDPAddr("udp",
@@ -522,7 +522,7 @@ func TestSubscriberQueue(t *testing.T) {
 	sendDone := make(chan struct{})
 
 	tp := newTestPublisher(t, m.IP(), func(header prototcp.HeaderSubscriber, conn *prototcp.Conn) {
-		msgMd5, err := msgproc.MD5(&std_msgs.Int64{})
+		msgMd5, err := msgproc.MD5(std_msgs.Int64{})
 		require.NoError(t, err)
 
 		err = conn.WriteHeader(&prototcp.HeaderPublisher{

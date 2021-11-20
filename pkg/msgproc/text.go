@@ -31,19 +31,23 @@ func md5sum(text string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// Text processes a message and returns its equivalent in text format.
+// Text returns the text equivalent of a message.
 func Text(msg interface{}) (string, error) {
-	rt := reflect.TypeOf(msg)
-	res, _, err := text(rt, "")
+	msgt := reflect.TypeOf(msg)
+	if msgt.Kind() != reflect.Struct {
+		return "", fmt.Errorf("message must be a struct")
+	}
+
+	res, _, err := text(msgt, "")
 	return res, err
 }
 
-func text(rt reflect.Type, rosTag string) (string, bool, error) {
-	if rt.Kind() == reflect.Ptr {
-		rt = rt.Elem()
+func text(typ reflect.Type, rosTag string) (string, bool, error) {
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
 	}
 
-	switch rt {
+	switch typ {
 	case reflect.TypeOf(bool(false)):
 		return "bool", false, nil
 
@@ -93,9 +97,9 @@ func text(rt reflect.Type, rosTag string) (string, bool, error) {
 		return "duration", false, nil
 	}
 
-	switch rt.Kind() {
+	switch typ.Kind() {
 	case reflect.Slice:
-		text, isstruct, err := text(rt.Elem(), "")
+		text, isstruct, err := text(typ.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -107,7 +111,7 @@ func text(rt reflect.Type, rosTag string) (string, bool, error) {
 		return text + "[]", false, nil
 
 	case reflect.Array:
-		text, isstruct, err := text(rt.Elem(), "")
+		text, isstruct, err := text(typ.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
@@ -116,13 +120,13 @@ func text(rt reflect.Type, rosTag string) (string, bool, error) {
 			return text, true, nil
 		}
 
-		return text + "[" + strconv.FormatInt(int64(rt.Len()), 10) + "]", false, nil
+		return text + "[" + strconv.FormatInt(int64(typ.Len()), 10) + "]", false, nil
 
 	case reflect.Struct:
 		ret := ""
-		nf := rt.NumField()
+		nf := typ.NumField()
 		for i := 0; i < nf; i++ {
-			ft := rt.Field(i)
+			ft := typ.Field(i)
 
 			if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Package(0)) {
 				continue
@@ -163,5 +167,5 @@ func text(rt reflect.Type, rosTag string) (string, bool, error) {
 		return ret, true, nil
 	}
 
-	return "", false, fmt.Errorf("unsupported field type '%s'", rt.String())
+	return "", false, fmt.Errorf("unsupported field type '%s'", typ.String())
 }

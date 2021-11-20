@@ -33,6 +33,7 @@ type ServiceClient struct {
 	conf   ServiceClientConf
 	srvReq interface{}
 	srvRes interface{}
+	srvMD5 string
 	conn   *prototcp.Conn
 }
 
@@ -50,7 +51,18 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	srvReq, srvRes, err := serviceproc.RequestResponse(conf.Srv)
+	if reflect.TypeOf(conf.Srv).Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Srv is not a pointer")
+	}
+
+	srvElem := reflect.ValueOf(conf.Srv).Elem().Interface()
+
+	srvReq, srvRes, err := serviceproc.RequestResponse(srvElem)
+	if err != nil {
+		return nil, err
+	}
+
+	srvMD5, err := serviceproc.MD5(srvElem)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +73,7 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 		conf:   conf,
 		srvReq: srvReq,
 		srvRes: srvRes,
+		srvMD5: srvMD5,
 	}
 
 	sc.conf.Node.Log(LogLevelDebug, "service client '%s' created",
@@ -74,7 +87,6 @@ func (sc *ServiceClient) Close() error {
 	if sc.conn != nil {
 		sc.conn.Close()
 	}
-
 	sc.conf.Node.Log(LogLevelDebug, "service client '%s' destroyed",
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	return nil
@@ -151,11 +163,6 @@ func (sc *ServiceClient) createConn() error {
 		return fmt.Errorf("lookupService: %v", err)
 	}
 
-	srvMD5, err := serviceproc.MD5(sc.conf.Srv)
-	if err != nil {
-		return err
-	}
-
 	address, err := urlToAddress(ur)
 	if err != nil {
 		return err
@@ -173,7 +180,7 @@ func (sc *ServiceClient) createConn() error {
 
 	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
 		Callerid:   sc.conf.Node.absoluteName(),
-		Md5sum:     srvMD5,
+		Md5sum:     sc.srvMD5,
 		Persistent: 1,
 		Service:    sc.conf.Node.absoluteTopicName(sc.conf.Name),
 	})
@@ -200,10 +207,10 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
-	if outHeader.Md5sum != srvMD5 {
+	if outHeader.Md5sum != sc.srvMD5 {
 		conn.Close()
 		return fmt.Errorf("wrong message checksum: expected %s, got %s",
-			srvMD5, outHeader.Md5sum)
+			sc.srvMD5, outHeader.Md5sum)
 	}
 
 	sc.conn = conn

@@ -12,12 +12,9 @@ import (
 
 // GoalResultFeedback returns the goal, result and feedback of an action.
 func GoalResultFeedback(action interface{}) (interface{}, interface{}, interface{}, error) {
-	actionv := reflect.ValueOf(action)
-	if actionv.Kind() == reflect.Ptr {
-		actionv = actionv.Elem()
-	}
-	if actionv.Kind() != reflect.Struct {
-		return nil, nil, nil, fmt.Errorf("unsupported action type '%s'", actionv.Type().String())
+	actiont := reflect.TypeOf(action)
+	if actiont.Kind() != reflect.Struct {
+		return nil, nil, nil, fmt.Errorf("action must be a struct")
 	}
 
 	var goal interface{}
@@ -25,25 +22,25 @@ func GoalResultFeedback(action interface{}) (interface{}, interface{}, interface
 	var res interface{}
 	resFound := false
 
-	nf := actionv.NumField()
+	nf := actiont.NumField()
 	for i := 0; i < nf; i++ {
-		ft := actionv.Field(i)
+		ft := actiont.Field(i)
 
-		if ft.Type() == reflect.TypeOf(msg.Package(0)) {
+		if ft.Type == reflect.TypeOf(msg.Package(0)) {
 			continue
 		}
 
 		switch {
 		case !goalFound:
 			goalFound = true
-			goal = ft.Interface()
+			goal = reflect.Zero(ft.Type).Interface()
 
 		case !resFound:
 			resFound = true
-			res = ft.Interface()
+			res = reflect.Zero(ft.Type).Interface()
 
 		default:
-			return goal, res, ft.Interface(), nil
+			return goal, res, reflect.Zero(ft.Type).Interface(), nil
 		}
 	}
 

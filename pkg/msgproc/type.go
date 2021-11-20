@@ -9,22 +9,18 @@ import (
 
 // Type returns the type of a message.
 func Type(msg interface{}) (string, error) {
-	rt := reflect.TypeOf(msg)
-	if rt.Kind() != reflect.Ptr {
-		return "", fmt.Errorf("message must be a pointer")
-	}
-	rt = rt.Elem()
-	if rt.Kind() != reflect.Struct {
-		return "", fmt.Errorf("message must be a pointer to a struct")
+	msgt := reflect.TypeOf(msg)
+	if msgt.Kind() != reflect.Struct {
+		return "", fmt.Errorf("message must be a struct")
 	}
 
-	name := rt.Name()
+	name := msgt.Name()
 	if name == "" {
 		name = "Msg"
 	}
 
 	pkg := func() string {
-		ft, ok := rt.FieldByName("Package")
+		ft, ok := msgt.FieldByName("Package")
 		if !ok || !ft.Anonymous || ft.Type != reflect.TypeOf(rmsg.Package(0)) {
 			return ""
 		}

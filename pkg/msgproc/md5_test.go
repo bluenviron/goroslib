@@ -41,7 +41,7 @@ func TestMD5(t *testing.T) {
 	}{
 		{
 			"base types",
-			&struct {
+			struct {
 				msg.Package `ros:"testing"`
 				A           bool
 				B           int8
@@ -64,7 +64,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"variable array",
-			&struct {
+			struct {
 				A uint8
 				B []uint32
 			}{},
@@ -72,7 +72,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"fixed array",
-			&struct {
+			struct {
 				A uint8
 				B [2]uint32
 			}{},
@@ -80,7 +80,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"parent without pointer",
-			&struct {
+			struct {
 				A uint8
 				B Parent
 			}{},
@@ -88,7 +88,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"parent with pointer",
-			&struct {
+			struct {
 				A uint8
 				B *Parent
 			}{},
@@ -96,7 +96,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"array of parent without pointer",
-			&struct {
+			struct {
 				A uint8
 				B []Parent
 			}{},
@@ -104,7 +104,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"array of parent with pointer",
-			&struct {
+			struct {
 				A uint8
 				B []*Parent
 			}{},
@@ -112,7 +112,7 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"fixed array of parent",
-			&struct {
+			struct {
 				A uint8
 				B [2]Parent
 			}{},
@@ -120,17 +120,17 @@ func TestMD5(t *testing.T) {
 		},
 		{
 			"definitions",
-			&Log{},
+			Log{},
 			"acffd30cd6b6de30f120938c17c593fb",
 		},
 		{
 			"empty struct",
-			&struct{}{},
+			struct{}{},
 			"d41d8cd98f00b204e9800998ecf8427e",
 		},
 		{
 			"custom name",
-			&struct {
+			struct {
 				A string `rosname:"A"`
 			}{},
 			"b9fd98954bcc9324b61cf24596e99bae",
@@ -153,25 +153,25 @@ func TestMD5Errors(t *testing.T) {
 		{
 			"message invalid 1",
 			123,
-			"unsupported message type 'int'",
+			"message must be a struct",
 		},
 		{
 			"message invalid 2",
-			&struct {
+			struct {
 				A interface{}
 			}{nil},
 			"unsupported field type 'interface {}'",
 		},
 		{
 			"message invalid 3",
-			&struct {
+			struct {
 				A []interface{}
 			}{nil},
 			"unsupported field type 'interface {}'",
 		},
 		{
 			"message invalid 4",
-			&struct {
+			struct {
 				A [2]interface{}
 			}{[2]interface{}{1, 2}},
 			"unsupported field type 'interface {}'",

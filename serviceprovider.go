@@ -67,17 +67,23 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		return nil, fmt.Errorf("Srv is empty")
 	}
 
-	srvType, err := serviceproc.Type(conf.Srv)
+	if reflect.TypeOf(conf.Srv).Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Srv is not a pointer")
+	}
+
+	srvElem := reflect.ValueOf(conf.Srv).Elem().Interface()
+
+	srvReq, srvRes, err := serviceproc.RequestResponse(srvElem)
 	if err != nil {
 		return nil, err
 	}
 
-	srvMD5, err := serviceproc.MD5(conf.Srv)
+	srvType, err := serviceproc.Type(srvElem)
 	if err != nil {
 		return nil, err
 	}
 
-	srvReq, srvRes, err := serviceproc.RequestResponse(conf.Srv)
+	srvMD5, err := serviceproc.MD5(srvElem)
 	if err != nil {
 		return nil, err
 	}

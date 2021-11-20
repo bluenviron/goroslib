@@ -5,17 +5,14 @@ import (
 	"reflect"
 )
 
-// MD5 computes the checksum of a message.
+// MD5 returns the checksum of a message.
 func MD5(msg interface{}) (string, error) {
-	rt := reflect.TypeOf(msg)
-	if rt.Kind() == reflect.Ptr {
-		rt = rt.Elem()
-	}
-	if rt.Kind() != reflect.Struct {
-		return "", fmt.Errorf("unsupported message type '%s'", rt.String())
+	msgt := reflect.TypeOf(msg)
+	if msgt.Kind() != reflect.Struct {
+		return "", fmt.Errorf("message must be a struct")
 	}
 
-	text, _, err := text(rt, "")
+	text, _, err := text(msgt, "")
 	if err != nil {
 		return "", err
 	}

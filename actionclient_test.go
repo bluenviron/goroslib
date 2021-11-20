@@ -95,7 +95,7 @@ func TestActionClient(t *testing.T) {
 					require.NoError(t, err)
 					defer ns.Close()
 
-					goalAction, resAction, fbAction, err := actionproc.Messages(&DoSomethingAction{})
+					goalAction, resAction, fbAction, err := actionproc.Messages(DoSomethingAction{})
 					require.NoError(t, err)
 
 					statusPub, err := NewPublisher(PublisherConf{

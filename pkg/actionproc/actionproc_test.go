@@ -51,7 +51,7 @@ func TestGoalResultFeedback(t *testing.T) {
 	}{
 		{
 			"base",
-			&struct {
+			struct {
 				ActionGoal
 				ActionResult
 				ActionFeedback
@@ -74,11 +74,11 @@ func TestGoalResultFeedback(t *testing.T) {
 func TestGoalResultFeedbackErrors(t *testing.T) {
 	t.Run("invalid action 1", func(t *testing.T) {
 		_, _, _, err := GoalResultFeedback(123)
-		require.EqualError(t, err, "unsupported action type 'int'")
+		require.EqualError(t, err, "action must be a struct")
 	})
 
 	t.Run("invalid action 2", func(t *testing.T) {
-		_, _, _, err := GoalResultFeedback(&struct {
+		_, _, _, err := GoalResultFeedback(struct {
 			ActionGoal
 		}{})
 		require.EqualError(t, err, "goal, request or feedback not found")
@@ -86,7 +86,7 @@ func TestGoalResultFeedbackErrors(t *testing.T) {
 }
 
 func TestMessages(t *testing.T) {
-	goalAction, resAction, fbAction, err := Messages(&DoSomethingAction{})
+	goalAction, resAction, fbAction, err := Messages(DoSomethingAction{})
 	require.NoError(t, err)
 
 	cur, err := msgproc.MD5(goalAction)
@@ -105,6 +105,6 @@ func TestMessages(t *testing.T) {
 func TestMessagesError(t *testing.T) {
 	t.Run("invalid action", func(t *testing.T) {
 		_, _, _, err := Messages(123)
-		require.EqualError(t, err, "unsupported action type 'int'", err)
+		require.EqualError(t, err, "action must be a struct", err)
 	})
 }

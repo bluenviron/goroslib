@@ -74,12 +74,18 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Msg is empty")
 	}
 
-	msgType, err := msgproc.Type(conf.Msg)
+	if reflect.TypeOf(conf.Msg).Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Msg is not a pointer")
+	}
+
+	msgElem := reflect.ValueOf(conf.Msg).Elem().Interface()
+
+	msgType, err := msgproc.Type(msgElem)
 	if err != nil {
 		return nil, err
 	}
 
-	msgMd5, err := msgproc.MD5(conf.Msg)
+	msgMd5, err := msgproc.MD5(msgElem)
 	if err != nil {
 		return nil, err
 	}

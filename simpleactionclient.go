@@ -29,6 +29,12 @@ const (
 	SimpleActionClientGoalStateLost
 )
 
+type simpleActionClientGoalHandler struct {
+	conf  SimpleActionClientGoalConf
+	state simpleActionClientGoalSimpleState
+	gh    *ActionClientGoalHandler
+}
+
 // SimpleActionClientConf is the configuration of a SimpleActionClient.
 type SimpleActionClientConf struct {
 	// parent node.
@@ -39,12 +45,6 @@ type SimpleActionClientConf struct {
 
 	// an instance of the action type.
 	Action interface{}
-}
-
-type simpleActionClientGoalHandler struct {
-	conf  SimpleActionClientGoalConf
-	state simpleActionClientGoalSimpleState
-	gh    *ActionClientGoalHandler
 }
 
 // SimpleActionClient is a ROS simple action client, an entity that can call simple actions.

@@ -190,7 +190,7 @@ func TestPublisherWrite(t *testing.T) {
 				require.NoError(t, err)
 				defer conn.Close()
 
-				msgMd5, err := msgproc.MD5(&TestMessage{})
+				msgMd5, err := msgproc.MD5(TestMessage{})
 				require.NoError(t, err)
 
 				go func() {
@@ -332,7 +332,7 @@ func TestPublisherWriteLatch(t *testing.T) {
 				require.NoError(t, err)
 				defer conn.Close()
 
-				msgMd5, err := msgproc.MD5(&TestMessage{})
+				msgMd5, err := msgproc.MD5(TestMessage{})
 				require.NoError(t, err)
 
 				go func() {
@@ -430,7 +430,7 @@ func TestPublisherWriteUDP(t *testing.T) {
 
 				xcs := apislave.NewClient(addr, ns.absoluteName())
 
-				msgMd5, err := msgproc.MD5(&std_msgs.Int64MultiArray{})
+				msgMd5, err := msgproc.MD5(std_msgs.Int64MultiArray{})
 				require.NoError(t, err)
 
 				udprosServer, err := protoudp.NewServer(ns.nodeAddr.IP.String() + ":3334")

@@ -259,6 +259,10 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		return nil, fmt.Errorf("Action is empty")
 	}
 
+	if reflect.TypeOf(conf.Action).Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("Action is not a pointer")
+	}
+
 	if conf.StatusPeriod == 0 {
 		conf.StatusPeriod = 200 * time.Millisecond
 	}
@@ -267,13 +271,15 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		conf.DeleteFinishedGoalAfter = 5 * time.Second
 	}
 
-	goal, res, fb, err := actionproc.GoalResultFeedback(conf.Action)
+	actionElem := reflect.ValueOf(conf.Action).Elem().Interface()
+
+	goal, res, fb, err := actionproc.GoalResultFeedback(actionElem)
 	if err != nil {
 		return nil, err
 	}
 
 	// Messages can't fail if GoalResultFeedback didn't fail
-	goalAction, resAction, fbAction, _ := actionproc.Messages(conf.Action)
+	goalAction, resAction, fbAction, _ := actionproc.Messages(actionElem)
 
 	conf.Name = conf.Node.applyCliRemapping(conf.Name)
 
