@@ -13,11 +13,11 @@ type Parent struct {
 	A string
 }
 
-type Header struct { //nolint:golint
+type Header struct {
 	msg.Package `ros:"std_msgs"`
-	Seq         uint32    //nolint:golint
-	Stamp       time.Time //nolint:golint
-	FrameId     string    //nolint:golint
+	Seq         uint32
+	Stamp       time.Time
+	FrameId     string //nolint:golint
 }
 
 type Log struct {
@@ -179,74 +179,6 @@ func TestMD5Errors(t *testing.T) {
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			_, err := MD5(ca.msg)
-			require.EqualError(t, err, ca.err)
-		})
-	}
-}
-
-type MsgExplicitPackage struct {
-	msg.Package `ros:"my_package"`
-	Value       uint16
-}
-
-type MsgImplicitPackage struct {
-	Value uint16
-}
-
-func TestType(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-		msg  interface{}
-		typ  string
-	}{
-		{
-			"explicit package",
-			&MsgExplicitPackage{},
-			"my_package/MsgExplicitPackage",
-		},
-		{
-			"implicit package",
-			&MsgImplicitPackage{},
-			"goroslib/MsgImplicitPackage",
-		},
-		{
-			"anonymous",
-			&struct {
-				A int
-			}{},
-			"goroslib/Msg",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			typ, err := Type(ca.msg)
-			require.NoError(t, err)
-			require.Equal(t, ca.typ, typ)
-		})
-	}
-}
-
-func TestTypeErrors(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-		msg  interface{}
-		err  string
-	}{
-		{
-			"wrong message type",
-			123,
-			"message must be a pointer",
-		},
-		{
-			"wrong message type",
-			func() interface{} {
-				v := 123
-				return &v
-			}(),
-			"message must be a pointer to a struct",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			_, err := Type(ca.msg)
 			require.EqualError(t, err, ca.err)
 		})
 	}
