@@ -12,7 +12,7 @@ func MD5(msg interface{}) (string, error) {
 		return "", fmt.Errorf("message must be a struct")
 	}
 
-	text, _, err := text(msgt, "")
+	text, err := textMsg(msgt)
 	if err != nil {
 		return "", err
 	}

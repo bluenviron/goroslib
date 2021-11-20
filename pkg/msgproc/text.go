@@ -38,12 +38,52 @@ func Text(msg interface{}) (string, error) {
 		return "", fmt.Errorf("message must be a struct")
 	}
 
-	res, _, err := text(msgt, "")
-	return res, err
+	return textMsg(msgt)
 }
 
-func text(typ reflect.Type, rosTag string) (string, bool, error) {
-	switch typ {
+func textMsg(msgt reflect.Type) (string, error) {
+	ret := ""
+	nf := msgt.NumField()
+	for i := 0; i < nf; i++ {
+		ft := msgt.Field(i)
+
+		if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Package(0)) {
+			continue
+		}
+
+		if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Definitions(0)) {
+			for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
+				ret += def + "\n"
+			}
+			continue
+		}
+
+		name := func() string {
+			tagName := ft.Tag.Get("rosname")
+			if tagName != "" {
+				return tagName
+			}
+			return camelToSnake(ft.Name)
+		}()
+
+		text, _, err := textField(ft.Type, ft.Tag.Get("rostype"))
+		if err != nil {
+			return "", err
+		}
+
+		ret += text + " " + name + "\n"
+	}
+
+	// Remove trailing newline
+	if len(ret) > 0 {
+		ret = ret[:len(ret)-1]
+	}
+
+	return ret, nil
+}
+
+func textField(fieldt reflect.Type, rosTag string) (string, bool, error) {
+	switch fieldt {
 	case reflect.TypeOf(bool(false)):
 		return "bool", false, nil
 
@@ -93,75 +133,39 @@ func text(typ reflect.Type, rosTag string) (string, bool, error) {
 		return "duration", false, nil
 	}
 
-	switch typ.Kind() {
+	switch fieldt.Kind() {
 	case reflect.Slice:
-		text, isstruct, err := text(typ.Elem(), "")
+		text, isStruct, err := textField(fieldt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
 
-		if isstruct {
-			return text, true, nil
+		if isStruct {
+			return text, false, nil
 		}
 
 		return text + "[]", false, nil
 
 	case reflect.Array:
-		text, isstruct, err := text(typ.Elem(), "")
+		text, isStruct, err := textField(fieldt.Elem(), "")
 		if err != nil {
 			return "", false, err
 		}
 
-		if isstruct {
-			return text, true, nil
+		if isStruct {
+			return text, false, nil
 		}
 
-		return text + "[" + strconv.FormatInt(int64(typ.Len()), 10) + "]", false, nil
+		return text + "[" + strconv.FormatInt(int64(fieldt.Len()), 10) + "]", false, nil
 
 	case reflect.Struct:
-		ret := ""
-		nf := typ.NumField()
-		for i := 0; i < nf; i++ {
-			ft := typ.Field(i)
-
-			if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Package(0)) {
-				continue
-			}
-
-			if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Definitions(0)) {
-				for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
-					ret += def + "\n"
-				}
-				continue
-			}
-
-			name := func() string {
-				tagName := ft.Tag.Get("rosname")
-				if tagName != "" {
-					return tagName
-				}
-				return camelToSnake(ft.Name)
-			}()
-
-			text, isstruct, err := text(ft.Type, ft.Tag.Get("rostype"))
-			if err != nil {
-				return "", false, err
-			}
-
-			if isstruct {
-				text = md5sum(text)
-			}
-
-			ret += text + " " + name + "\n"
+		text, err := textMsg(fieldt)
+		if err != nil {
+			return "", false, err
 		}
 
-		// Remove trailing newline
-		if len(ret) > 0 {
-			ret = ret[:len(ret)-1]
-		}
-
-		return ret, true, nil
+		return md5sum(text), true, nil
 	}
 
-	return "", false, fmt.Errorf("unsupported field type '%s'", typ.String())
+	return "", false, fmt.Errorf("unsupported field type '%s'", fieldt.String())
 }
