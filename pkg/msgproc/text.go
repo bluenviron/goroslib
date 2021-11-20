@@ -43,10 +43,6 @@ func Text(msg interface{}) (string, error) {
 }
 
 func text(typ reflect.Type, rosTag string) (string, bool, error) {
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-
 	switch typ {
 	case reflect.TypeOf(bool(false)):
 		return "bool", false, nil

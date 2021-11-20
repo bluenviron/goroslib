@@ -79,7 +79,7 @@ func TestMD5(t *testing.T) {
 			"fd38051c1051a88ecf1ce1924053076c",
 		},
 		{
-			"parent without pointer",
+			"parent",
 			struct {
 				A uint8
 				B Parent
@@ -87,26 +87,10 @@ func TestMD5(t *testing.T) {
 			"e8c99bd7177c56d5ef9104809bae67a1",
 		},
 		{
-			"parent with pointer",
-			struct {
-				A uint8
-				B *Parent
-			}{},
-			"e8c99bd7177c56d5ef9104809bae67a1",
-		},
-		{
-			"array of parent without pointer",
+			"array of parent",
 			struct {
 				A uint8
 				B []Parent
-			}{},
-			"e8c99bd7177c56d5ef9104809bae67a1",
-		},
-		{
-			"array of parent with pointer",
-			struct {
-				A uint8
-				B []*Parent
 			}{},
 			"e8c99bd7177c56d5ef9104809bae67a1",
 		},
