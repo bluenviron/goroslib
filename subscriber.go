@@ -62,6 +62,7 @@ type Subscriber struct {
 	msgMsg       reflect.Type
 	msgType      string
 	msgMd5       string
+	msgDef       string
 	publishers   map[string]*subscriberPublisher
 	publishersWg sync.WaitGroup
 
@@ -113,6 +114,11 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, err
 	}
 
+	msgDef, err := msgproc.Definition(msgElem)
+	if err != nil {
+		return nil, err
+	}
+
 	conf.Topic = conf.Node.applyCliRemapping(conf.Topic)
 
 	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
@@ -124,6 +130,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		msgMsg:              cbt.In(0).Elem(),
 		msgType:             msgType,
 		msgMd5:              msgMd5,
+		msgDef:              msgDef,
 		publishers:          make(map[string]*subscriberPublisher),
 		getBusInfo:          make(chan getBusInfoSubReq),
 		subscriberPubUpdate: make(chan []string),

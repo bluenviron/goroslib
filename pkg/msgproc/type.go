@@ -14,6 +14,10 @@ func Type(msg interface{}) (string, error) {
 		return "", fmt.Errorf("message must be a struct")
 	}
 
+	return typ(msgt), nil
+}
+
+func typ(msgt reflect.Type) string {
 	name := msgt.Name()
 	if name == "" {
 		name = "Msg"
@@ -31,5 +35,5 @@ func Type(msg interface{}) (string, error) {
 		pkg = "goroslib"
 	}
 
-	return pkg + "/" + name, nil
+	return pkg + "/" + name
 }

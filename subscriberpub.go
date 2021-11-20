@@ -140,10 +140,11 @@ func (sp *subscriberPublisher) runInner() error {
 				func() []byte {
 					var buf bytes.Buffer
 					protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
-						Callerid: sp.sub.conf.Node.absoluteName(),
-						Md5sum:   sp.sub.msgMd5,
-						Topic:    sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
-						Type:     sp.sub.msgType,
+						Callerid:          sp.sub.conf.Node.absoluteName(),
+						Md5sum:            sp.sub.msgMd5,
+						Topic:             sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+						Type:              sp.sub.msgType,
+						MessageDefinition: sp.sub.msgDef,
 					})
 					return buf.Bytes()[4:]
 				}(),
@@ -246,6 +247,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 				}
 				return 1
 			}(),
+			MessageDefinition: sp.sub.msgDef,
 		})
 		if err != nil {
 			return

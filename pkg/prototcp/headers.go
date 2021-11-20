@@ -18,11 +18,12 @@ type HeaderSubscriber struct {
 
 // HeaderPublisher is a publisher header.
 type HeaderPublisher struct {
-	Topic    string
-	Type     string
-	Md5sum   string
-	Callerid string
-	Latching int
+	Topic             string
+	Type              string
+	Md5sum            string
+	Callerid          string
+	Latching          int
+	MessageDefinition string
 }
 
 // HeaderServiceClient is a service client header.

@@ -28,11 +28,12 @@ func TestConn(t *testing.T) {
 		raw, err := protocommon.HeaderRawDecode(conn)
 		require.NoError(t, err)
 		require.Equal(t, protocommon.HeaderRaw{
-			"callerid": "mycallerid",
-			"latching": "0",
-			"md5sum":   "mysum",
-			"topic":    "mytopic",
-			"type":     "mytype",
+			"callerid":           "mycallerid",
+			"latching":           "0",
+			"md5sum":             "mysum",
+			"topic":              "mytopic",
+			"type":               "mytype",
+			"message_definition": "mydef",
 		}, raw)
 
 		err = protocommon.HeaderEncode(conn, &HeaderSubscriber{
@@ -71,11 +72,12 @@ func TestConn(t *testing.T) {
 	require.NotEqual(t, nil, tconn.NetConn())
 
 	err = tconn.WriteHeader(&HeaderPublisher{
-		Topic:    "mytopic",
-		Type:     "mytype",
-		Md5sum:   "mysum",
-		Callerid: "mycallerid",
-		Latching: 0,
+		Topic:             "mytopic",
+		Type:              "mytype",
+		Md5sum:            "mysum",
+		Callerid:          "mycallerid",
+		Latching:          0,
+		MessageDefinition: "mydef",
 	})
 	require.NoError(t, err)
 
@@ -143,11 +145,12 @@ func TestConnErrors(t *testing.T) {
 
 			case "write_header":
 				err := tconn.WriteHeader(&HeaderPublisher{
-					Topic:    "mytopic",
-					Type:     "mytype",
-					Md5sum:   "mysum",
-					Callerid: "mycallerid",
-					Latching: 0,
+					Topic:             "mytopic",
+					Type:              "mytype",
+					Md5sum:            "mysum",
+					Callerid:          "mycallerid",
+					Latching:          0,
+					MessageDefinition: "mydef",
 				})
 				require.Error(t, err)
 

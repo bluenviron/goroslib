@@ -44,6 +44,7 @@ type Publisher struct {
 	ctxCancel     func()
 	msgType       string
 	msgMd5        string
+	msgDef        string
 	subscribers   map[string]*publisherSubscriber
 	subscribersWg sync.WaitGroup
 	lastMessage   interface{}
@@ -90,6 +91,11 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, err
 	}
 
+	msgDef, err := msgproc.Definition(msgElem)
+	if err != nil {
+		return nil, err
+	}
+
 	conf.Topic = conf.Node.applyCliRemapping(conf.Topic)
 
 	ctx, ctxCancel := context.WithCancel(conf.Node.ctx)
@@ -100,6 +106,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		ctxCancel:        ctxCancel,
 		msgType:          msgType,
 		msgMd5:           msgMd5,
+		msgDef:           msgDef,
 		subscribers:      make(map[string]*publisherSubscriber),
 		getBusInfo:       make(chan getBusInfoSubReq),
 		requestTopic:     make(chan subscriberRequestTopicReq),
@@ -252,10 +259,11 @@ outer:
 							func() []byte {
 								var buf bytes.Buffer
 								protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
-									Callerid: p.conf.Node.absoluteName(),
-									Md5sum:   p.msgMd5,
-									Topic:    p.conf.Node.absoluteTopicName(p.conf.Topic),
-									Type:     p.msgType,
+									Callerid:          p.conf.Node.absoluteName(),
+									Md5sum:            p.msgMd5,
+									Topic:             p.conf.Node.absoluteTopicName(p.conf.Topic),
+									Type:              p.msgType,
+									MessageDefinition: p.msgDef,
 								})
 								return buf.Bytes()[4:]
 							}(),
@@ -305,6 +313,7 @@ outer:
 						}
 						return 0
 					}(),
+					MessageDefinition: p.msgDef,
 				})
 				if err != nil {
 					req.conn.Close()
