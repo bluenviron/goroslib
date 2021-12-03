@@ -28,8 +28,7 @@ mod-tidy:
 
 define DOCKERFILE_FORMAT
 FROM $(BASE_IMAGE)
-RUN apk add --no-cache git
-RUN GO111MODULE=on go get mvdan.cc/gofumpt@v0.2.0
+RUN go install mvdan.cc/gofumpt@v0.2.0
 endef
 export DOCKERFILE_FORMAT
 
@@ -79,7 +78,7 @@ lint:
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)
 RUN apk add --no-cache make git
-RUN GO111MODULE=on go get mvdan.cc/gofumpt@v0.2.0
+RUN go install mvdan.cc/gofumpt@v0.2.0
 WORKDIR /s
 COPY go.mod go.sum ./
 RUN go mod download
