@@ -33,6 +33,10 @@ type PublisherConf struct {
 	// this publisher
 	Latch bool
 
+	// (optional) if present, use this type to build ROS message type, instead
+	// of inferring from the callback parameter.
+	MessageType *reflect.Type
+
 	onSubscriber func()
 }
 
@@ -71,29 +75,50 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		return nil, fmt.Errorf("Topic is empty")
 	}
 
-	if conf.Msg == nil {
-		return nil, fmt.Errorf("Msg is empty")
-	}
+	var msgType string
+	var msgMd5 string
+	var msgDef string
+	var err error
+	if conf.MessageType == nil {
+		if conf.Msg == nil {
+			return nil, fmt.Errorf("Msg is empty")
+		}
 
-	if reflect.TypeOf(conf.Msg).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Msg is not a pointer")
-	}
+		if reflect.TypeOf(conf.Msg).Kind() != reflect.Ptr {
+			return nil, fmt.Errorf("Msg is not a pointer")
+		}
 
-	msgElem := reflect.ValueOf(conf.Msg).Elem().Interface()
+		msgElem := reflect.ValueOf(conf.Msg).Elem().Interface()
 
-	msgType, err := msgproc.Type(msgElem)
-	if err != nil {
-		return nil, err
-	}
+		msgType, err = msgproc.Type(msgElem)
+		if err != nil {
+			return nil, err
+		}
 
-	msgMd5, err := msgproc.MD5(msgElem)
-	if err != nil {
-		return nil, err
-	}
+		msgMd5, err = msgproc.MD5(msgElem)
+		if err != nil {
+			return nil, err
+		}
 
-	msgDef, err := msgproc.Definition(msgElem)
-	if err != nil {
-		return nil, err
+		msgDef, err = msgproc.Definition(msgElem)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		msgType, err = msgproc.TypeFromReflect(*conf.MessageType)
+		if err != nil {
+			return nil, err
+		}
+
+		msgMd5, err = msgproc.MD5FromReflect(*conf.MessageType)
+		if err != nil {
+			return nil, err
+		}
+
+		msgDef, err = msgproc.DefinitionFromReflect(*conf.MessageType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	conf.Topic = conf.Node.applyCliRemapping(conf.Topic)
@@ -381,8 +406,14 @@ outer:
 
 // Write writes a message into the publisher.
 func (p *Publisher) Write(msg interface{}) {
-	if reflect.TypeOf(msg) != reflect.TypeOf(p.conf.Msg) {
-		panic("wrong message type")
+	if p.conf.MessageType == nil {
+		if reflect.TypeOf(msg) != reflect.TypeOf(p.conf.Msg) {
+			panic("wrong message type")
+		}
+	} else {
+		if reflect.TypeOf(msg) != reflect.PtrTo(*p.conf.MessageType) {
+			panic("wrong message type")
+		}
 	}
 
 	select {

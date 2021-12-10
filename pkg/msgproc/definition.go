@@ -18,6 +18,11 @@ type def struct {
 // Definition returns the definition of a message and of all its parents.
 func Definition(msg interface{}) (string, error) {
 	msgt := reflect.TypeOf(msg)
+	return DefinitionFromReflect(msgt)
+}
+
+// Definition returns the definition of a message and of all its parents from a reflected type.
+func DefinitionFromReflect(msgt reflect.Type) (string, error) {
 	if msgt.Kind() != reflect.Struct {
 		return "", fmt.Errorf("message must be a struct")
 	}

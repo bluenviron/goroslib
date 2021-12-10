@@ -8,8 +8,13 @@ import (
 )
 
 // Type returns the type of a message.
-func Type(msg interface{}) (string, error) {
+func Type(msg interface{}) (string, error) {	
 	msgt := reflect.TypeOf(msg)
+	return TypeFromReflect(msgt)
+}
+
+// TypeFromReflect returns the type of a message based on a reflected type.
+func TypeFromReflect(msgt reflect.Type) (string, error) {
 	if msgt.Kind() != reflect.Struct {
 		return "", fmt.Errorf("message must be a struct")
 	}

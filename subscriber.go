@@ -50,6 +50,9 @@ type SubscriberConf struct {
 	// It defaults to false.
 	DisableNoDelay bool
 
+	// (optional) if present, use this type to build ROS message type, instead
+	// of inferring from the callback parameter.
+	MessageType *reflect.Type
 	onPublisher func()
 }
 
@@ -98,25 +101,48 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		return nil, fmt.Errorf("Callback must not return any value")
 	}
 
-	if cbt.In(0).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Msg is not a pointer")
-	}
+	var msgType string
+	var msgMd5 string
+	var msgDef string
+	var msgMsg reflect.Type
+	var err error
+	if conf.MessageType == nil {
+		if cbt.In(0).Kind() != reflect.Ptr {
+			return nil, fmt.Errorf("Msg is not a pointer")
+		}
+		msgElem := reflect.New(cbt.In(0).Elem()).Elem().Interface()
 
-	msgElem := reflect.New(cbt.In(0).Elem()).Elem().Interface()
+		msgType, err = msgproc.Type(msgElem)
+		if err != nil {
+			return nil, err
+		}
 
-	msgType, err := msgproc.Type(msgElem)
-	if err != nil {
-		return nil, err
-	}
+		msgMd5, err = msgproc.MD5(msgElem)
+		if err != nil {
+			return nil, err
+		}
 
-	msgMd5, err := msgproc.MD5(msgElem)
-	if err != nil {
-		return nil, err
-	}
+		msgDef, err = msgproc.Definition(msgElem)
+		if err != nil {
+			return nil, err
+		}
+		msgMsg = cbt.In(0).Elem()
+	} else {
+		msgType, err = msgproc.TypeFromReflect(*conf.MessageType)
+		if err != nil {
+			return nil, err
+		}
 
-	msgDef, err := msgproc.Definition(msgElem)
-	if err != nil {
-		return nil, err
+		msgMd5, err = msgproc.MD5FromReflect(*conf.MessageType)
+		if err != nil {
+			return nil, err
+		}
+
+		msgDef, err = msgproc.DefinitionFromReflect(*conf.MessageType)
+		if err != nil {
+			return nil, err
+		}
+		msgMsg = *conf.MessageType
 	}
 
 	conf.Topic = conf.Node.applyCliRemapping(conf.Topic)
@@ -127,7 +153,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		conf:                conf,
 		ctx:                 ctx,
 		ctxCancel:           ctxCancel,
-		msgMsg:              cbt.In(0).Elem(),
+		msgMsg:              msgMsg,
 		msgType:             msgType,
 		msgMd5:              msgMd5,
 		msgDef:              msgDef,
