@@ -17,7 +17,7 @@ type Header struct {
 	msg.Package `ros:"std_msgs"`
 	Seq         uint32
 	Stamp       time.Time
-	FrameId     string //nolint:golint
+	FrameId     string //nolint:revive
 }
 
 type Log struct {

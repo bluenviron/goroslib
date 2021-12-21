@@ -16,7 +16,7 @@ type headerSubscriber struct {
 	Type              string
 	Md5sum            string
 	MessageDefinition string
-	TcpNodelay        int //nolint:golint
+	TcpNodelay        int //nolint:revive
 }
 
 type headerPublisher struct {
