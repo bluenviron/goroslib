@@ -112,30 +112,24 @@ func TestHeaderDecode(t *testing.T) {
 }
 
 func TestHeaderDecodeUnhandledField(t *testing.T) {
-	ca := struct {
-		name   string
-		header Header
-		byts   []byte
-	}{
-		"unhandled field",
-		&headerError{
-			Error: ("test"),
-		},
-		[]byte{
-			0x19, 0x00, 0x00, 0x00,
-			0x0A, 0x00, 0x00, 0x00,
-			'e', 'r', 'r', 'o', 'r', '=', 't', 'e', 's', 't',
-			0x07, 0x00, 0x00, 0x00,
-			'o', 't', 'h', 'e', 'r', '=', 'k',
-		},
-	}
-
-	raw, err := HeaderRawDecode(bytes.NewBuffer(ca.byts))
+	raw, err := HeaderRawDecode(bytes.NewBuffer([]byte{
+		0x19, 0x00, 0x00, 0x00,
+		0x0A, 0x00, 0x00, 0x00,
+		'e', 'r', 'r', 'o', 'r', '=', 't', 'e', 's', 't',
+		0x07, 0x00, 0x00, 0x00,
+		'o', 't', 'h', 'e', 'r', '=', 'k',
+	}))
 	require.NoError(t, err)
-	header := reflect.New(reflect.TypeOf(ca.header).Elem()).Interface().(Header)
+
+	header := reflect.New(reflect.TypeOf(&headerError{
+		Error: ("test"),
+	}).Elem()).Interface().(Header)
+
 	err = HeaderDecode(raw, header)
 	require.NoError(t, err)
-	require.Equal(t, ca.header, header)
+	require.Equal(t, &headerError{
+		Error: ("test"),
+	}, header)
 }
 
 func TestHeaderDecodeErrors(t *testing.T) {
