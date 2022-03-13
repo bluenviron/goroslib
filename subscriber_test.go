@@ -561,7 +561,7 @@ func TestSubscriberQueue(t *testing.T) {
 			recvCount++
 			<-sendDone
 
-			if recvCount >= 2 {
+			if recvCount == 2 {
 				close(recvDone)
 			}
 		},
