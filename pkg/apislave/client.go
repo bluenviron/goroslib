@@ -61,7 +61,8 @@ func (c *Client) Shutdown(reason string) error {
 
 // RequestTopic writes a requestTopic request.
 func (c *Client) RequestTopic(topic string, protocols [][]interface{}) (
-	[]interface{}, error) {
+	[]interface{}, error,
+) {
 	req := RequestRequestTopic{
 		CallerID:  c.callerID,
 		Topic:     topic,

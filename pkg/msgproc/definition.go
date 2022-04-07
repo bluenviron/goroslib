@@ -89,7 +89,8 @@ func definitionMsg(defsByName map[string]struct{}, defs *[]def, msgt reflect.Typ
 }
 
 func definitionField(defsByName map[string]struct{}, defs *[]def, fieldt reflect.Type,
-	rosTag string) (string, error) {
+	rosTag string,
+) (string, error) {
 	switch fieldt {
 	case reflect.TypeOf(bool(false)):
 		return "bool", nil
