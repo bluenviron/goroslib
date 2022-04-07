@@ -190,7 +190,8 @@ func (sac *SimpleActionClient) CancelAllGoals() {
 
 func (sac *SimpleActionClient) onTransition(
 	sgh *simpleActionClientGoalHandler,
-	in []reflect.Value) []reflect.Value {
+	in []reflect.Value,
+) []reflect.Value {
 	sac.mutex.Lock()
 	defer sac.mutex.Unlock()
 
@@ -239,7 +240,8 @@ func (sac *SimpleActionClient) onTransition(
 
 func (sac *SimpleActionClient) onFeedback(
 	sgh *simpleActionClientGoalHandler,
-	in []reflect.Value) []reflect.Value {
+	in []reflect.Value,
+) []reflect.Value {
 	sac.mutex.Lock()
 	defer sac.mutex.Unlock()
 

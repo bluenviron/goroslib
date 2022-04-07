@@ -1,6 +1,6 @@
 
-BASE_IMAGE = golang:1.17-alpine3.14
-LINT_IMAGE = golangci/golangci-lint:v1.44.2
+BASE_IMAGE = golang:1.18-alpine3.15
+LINT_IMAGE = golangci/golangci-lint:v1.45.2
 
 .PHONY: $(shell ls)
 
@@ -28,7 +28,7 @@ mod-tidy:
 
 define DOCKERFILE_FORMAT
 FROM $(BASE_IMAGE)
-RUN go install mvdan.cc/gofumpt@v0.2.0
+RUN go install mvdan.cc/gofumpt@v0.3.1
 endef
 export DOCKERFILE_FORMAT
 
@@ -78,7 +78,7 @@ lint:
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)
 RUN apk add --no-cache make git
-RUN go install mvdan.cc/gofumpt@v0.2.0
+RUN go install mvdan.cc/gofumpt@v0.3.1
 WORKDIR /s
 COPY go.mod go.sum ./
 RUN go mod download

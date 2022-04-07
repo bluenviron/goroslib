@@ -41,7 +41,8 @@ type testPublisher struct {
 }
 
 func newTestPublisher(t *testing.T, masterIP string,
-	cb func(prototcp.HeaderSubscriber, *prototcp.Conn)) *testPublisher {
+	cb func(prototcp.HeaderSubscriber, *prototcp.Conn),
+) *testPublisher {
 	masterAddr, err := net.ResolveTCPAddr("tcp", masterIP+":11311")
 	require.NoError(t, err)
 

@@ -132,7 +132,8 @@ func (c *Client) LookupService(name string) (string, error) {
 }
 
 func (c *Client) register(method string, topic string, topicType string,
-	callerURL string) ([]string, error) {
+	callerURL string,
+) ([]string, error) {
 	req := RequestRegister{
 		CallerID:  c.callerID,
 		Topic:     topic,
@@ -158,7 +159,8 @@ func (c *Client) register(method string, topic string, topicType string,
 func (c *Client) RegisterSubscriber(
 	topic string,
 	topicType string,
-	callerURL string) ([]string, error) {
+	callerURL string,
+) ([]string, error) {
 	return c.register("registerSubscriber", topic, topicType, callerURL)
 }
 
@@ -166,7 +168,8 @@ func (c *Client) RegisterSubscriber(
 func (c *Client) RegisterPublisher(
 	topic string,
 	topicType string,
-	callerURL string) ([]string, error) {
+	callerURL string,
+) ([]string, error) {
 	return c.register("registerPublisher", topic, topicType, callerURL)
 }
 
@@ -209,7 +212,8 @@ func (c *Client) UnregisterPublisher(topic string, callerURL string) error {
 func (c *Client) RegisterService(
 	service string,
 	serviceURL string,
-	callerURL string) error {
+	callerURL string,
+) error {
 	req := RequestRegisterService{
 		CallerID:   c.callerID,
 		Service:    service,
@@ -233,7 +237,8 @@ func (c *Client) RegisterService(
 // UnregisterService writes a unregisterService request.
 func (c *Client) UnregisterService(
 	service string,
-	serviceURL string) error {
+	serviceURL string,
+) error {
 	req := RequestUnregisterService{
 		CallerID:   c.callerID,
 		Service:    service,

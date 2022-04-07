@@ -40,6 +40,10 @@ type {{ .Name }} struct {
 }
 `))
 
+func firstCharToUpper(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
 // Definition is a message definition.
 type Definition struct {
 	RosType   string
@@ -147,7 +151,7 @@ func parseField(rosPkgName string, res *MessageDefinition, typ string, name stri
 			return "", f.Type
 
 		case "time", "duration":
-			return "time", strings.Title(f.Type)
+			return "time", firstCharToUpper(f.Type)
 
 		case "byte":
 			return "", "int8 `rostype:\"byte\"`"
@@ -190,7 +194,7 @@ func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name
 func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content string) (*MessageDefinition, error) {
 	res := &MessageDefinition{
 		RosPkgName: rosPkgName,
-		Name:       strings.Title(name),
+		Name:       firstCharToUpper(name),
 	}
 
 	for _, line := range strings.Split(content, "\n") {

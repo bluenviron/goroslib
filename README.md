@@ -41,7 +41,7 @@ Features:
 
 ## Installation
 
-1. Install Go &ge; 1.15.
+1. Install Go &ge; 1.16.
 
 2. Create an empty folder, open a terminal in it and initialize the Go modules system:
 

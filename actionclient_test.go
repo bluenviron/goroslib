@@ -33,7 +33,8 @@ type DoSomethingAction struct {
 }
 
 func writeFeedback(feedbackPub *Publisher, fbAction interface{}, goalID actionlib_msgs.GoalID,
-	status uint8, fb interface{}) {
+	status uint8, fb interface{},
+) {
 	fba := reflect.New(reflect.TypeOf(fbAction))
 	fba.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
 		Stamp: time.Now(),
@@ -50,7 +51,8 @@ func writeFeedback(feedbackPub *Publisher, fbAction interface{}, goalID actionli
 }
 
 func writeResult(resultPub *Publisher, resAction interface{}, goalID actionlib_msgs.GoalID,
-	status uint8, res interface{}) {
+	status uint8, res interface{},
+) {
 	rea := reflect.New(reflect.TypeOf(resAction))
 	rea.Elem().FieldByName("Header").Set(reflect.ValueOf(std_msgs.Header{
 		Stamp: time.Now(),
