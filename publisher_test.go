@@ -214,7 +214,7 @@ func TestPublisherWrite(t *testing.T) {
 					require.Equal(t, msgMd5, outHeader.Md5sum)
 
 					var msg TestMessage
-					err = conn.ReadMessage(&msg)
+					err = conn.ReadMessage(&msg, true)
 					require.NoError(t, err)
 					recv <- &msg
 				}()
@@ -356,7 +356,7 @@ func TestPublisherWriteLatch(t *testing.T) {
 					require.Equal(t, msgMd5, outHeader.Md5sum)
 
 					var msg TestMessage
-					err = conn.ReadMessage(&msg)
+					err = conn.ReadMessage(&msg, true)
 					require.NoError(t, err)
 					recv <- &msg
 				}()

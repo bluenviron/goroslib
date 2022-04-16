@@ -50,7 +50,7 @@ func (spc *serviceProviderClient) run() {
 		readErr <- func() error {
 			for {
 				req := reflect.New(reflect.TypeOf(spc.sp.srvReq)).Interface()
-				err := spc.conn.ReadMessage(req)
+				err := spc.conn.ReadMessage(req, false)
 				if err != nil {
 					return err
 				}

@@ -103,7 +103,7 @@ func TestConn(t *testing.T) {
 	require.Equal(t, true, state)
 
 	var msg struct{}
-	err = tconn.ReadMessage(&msg)
+	err = tconn.ReadMessage(&msg, true)
 	require.NoError(t, err)
 	require.Equal(t, struct{}{}, msg)
 }

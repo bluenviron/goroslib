@@ -304,7 +304,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 
 		for {
 			msg := reflect.New(sp.sub.msgMsg).Interface()
-			err = conn.ReadMessage(msg)
+			err = conn.ReadMessage(msg, false)
 			if err != nil {
 				return
 			}
