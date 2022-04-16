@@ -143,7 +143,7 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 		return err
 	}
 
-	state, err := sc.conn.ReadServiceResState()
+	state, err := sc.conn.ReadServiceResponse(res)
 	if err != nil {
 		sc.conn.Close()
 		sc.conn = nil
@@ -162,13 +162,6 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 		sc.conn.Close()
 		sc.conn = nil
 		return fmt.Errorf("service returned a failure state")
-	}
-
-	err = sc.conn.ReadMessage(res, true)
-	if err != nil {
-		sc.conn.Close()
-		sc.conn = nil
-		return err
 	}
 
 	close(funcDone)

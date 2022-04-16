@@ -92,19 +92,13 @@ func TestConn(t *testing.T) {
 		"type":               "mytype",
 	}, raw)
 
-	err = tconn.WriteServiceResState(true)
+	err = tconn.WriteServiceResponse(true, &struct{}{})
 	require.NoError(t, err)
-
-	err = tconn.WriteMessage(&struct{}{})
-	require.NoError(t, err)
-
-	state, err := tconn.ReadServiceResState()
-	require.NoError(t, err)
-	require.Equal(t, true, state)
 
 	var msg struct{}
-	err = tconn.ReadMessage(&msg, true)
+	state, err := tconn.ReadServiceResponse(&msg)
 	require.NoError(t, err)
+	require.Equal(t, true, state)
 	require.Equal(t, struct{}{}, msg)
 }
 
@@ -112,7 +106,7 @@ func TestConnErrors(t *testing.T) {
 	for _, ca := range []string{
 		"invalid_header",
 		"write_header",
-		"read_service_res_state",
+		"read_service_response",
 		"invalid_message",
 		"write_message",
 	} {
@@ -154,8 +148,9 @@ func TestConnErrors(t *testing.T) {
 				})
 				require.Error(t, err)
 
-			case "read_service_res_state":
-				_, err = tconn.ReadServiceResState()
+			case "read_service_response":
+				var msg struct{}
+				_, err = tconn.ReadServiceResponse(&msg)
 				require.Error(t, err)
 
 			case "invalid_message":

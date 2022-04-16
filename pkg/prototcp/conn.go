@@ -56,29 +56,54 @@ func (c *Conn) WriteHeader(header protocommon.Header) error {
 	return c.writeBuf.Flush()
 }
 
-// ReadServiceResState reads the response of a service state request.
-func (c *Conn) ReadServiceResState() (bool, error) {
+// ReadServiceResponse reads the response of a service request.
+func (c *Conn) ReadServiceResponse(msg interface{}) (bool, error) {
 	c.nconn.SetReadDeadline(time.Now().Add(readTimeout))
+
+	// read state
 	byt := make([]byte, 1)
 	_, err := io.ReadFull(c.readBuf, byt)
 	if err != nil {
 		return false, err
 	}
+	state := (byt[0] == 1)
 
-	return (byt[0] == 1), nil
-}
-
-// WriteServiceResState writes the response of a service state request.
-func (c *Conn) WriteServiceResState(v bool) error {
-	b := byte(0)
-	if v {
-		b = 1
+	// stop if state is false
+	if !state {
+		return state, nil
 	}
 
+	// read message
+	err = protocommon.MessageDecode(c.readBuf, msg)
+	return state, err
+}
+
+// WriteServiceResponse writes the response of a service request.
+func (c *Conn) WriteServiceResponse(state bool, res interface{}) error {
+	c.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+
+	// write state
+	b := byte(0)
+	if state {
+		b = 1
+	}
 	_, err := c.writeBuf.Write([]byte{b})
-	// do call Flush() nor SetWriteDeadline()
-	// since WriteServiceResState() is always called before a WriteMessage()
-	return err
+	if err != nil {
+		return err
+	}
+
+	// stop if state is false
+	if !state {
+		return nil
+	}
+
+	// write message
+	err = protocommon.MessageEncode(c.writeBuf, res)
+	if err != nil {
+		return err
+	}
+
+	return c.writeBuf.Flush()
 }
 
 // ReadMessage reads a message.

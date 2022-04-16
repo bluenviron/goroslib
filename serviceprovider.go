@@ -218,18 +218,7 @@ outer:
 			state := res[1].Interface().(bool)
 			msg := res[0].Interface()
 
-			err := func() error {
-				err := req.spc.conn.WriteServiceResState(state)
-				if err != nil {
-					return err
-				}
-
-				if state {
-					return req.spc.conn.WriteMessage(msg)
-				}
-
-				return nil
-			}()
+			err := req.spc.conn.WriteServiceResponse(state, msg)
 			if err != nil {
 				sp.conf.Node.Log(LogLevelError,
 					"service provider '%s' is unable to write to client '%s': %s",
