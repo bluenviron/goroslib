@@ -6,6 +6,11 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
+)
+
+const (
+	serverWriteTimeout = 10 * time.Second
 )
 
 // ErrorRes is a special response that sends status code 400.
@@ -80,7 +85,10 @@ func (s *Server) run() {
 		return
 	}
 
-	hs := &http.Server{Handler: s}
+	hs := &http.Server{
+		Handler:      s,
+		WriteTimeout: serverWriteTimeout,
+	}
 
 	s.wg.Add(1)
 	go func() {

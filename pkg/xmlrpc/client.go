@@ -6,16 +6,25 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
+)
+
+const (
+	clientTimeout = 10 * time.Second
 )
 
 // Client is a XML-RPC client.
 type Client struct {
-	url string
+	httpc *http.Client
+	url   string
 }
 
 // NewClient allocates a Client.
 func NewClient(host string) *Client {
 	return &Client{
+		httpc: &http.Client{
+			Timeout: clientTimeout,
+		},
 		url: (&url.URL{
 			Scheme: "http",
 			Host:   host,
@@ -32,7 +41,7 @@ func (c *Client) Do(method string, paramsReq interface{}, paramsRes interface{})
 		return err
 	}
 
-	res, err := http.Post(c.url, "text/xml", &buf)
+	res, err := c.httpc.Post(c.url, "text/xml", &buf)
 	if err != nil {
 		return err
 	}
