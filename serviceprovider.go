@@ -29,6 +29,8 @@ type ServiceProviderConf struct {
 	// function in the form func(*NameOfRequest) (*NameOfReply{}, bool)
 	// that will be called when a request arrives.
 	Callback interface{}
+
+	onClient func()
 }
 
 // ServiceProvider is a ROS service provider, an entity that can receive requests

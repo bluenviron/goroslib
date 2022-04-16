@@ -32,6 +32,10 @@ func newServiceProviderClient(
 		ctxCancel: ctxCancel,
 	}
 
+	if sp.conf.onClient != nil {
+		sp.conf.onClient()
+	}
+
 	sp.clientsWg.Add(1)
 	go spc.run()
 

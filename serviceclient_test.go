@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -183,6 +184,69 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 			require.Equal(t, expected, res)
 		})
 	}
+}
+
+func TestServiceClientContext(t *testing.T) {
+	m := newContainerMaster(t)
+	defer m.close()
+
+	nsp, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib_sp",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer nsp.Close()
+
+	spTerminate := make(chan struct{})
+	clientCreated := make(chan struct{})
+	sp, err := NewServiceProvider(ServiceProviderConf{
+		Node: nsp,
+		Name: "test_srv",
+		Srv:  &TestService{},
+		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+			<-spTerminate
+			return &TestServiceRes{C: 123}, true
+		},
+		onClient: func() {
+			close(clientCreated)
+		},
+	})
+	require.NoError(t, err)
+	defer sp.Close()
+	defer close(spTerminate)
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	sc, err := NewServiceClient(ServiceClientConf{
+		Node: n,
+		Name: "test_srv",
+		Srv:  &TestService{},
+	})
+	require.NoError(t, err)
+	defer sc.Close()
+
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
+	done := make(chan struct{})
+	go func() {
+		err := sc.CallContext(ctx, &TestServiceReq{
+			A: 123,
+			B: "456",
+		}, &TestServiceRes{})
+		require.Error(t, err)
+		close(done)
+	}()
+
+	<-clientCreated
+	ctxCancel()
+	<-done
 }
 
 func TestServiceClientErrors(t *testing.T) {

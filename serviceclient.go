@@ -1,6 +1,7 @@
 package goroslib
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"reflect"
@@ -94,6 +95,12 @@ func (sc *ServiceClient) Close() error {
 
 // Call sends a request to a service provider and reads a response.
 func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
+	return sc.CallContext(context.Background(), req, res)
+}
+
+// CallContext sends a request to a service provider and reads a response.
+// It allows to set a context that can be used to terminate the function.
+func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res interface{}) error {
 	if reflect.TypeOf(req) != reflect.PtrTo(reflect.TypeOf(sc.srvReq)) {
 		panic("wrong req")
 	}
@@ -103,12 +110,23 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 
 	connCreatedInThisCall := false
 	if sc.conn == nil {
-		err := sc.createConn()
+		err := sc.createConn(ctx)
 		if err != nil {
 			return err
 		}
 		connCreatedInThisCall = true
 	}
+
+	funcDone := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			sc.conn.Close()
+
+		case <-funcDone:
+			return
+		}
+	}()
 
 	err := sc.conn.WriteMessage(req)
 	if err != nil {
@@ -119,7 +137,7 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 		// linked to an invalid provider.
 		// do another try.
 		if !connCreatedInThisCall {
-			return sc.Call(req, res)
+			return sc.CallContext(ctx, req, res)
 		}
 
 		return err
@@ -134,7 +152,7 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 		// linked to an invalid provider.
 		// do another try.
 		if !connCreatedInThisCall {
-			return sc.Call(req, res)
+			return sc.CallContext(ctx, req, res)
 		}
 
 		return err
@@ -153,10 +171,11 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 		return err
 	}
 
+	close(funcDone)
 	return nil
 }
 
-func (sc *ServiceClient) createConn() error {
+func (sc *ServiceClient) createConn(ctx context.Context) error {
 	ur, err := sc.conf.Node.apiMasterClient.LookupService(
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	if err != nil {
@@ -168,7 +187,7 @@ func (sc *ServiceClient) createConn() error {
 		return err
 	}
 
-	conn, err := prototcp.NewClient(address)
+	conn, err := prototcp.NewClientContext(ctx, address)
 	if err != nil {
 		return err
 	}
