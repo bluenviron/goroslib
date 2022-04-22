@@ -117,16 +117,18 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 		connCreatedInThisCall = true
 	}
 
+	connCopy := sc.conn
 	funcDone := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
-			sc.conn.Close()
+			connCopy.Close()
 
 		case <-funcDone:
 			return
 		}
 	}()
+	defer close(funcDone)
 
 	err := sc.conn.WriteMessage(req)
 	if err != nil {
@@ -164,7 +166,6 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 		return fmt.Errorf("service returned a failure state")
 	}
 
-	close(funcDone)
 	return nil
 }
 
