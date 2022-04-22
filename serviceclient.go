@@ -121,8 +121,9 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 	go func() {
 		select {
 		case <-ctx.Done():
-			sc.conn.Close()
-
+			if sc.conn != nil {
+				sc.conn.Close()
+			}
 		case <-funcDone:
 			return
 		}
