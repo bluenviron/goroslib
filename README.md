@@ -274,24 +274,6 @@ make test
 
 ## Links
 
-ROS v1 Documentation
-
-* Conventions
-  * https://wiki.ros.org/ROS/Technical%20Overview
-  * https://wiki.ros.org/Implementing%20Client%20Libraries
-  * http://wiki.ros.org/Names
-  * http://wiki.ros.org/actionlib
-  * http://wiki.ros.org/actionlib/DetailedDescription
-* APIs
-  * https://wiki.ros.org/ROS/Master_API
-  * https://wiki.ros.org/ROS/Parameter%20Server%20API
-  * https://wiki.ros.org/ROS/Slave_API
-* Protocols
-  * https://wiki.ros.org/ROS/Connection%20Header
-  * https://wiki.ros.org/ROS/TCPROS
-  * https://wiki.ros.org/ROS/UDPROS
-  * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
-
 Other Go libraries
 
 * (v1) https://github.com/akio/rosgo
@@ -306,6 +288,23 @@ Other non-Go libraries
 * (v2, misc) https://fkromer.github.io/awesome-ros2/
 * (v2, TypeScript) https://github.com/foxglove/ros2
 
-Conventions
+Standards
 
-* https://github.com/golang-standards/project-layout
+* ROS v1
+  * General
+    * https://wiki.ros.org/ROS/Technical%20Overview
+    * https://wiki.ros.org/Implementing%20Client%20Libraries
+    * http://wiki.ros.org/Names
+    * http://wiki.ros.org/actionlib
+    * http://wiki.ros.org/actionlib/DetailedDescription
+  * APIs
+    * https://wiki.ros.org/ROS/Master_API
+    * https://wiki.ros.org/ROS/Parameter%20Server%20API
+    * https://wiki.ros.org/ROS/Slave_API
+  * Protocols
+    * https://wiki.ros.org/ROS/Connection%20Header
+    * https://wiki.ros.org/ROS/TCPROS
+    * https://wiki.ros.org/ROS/UDPROS
+    * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
+
+* Golang project layout https://github.com/golang-standards/project-layout
