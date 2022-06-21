@@ -235,21 +235,21 @@ type ActionName struct {
 
 ### Import existing messages, services and actions
 
-A command-line utility is provided to convert existing `.msg` files into their equivalent Go structures:
+You can convert existing `.msg` files into their equivalent Go structures by using the `msg-import` tool:
 
 ```
 go get github.com/aler9/goroslib/cmd/msg-import
 msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ```
 
-Another one is provided to convert existing `.srv` files into their equivalent Go structures:
+You can convert existing `.srv` files into their equivalent Go structures by using the `srv-import` tool:
 
 ```
 go get github.com/aler9/goroslib/cmd/srv-import
 srv-import --rospackage=my_package myservice.srv > myservice.go
 ```
 
-Another one is provided to convert existing `.action` files into their equivalent Go structures:
+You can convert existing `.action` files into their equivalent Go structures by using the `action-import` tool:
 
 ```
 go get github.com/aler9/goroslib/cmd/action-import
