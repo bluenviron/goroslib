@@ -36,11 +36,6 @@ func newPublisherSubscriber(
 		ctxCancel: ctxCancel,
 	}
 
-	ps.pub.conf.Node.Log(LogLevelDebug,
-		"publisher '%s' got a new subscriber %s",
-		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
-		ps.subscriberLabel())
-
 	pub.subscribersWg.Add(1)
 	go ps.run()
 
@@ -57,6 +52,11 @@ func (ps *publisherSubscriber) subscriberLabel() string {
 func (ps *publisherSubscriber) run() {
 	defer ps.pub.subscribersWg.Done()
 
+	ps.pub.conf.Node.Log(LogLevelDebug,
+		"publisher '%s' got a new subscriber %s",
+		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+		ps.subscriberLabel())
+
 	if ps.pub.conf.onSubscriber != nil {
 		ps.pub.conf.onSubscriber()
 	}
@@ -68,13 +68,13 @@ func (ps *publisherSubscriber) run() {
 		err = ps.runUDP()
 	}
 
+	ps.ctxCancel()
+
 	ps.pub.conf.Node.Log(LogLevelDebug,
 		"publisher '%s' doesn't have subscriber %s anymore: %s",
 		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
 		ps.subscriberLabel(),
 		err)
-
-	ps.ctxCancel()
 
 	select {
 	case ps.pub.subscriberClose <- ps:
