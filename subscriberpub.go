@@ -78,6 +78,10 @@ func newSubscriberPublisher(
 		ctxCancel: ctxCancel,
 	}
 
+	sp.sub.conf.Node.Log(LogLevelDebug, "subscriber '%s' got a new publisher '%s'",
+		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+		sp.address)
+
 	sub.publishersWg.Add(1)
 	go sp.run()
 
@@ -85,6 +89,10 @@ func newSubscriberPublisher(
 }
 
 func (sp *subscriberPublisher) close() {
+	sp.sub.conf.Node.Log(LogLevelDebug, "subscriber '%s' doesn't have publisher '%s' anymore",
+		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+		sp.address)
+
 	sp.ctxCancel()
 }
 

@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
@@ -35,10 +36,22 @@ func newPublisherSubscriber(
 		ctxCancel: ctxCancel,
 	}
 
+	ps.pub.conf.Node.Log(LogLevelDebug,
+		"publisher '%s' got a new subscriber %s",
+		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+		ps.subscriberLabel())
+
 	pub.subscribersWg.Add(1)
 	go ps.run()
 
 	return ps
+}
+
+func (ps *publisherSubscriber) subscriberLabel() string {
+	if ps.tcpConn != nil {
+		return "'" + ps.tcpConn.NetConn().RemoteAddr().String() + "' (TCP)"
+	}
+	return "'" + ps.udpAddr.String() + "' (UDP)"
 }
 
 func (ps *publisherSubscriber) run() {
@@ -48,11 +61,18 @@ func (ps *publisherSubscriber) run() {
 		ps.pub.conf.onSubscriber()
 	}
 
+	var err error
 	if ps.tcpConn != nil {
-		ps.runTCP()
+		err = ps.runTCP()
 	} else {
-		ps.runUDP()
+		err = ps.runUDP()
 	}
+
+	ps.pub.conf.Node.Log(LogLevelDebug,
+		"publisher '%s' doesn't have subscriber %s anymore: %s",
+		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
+		ps.subscriberLabel(),
+		err)
 
 	ps.ctxCancel()
 
@@ -62,32 +82,35 @@ func (ps *publisherSubscriber) run() {
 	}
 }
 
-func (ps *publisherSubscriber) runTCP() {
-	readerDone := make(chan struct{})
+func (ps *publisherSubscriber) runTCP() error {
+	readerErr := make(chan error)
 	go func() {
-		defer close(readerDone)
-
-		buf := make([]byte, 64)
-		for {
-			_, err := ps.tcpConn.NetConn().Read(buf)
-			if err != nil {
-				return
+		readerErr <- func() error {
+			buf := make([]byte, 64)
+			for {
+				_, err := ps.tcpConn.NetConn().Read(buf)
+				if err != nil {
+					return err
+				}
 			}
-		}
+		}()
 	}()
 
 	select {
-	case <-readerDone:
+	case err := <-readerErr:
 		ps.tcpConn.Close()
+		return err
 
 	case <-ps.ctx.Done():
 		ps.tcpConn.Close()
-		<-readerDone
+		<-readerErr
+		return fmt.Errorf("terminated")
 	}
 }
 
-func (ps *publisherSubscriber) runUDP() {
+func (ps *publisherSubscriber) runUDP() error {
 	<-ps.ctx.Done()
+	return fmt.Errorf("terminated")
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {
@@ -95,9 +118,9 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 		err := ps.tcpConn.WriteMessage(msg)
 		if err != nil {
 			ps.pub.conf.Node.Log(LogLevelError,
-				"publisher '%s' is unable to write a TCP message to client '%s': %s",
+				"publisher '%s' is unable to write to subscriber %s: %s",
 				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
-				ps.tcpConn.NetConn().RemoteAddr(),
+				ps.subscriberLabel(),
 				err)
 		}
 	} else {
@@ -110,9 +133,9 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 			ps.udpAddr)
 		if err != nil {
 			ps.pub.conf.Node.Log(LogLevelError,
-				"publisher '%s' is unable to write a UDP message to client '%s': %s",
+				"publisher '%s' is unable to write to subscriber %s: %s",
 				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
-				ps.udpAddr,
+				ps.subscriberLabel(),
 				err)
 		}
 	}
