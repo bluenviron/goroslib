@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
 )
@@ -83,6 +84,8 @@ func (ps *publisherSubscriber) run() {
 }
 
 func (ps *publisherSubscriber) runTCP() error {
+	ps.tcpConn.NetConn().SetReadDeadline(time.Time{})
+
 	readerErr := make(chan error)
 	go func() {
 		readerErr <- func() error {
