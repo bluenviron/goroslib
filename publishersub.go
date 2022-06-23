@@ -70,16 +70,16 @@ func (ps *publisherSubscriber) run() {
 
 	ps.ctxCancel()
 
+	select {
+	case ps.pub.subscriberClose <- ps:
+	case <-ps.pub.ctx.Done():
+	}
+
 	ps.pub.conf.Node.Log(LogLevelDebug,
 		"publisher '%s' doesn't have subscriber %s anymore: %s",
 		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
 		ps.subscriberLabel(),
 		err)
-
-	select {
-	case ps.pub.subscriberClose <- ps:
-	case <-ps.pub.ctx.Done():
-	}
 }
 
 func (ps *publisherSubscriber) runTCP() error {
