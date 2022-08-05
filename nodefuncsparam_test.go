@@ -37,6 +37,9 @@ func TestNodeSetGetParam(t *testing.T) {
 
 				err = n.ParamSetString("test_string", "ABC")
 				require.NoError(t, err)
+
+				err = n.ParamSetFloat64("test_double", 32.5)
+				require.NoError(t, err)
 			}
 
 			n, err := NewNode(NodeConf{
@@ -51,13 +54,17 @@ func TestNodeSetGetParam(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, true, resb)
 
-			resi, err := n.ParamGetInt("test_int")
+			res1, err := n.ParamGetInt("test_int")
 			require.NoError(t, err)
-			require.Equal(t, 123, resi)
+			require.Equal(t, 123, res1)
 
-			ress, err := n.ParamGetString("test_string")
+			res2, err := n.ParamGetString("test_string")
 			require.NoError(t, err)
-			require.Equal(t, "ABC", ress)
+			require.Equal(t, "ABC", res2)
+
+			res3, err := n.ParamGetFloat64("test_double")
+			require.NoError(t, err)
+			require.Equal(t, 32.5, res3)
 		})
 	}
 }

@@ -20,17 +20,27 @@ func (n *Node) ParamGetString(key string) (string, error) {
 	return n.apiParamClient.GetParamString(key)
 }
 
-// ParamSetBool sets a bool parameter in the master.
+// ParamGetFloat64 returns a float64 parameter from the master.
+func (n *Node) ParamGetFloat64(key string) (float64, error) {
+	return n.apiParamClient.GetParamFloat64(key)
+}
+
+// ParamSetBool sets a bool parameter into the master.
 func (n *Node) ParamSetBool(key string, val bool) error {
 	return n.apiParamClient.SetParamBool(key, val)
 }
 
-// ParamSetInt sets an int parameter in the master.
+// ParamSetInt sets an int parameter into the master.
 func (n *Node) ParamSetInt(key string, val int) error {
 	return n.apiParamClient.SetParamInt(key, val)
 }
 
-// ParamSetString sets a string parameter in the master.
+// ParamSetString sets a string parameter into the master.
 func (n *Node) ParamSetString(key string, val string) error {
 	return n.apiParamClient.SetParamString(key, val)
+}
+
+// ParamSetFloat64 sets a float64 parameter into the master.
+func (n *Node) ParamSetFloat64(key string, val float64) error {
+	return n.apiParamClient.SetParamFloat64(key, val)
 }

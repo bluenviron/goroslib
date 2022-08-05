@@ -119,6 +119,26 @@ func (c *Client) GetParamString(key string) (string, error) {
 	return res.Res, nil
 }
 
+// GetParamFloat64 writes a getParam request and expects a float64 response.
+func (c *Client) GetParamFloat64(key string) (float64, error) {
+	req := RequestGetParam{
+		CallerID: c.callerID,
+		Key:      key,
+	}
+	var res ResponseGetParamFloat64
+
+	err := c.xc.Do("getParam", req, &res)
+	if err != nil {
+		return 0, err
+	}
+
+	if res.Code != 1 {
+		return 0, fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
+	}
+
+	return res.Res, nil
+}
+
 // HasParam writes a hasParam request.
 func (c *Client) HasParam(key string) (bool, error) {
 	req := RequestHasParam{
@@ -208,6 +228,27 @@ func (c *Client) SetParamInt(key string, val int) error {
 // SetParamString writes a setParam request.
 func (c *Client) SetParamString(key string, val string) error {
 	req := RequestParamSetString{
+		CallerID: c.callerID,
+		Key:      key,
+		Val:      val,
+	}
+	var res ResponseSetParam
+
+	err := c.xc.Do("setParam", req, &res)
+	if err != nil {
+		return err
+	}
+
+	if res.Code != 1 {
+		return fmt.Errorf("server returned an error (code %d): %s", res.Code, res.StatusMessage)
+	}
+
+	return nil
+}
+
+// SetParamFloat64 writes a setParam request.
+func (c *Client) SetParamFloat64(key string, val float64) error {
+	req := RequestParamSetFloat64{
 		CallerID: c.callerID,
 		Key:      key,
 		Val:      val,
