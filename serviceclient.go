@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/aler9/goroslib/pkg/protocommon"
@@ -35,6 +36,7 @@ type ServiceClient struct {
 	srvReq interface{}
 	srvRes interface{}
 	srvMD5 string
+	mutex  sync.Mutex
 	conn   *prototcp.Conn
 }
 
@@ -88,8 +90,10 @@ func (sc *ServiceClient) Close() error {
 	if sc.conn != nil {
 		sc.conn.Close()
 	}
+
 	sc.conf.Node.Log(LogLevelDebug, "service client '%s' destroyed",
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
+
 	return nil
 }
 
@@ -108,7 +112,16 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 		panic("wrong res")
 	}
 
+	sc.mutex.Lock()
+	err := sc.callContextInner(ctx, req, res)
+	sc.mutex.Unlock()
+
+	return err
+}
+
+func (sc *ServiceClient) callContextInner(ctx context.Context, req interface{}, res interface{}) error {
 	connCreatedInThisCall := false
+
 	if sc.conn == nil {
 		err := sc.createConn(ctx)
 		if err != nil {
@@ -117,12 +130,37 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 		connCreatedInThisCall = true
 	}
 
-	connCopy := sc.conn
+	state, err := sc.writeMessageReadResponse(ctx, req, res)
+	if err != nil {
+		sc.conn.Close()
+		sc.conn = nil
+
+		// if the connection was created previously, it could be damaged or
+		// linked to an invalid provider.
+		// do another try.
+		if !connCreatedInThisCall {
+			return sc.callContextInner(ctx, req, res)
+		}
+
+		return err
+	}
+
+	if !state {
+		sc.conn.Close()
+		sc.conn = nil
+
+		return fmt.Errorf("service returned a failure state")
+	}
+
+	return nil
+}
+
+func (sc *ServiceClient) writeMessageReadResponse(ctx context.Context, req interface{}, res interface{}) (bool, error) {
 	funcDone := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
-			connCopy.Close()
+			sc.conn.Close()
 
 		case <-funcDone:
 			return
@@ -132,41 +170,10 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 
 	err := sc.conn.WriteMessage(req)
 	if err != nil {
-		sc.conn.Close()
-		sc.conn = nil
-
-		// if the connection was created previously, it could be damaged or
-		// linked to an invalid provider.
-		// do another try.
-		if !connCreatedInThisCall {
-			return sc.CallContext(ctx, req, res)
-		}
-
-		return err
+		return false, err
 	}
 
-	state, err := sc.conn.ReadServiceResponse(res)
-	if err != nil {
-		sc.conn.Close()
-		sc.conn = nil
-
-		// if the connection was created previously, it could be damaged or
-		// linked to an invalid provider.
-		// do another try.
-		if !connCreatedInThisCall {
-			return sc.CallContext(ctx, req, res)
-		}
-
-		return err
-	}
-
-	if !state {
-		sc.conn.Close()
-		sc.conn = nil
-		return fmt.Errorf("service returned a failure state")
-	}
-
-	return nil
+	return sc.conn.ReadServiceResponse(res)
 }
 
 func (sc *ServiceClient) createConn(ctx context.Context) error {

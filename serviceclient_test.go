@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -78,16 +79,27 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 			require.NoError(t, err)
 			defer sc.Close()
 
-			req := TestServiceReq{
-				A: 123,
-				B: "456",
-			}
-			res := TestServiceRes{}
-			err = sc.Call(&req, &res)
-			require.NoError(t, err)
+			var wg sync.WaitGroup
+			wg.Add(2)
 
-			expected := TestServiceRes{C: 123}
-			require.Equal(t, expected, res)
+			for i := 0; i < 2; i++ {
+				go func() {
+					defer wg.Done()
+
+					req := TestServiceReq{
+						A: 123,
+						B: "456",
+					}
+					var res TestServiceRes
+					err := sc.Call(&req, &res)
+					require.NoError(t, err)
+
+					expected := TestServiceRes{C: 123}
+					require.Equal(t, expected, res)
+				}()
+			}
+
+			wg.Wait()
 
 			switch provider {
 			case "cpp":
@@ -98,11 +110,11 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 				nsp.Close()
 			}
 
-			req = TestServiceReq{
+			req := TestServiceReq{
 				A: 123,
 				B: "456",
 			}
-			res = TestServiceRes{}
+			var res TestServiceRes
 			err = sc.Call(&req, &res)
 			require.Error(t, err)
 		})
@@ -138,7 +150,7 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 				A: 123,
 				B: "456",
 			}
-			res := TestServiceRes{}
+			var res TestServiceRes
 			err = sc.Call(&req, &res)
 			require.Error(t, err)
 
@@ -172,16 +184,27 @@ func TestServiceClientRequestBeforeProvider(t *testing.T) {
 				defer sp.Close()
 			}
 
-			req = TestServiceReq{
-				A: 123,
-				B: "456",
-			}
-			res = TestServiceRes{}
-			err = sc.Call(&req, &res)
-			require.NoError(t, err)
+			var wg sync.WaitGroup
+			wg.Add(2)
 
-			expected := TestServiceRes{C: 123}
-			require.Equal(t, expected, res)
+			for i := 0; i < 2; i++ {
+				go func() {
+					defer wg.Done()
+
+					req := TestServiceReq{
+						A: 123,
+						B: "456",
+					}
+					var res TestServiceRes
+					err := sc.Call(&req, &res)
+					require.NoError(t, err)
+
+					expected := TestServiceRes{C: 123}
+					require.Equal(t, expected, res)
+				}()
+			}
+
+			wg.Wait()
 		})
 	}
 }
