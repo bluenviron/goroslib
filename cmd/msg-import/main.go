@@ -1,8 +1,9 @@
+// main package.
 package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,7 +41,7 @@ func download(addr string) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	return ioutil.ReadAll(res.Body)
+	return io.ReadAll(res.Body)
 }
 
 func run() error {
@@ -67,7 +68,7 @@ func run() error {
 			return string(byts), nil
 		}
 
-		byts, err := ioutil.ReadFile(u)
+		byts, err := os.ReadFile(u)
 		if err != nil {
 			return "", err
 		}
