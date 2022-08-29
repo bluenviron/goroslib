@@ -37,6 +37,7 @@ type GPSRAW struct {
 	VAcc              uint32
 	VelAcc            uint32
 	HdgAcc            int32
+	Yaw               uint16
 	DgpsNumch         uint8
 	DgpsAge           uint32
 }

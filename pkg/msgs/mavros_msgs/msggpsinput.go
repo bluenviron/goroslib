@@ -40,4 +40,5 @@ type GPSINPUT struct {
 	HorizAccuracy     float32
 	VertAccuracy      float32
 	SatellitesVisible uint8
+	Yaw               uint16
 }
