@@ -98,6 +98,7 @@ func (s *Server) run() {
 
 	<-s.ctx.Done()
 
+	s.ln.Close() // in case Shutdown() is called before Serve()
 	hs.Shutdown(context.Background())
 }
 
