@@ -26,8 +26,8 @@ type Server struct {
 	ln        net.Listener
 	handler   func(*RequestRaw) interface{}
 
-	// in
 	setHandler chan func(*RequestRaw) interface{}
+	done       chan struct{}
 }
 
 // NewServer allocates a server.
@@ -46,9 +46,9 @@ func NewServer(address string) (*Server, error) {
 		ctxCancel:  ctxCancel,
 		ln:         ln,
 		setHandler: make(chan func(*RequestRaw) interface{}),
+		done:       make(chan struct{}),
 	}
 
-	s.wg.Add(1)
 	go s.run()
 
 	return s, nil
@@ -57,7 +57,7 @@ func NewServer(address string) (*Server, error) {
 // Close closes all the server resources.
 func (s *Server) Close() error {
 	s.ctxCancel()
-	s.wg.Wait()
+	<-s.done
 	return nil
 }
 
@@ -74,7 +74,7 @@ func (s *Server) URL(ip net.IP, zone string) string {
 }
 
 func (s *Server) run() {
-	defer s.wg.Done()
+	defer close(s.done)
 
 	select {
 	case handler := <-s.setHandler:
@@ -90,16 +90,12 @@ func (s *Server) run() {
 		WriteTimeout: serverWriteTimeout,
 	}
 
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
-		hs.Serve(s.ln)
-	}()
+	go hs.Serve(s.ln)
 
 	<-s.ctx.Done()
 
-	s.ln.Close() // in case Shutdown() is called before Serve()
 	hs.Shutdown(context.Background())
+	s.ln.Close() // in case Shutdown() is called before Serve()
 }
 
 func (s *Server) serveHTTP(w http.ResponseWriter, req *http.Request) {

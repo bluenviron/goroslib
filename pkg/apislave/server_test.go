@@ -12,6 +12,10 @@ import (
 )
 
 func TestServer(t *testing.T) {
+	// since the HTTP server is created and deleted multiple times,
+	// we can't reuse TCP connections.
+	http.DefaultTransport.(*http.Transport).DisableKeepAlives = true
+
 	s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 	require.NoError(t, err)
 	defer s.Close()
@@ -120,7 +124,7 @@ func TestServerErrors(t *testing.T) {
 	})
 
 	t.Run("invalid payload 1", func(t *testing.T) {
-		s, err := NewServer("localhost:9909", net.ParseIP("127.0.0.1"), "")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -130,14 +134,14 @@ func TestServerErrors(t *testing.T) {
 
 		var buf bytes.Buffer
 		buf.Write([]byte(`<?xml version="1.0"?><methodCall><methodName>shutdown</methodName><params>`))
-		res, err := http.Post("http://localhost:9909/RPC2", "text/xml", &buf)
+		res, err := http.Post("http://localhost:9906/RPC2", "text/xml", &buf)
 		require.NoError(t, err)
 		defer res.Body.Close()
 		require.Equal(t, 400, res.StatusCode)
 	})
 
 	t.Run("invalid payload 2", func(t *testing.T) {
-		s, err := NewServer("localhost:9909", net.ParseIP("127.0.0.1"), "")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -150,7 +154,7 @@ func TestServerErrors(t *testing.T) {
 			return ErrorRes{}
 		})
 
-		c := xmlrpc.NewClient("localhost:9909")
+		c := xmlrpc.NewClient("localhost:9906")
 
 		var res ResponseGetBusInfo
 		err = c.Do("shutdown", RequestGetBusInfo{CallerID: "mycaller"}, &res)

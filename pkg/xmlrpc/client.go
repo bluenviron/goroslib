@@ -4,6 +4,7 @@ package xmlrpc
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -48,6 +49,7 @@ func (c *Client) Do(method string, paramsReq interface{}, paramsRes interface{})
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
+		io.Copy(io.Discard, res.Body)
 		return fmt.Errorf("bad status code: %d", res.StatusCode)
 	}
 
