@@ -86,7 +86,7 @@ func (s *Server) run() {
 	}
 
 	hs := &http.Server{
-		Handler:      s,
+		Handler:      http.HandlerFunc(s.serveHTTP),
 		WriteTimeout: serverWriteTimeout,
 	}
 
@@ -102,7 +102,7 @@ func (s *Server) run() {
 	hs.Shutdown(context.Background())
 }
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (s *Server) serveHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
 		w.WriteHeader(http.StatusNotFound)
 		return
