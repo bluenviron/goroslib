@@ -10,6 +10,10 @@ import (
 )
 
 func TestClient(t *testing.T) {
+	// since the HTTP server is created and deleted multiple times,
+	// we can't reuse TCP connections.
+	http.DefaultTransport.(*http.Transport).DisableKeepAlives = true
+
 	type myRequest struct {
 		Param string
 	}
@@ -52,7 +56,7 @@ func TestClient(t *testing.T) {
 
 func TestClientErrors(t *testing.T) {
 	t.Run("invalid request", func(t *testing.T) {
-		c := NewClient("localhost:9908")
+		c := NewClient("localhost:9903")
 		err := c.Do("mymethod", struct {
 			Param int64
 		}{123}, nil)
@@ -60,18 +64,22 @@ func TestClientErrors(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		c := NewClient("127.0.0.1:9908")
+		c := NewClient("127.0.0.1:9903")
 		err := c.Do("mymethod", struct {
 			Param int
 		}{123}, nil)
-		require.EqualError(t, err, "Post \"http://127.0.0.1:9908/RPC2\": "+
-			"dial tcp 127.0.0.1:9908: connect: connection refused")
+		require.EqualError(t, err, "Post \"http://127.0.0.1:9903/RPC2\": "+
+			"dial tcp 127.0.0.1:9903: connect: connection refused")
 	})
 
 	t.Run("bad status code", func(t *testing.T) {
 		type myResponse struct {
 			Param string
 		}
+
+		l, err := net.Listen("tcp", "localhost:9903")
+		require.NoError(t, err)
+		defer l.Close()
 
 		hs := &http.Server{
 			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -80,12 +88,9 @@ func TestClientErrors(t *testing.T) {
 		}
 		defer hs.Shutdown(context.Background())
 
-		l, err := net.Listen("tcp", "localhost:9908")
-		require.NoError(t, err)
-
 		go hs.Serve(l)
 
-		c := NewClient("localhost:9908")
+		c := NewClient("localhost:9903")
 		err = c.Do("mymethod", struct {
 			Param int
 		}{123}, &myResponse{})
@@ -97,6 +102,10 @@ func TestClientErrors(t *testing.T) {
 			Param string
 		}
 
+		l, err := net.Listen("tcp", "localhost:9903")
+		require.NoError(t, err)
+		defer l.Close()
+
 		hs := &http.Server{
 			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				w.Write([]byte("invalid"))
@@ -104,12 +113,9 @@ func TestClientErrors(t *testing.T) {
 		}
 		defer hs.Shutdown(context.Background())
 
-		l, err := net.Listen("tcp", "localhost:9908")
-		require.NoError(t, err)
-
 		go hs.Serve(l)
 
-		c := NewClient("localhost:9908")
+		c := NewClient("localhost:9903")
 		err = c.Do("mymethod", struct {
 			Param int
 		}{123}, &myResponse{})
