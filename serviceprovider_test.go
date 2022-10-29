@@ -1,12 +1,16 @@
 package goroslib
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/aler9/goroslib/pkg/msgs/std_srvs"
+	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/aler9/goroslib/pkg/serviceproc"
 )
 
 func TestServiceProviderRegister(t *testing.T) {
@@ -162,24 +166,50 @@ func TestServiceProviderResponse(t *testing.T) {
 				require.NoError(t, err)
 				defer nsc.Close()
 
-				sc, err := NewServiceClient(ServiceClientConf{
-					Node: nsc,
-					Name: "test_srv",
-					Srv:  &TestService{},
+				ur, err := nsc.apiMasterClient.LookupService(
+					nsc.absoluteTopicName("test_srv"))
+				require.NoError(t, err)
+
+				address, err := urlToAddress(ur)
+				require.NoError(t, err)
+
+				conn, err := prototcp.NewClientContext(context.Background(), address)
+				require.NoError(t, err)
+				defer conn.Close()
+
+				srvMD5, err := serviceproc.MD5(TestService{})
+				require.NoError(t, err)
+
+				err = conn.WriteHeader(&prototcp.HeaderServiceClient{
+					Callerid:   nsc.absoluteName(),
+					Md5sum:     srvMD5,
+					Persistent: 1,
+					Service:    nsc.absoluteTopicName("test_srv"),
 				})
 				require.NoError(t, err)
-				defer sc.Close()
 
-				req := TestServiceReq{
-					A: 123,
-					B: "456",
-				}
-				res := TestServiceRes{}
-				err = sc.Call(&req, &res)
+				raw, err := conn.ReadHeaderRaw()
 				require.NoError(t, err)
 
-				expected := TestServiceRes{C: 123}
-				require.Equal(t, expected, res)
+				_, ok := raw["error"]
+				require.Equal(t, false, ok)
+
+				var outHeader prototcp.HeaderServiceProvider
+				err = protocommon.HeaderDecode(raw, &outHeader)
+				require.NoError(t, err)
+				require.Equal(t, srvMD5, outHeader.Md5sum)
+
+				err = conn.WriteMessage(&TestServiceReq{
+					A: 123,
+					B: "456",
+				})
+				require.NoError(t, err)
+
+				var res TestServiceRes
+				state, err := conn.ReadServiceResponse(&res)
+				require.NoError(t, err)
+				require.Equal(t, true, state)
+				require.Equal(t, TestServiceRes{C: 123}, res)
 
 			case "rosservice call":
 				cc := newContainer(t, "rosservice-call", m.IP())
