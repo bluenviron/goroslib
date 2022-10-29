@@ -173,43 +173,45 @@ func TestServiceProviderResponse(t *testing.T) {
 				address, err := urlToAddress(ur)
 				require.NoError(t, err)
 
-				conn, err := prototcp.NewClientContext(context.Background(), address)
-				require.NoError(t, err)
-				defer conn.Close()
+				for i := 0; i < 2; i++ { // test two connections with the same caller ID at once
+					conn, err := prototcp.NewClientContext(context.Background(), address)
+					require.NoError(t, err)
+					defer conn.Close()
 
-				srvMD5, err := serviceproc.MD5(TestService{})
-				require.NoError(t, err)
+					srvMD5, err := serviceproc.MD5(TestService{})
+					require.NoError(t, err)
 
-				err = conn.WriteHeader(&prototcp.HeaderServiceClient{
-					Callerid:   nsc.absoluteName(),
-					Md5sum:     srvMD5,
-					Persistent: 1,
-					Service:    nsc.absoluteTopicName("test_srv"),
-				})
-				require.NoError(t, err)
+					err = conn.WriteHeader(&prototcp.HeaderServiceClient{
+						Callerid:   nsc.absoluteName(),
+						Md5sum:     srvMD5,
+						Persistent: 1,
+						Service:    nsc.absoluteTopicName("test_srv"),
+					})
+					require.NoError(t, err)
 
-				raw, err := conn.ReadHeaderRaw()
-				require.NoError(t, err)
+					raw, err := conn.ReadHeaderRaw()
+					require.NoError(t, err)
 
-				_, ok := raw["error"]
-				require.Equal(t, false, ok)
+					_, ok := raw["error"]
+					require.Equal(t, false, ok)
 
-				var outHeader prototcp.HeaderServiceProvider
-				err = protocommon.HeaderDecode(raw, &outHeader)
-				require.NoError(t, err)
-				require.Equal(t, srvMD5, outHeader.Md5sum)
+					var outHeader prototcp.HeaderServiceProvider
+					err = protocommon.HeaderDecode(raw, &outHeader)
+					require.NoError(t, err)
+					require.Equal(t, srvMD5, outHeader.Md5sum)
 
-				err = conn.WriteMessage(&TestServiceReq{
-					A: 123,
-					B: "456",
-				})
-				require.NoError(t, err)
+					err = conn.WriteMessage(&TestServiceReq{
+						A: 123,
+						B: "456",
+					})
+					require.NoError(t, err)
 
-				var res TestServiceRes
-				state, err := conn.ReadServiceResponse(&res)
-				require.NoError(t, err)
-				require.Equal(t, true, state)
-				require.Equal(t, TestServiceRes{C: 123}, res)
+					var res TestServiceRes
+					state, err := conn.ReadServiceResponse(&res)
+					require.NoError(t, err)
+					require.Equal(t, true, state)
+					require.Equal(t, TestServiceRes{C: 123}, res)
+				}
 
 			case "rosservice call":
 				cc := newContainer(t, "rosservice-call", m.IP())
