@@ -43,7 +43,7 @@ type ServiceProvider struct {
 	srvType   string
 	srvMD5    string
 	srvReq    interface{}
-	clients   map[string]*serviceProviderClient
+	clients   map[*serviceProviderClient]struct{}
 	clientsWg sync.WaitGroup
 
 	// in
@@ -132,7 +132,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		srvType:       srvType,
 		srvMD5:        srvMD5,
 		srvReq:        srvReq,
-		clients:       make(map[string]*serviceProviderClient),
+		clients:       make(map[*serviceProviderClient]struct{}),
 		clientNew:     make(chan tcpConnServiceClientReq),
 		clientClose:   make(chan *serviceProviderClient),
 		clientRequest: make(chan serviceProviderClientRequestReq),
@@ -177,12 +177,6 @@ outer:
 		select {
 		case req := <-sp.clientNew:
 			err := func() error {
-				_, ok := sp.clients[req.header.Callerid]
-				if ok {
-					return fmt.Errorf("a client with id '%s' is already connected to the provider",
-						req.header.Callerid)
-				}
-
 				if req.header.Md5sum != "*" && req.header.Md5sum != sp.srvMD5 {
 					return fmt.Errorf("wrong service checksum: expected %s, got %s",
 						sp.srvMD5, req.header.Md5sum)
@@ -207,10 +201,10 @@ outer:
 			}
 
 			spc := newServiceProviderClient(sp, req.header.Callerid, req.conn)
-			sp.clients[req.header.Callerid] = spc
+			sp.clients[spc] = struct{}{}
 
 		case spc := <-sp.clientClose:
-			delete(sp.clients, spc.callerID)
+			delete(sp.clients, spc)
 
 		case req := <-sp.clientRequest:
 			res := cbv.Call([]reflect.Value{reflect.ValueOf(req.req)})
