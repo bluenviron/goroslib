@@ -1,4 +1,3 @@
-
 #include <actionlib/client/simple_action_client.h>
 
 #include <shared_actions/DoSomethingAction.h>

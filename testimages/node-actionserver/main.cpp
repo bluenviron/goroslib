@@ -1,4 +1,3 @@
-
 #include <thread>
 
 #include <actionlib/server/action_server.h>
