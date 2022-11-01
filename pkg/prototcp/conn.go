@@ -94,7 +94,7 @@ func (c *Conn) WriteServiceResponse(state bool, res interface{}) error {
 
 	// stop if state is false
 	if !state {
-		return nil
+		return c.writeBuf.Flush()
 	}
 
 	// write message

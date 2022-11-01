@@ -61,6 +61,11 @@ func TestConn(t *testing.T) {
 
 		err = protocommon.MessageEncode(conn, &struct{}{})
 		require.NoError(t, err)
+
+		// provider return a false state
+		_, err = io.ReadFull(conn, byt)
+		require.NoError(t, err)
+		require.Equal(t, uint8(0), byt[0])
 	}()
 
 	conn, err := net.Dial("tcp", "localhost:9907")
@@ -100,6 +105,10 @@ func TestConn(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, true, state)
 	require.Equal(t, struct{}{}, msg)
+
+	// provider return with false state
+	err = tconn.WriteServiceResponse(false, nil)
+	require.NoError(t, err)
 }
 
 func TestConnErrors(t *testing.T) {
