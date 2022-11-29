@@ -23,4 +23,6 @@ jobs:
     - run: make test-nodocker
 
     - if: matrix.go == '1.19'
-      run: bash <(curl -s https://codecov.io/bash)
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
