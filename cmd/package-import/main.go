@@ -1,4 +1,3 @@
-// main package.
 package main
 
 import (
@@ -11,11 +10,11 @@ import (
 )
 
 func run() error {
-	kingpin.CommandLine.Help = "Convert ROS services into Go structs."
+	kingpin.CommandLine.Help = "Convert all messages, services and actions definions in a ROS package into Go structs."
 
 	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
 	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
-	argURL := kingpin.Arg("url", "path or url pointing to a ROS service").Required().String()
+	argURL := kingpin.Arg("path", "path pointing to a ROS package").Required().String()
 
 	kingpin.Parse()
 
@@ -23,12 +22,11 @@ func run() error {
 	rosPkgName := *argRosPkgName
 	u := *argURL
 
-	return cmd.ImportSrv(u, goPkgName, rosPkgName, os.Stdout)
+	return cmd.ImportPackage(rosPkgName, u, goPkgName)
 }
 
 func main() {
-	err := run()
-	if err != nil {
+	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "ERR: %s\n", err)
 		os.Exit(1)
 	}
