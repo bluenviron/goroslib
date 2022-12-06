@@ -32,6 +32,7 @@ type {{ .Name }}Action struct {
 }
 `))
 
+// ImportAction generates Go file from an .action file and writes to the io.Writer.
 func ImportAction(u string, goPkgName string, rosPkgName string, w io.Writer) error {
 	name := getName(u, ".action")
 	content, err := getContent(u)

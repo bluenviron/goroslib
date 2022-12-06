@@ -16,6 +16,7 @@ var tplPackage = template.Must(template.New("").Parse(
 package {{ .PkgName }}
 `))
 
+// ImportDir generates Go files for all ROS definitions under the directory.
 func ImportDir(name string, rosDir string, goDir string) error {
 	os.Mkdir(goDir, 0o755)
 	err := writeTemplate(filepath.Join(goDir, "package.go"), tplPackage,
@@ -71,6 +72,7 @@ func ImportDir(name string, rosDir string, goDir string) error {
 	})
 }
 
+// ImportPackage generates Go files for all ROS definitions under the directory if it's a ROS package.
 func ImportPackage(prefix string, dir string, goDir string) error {
 	// find folders which contain a "msg", "srv" or "action" subfolder
 	paths := make(map[string]struct{})

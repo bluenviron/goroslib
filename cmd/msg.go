@@ -20,6 +20,7 @@ import (
 {{ .Message }}
 `))
 
+// ImportMsg generates Go file from a .msg file and writes to the io.Writer.
 func ImportMsg(u string, goPkgName string, rosPkgName string, w io.Writer) error {
 	content, err := getContent(u)
 	if err != nil {

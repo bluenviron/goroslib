@@ -30,6 +30,7 @@ type {{ .Name }} struct {
 }
 `))
 
+// ImportSrv generates Go file from a .srv file and writes to the io.Writer.
 func ImportSrv(u string, goPkgName string, rosPkgName string, w io.Writer) error {
 	name := getName(u, ".srv")
 	content, err := getContent(u)
