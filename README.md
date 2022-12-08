@@ -256,6 +256,13 @@ go get github.com/aler9/goroslib/cmd/action-import
 action-import --rospackage=my_package myaction.action > myaction.go
 ```
 
+To convert a whole ROS package to Go, you can use the `package-import` tool:
+
+```
+go get github.com/aler9/goroslib/cmd/package-import
+package-import <path-to-ros-package> --rospackage=my_package --gopackage=/pkg/msgs
+```
+
 ### Compile a node for another operating system
 
 To compile a node for another OS, it's enough to follow the standard Golang procedure to cross-compile, that consists in setting the `GOOS` and `GOARCH` environment variables according to the target machine. For instance, to build a node for Windows from another OS, run:
