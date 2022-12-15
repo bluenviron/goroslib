@@ -2,7 +2,6 @@ package goroslib
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
@@ -61,7 +60,7 @@ func (spc *serviceProviderClient) run() {
 					req: req,
 				}:
 				case <-spc.sp.ctx.Done():
-					return fmt.Errorf("terminated")
+					return ErrProviderTerminated
 				}
 			}
 		}()

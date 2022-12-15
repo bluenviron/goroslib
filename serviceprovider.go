@@ -33,6 +33,9 @@ type ServiceProviderConf struct {
 	onClient func()
 }
 
+// ErrProviderTerminated is the error when the service provider has been terminated.
+var ErrProviderTerminated = fmt.Errorf("service provider terminated")
+
 // ServiceProvider is a ROS service provider, an entity that can receive requests
 // and send back responses.
 type ServiceProvider struct {
@@ -150,7 +153,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 		}
 
 	case <-sp.ctx.Done():
-		return nil, fmt.Errorf("terminated")
+		return nil, ErrProviderTerminated
 	}
 
 	go sp.run()

@@ -128,7 +128,7 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 		}
 
 	case <-conf.Node.ctx.Done():
-		return nil, fmt.Errorf("terminated")
+		return nil, ErrNodeTerminated
 	}
 
 	go p.run()

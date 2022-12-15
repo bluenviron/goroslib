@@ -150,7 +150,7 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 		}
 
 	case <-conf.Node.ctx.Done():
-		return nil, fmt.Errorf("terminated")
+		return nil, ErrNodeTerminated
 	}
 
 	go s.run()

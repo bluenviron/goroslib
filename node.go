@@ -191,6 +191,9 @@ type NodeConf struct {
 	args []string
 }
 
+// ErrNodeTerminated is the error when the node has been terminated.
+var ErrNodeTerminated = fmt.Errorf("node terminated")
+
 // Node is a ROS Node, an entity that can create subscribers, publishers, service providers,
 // service clients, action servers and action clients.
 type Node struct {
