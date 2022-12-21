@@ -239,6 +239,11 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 }
 
 func haveSameMD5(a interface{}, b interface{}) bool {
+	// if input types are the same, skip MD5 computation in order to improve performance
+	if reflect.TypeOf(a) == reflect.TypeOf(b) {
+		return true
+	}
+
 	ac, _ := msgproc.MD5(a)
 	bc, _ := msgproc.MD5(b)
 	return ac == bc
