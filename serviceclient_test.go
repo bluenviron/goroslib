@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -302,5 +303,68 @@ func TestServiceClientErrors(t *testing.T) {
 			Name: "test_srv",
 		})
 		require.Error(t, err)
+	})
+}
+
+func TestServiceClientReqResType(t *testing.T) {
+	m := newContainerMaster(t)
+	defer m.close()
+
+	n, err := NewNode(NodeConf{
+		Namespace:     "/myns",
+		Name:          "goroslib_sp",
+		MasterAddress: m.IP() + ":11311",
+	})
+	require.NoError(t, err)
+	defer n.Close()
+
+	sp, err := NewServiceProvider(ServiceProviderConf{
+		Node: n, Name: "test_srv", Srv: &TestService{},
+		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+			return &TestServiceRes{}, true
+		},
+	})
+	require.NoError(t, err)
+	defer sp.Close()
+
+	sc, err := NewServiceClient(ServiceClientConf{Node: n, Name: "test_srv", Srv: &TestService{}})
+	require.NoError(t, err)
+	defer sc.Close()
+
+	t.Run("req with same structure", func(t *testing.T) {
+		res := &TestServiceRes{}
+		err := sc.Call(&struct {
+			A float64
+			B string
+		}{A: 123, B: "456"}, res)
+		require.NoError(t, err)
+	})
+
+	t.Run("req with different structure", func(t *testing.T) {
+		res := &TestServiceRes{}
+		assert.PanicsWithValue(t, "wrong req", func() {
+			sc.Call(&struct {
+				A float32
+				B string
+			}{A: 123, B: "456"}, res)
+		})
+	})
+
+	t.Run("res with same structure", func(t *testing.T) {
+		res := &struct {
+			C float64
+		}{}
+
+		err := sc.Call(&TestServiceReq{A: 123, B: "456"}, res)
+		require.NoError(t, err)
+	})
+
+	t.Run("res with different structure", func(t *testing.T) {
+		res := &struct {
+			C float32
+		}{}
+		assert.PanicsWithValue(t, "wrong res", func() {
+			sc.Call(&TestServiceReq{A: 123, B: "456"}, res)
+		})
 	})
 }

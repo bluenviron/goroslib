@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aler9/goroslib/pkg/msgproc"
 	"github.com/aler9/goroslib/pkg/protocommon"
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/serviceproc"
@@ -105,10 +106,10 @@ func (sc *ServiceClient) Call(req interface{}, res interface{}) error {
 // CallContext sends a request to a service provider and reads a response.
 // It allows to set a context that can be used to terminate the function.
 func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res interface{}) error {
-	if reflect.TypeOf(req) != reflect.PtrTo(reflect.TypeOf(sc.srvReq)) {
+	if !haveSameMD5(reflect.ValueOf(req).Elem().Interface(), sc.srvReq) {
 		panic("wrong req")
 	}
-	if reflect.TypeOf(res) != reflect.PtrTo(reflect.TypeOf(sc.srvRes)) {
+	if !haveSameMD5(reflect.ValueOf(res).Elem().Interface(), sc.srvRes) {
 		panic("wrong res")
 	}
 
@@ -235,4 +236,15 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 
 	sc.conn = conn
 	return nil
+}
+
+func haveSameMD5(a interface{}, b interface{}) bool {
+	// if input types are the same, skip MD5 computation in order to improve performance
+	if reflect.TypeOf(a) == reflect.TypeOf(b) {
+		return true
+	}
+
+	ac, _ := msgproc.MD5(a)
+	bc, _ := msgproc.MD5(b)
+	return ac == bc
 }
