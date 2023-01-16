@@ -5,25 +5,23 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kong"
 
 	"github.com/aler9/goroslib/cmd"
 )
 
+var cli struct {
+	GoPackage  string `name:"gopackage" help:"Go package name" default:"main"`
+	RosPackage string `name:"rospackage" help:"ROS package name" default:"my_package"`
+	URL        string `arg:"" help:"path or url pointing to a ROS package"`
+}
+
 func run() error {
-	kingpin.CommandLine.Help = "Convert all messages, services and actions definions in a ROS package into Go structs."
+	kong.Parse(&cli,
+		kong.Description("Convert all messages, services and actions definions in a ROS package into Go structs."),
+		kong.UsageOnError())
 
-	argGoPkgName := kingpin.Flag("gopackage", "Go package name").Default("main").String()
-	argRosPkgName := kingpin.Flag("rospackage", "ROS package name").Default("my_package").String()
-	argURL := kingpin.Arg("path", "path pointing to a ROS package").Required().String()
-
-	kingpin.Parse()
-
-	goPkgName := *argGoPkgName
-	rosPkgName := *argRosPkgName
-	u := *argURL
-
-	return cmd.ImportPackage(rosPkgName, u, goPkgName)
+	return cmd.ImportPackage(cli.RosPackage, cli.URL, cli.GoPackage)
 }
 
 func main() {
