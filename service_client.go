@@ -38,7 +38,8 @@ type ServiceClient struct {
 	srvRes interface{}
 	srvMD5 string
 	mutex  sync.Mutex
-	conn   *prototcp.Conn
+	nconn  net.Conn
+	tconn  *prototcp.Conn
 }
 
 // NewServiceClient allocates a ServiceClient. See ServiceClientConf for the options.
@@ -88,8 +89,8 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 
 // Close closes a ServiceClient and shuts down all its operations.
 func (sc *ServiceClient) Close() error {
-	if sc.conn != nil {
-		sc.conn.Close()
+	if sc.nconn != nil {
+		sc.nconn.Close()
 	}
 
 	sc.conf.Node.Log(LogLevelDebug, "service client '%s' destroyed",
@@ -123,7 +124,7 @@ func (sc *ServiceClient) CallContext(ctx context.Context, req interface{}, res i
 func (sc *ServiceClient) callContextInner(ctx context.Context, req interface{}, res interface{}) error {
 	connCreatedInThisCall := false
 
-	if sc.conn == nil {
+	if sc.nconn == nil {
 		err := sc.createConn(ctx)
 		if err != nil {
 			return err
@@ -133,8 +134,9 @@ func (sc *ServiceClient) callContextInner(ctx context.Context, req interface{}, 
 
 	state, err := sc.writeMessageReadResponse(ctx, req, res)
 	if err != nil {
-		sc.conn.Close()
-		sc.conn = nil
+		sc.nconn.Close()
+		sc.nconn = nil
+		sc.tconn = nil
 
 		// if the connection was created previously, it could be damaged or
 		// linked to an invalid provider.
@@ -147,8 +149,9 @@ func (sc *ServiceClient) callContextInner(ctx context.Context, req interface{}, 
 	}
 
 	if !state {
-		sc.conn.Close()
-		sc.conn = nil
+		sc.nconn.Close()
+		sc.nconn = nil
+		sc.tconn = nil
 
 		return fmt.Errorf("service returned a failure state")
 	}
@@ -161,7 +164,7 @@ func (sc *ServiceClient) writeMessageReadResponse(ctx context.Context, req inter
 	go func() {
 		select {
 		case <-ctx.Done():
-			sc.conn.Close()
+			sc.nconn.Close()
 
 		case <-funcDone:
 			return
@@ -169,12 +172,14 @@ func (sc *ServiceClient) writeMessageReadResponse(ctx context.Context, req inter
 	}()
 	defer close(funcDone)
 
-	err := sc.conn.WriteMessage(req)
+	sc.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+	err := sc.tconn.WriteMessage(req)
 	if err != nil {
 		return false, err
 	}
 
-	return sc.conn.ReadServiceResponse(res)
+	sc.nconn.SetReadDeadline(time.Now().Add(readTimeout))
+	return sc.tconn.ReadServiceResponse(res)
 }
 
 func (sc *ServiceClient) createConn(ctx context.Context) error {
@@ -189,52 +194,60 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 		return err
 	}
 
-	conn, err := prototcp.NewClientContext(ctx, address)
+	ctx2, ctx2Cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer ctx2Cancel()
+
+	nconn, err := (&net.Dialer{}).DialContext(ctx2, "tcp", address)
 	if err != nil {
 		return err
 	}
+	tconn := prototcp.NewConn(nconn)
 
 	if sc.conf.EnableKeepAlive {
-		conn.NetConn().(*net.TCPConn).SetKeepAlive(true)
-		conn.NetConn().(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
+		nconn.(*net.TCPConn).SetKeepAlive(true)
+		nconn.(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
 	}
 
-	err = conn.WriteHeader(&prototcp.HeaderServiceClient{
+	nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+	err = tconn.WriteHeader(&prototcp.HeaderServiceClient{
 		Callerid:   sc.conf.Node.absoluteName(),
 		Md5sum:     sc.srvMD5,
 		Persistent: 1,
 		Service:    sc.conf.Node.absoluteTopicName(sc.conf.Name),
 	})
 	if err != nil {
-		conn.Close()
+		nconn.Close()
 		return err
 	}
 
-	raw, err := conn.ReadHeaderRaw()
+	nconn.SetReadDeadline(time.Now().Add(readTimeout))
+	raw, err := tconn.ReadHeaderRaw()
 	if err != nil {
-		conn.Close()
+		nconn.Close()
 		return err
 	}
 
 	if strErr, ok := raw["error"]; ok {
-		conn.Close()
+		nconn.Close()
 		return fmt.Errorf(strErr)
 	}
 
 	var outHeader prototcp.HeaderServiceProvider
 	err = protocommon.HeaderDecode(raw, &outHeader)
 	if err != nil {
-		conn.Close()
+		nconn.Close()
 		return err
 	}
 
 	if outHeader.Md5sum != sc.srvMD5 {
-		conn.Close()
+		nconn.Close()
 		return fmt.Errorf("wrong message checksum: expected %s, got %s",
 			sc.srvMD5, outHeader.Md5sum)
 	}
 
-	sc.conn = conn
+	sc.nconn = nconn
+	sc.tconn = tconn
+
 	return nil
 }
 

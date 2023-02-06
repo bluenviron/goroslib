@@ -12,7 +12,8 @@ import (
 type publisherSubscriber struct {
 	pub      *Publisher
 	callerID string
-	tcpConn  *prototcp.Conn
+	tcpNConn net.Conn
+	tcpTConn *prototcp.Conn
 	udpAddr  *net.UDPAddr
 
 	ctx          context.Context
@@ -23,7 +24,8 @@ type publisherSubscriber struct {
 func newPublisherSubscriber(
 	pub *Publisher,
 	callerID string,
-	tcpConn *prototcp.Conn,
+	tcpNConn net.Conn,
+	tcpTConn *prototcp.Conn,
 	udpAddr *net.UDPAddr,
 ) *publisherSubscriber {
 	ctx, ctxCancel := context.WithCancel(pub.ctx)
@@ -31,7 +33,8 @@ func newPublisherSubscriber(
 	ps := &publisherSubscriber{
 		pub:       pub,
 		callerID:  callerID,
-		tcpConn:   tcpConn,
+		tcpNConn:  tcpNConn,
+		tcpTConn:  tcpTConn,
 		udpAddr:   udpAddr,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
@@ -44,8 +47,8 @@ func newPublisherSubscriber(
 }
 
 func (ps *publisherSubscriber) subscriberLabel() string {
-	if ps.tcpConn != nil {
-		return "'" + ps.tcpConn.NetConn().RemoteAddr().String() + "' (TCP)"
+	if ps.tcpNConn != nil {
+		return "'" + ps.tcpNConn.RemoteAddr().String() + "' (TCP)"
 	}
 	return "'" + ps.udpAddr.String() + "' (UDP)"
 }
@@ -63,7 +66,7 @@ func (ps *publisherSubscriber) run() {
 	}
 
 	var err error
-	if ps.tcpConn != nil {
+	if ps.tcpNConn != nil {
 		err = ps.runTCP()
 	} else {
 		err = ps.runUDP()
@@ -84,14 +87,14 @@ func (ps *publisherSubscriber) run() {
 }
 
 func (ps *publisherSubscriber) runTCP() error {
-	ps.tcpConn.NetConn().SetReadDeadline(time.Time{})
+	ps.tcpNConn.SetReadDeadline(time.Time{})
 
 	readerErr := make(chan error)
 	go func() {
 		readerErr <- func() error {
 			buf := make([]byte, 64)
 			for {
-				_, err := ps.tcpConn.NetConn().Read(buf)
+				_, err := ps.tcpNConn.Read(buf)
 				if err != nil {
 					return err
 				}
@@ -101,11 +104,11 @@ func (ps *publisherSubscriber) runTCP() error {
 
 	select {
 	case err := <-readerErr:
-		ps.tcpConn.Close()
+		ps.tcpNConn.Close()
 		return err
 
 	case <-ps.ctx.Done():
-		ps.tcpConn.Close()
+		ps.tcpNConn.Close()
 		<-readerErr
 		return fmt.Errorf("terminated")
 	}
@@ -117,8 +120,9 @@ func (ps *publisherSubscriber) runUDP() error {
 }
 
 func (ps *publisherSubscriber) writeMessage(msg interface{}) {
-	if ps.tcpConn != nil {
-		err := ps.tcpConn.WriteMessage(msg)
+	if ps.tcpNConn != nil {
+		ps.tcpNConn.SetWriteDeadline(time.Now().Add(writeTimeout))
+		err := ps.tcpTConn.WriteMessage(msg)
 		if err != nil {
 			ps.pub.conf.Node.Log(LogLevelError,
 				"publisher '%s' is unable to write to subscriber %s: %s",
@@ -129,7 +133,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 	} else {
 		ps.curMessageID++
 
-		err := ps.pub.conf.Node.udprosServer.WriteMessage(
+		err := ps.pub.conf.Node.udprosConn.WriteMessage(
 			ps.pub.id,
 			ps.curMessageID,
 			msg,
@@ -146,7 +150,7 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 
 func (ps *publisherSubscriber) busInfo() []interface{} {
 	proto := func() string {
-		if ps.tcpConn != nil {
+		if ps.tcpNConn != nil {
 			return "TCPROS"
 		}
 		return "UDPROS"

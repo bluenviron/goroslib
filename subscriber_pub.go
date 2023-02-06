@@ -157,7 +157,7 @@ func (sp *subscriberPublisher) runInner() error {
 					return buf.Bytes()[4:]
 				}(),
 				sp.sub.conf.Node.nodeAddr.IP.String(),
-				sp.sub.conf.Node.udprosServer.Port(),
+				sp.sub.conf.Node.udprosListener.LocalAddr().(*net.UDPAddr).Port,
 				1500,
 			}}
 		}()
@@ -205,46 +205,38 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 		return fmt.Errorf("wrong protoName")
 	}
 
-	addr := net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10))
+	address := net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10))
 
-	subDone := make(chan struct{}, 1)
-	var conn *prototcp.Conn
-	var err error
-	go func() {
-		defer close(subDone)
-		conn, err = prototcp.NewClient(addr)
-	}()
+	ctx2, ctx2Cancel := context.WithTimeout(sp.ctx, 10*time.Second)
+	defer ctx2Cancel()
 
-	select {
-	case <-subDone:
-	case <-sp.ctx.Done():
-		return nil
-	}
-
+	nconn, err := (&net.Dialer{}).DialContext(ctx2, "tcp", address)
 	if err != nil {
 		return err
 	}
+	defer nconn.Close()
 
-	defer conn.Close()
+	tconn := prototcp.NewConn(nconn)
 
 	if sp.sub.conf.EnableKeepAlive {
-		conn.NetConn().(*net.TCPConn).SetKeepAlive(true)
-		conn.NetConn().(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
+		nconn.(*net.TCPConn).SetKeepAlive(true)
+		nconn.(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
 	}
 
 	if sp.sub.conf.DisableNoDelay {
-		err := conn.NetConn().(*net.TCPConn).SetNoDelay(false)
+		err := nconn.(*net.TCPConn).SetNoDelay(false)
 		if err != nil {
 			return err
 		}
 	}
 
-	subDone = make(chan struct{})
+	subDone := make(chan struct{})
 	var outHeader prototcp.HeaderPublisher
+
 	go func() {
 		defer close(subDone)
 
-		err = conn.WriteHeader(&prototcp.HeaderSubscriber{
+		err = tconn.WriteHeader(&prototcp.HeaderSubscriber{
 			Callerid: sp.sub.conf.Node.absoluteName(),
 			Md5sum:   sp.sub.msgMd5,
 			Topic:    sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
@@ -261,8 +253,9 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 			return
 		}
 
+		nconn.SetReadDeadline(time.Now().Add(readTimeout))
 		var raw protocommon.HeaderRaw
-		raw, err = conn.ReadHeaderRaw()
+		raw, err = tconn.ReadHeaderRaw()
 		if err != nil {
 			return
 		}
@@ -278,7 +271,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	select {
 	case <-subDone:
 	case <-sp.ctx.Done():
-		conn.Close()
+		nconn.Close()
 		<-subDone
 		return nil
 	}
@@ -310,9 +303,11 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	go func() {
 		defer close(subDone)
 
+		nconn.SetReadDeadline(time.Time{})
+
 		for {
 			msg := reflect.New(sp.sub.msgMsg).Interface()
-			err = conn.ReadMessage(msg, false)
+			err = tconn.ReadMessage(msg)
 			if err != nil {
 				return
 			}
@@ -336,7 +331,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 		return err
 
 	case <-sp.ctx.Done():
-		conn.Close()
+		nconn.Close()
 		<-subDone
 		return nil
 	}
@@ -424,7 +419,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 			for {
 				select {
 				case <-t.C:
-					sp.sub.conf.Node.udprosServer.WriteFrame(&protoudp.Frame{
+					sp.sub.conf.Node.udprosConn.WriteFrame(&protoudp.Frame{
 						ConnectionID: sp.udpID,
 						Opcode:       protoudp.Ping,
 						MessageID:    curMessageID,

@@ -1,7 +1,7 @@
 package goroslib
 
 import (
-	"context"
+	"net"
 	"testing"
 	"time"
 
@@ -174,14 +174,16 @@ func TestServiceProviderResponse(t *testing.T) {
 				require.NoError(t, err)
 
 				for i := 0; i < 2; i++ { // test two connections with the same caller ID at once
-					conn, err := prototcp.NewClientContext(context.Background(), address)
+					nconn, err := net.Dial("tcp", address)
 					require.NoError(t, err)
-					defer conn.Close()
+					defer nconn.Close()
+					tconn := prototcp.NewConn(nconn)
 
 					srvMD5, err := serviceproc.MD5(TestService{})
 					require.NoError(t, err)
 
-					err = conn.WriteHeader(&prototcp.HeaderServiceClient{
+					nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+					err = tconn.WriteHeader(&prototcp.HeaderServiceClient{
 						Callerid:   nsc.absoluteName(),
 						Md5sum:     srvMD5,
 						Persistent: 1,
@@ -189,7 +191,8 @@ func TestServiceProviderResponse(t *testing.T) {
 					})
 					require.NoError(t, err)
 
-					raw, err := conn.ReadHeaderRaw()
+					nconn.SetReadDeadline(time.Now().Add(readTimeout))
+					raw, err := tconn.ReadHeaderRaw()
 					require.NoError(t, err)
 
 					_, ok := raw["error"]
@@ -200,14 +203,16 @@ func TestServiceProviderResponse(t *testing.T) {
 					require.NoError(t, err)
 					require.Equal(t, srvMD5, outHeader.Md5sum)
 
-					err = conn.WriteMessage(&TestServiceReq{
+					nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+					err = tconn.WriteMessage(&TestServiceReq{
 						A: 123,
 						B: "456",
 					})
 					require.NoError(t, err)
 
+					nconn.SetReadDeadline(time.Now().Add(readTimeout))
 					var res TestServiceRes
-					state, err := conn.ReadServiceResponse(&res)
+					state, err := tconn.ReadServiceResponse(&res)
 					require.NoError(t, err)
 					require.Equal(t, true, state)
 					require.Equal(t, TestServiceRes{C: 123}, res)

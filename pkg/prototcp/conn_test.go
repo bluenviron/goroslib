@@ -1,6 +1,7 @@
 package prototcp
 
 import (
+	"bytes"
 	"io"
 	"net"
 	"testing"
@@ -11,72 +12,11 @@ import (
 )
 
 func TestConn(t *testing.T) {
-	l, err := net.Listen("tcp", "localhost:9907")
-	require.NoError(t, err)
-	defer l.Close()
+	var buf bytes.Buffer
 
-	serverDone := make(chan struct{})
-	defer func() { <-serverDone }()
+	tconn := NewConn(&buf)
 
-	go func() {
-		defer close(serverDone)
-
-		conn, err := l.Accept()
-		require.NoError(t, err)
-		defer conn.Close()
-
-		raw, err := protocommon.HeaderRawDecode(conn)
-		require.NoError(t, err)
-		require.Equal(t, protocommon.HeaderRaw{
-			"callerid":           "mycallerid",
-			"latching":           "0",
-			"md5sum":             "mysum",
-			"topic":              "mytopic",
-			"type":               "mytype",
-			"message_definition": "mydef",
-		}, raw)
-
-		err = protocommon.HeaderEncode(conn, &HeaderSubscriber{
-			Callerid:          "mycallerid",
-			Topic:             "mytopic",
-			Type:              "mytype",
-			Md5sum:            "mysum",
-			MessageDefinition: "mydef",
-			TcpNodelay:        1,
-		})
-		require.NoError(t, err)
-
-		byt := make([]byte, 1)
-		_, err = io.ReadFull(conn, byt)
-		require.NoError(t, err)
-		require.Equal(t, uint8(1), byt[0])
-
-		var msg struct{}
-		err = protocommon.MessageDecode(conn, &msg)
-		require.NoError(t, err)
-		require.Equal(t, struct{}{}, msg)
-
-		_, err = conn.Write([]byte{1})
-		require.NoError(t, err)
-
-		err = protocommon.MessageEncode(conn, &struct{}{})
-		require.NoError(t, err)
-
-		// provider return a false state
-		_, err = io.ReadFull(conn, byt)
-		require.NoError(t, err)
-		require.Equal(t, uint8(0), byt[0])
-	}()
-
-	conn, err := net.Dial("tcp", "localhost:9907")
-	require.NoError(t, err)
-
-	tconn := newConn(conn)
-	defer tconn.Close()
-
-	require.NotEqual(t, nil, tconn.NetConn())
-
-	err = tconn.WriteHeader(&HeaderPublisher{
+	err := tconn.WriteHeader(&HeaderPublisher{
 		Topic:             "mytopic",
 		Type:              "mytype",
 		Md5sum:            "mysum",
@@ -86,7 +26,28 @@ func TestConn(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	raw, err := tconn.ReadHeaderRaw()
+	raw, err := protocommon.HeaderRawDecode(&buf)
+	require.NoError(t, err)
+	require.Equal(t, protocommon.HeaderRaw{
+		"callerid":           "mycallerid",
+		"latching":           "0",
+		"md5sum":             "mysum",
+		"topic":              "mytopic",
+		"type":               "mytype",
+		"message_definition": "mydef",
+	}, raw)
+
+	err = protocommon.HeaderEncode(&buf, &HeaderSubscriber{
+		Callerid:          "mycallerid",
+		Topic:             "mytopic",
+		Type:              "mytype",
+		Md5sum:            "mysum",
+		MessageDefinition: "mydef",
+		TcpNodelay:        1,
+	})
+	require.NoError(t, err)
+
+	raw, err = tconn.ReadHeaderRaw()
 	require.NoError(t, err)
 	require.Equal(t, protocommon.HeaderRaw{
 		"callerid":           "mycallerid",
@@ -100,8 +61,24 @@ func TestConn(t *testing.T) {
 	err = tconn.WriteServiceResponse(true, &struct{}{})
 	require.NoError(t, err)
 
+	byt := make([]byte, 1)
+	_, err = io.ReadFull(&buf, byt)
+	require.NoError(t, err)
+	require.Equal(t, uint8(1), byt[0])
+
 	var msg struct{}
-	state, err := tconn.ReadServiceResponse(&msg)
+	err = protocommon.MessageDecode(&buf, &msg)
+	require.NoError(t, err)
+	require.Equal(t, struct{}{}, msg)
+
+	_, err = buf.Write([]byte{1})
+	require.NoError(t, err)
+
+	err = protocommon.MessageEncode(&buf, &struct{}{})
+	require.NoError(t, err)
+
+	var msg2 struct{}
+	state, err := tconn.ReadServiceResponse(&msg2)
 	require.NoError(t, err)
 	require.Equal(t, true, state)
 	require.Equal(t, struct{}{}, msg)
@@ -109,6 +86,11 @@ func TestConn(t *testing.T) {
 	// provider return with false state
 	err = tconn.WriteServiceResponse(false, nil)
 	require.NoError(t, err)
+
+	// provider return a false state
+	_, err = io.ReadFull(&buf, byt)
+	require.NoError(t, err)
+	require.Equal(t, uint8(0), byt[0])
 }
 
 func TestConnErrors(t *testing.T) {
@@ -137,9 +119,8 @@ func TestConnErrors(t *testing.T) {
 
 			conn, err := net.Dial("tcp", "localhost:9907")
 			require.NoError(t, err)
-
-			tconn := newConn(conn)
-			tconn.Close()
+			tconn := NewConn(conn)
+			conn.Close()
 
 			switch ca {
 			case "invalid_header":

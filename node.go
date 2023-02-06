@@ -28,6 +28,11 @@ import (
 	"github.com/aler9/goroslib/pkg/protoudp"
 )
 
+const (
+	readTimeout  = 5 * time.Second
+	writeTimeout = 5 * time.Second
+)
+
 func urlToAddress(in string) (string, error) {
 	u, err := url.Parse(in)
 	if err != nil {
@@ -74,12 +79,14 @@ type getBusInfoSubReq struct {
 }
 
 type tcpConnSubscriberReq struct {
-	conn   *prototcp.Conn
+	nconn  net.Conn
+	tconn  *prototcp.Conn
 	header *prototcp.HeaderSubscriber
 }
 
 type tcpConnServiceClientReq struct {
-	conn   *prototcp.Conn
+	nconn  net.Conn
+	tconn  *prototcp.Conn
 	header *prototcp.HeaderServiceClient
 }
 
@@ -206,9 +213,10 @@ type Node struct {
 	apiMasterClient     *apimaster.Client
 	apiParamClient      *apiparam.Client
 	apiSlaveServer      *apislave.Server
-	tcprosServer        *prototcp.Server
-	udprosServer        *protoudp.Server
-	tcprosConns         map[*prototcp.Conn]struct{}
+	tcprosListener      net.Listener
+	udprosListener      net.PacketConn
+	udprosConn          *protoudp.Conn
+	tcprosConns         map[net.Conn]struct{}
 	udprosSubPublishers map[*subscriberPublisher]struct{}
 	subscribers         map[string]*Subscriber
 	publishers          map[string]*Publisher
@@ -225,8 +233,8 @@ type Node struct {
 	// in
 	getPublications        chan getPublicationsReq
 	getBusInfo             chan getBusInfoReq
-	tcpConnNew             chan *prototcp.Conn
-	tcpConnClose           chan *prototcp.Conn
+	tcpConnNew             chan net.Conn
+	tcpConnClose           chan net.Conn
 	tcpConnSubscriber      chan tcpConnSubscriberReq
 	tcpConnServiceClient   chan tcpConnServiceClientReq
 	udpSubPublisherNew     chan *subscriberPublisher
@@ -319,7 +327,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 		ctxCancel:              ctxCancel,
 		masterAddr:             masterAddr,
 		nodeAddr:               nodeAddr,
-		tcprosConns:            make(map[*prototcp.Conn]struct{}),
+		tcprosConns:            make(map[net.Conn]struct{}),
 		udprosSubPublishers:    make(map[*subscriberPublisher]struct{}),
 		subscribers:            make(map[string]*Subscriber),
 		publishers:             make(map[string]*Publisher),
@@ -327,8 +335,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 		simtimeValue:           time.Unix(0, 0),
 		getPublications:        make(chan getPublicationsReq),
 		getBusInfo:             make(chan getBusInfoReq),
-		tcpConnNew:             make(chan *prototcp.Conn),
-		tcpConnClose:           make(chan *prototcp.Conn),
+		tcpConnNew:             make(chan net.Conn),
+		tcpConnClose:           make(chan net.Conn),
 		tcpConnSubscriber:      make(chan tcpConnSubscriberReq),
 		tcpConnServiceClient:   make(chan tcpConnServiceClientReq),
 		udpSubPublisherNew:     make(chan *subscriberPublisher),
@@ -357,19 +365,19 @@ func NewNode(conf NodeConf) (*Node, error) {
 		return nil, err
 	}
 
-	n.tcprosServer, err = prototcp.NewServer(nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.TcprosPort), 10),
-		nodeAddr.IP, nodeAddr.Zone)
+	n.tcprosListener, err = net.Listen("tcp", nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.TcprosPort), 10))
 	if err != nil {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
 
-	n.udprosServer, err = protoudp.NewServer(nodeAddr.IP.String() + ":" + strconv.FormatInt(int64(conf.UdprosPort), 10))
+	n.udprosListener, err = net.ListenPacket("udp", nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.UdprosPort), 10))
 	if err != nil {
-		n.tcprosServer.Close()
+		n.tcprosListener.Close()
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
+	n.udprosConn = protoudp.NewConn(n.udprosListener)
 
 	go n.run()
 
@@ -551,6 +559,17 @@ func (n *Node) applyCliRemapping(v string) string {
 	return v
 }
 
+func (n *Node) tcprosURL() string {
+	return (&url.URL{
+		Scheme: "rosrpc",
+		Host: (&net.TCPAddr{
+			IP:   n.nodeAddr.IP,
+			Port: n.tcprosListener.Addr().(*net.TCPAddr).Port,
+			Zone: n.nodeAddr.Zone,
+		}).String(),
+	}).String()
+}
+
 func (n *Node) run() {
 	defer close(n.done)
 
@@ -615,29 +634,26 @@ outer:
 
 		case req := <-n.tcpConnSubscriber:
 			// pass conn ownership to publisher, if exists
-			delete(n.tcprosConns, req.conn)
+			delete(n.tcprosConns, req.nconn)
 
 			pub, ok := n.publishers[req.header.Topic]
 			if !ok {
-				req.conn.Close()
+				req.nconn.Close()
 				continue
 			}
 
 			select {
-			case pub.subscriberTCPNew <- tcpConnSubscriberReq{
-				conn:   req.conn,
-				header: req.header,
-			}:
+			case pub.subscriberTCPNew <- req:
 			case <-pub.ctx.Done():
 			}
 
 		case req := <-n.tcpConnServiceClient:
 			// pass conn ownership to service provider, if exists
-			delete(n.tcprosConns, req.conn)
+			delete(n.tcprosConns, req.nconn)
 
 			sp, ok := n.serviceProviders[req.header.Service]
 			if !ok {
-				req.conn.Close()
+				req.nconn.Close()
 				continue
 			}
 
@@ -757,7 +773,7 @@ outer:
 
 			err := n.apiMasterClient.RegisterService(
 				n.absoluteTopicName(req.sp.conf.Name),
-				n.tcprosServer.URL(),
+				n.tcprosURL(),
 				n.apiSlaveServer.URL())
 			if err != nil {
 				req.res <- err
@@ -775,8 +791,8 @@ outer:
 	n.ctxCancel()
 
 	n.apiSlaveServer.Close()
-	n.tcprosServer.Close()
-	n.udprosServer.Close()
+	n.tcprosListener.Close()
+	n.udprosListener.Close()
 	serversWg.Wait()
 
 	for c := range n.tcprosConns {
