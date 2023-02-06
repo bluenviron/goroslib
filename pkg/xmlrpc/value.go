@@ -36,6 +36,7 @@ func decodeBool(in []byte, val reflect.Value) error {
 	default:
 		return fmt.Errorf("cannot decode a bool into a %T", val.Elem().Interface())
 	}
+
 	return nil
 }
 
@@ -56,6 +57,7 @@ func decodeInt(in []byte, val reflect.Value) error {
 	default:
 		return fmt.Errorf("cannot decode a int into a %T", val.Elem().Interface())
 	}
+
 	return nil
 }
 
@@ -75,6 +77,7 @@ func decodeDouble(in []byte, val reflect.Value) error {
 	default:
 		return fmt.Errorf("cannot decode a double into a %T", val.Elem().Interface())
 	}
+
 	return nil
 }
 
@@ -89,6 +92,7 @@ func decodeString(in []byte, val reflect.Value) error {
 	default:
 		return fmt.Errorf("cannot decode a string into a %T", val.Elem().Interface())
 	}
+
 	return nil
 }
 
@@ -108,6 +112,7 @@ func decodeBase64(in []byte, val reflect.Value) error {
 	default:
 		return fmt.Errorf("cannot decode a base64 into a %T", val.Elem().Interface())
 	}
+
 	return nil
 }
 
@@ -134,10 +139,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 			}
 		}
 
-		err = xmlGetEndElement(dec, true)
-		if err != nil {
-			return err
-		}
+		xmlGetEndElement(dec, true)
 
 	case reflect.Slice:
 		typ := val.Elem().Type().Elem()
