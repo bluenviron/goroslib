@@ -16,9 +16,11 @@ type publisherSubscriber struct {
 	tcpTConn *prototcp.Conn
 	udpAddr  *net.UDPAddr
 
-	ctx          context.Context
-	ctxCancel    func()
-	curMessageID uint8
+	ctx       context.Context
+	ctxCancel func()
+
+	// in
+	writeMessage chan interface{}
 }
 
 func newPublisherSubscriber(
@@ -31,13 +33,14 @@ func newPublisherSubscriber(
 	ctx, ctxCancel := context.WithCancel(pub.ctx)
 
 	ps := &publisherSubscriber{
-		pub:       pub,
-		callerID:  callerID,
-		tcpNConn:  tcpNConn,
-		tcpTConn:  tcpTConn,
-		udpAddr:   udpAddr,
-		ctx:       ctx,
-		ctxCancel: ctxCancel,
+		pub:          pub,
+		callerID:     callerID,
+		tcpNConn:     tcpNConn,
+		tcpTConn:     tcpTConn,
+		udpAddr:      udpAddr,
+		ctx:          ctx,
+		ctxCancel:    ctxCancel,
+		writeMessage: make(chan interface{}),
 	}
 
 	pub.subscribersWg.Add(1)
@@ -90,6 +93,7 @@ func (ps *publisherSubscriber) runTCP() error {
 	ps.tcpNConn.SetReadDeadline(time.Time{})
 
 	readerErr := make(chan error)
+
 	go func() {
 		readerErr <- func() error {
 			buf := make([]byte, 64)
@@ -102,48 +106,67 @@ func (ps *publisherSubscriber) runTCP() error {
 		}()
 	}()
 
+	writerErr := make(chan error)
+	writerClose := make(chan struct{})
+
+	go func() {
+		writerErr <- func() error {
+			for {
+				select {
+				case msg := <-ps.writeMessage:
+					ps.tcpNConn.SetWriteDeadline(time.Now().Add(writeTimeout))
+					err := ps.tcpTConn.WriteMessage(msg)
+					if err != nil {
+						return err
+					}
+
+				case <-writerClose:
+					return fmt.Errorf("terminated")
+				}
+			}
+		}()
+	}()
+
 	select {
 	case err := <-readerErr:
 		ps.tcpNConn.Close()
+		close(writerClose)
+		<-writerErr
+		return err
+
+	case err := <-writerErr:
+		ps.tcpNConn.Close()
+		<-readerErr
 		return err
 
 	case <-ps.ctx.Done():
 		ps.tcpNConn.Close()
 		<-readerErr
+		close(writerClose)
+		<-writerErr
 		return fmt.Errorf("terminated")
 	}
 }
 
 func (ps *publisherSubscriber) runUDP() error {
-	<-ps.ctx.Done()
-	return fmt.Errorf("terminated")
-}
+	curMessageID := uint8(0)
 
-func (ps *publisherSubscriber) writeMessage(msg interface{}) {
-	if ps.tcpNConn != nil {
-		ps.tcpNConn.SetWriteDeadline(time.Now().Add(writeTimeout))
-		err := ps.tcpTConn.WriteMessage(msg)
-		if err != nil {
-			ps.pub.conf.Node.Log(LogLevelError,
-				"publisher '%s' is unable to write to subscriber %s: %s",
-				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
-				ps.subscriberLabel(),
-				err)
-		}
-	} else {
-		ps.curMessageID++
+	for {
+		select {
+		case msg := <-ps.writeMessage:
+			curMessageID++
 
-		err := ps.pub.conf.Node.udprosConn.WriteMessage(
-			ps.pub.id,
-			ps.curMessageID,
-			msg,
-			ps.udpAddr)
-		if err != nil {
-			ps.pub.conf.Node.Log(LogLevelError,
-				"publisher '%s' is unable to write to subscriber %s: %s",
-				ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
-				ps.subscriberLabel(),
-				err)
+			err := ps.pub.conf.Node.udprosConn.WriteMessage(
+				ps.pub.id,
+				curMessageID,
+				msg,
+				ps.udpAddr)
+			if err != nil {
+				return err
+			}
+
+		case <-ps.ctx.Done():
+			return fmt.Errorf("terminated")
 		}
 	}
 }

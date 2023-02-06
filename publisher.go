@@ -331,7 +331,10 @@ outer:
 				p.subscribers[req.header.Callerid] = ps
 
 				if p.conf.Latch && p.lastMessage != nil {
-					ps.writeMessage(p.lastMessage)
+					select {
+					case ps.writeMessage <- p.lastMessage:
+					case <-ps.ctx.Done():
+					}
 				}
 
 				return nil
@@ -360,8 +363,11 @@ outer:
 				p.lastMessage = msg
 			}
 
-			for _, s := range p.subscribers {
-				s.writeMessage(msg)
+			for _, ps := range p.subscribers {
+				select {
+				case ps.writeMessage <- msg:
+				case <-ps.ctx.Done():
+				}
 			}
 
 		case <-p.ctx.Done():
