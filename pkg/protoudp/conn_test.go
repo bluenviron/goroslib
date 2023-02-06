@@ -7,12 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestServer(t *testing.T) {
-	s, err := NewServer("127.0.0.1:9902") // localhost doesn't work with GitHub actions
+func TestConn(t *testing.T) {
+	pc, err := net.ListenPacket("udp", "127.0.0.1:9902") // localhost doesn't work with GitHub actions
 	require.NoError(t, err)
-	defer s.Close()
-
-	require.NotEqual(t, 0, s.Port())
+	defer pc.Close()
+	s := NewConn(pc)
 
 	serverDone := make(chan struct{})
 	defer func() { <-serverDone }()
@@ -37,7 +36,7 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 
-	frames := FramesForPayload(3, 2, []byte{0x01, 0x02, 0x03, 0x04})
+	frames := framesForPayload(3, 2, []byte{0x01, 0x02, 0x03, 0x04})
 	for _, f := range frames {
 		_, err = conn.Write(f.encode())
 		require.NoError(t, err)
@@ -59,18 +58,10 @@ func TestServer(t *testing.T) {
 }
 
 func TestServerError(t *testing.T) {
-	t.Run("double listen", func(t *testing.T) {
-		s1, err := NewServer("127.0.0.1:9902")
-		require.NoError(t, err)
-		defer s1.Close()
-
-		_, err = NewServer("127.0.0.1:9902")
-		require.Error(t, err)
-	})
-
 	t.Run("read error", func(t *testing.T) {
-		s, err := NewServer("127.0.0.1:9902")
+		pc, err := net.ListenPacket("udp", "127.0.0.1:9902")
 		require.NoError(t, err)
+		s := NewConn(pc)
 
 		done := make(chan struct{})
 		go func() {
@@ -79,14 +70,15 @@ func TestServerError(t *testing.T) {
 			require.Error(t, err)
 		}()
 
-		s.Close()
+		pc.Close()
 		<-done
 	})
 
 	t.Run("invalid frame", func(t *testing.T) {
-		s, err := NewServer("127.0.0.1:9902")
+		pc, err := net.ListenPacket("udp", "127.0.0.1:9902")
 		require.NoError(t, err)
-		defer s.Close()
+		defer pc.Close()
+		s := NewConn(pc)
 
 		done := make(chan struct{})
 		go func() {

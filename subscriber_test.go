@@ -37,7 +37,7 @@ type TestMessage struct {
 
 type testPublisher struct {
 	apiSlaveServer *apislave.Server
-	tcprosServer   *prototcp.Server
+	tcprosListener net.Listener
 }
 
 func newTestPublisher(t *testing.T, masterIP string,
@@ -52,22 +52,23 @@ func newTestPublisher(t *testing.T, masterIP string,
 	nodeAddr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(host, "0"))
 	require.NoError(t, err)
 
-	tcprosServer, err := prototcp.NewServer(nodeAddr.IP.String()+":9912", nodeAddr.IP, nodeAddr.Zone)
+	tcprosListener, err := net.Listen("tcp", nodeAddr.IP.String()+":9912")
 	require.NoError(t, err)
 
 	go func() {
-		conn, err := tcprosServer.Accept()
+		nconn, err := tcprosListener.Accept()
 		require.NoError(t, err)
-		defer conn.Close()
+		defer nconn.Close()
+		tconn := prototcp.NewConn(nconn)
 
-		rawHeader, err := conn.ReadHeaderRaw()
+		rawHeader, err := tconn.ReadHeaderRaw()
 		require.NoError(t, err)
 
 		var header prototcp.HeaderSubscriber
 		err = protocommon.HeaderDecode(rawHeader, &header)
 		require.NoError(t, err)
 
-		cb(header, conn)
+		cb(header, tconn)
 	}()
 
 	apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone)
@@ -84,7 +85,7 @@ func newTestPublisher(t *testing.T, masterIP string,
 				Protocol: []interface{}{
 					"TCPROS",
 					nodeAddr.IP.String(),
-					tcprosServer.Port(),
+					9912,
 				},
 			}
 		}
@@ -100,13 +101,13 @@ func newTestPublisher(t *testing.T, masterIP string,
 
 	return &testPublisher{
 		apiSlaveServer: apiSlaveServer,
-		tcprosServer:   tcprosServer,
+		tcprosListener: tcprosListener,
 	}
 }
 
 func (tp *testPublisher) close() {
 	tp.apiSlaveServer.Close()
-	tp.tcprosServer.Close()
+	tp.tcprosListener.Close()
 }
 
 func TestSubscriberOpen(t *testing.T) {
@@ -429,9 +430,10 @@ func TestSubscriberReadUDP(t *testing.T) {
 				nodeAddr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(host, "0"))
 				require.NoError(t, err)
 
-				udprosServer, err := protoudp.NewServer(nodeAddr.IP.String() + ":9912")
+				udprosListener, err := net.ListenPacket("udp", nodeAddr.IP.String()+":9912")
 				require.NoError(t, err)
-				defer udprosServer.Close()
+				defer udprosListener.Close()
+				uconn := protoudp.NewConn(udprosListener)
 
 				apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone)
 				require.NoError(t, err)
@@ -454,7 +456,7 @@ func TestSubscriberReadUDP(t *testing.T) {
 
 						go func() {
 							time.Sleep(1 * time.Second)
-							udprosServer.WriteMessage(1, 1, &expected, udpAddr)
+							uconn.WriteMessage(1, 1, &expected, udpAddr)
 						}()
 
 						return apislave.ResponseRequestTopic{
@@ -462,7 +464,7 @@ func TestSubscriberReadUDP(t *testing.T) {
 							Protocol: []interface{}{
 								"UDPROS",
 								nodeAddr.IP.String(),
-								udprosServer.Port(),
+								udprosListener.LocalAddr().(*net.UDPAddr).Port,
 								1,
 								1500,
 								func() []byte {

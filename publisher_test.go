@@ -186,15 +186,16 @@ func TestPublisherWrite(t *testing.T) {
 				addr = net.JoinHostPort(proto[1].(string),
 					strconv.FormatInt(int64(proto[2].(int)), 10))
 
-				conn, err := prototcp.NewClient(addr)
+				nconn, err := net.Dial("tcp", addr)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer nconn.Close()
+				tconn := prototcp.NewConn(nconn)
 
 				msgMd5, err := msgproc.MD5(TestMessage{})
 				require.NoError(t, err)
 
 				go func() {
-					err := conn.WriteHeader(&prototcp.HeaderSubscriber{
+					err := tconn.WriteHeader(&prototcp.HeaderSubscriber{
 						Callerid:   ns.absoluteName(),
 						Md5sum:     msgMd5,
 						Topic:      ns.absoluteTopicName("test_topic"),
@@ -203,7 +204,7 @@ func TestPublisherWrite(t *testing.T) {
 					})
 					require.NoError(t, err)
 
-					raw, err := conn.ReadHeaderRaw()
+					raw, err := tconn.ReadHeaderRaw()
 					require.NoError(t, err)
 
 					var outHeader prototcp.HeaderPublisher
@@ -214,7 +215,7 @@ func TestPublisherWrite(t *testing.T) {
 					require.Equal(t, msgMd5, outHeader.Md5sum)
 
 					var msg TestMessage
-					err = conn.ReadMessage(&msg, true)
+					err = tconn.ReadMessage(&msg)
 					require.NoError(t, err)
 					recv <- &msg
 				}()
@@ -328,15 +329,16 @@ func TestPublisherWriteLatch(t *testing.T) {
 				addr = net.JoinHostPort(proto[1].(string),
 					strconv.FormatInt(int64(proto[2].(int)), 10))
 
-				conn, err := prototcp.NewClient(addr)
+				nconn, err := net.Dial("tcp", addr)
 				require.NoError(t, err)
-				defer conn.Close()
+				defer nconn.Close()
+				tconn := prototcp.NewConn(nconn)
 
 				msgMd5, err := msgproc.MD5(TestMessage{})
 				require.NoError(t, err)
 
 				go func() {
-					err := conn.WriteHeader(&prototcp.HeaderSubscriber{
+					err := tconn.WriteHeader(&prototcp.HeaderSubscriber{
 						Callerid:   ns.absoluteName(),
 						Md5sum:     msgMd5,
 						Topic:      ns.absoluteTopicName("test_topic"),
@@ -345,7 +347,7 @@ func TestPublisherWriteLatch(t *testing.T) {
 					})
 					require.NoError(t, err)
 
-					raw, err := conn.ReadHeaderRaw()
+					raw, err := tconn.ReadHeaderRaw()
 					require.NoError(t, err)
 
 					var outHeader prototcp.HeaderPublisher
@@ -356,7 +358,7 @@ func TestPublisherWriteLatch(t *testing.T) {
 					require.Equal(t, msgMd5, outHeader.Md5sum)
 
 					var msg TestMessage
-					err = conn.ReadMessage(&msg, true)
+					err = tconn.ReadMessage(&msg)
 					require.NoError(t, err)
 					recv <- &msg
 				}()
@@ -433,8 +435,9 @@ func TestPublisherWriteUDP(t *testing.T) {
 				msgMd5, err := msgproc.MD5(std_msgs.Int64MultiArray{})
 				require.NoError(t, err)
 
-				udprosServer, err := protoudp.NewServer(ns.nodeAddr.IP.String() + ":3334")
+				udprosListener, err := net.ListenPacket("udp", ns.nodeAddr.IP.String()+":3334")
 				require.NoError(t, err)
+				uconn := protoudp.NewConn(udprosListener)
 
 				proto, err := xcs.RequestTopic(
 					ns.absoluteTopicName("test_topic"),
@@ -451,7 +454,7 @@ func TestPublisherWriteUDP(t *testing.T) {
 							return buf.Bytes()[4:]
 						}(),
 						n.nodeAddr.IP.String(),
-						udprosServer.Port(),
+						udprosListener.LocalAddr().(*net.UDPAddr).Port,
 						1500,
 					}})
 				require.NoError(t, err)
@@ -460,17 +463,17 @@ func TestPublisherWriteUDP(t *testing.T) {
 				go func() {
 					var buf []byte
 
-					frame, _, err := udprosServer.ReadFrame()
+					frame, _, err := uconn.ReadFrame()
 					require.NoError(t, err)
 					require.Equal(t, protoudp.Data0, frame.Opcode)
 					buf = append(buf, frame.Payload...)
 
-					frame, _, err = udprosServer.ReadFrame()
+					frame, _, err = uconn.ReadFrame()
 					require.NoError(t, err)
 					require.Equal(t, protoudp.DataN, frame.Opcode)
 					buf = append(buf, frame.Payload...)
 
-					frame, _, err = udprosServer.ReadFrame()
+					frame, _, err = uconn.ReadFrame()
 					require.NoError(t, err)
 					require.Equal(t, protoudp.DataN, frame.Opcode)
 					buf = append(buf, frame.Payload...)
@@ -614,14 +617,14 @@ func TestPublisherAcceptErrors(t *testing.T) {
 		addr = net.JoinHostPort(proto[1].(string),
 			strconv.FormatInt(int64(proto[2].(int)), 10))
 
-		conn, err := prototcp.NewClient(addr)
+		nconn, err := net.Dial("tcp", addr)
 		require.NoError(t, err)
-		defer conn.Close()
+		defer nconn.Close()
 
-		conn.NetConn().Write([]byte{0x01})
+		nconn.Write([]byte{0x01})
 
 		buf := make([]byte, 1024)
-		_, err = conn.NetConn().Read(buf)
+		_, err = nconn.Read(buf)
 		require.Error(t, err)
 	})
 
@@ -672,18 +675,19 @@ func TestPublisherAcceptErrors(t *testing.T) {
 		addr = net.JoinHostPort(proto[1].(string),
 			strconv.FormatInt(int64(proto[2].(int)), 10))
 
-		conn, err := prototcp.NewClient(addr)
+		nconn, err := net.Dial("tcp", addr)
 		require.NoError(t, err)
-		defer conn.Close()
+		defer nconn.Close()
+		tconn := prototcp.NewConn(nconn)
 
 		type HeaderInvalid struct {
 			Topic string
 		}
 
-		conn.WriteHeader(&HeaderInvalid{Topic: "invalid"})
+		tconn.WriteHeader(&HeaderInvalid{Topic: "invalid"})
 
 		buf := make([]byte, 1024)
-		_, err = conn.NetConn().Read(buf)
+		_, err = nconn.Read(buf)
 		require.Error(t, err)
 	})
 }

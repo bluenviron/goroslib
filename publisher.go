@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/apislave"
 	"github.com/aler9/goroslib/pkg/msgproc"
@@ -182,7 +183,7 @@ outer:
 						Protocol: []interface{}{
 							"TCPROS",
 							p.conf.Node.nodeAddr.IP.String(),
-							p.conf.Node.tcprosServer.Port(),
+							p.conf.Node.tcprosListener.Addr().(*net.TCPAddr).Port,
 						},
 					}
 					return nil
@@ -245,7 +246,7 @@ outer:
 					}
 
 					ps := newPublisherSubscriber(p,
-						header.Callerid, nil, udpAddr)
+						header.Callerid, nil, nil, udpAddr)
 					p.subscribers[header.Callerid] = ps
 
 					req.res <- apislave.ResponseRequestTopic{
@@ -253,7 +254,7 @@ outer:
 						Protocol: []interface{}{
 							"UDPROS",
 							p.conf.Node.nodeAddr.IP.String(),
-							p.conf.Node.udprosServer.Port(),
+							p.conf.Node.udprosListener.LocalAddr().(*net.UDPAddr).Port,
 							p.id,
 							1500,
 							func() []byte {
@@ -302,7 +303,8 @@ outer:
 						p.msgMd5, req.header.Md5sum)
 				}
 
-				err := req.conn.WriteHeader(&prototcp.HeaderPublisher{
+				req.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+				err := req.tconn.WriteHeader(&prototcp.HeaderPublisher{
 					Callerid: p.conf.Node.absoluteName(),
 					Md5sum:   p.msgMd5,
 					Topic:    p.conf.Node.absoluteTopicName(p.conf.Topic),
@@ -316,16 +318,16 @@ outer:
 					MessageDefinition: p.msgDef,
 				})
 				if err != nil {
-					req.conn.Close()
+					req.nconn.Close()
 					return nil
 				}
 
 				if req.header.TcpNodelay == 0 {
-					req.conn.NetConn().(*net.TCPConn).SetNoDelay(false)
+					req.nconn.(*net.TCPConn).SetNoDelay(false)
 				}
 
 				ps := newPublisherSubscriber(p,
-					req.header.Callerid, req.conn, nil)
+					req.header.Callerid, req.nconn, req.tconn, nil)
 				p.subscribers[req.header.Callerid] = ps
 
 				if p.conf.Latch && p.lastMessage != nil {
@@ -338,13 +340,15 @@ outer:
 				p.conf.Node.Log(LogLevelError,
 					"publisher '%s' is unable to accept TCP subscriber '%s': %s",
 					p.conf.Node.absoluteTopicName(p.conf.Topic),
-					req.conn.NetConn().RemoteAddr(),
+					req.nconn.RemoteAddr(),
 					err)
 
-				req.conn.WriteHeader(&prototcp.HeaderError{
+				req.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+				req.tconn.WriteHeader(&prototcp.HeaderError{
 					Error: err.Error(),
 				})
-				req.conn.Close()
+
+				req.nconn.Close()
 				continue
 			}
 

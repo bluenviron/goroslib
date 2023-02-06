@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/serviceproc"
@@ -185,7 +186,8 @@ outer:
 						sp.srvMD5, req.header.Md5sum)
 				}
 
-				return req.conn.WriteHeader(&prototcp.HeaderServiceProvider{
+				req.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+				return req.tconn.WriteHeader(&prototcp.HeaderServiceProvider{
 					Callerid:     sp.conf.Node.absoluteName(),
 					Md5sum:       sp.srvMD5,
 					RequestType:  sp.srvType + "Request",
@@ -197,13 +199,13 @@ outer:
 				sp.conf.Node.Log(LogLevelError,
 					"service provider '%s' is unable to accept client '%s': %s",
 					sp.conf.Node.absoluteTopicName(sp.conf.Name),
-					req.conn.NetConn().RemoteAddr(),
+					req.nconn.RemoteAddr(),
 					err)
-				req.conn.Close()
+				req.nconn.Close()
 				continue
 			}
 
-			spc := newServiceProviderClient(sp, req.header.Callerid, req.conn)
+			spc := newServiceProviderClient(sp, req.header.Callerid, req.nconn, req.tconn)
 			sp.clients[spc] = struct{}{}
 
 		case spc := <-sp.clientClose:
@@ -215,12 +217,13 @@ outer:
 			state := res[1].Interface().(bool)
 			msg := res[0].Interface()
 
-			err := req.spc.conn.WriteServiceResponse(state, msg)
+			req.spc.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+			err := req.spc.tconn.WriteServiceResponse(state, msg)
 			if err != nil {
 				sp.conf.Node.Log(LogLevelError,
 					"service provider '%s' is unable to write to client '%s': %s",
 					sp.conf.Node.absoluteTopicName(sp.conf.Name),
-					req.spc.conn.NetConn().RemoteAddr(),
+					req.spc.nconn.RemoteAddr(),
 					err)
 				continue
 			}
@@ -234,7 +237,7 @@ outer:
 
 	sp.conf.Node.apiMasterClient.UnregisterService(
 		sp.conf.Node.absoluteTopicName(sp.conf.Name),
-		sp.conf.Node.tcprosServer.URL())
+		sp.conf.Node.tcprosURL())
 
 	sp.clientsWg.Wait()
 

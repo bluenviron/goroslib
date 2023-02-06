@@ -8,7 +8,7 @@ import (
 )
 
 func TestFramesForPayload(t *testing.T) {
-	frames := FramesForPayload(3, 2, []byte{0x01, 0x02, 0x03, 0x04})
+	frames := framesForPayload(3, 2, []byte{0x01, 0x02, 0x03, 0x04})
 	require.Equal(t, []*Frame{
 		{
 			ConnectionID: 3,
@@ -18,7 +18,7 @@ func TestFramesForPayload(t *testing.T) {
 		},
 	}, frames)
 
-	frames = FramesForPayload(2, 1, bytes.Repeat([]byte{0x01}, 1492))
+	frames = framesForPayload(2, 1, bytes.Repeat([]byte{0x01}, 1492))
 	require.Equal(t, []*Frame{
 		{
 			ConnectionID: 2,
@@ -28,7 +28,7 @@ func TestFramesForPayload(t *testing.T) {
 		},
 	}, frames)
 
-	frames = FramesForPayload(3, 2, bytes.Repeat([]byte{0x01, 0x02, 0x03, 0x04}, 500))
+	frames = framesForPayload(3, 2, bytes.Repeat([]byte{0x01, 0x02, 0x03, 0x04}, 500))
 	require.Equal(t, []*Frame{
 		{
 			ConnectionID: 3,

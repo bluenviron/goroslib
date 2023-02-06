@@ -55,8 +55,7 @@ func (f *Frame) encode() []byte {
 	return byts
 }
 
-// FramesForPayload generates frames for the given payload.
-func FramesForPayload(connID uint32, messageID uint8, payload []byte) []*Frame {
+func framesForPayload(connID uint32, messageID uint8, payload []byte) []*Frame {
 	var ret []*Frame
 	payloadSize := len(payload)
 

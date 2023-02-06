@@ -1,7 +1,9 @@
 package goroslib
 
 import (
+	"net"
 	"sync"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/protocommon"
 	"github.com/aler9/goroslib/pkg/prototcp"
@@ -11,7 +13,7 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
-		conn, err := n.tcprosServer.Accept()
+		conn, err := n.tcprosListener.Accept()
 		if err != nil {
 			break
 		}
@@ -24,11 +26,14 @@ func (n *Node) runTcprosServer(wg *sync.WaitGroup) {
 	}
 }
 
-func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
+func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, nconn net.Conn) {
 	defer wg.Done()
 
 	ok := func() bool {
-		rawHeader, err := conn.ReadHeaderRaw()
+		tconn := prototcp.NewConn(nconn)
+
+		nconn.SetReadDeadline(time.Now().Add(readTimeout))
+		rawHeader, err := tconn.ReadHeaderRaw()
 		if err != nil {
 			return false
 		}
@@ -42,7 +47,8 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 
 			select {
 			case n.tcpConnSubscriber <- tcpConnSubscriberReq{
-				conn:   conn,
+				nconn:  nconn,
+				tconn:  tconn,
 				header: &header,
 			}:
 			case <-n.ctx.Done():
@@ -57,7 +63,8 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 
 			select {
 			case n.tcpConnServiceClient <- tcpConnServiceClientReq{
-				conn:   conn,
+				nconn:  nconn,
+				tconn:  tconn,
 				header: &header,
 			}:
 			case <-n.ctx.Done():
@@ -68,10 +75,10 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, conn *prototcp.Conn) {
 		return false
 	}()
 	if !ok {
-		conn.Close()
+		nconn.Close()
 
 		select {
-		case n.tcpConnClose <- conn:
+		case n.tcpConnClose <- nconn:
 		case <-n.ctx.Done():
 		}
 	}

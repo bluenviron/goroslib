@@ -2,7 +2,9 @@ package goroslib
 
 import (
 	"context"
+	"net"
 	"reflect"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/prototcp"
 )
@@ -10,7 +12,8 @@ import (
 type serviceProviderClient struct {
 	sp       *ServiceProvider
 	callerID string
-	conn     *prototcp.Conn
+	nconn    net.Conn
+	tconn    *prototcp.Conn
 
 	ctx       context.Context
 	ctxCancel func()
@@ -19,14 +22,16 @@ type serviceProviderClient struct {
 func newServiceProviderClient(
 	sp *ServiceProvider,
 	callerID string,
-	conn *prototcp.Conn,
+	nconn net.Conn,
+	tconn *prototcp.Conn,
 ) *serviceProviderClient {
 	ctx, ctxCancel := context.WithCancel(sp.ctx)
 
 	spc := &serviceProviderClient{
 		sp:        sp,
 		callerID:  callerID,
-		conn:      conn,
+		nconn:     nconn,
+		tconn:     tconn,
 		ctx:       ctx,
 		ctxCancel: ctxCancel,
 	}
@@ -47,9 +52,11 @@ func (spc *serviceProviderClient) run() {
 	readErr := make(chan error)
 	go func() {
 		readErr <- func() error {
+			spc.nconn.SetReadDeadline(time.Time{})
+
 			for {
 				req := reflect.New(reflect.TypeOf(spc.sp.srvReq)).Interface()
-				err := spc.conn.ReadMessage(req, false)
+				err := spc.tconn.ReadMessage(req)
 				if err != nil {
 					return err
 				}
@@ -68,10 +75,10 @@ func (spc *serviceProviderClient) run() {
 
 	select {
 	case <-readErr:
-		spc.conn.Close()
+		spc.nconn.Close()
 
 	case <-spc.ctx.Done():
-		spc.conn.Close()
+		spc.nconn.Close()
 		<-readErr
 	}
 
