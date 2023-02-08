@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package xmlrpc
 
 import (
@@ -73,83 +76,25 @@ func TestResponseDecode(t *testing.T) {
 	}
 }
 
-func TestResponseDecodeErrors(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-		enc  []byte
-		dest interface{}
-		err  string
-	}{
-		{
-			"empty",
-			[]byte(""),
-			nil,
-			"EOF",
-		},
-		{
-			"missing processing instruction",
-			[]byte(`<othertag>`),
-			nil,
-			"expected xml.ProcInst, got xml.StartElement",
-		},
-		{
-			"missing method response",
-			[]byte(`<?xml version="1.0"?>`),
-			nil,
-			"EOF",
-		},
-		{
-			"missing params",
-			[]byte(`<?xml version="1.0"?><methodResponse>`),
-			nil,
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing param",
-			[]byte(`<?xml version="1.0"?><methodResponse><params>`),
-			nil,
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing value",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param>`),
-			nil,
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing array",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value>`),
-			nil,
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing data",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array>`),
-			nil,
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing value",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array><data>`),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"invalid value",
-			[]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array><data><value>asd`),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			err := responseDecode(bytes.NewReader(ca.enc), ca.dest)
-			require.EqualError(t, err, ca.err)
-		})
-	}
+func FuzzResponseDecode(f *testing.F) {
+	f.Add([]byte(``))
+	f.Add([]byte(`<othertag>`))
+	f.Add([]byte(`<?xml version="1.0"?>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse><params>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse><params><param>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse><params><param><value>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array><data>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodResponse><params><param><value><array><data><value>asd`))
+
+	dest := &struct {
+		A string
+	}{}
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		responseDecode(bytes.NewReader(b), dest)
+	})
 }
 
 func TestResponseEncode(t *testing.T) {

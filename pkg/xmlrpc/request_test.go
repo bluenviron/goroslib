@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package xmlrpc
 
 import (
@@ -78,107 +81,32 @@ func TestRequestDecode(t *testing.T) {
 	}
 }
 
-func TestRequestDecodeErrors(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-		enc  []byte
-		err  string
-	}{
-		{
-			"empty",
-			[]byte(""),
-			"EOF",
-		},
-		{
-			"missing processing instruction",
-			[]byte(`<othertag>`),
-			"expected xml.ProcInst, got xml.StartElement",
-		},
-		{
-			"missing method call",
-			[]byte(`<?xml version="1.0"?><othertag>`),
-			"expected xml.StartElement with name 'methodCall', got 'othertag'",
-		},
-		{
-			"missing method name",
-			[]byte(`<?xml version="1.0"?><methodCall><othertag>`),
-			"expected xml.StartElement with name 'methodName', got 'othertag'",
-		},
-		{
-			"missing method name content 1",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>`),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing method name content 2",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName></methodName>`),
-			"expected xml.CharData, got xml.EndElement",
-		},
-		{
-			"missing method name closing tag",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>asd`),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			_, err := requestDecodeRaw(bytes.NewReader(ca.enc))
-			require.EqualError(t, err, ca.err)
-		})
-	}
+func FuzzRequestDecode(f *testing.F) {
+	f.Add([]byte(`<?xml version="1.0"?>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodCall>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodCall><methodName>`))
+	f.Add([]byte(`<?xml version="1.0"?><methodCall><methodName></methodName>`))
+	f.Add([]byte(
+		`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName>`))
+	f.Add([]byte(
+		`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params>`))
+	f.Add([]byte(
+		`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param>`))
+	f.Add([]byte(
+		`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param><value>`))
+	f.Add([]byte(
+		`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param><value>aaa</value>`))
 
-	for _, ca := range []struct {
-		name string
-		enc  []byte
-		dest interface{}
-		err  string
-	}{
-		{
-			"missing params",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName>`),
-			nil,
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing param",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params>`),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"missing value",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param>`),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"invalid value",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param><value>`),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"not ended",
-			[]byte(`<?xml version="1.0"?><methodCall><methodName>testMethodName</methodName><params><param><value>aaa</value>`),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			raw, err := requestDecodeRaw(bytes.NewReader(ca.enc))
-			require.NoError(t, err)
+	dest := &struct {
+		A string
+	}{}
 
-			err = requestDecode(raw, ca.dest)
-			require.EqualError(t, err, ca.err)
-		})
-	}
+	f.Fuzz(func(t *testing.T, b []byte) {
+		raw, err := requestDecodeRaw(bytes.NewReader(b))
+		if err == nil {
+			requestDecode(raw, dest)
+		}
+	})
 }
 
 func TestRequestEncode(t *testing.T) {

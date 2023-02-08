@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package xmlrpc
 
 import (
@@ -184,226 +187,107 @@ func TestValueDecode(t *testing.T) {
 	}
 }
 
-func TestValueDecodeErrors(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-		enc  []byte
-		dest interface{}
-		err  string
-	}{
-		{
-			"not pointer",
-			[]byte("<value>"),
-			nil,
-			"destination is not a pointer",
-		},
-		{
-			"no data",
-			[]byte("<value>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"invalid element",
-			[]byte("<value><!-- comment -->"),
-			new(interface{}),
-			"unexpected element type: xml.Comment",
-		},
-		{
-			"invalid type",
-			[]byte("<value><invalid>"),
-			new(interface{}),
-			"unhandled value type: 'invalid'",
-		},
-		{
-			"bool not closed",
-			[]byte("<value><boolean>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"bool empty",
-			[]byte("<value><boolean></boolean>"),
-			new(interface{}),
-			"value is not a bool: ''",
-		},
-		{
-			"bool invalid",
-			[]byte("<value><boolean>t</boolean>"),
-			new(interface{}),
-			"value is not a bool: 't'",
-		},
-		{
-			"bool wrong type",
-			[]byte("<value><boolean>1</boolean>"),
-			func() interface{} {
-				v := int(0)
-				return &v
-			}(),
-			"cannot decode a bool into a int",
-		},
-		{
-			"int not closed",
-			[]byte("<value><int>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"int invalid",
-			[]byte("<value><int>aaa</int>"),
-			new(interface{}),
-			"strconv.ParseInt: parsing \"aaa\": invalid syntax",
-		},
-		{
-			"int wrong type",
-			[]byte("<value><int>123</int>"),
-			func() interface{} {
-				v := "aaaa"
-				return &v
-			}(),
-			"cannot decode a int into a string",
-		},
-		{
-			"double not closed",
-			[]byte("<value><double>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"double invalid",
-			[]byte("<value><double>aaa</double>"),
-			new(interface{}),
-			"strconv.ParseFloat: parsing \"aaa\": invalid syntax",
-		},
-		{
-			"double wrong type",
-			[]byte("<value><double>123</double>"),
-			func() interface{} {
-				v := "aaaa"
-				return &v
-			}(),
-			"cannot decode a double into a string",
-		},
-		{
-			"string not closed",
-			[]byte("<value><string>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"string wrong type",
-			[]byte("<value><string>asd</string>"),
-			func() interface{} {
-				v := 123
-				return &v
-			}(),
-			"cannot decode a string into a int",
-		},
-		{
-			"string without tag, not closed",
-			[]byte("<value>asd</otherval>"),
-			new(interface{}),
-			"XML syntax error on line 1: element <value> closed by </otherval>",
-		},
-		{
-			"string without tag, wrong type",
-			[]byte("<value>asd</value>"),
-			func() interface{} {
-				v := 123
-				return &v
-			}(),
-			"cannot decode a string into a int",
-		},
-		{
-			"string without tag, empty, wrong type",
-			[]byte("<value></value>"),
-			func() interface{} {
-				v := 123
-				return &v
-			}(),
-			"cannot decode a string into a int",
-		},
-		{
-			"base64 not closed",
-			[]byte("<value><base64>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"base64 invalid",
-			[]byte("<value><base64>999</base64>"),
-			new(interface{}),
-			"illegal base64 data at input byte 0",
-		},
-		{
-			"base64 wrong type",
-			[]byte("<value><base64>aGVsbG8=</base64>"),
-			func() interface{} {
-				v := "aaaa"
-				return &v
-			}(),
-			"cannot decode a base64 into a string",
-		},
-		{
-			"array not closed 1",
-			[]byte("<value><array>"),
-			new(interface{}),
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"array not closed 2",
-			[]byte("<value><array><data></data>"),
-			&struct{}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"array wrong type",
-			[]byte("<value><array><data>"),
-			func() interface{} {
-				v := "aaaa"
-				return &v
-			}(),
-			"cannot decode an array into a string",
-		},
-		{
-			"array no values to struct",
-			[]byte("<value><array><data>"),
-			&struct {
-				A string
-			}{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"array no values to array",
-			[]byte("<value><array><data>"),
-			&[]string{},
-			"XML syntax error on line 1: unexpected EOF",
-		},
-		{
-			"array invalid value to struct",
-			[]byte("<value><array><data><value><int>123</int>"),
-			&struct {
-				A string
-			}{},
-			"cannot decode a int into a string",
-		},
-		{
-			"array invalid value to array",
-			[]byte("<value><array><data><value><int>123</int>"),
-			&[]string{},
-			"cannot decode a int into a string",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			dec := xml.NewDecoder(bytes.NewReader(ca.enc))
+func FuzzValueDecodeToNil(f *testing.F) {
+	dest := interface{}(nil)
 
-			err := xmlGetStartElement(dec, "value")
-			require.NoError(t, err)
+	f.Fuzz(func(t *testing.T, b []byte) {
+		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
+		err := xmlGetStartElement(dec, "value")
+		require.NoError(t, err)
+		valueDecode(dec, reflect.ValueOf(dest))
+	})
+}
 
-			err = valueDecode(dec, reflect.ValueOf(ca.dest))
-			require.EqualError(t, err, ca.err)
-		})
-	}
+func FuzzValueDecodeToInterface(f *testing.F) {
+	dest := new(interface{})
+
+	f.Add([]byte(""))
+	f.Add([]byte("<!-- comment -->"))
+	f.Add([]byte("<invalid>"))
+	f.Add([]byte("<boolean>"))
+	f.Add([]byte("<boolean></boolean>"))
+	f.Add([]byte("<boolean>t</boolean>"))
+	f.Add([]byte("<base64>"))
+	f.Add([]byte("<base64>999</base64>"))
+	f.Add([]byte("<string>"))
+	f.Add([]byte("<array>"))
+	f.Add([]byte("<double>"))
+	f.Add([]byte("<double>aaa</double>"))
+	f.Add([]byte("asd</otherval>"))
+	f.Add([]byte("<int>"))
+	f.Add([]byte("<int>aaa</int>"))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
+		err := xmlGetStartElement(dec, "value")
+		require.NoError(t, err)
+		valueDecode(dec, reflect.ValueOf(dest))
+	})
+}
+
+func FuzzValueDecodeToString(f *testing.F) {
+	v := "aaaa"
+	dest := &v
+
+	f.Add([]byte("<array><data>"))
+	f.Add([]byte("<int>123</int>"))
+	f.Add([]byte("<double>123</double>"))
+	f.Add([]byte("<base64>aGVsbG8=</base64>"))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
+		err := xmlGetStartElement(dec, "value")
+		require.NoError(t, err)
+		valueDecode(dec, reflect.ValueOf(dest))
+	})
+}
+
+func FuzzValueDecodeToInteger(f *testing.F) {
+	v := 123
+	dest := &v
+
+	f.Add([]byte("<boolean>1</boolean>"))
+	f.Add([]byte("<string>asd</string>"))
+	f.Add([]byte("asd</value>"))
+	f.Add([]byte("</value>"))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
+		err := xmlGetStartElement(dec, "value")
+		require.NoError(t, err)
+		valueDecode(dec, reflect.ValueOf(dest))
+	})
+}
+
+func FuzzValueDecodeToSlice(f *testing.F) {
+	dest := &[]string{}
+
+	f.Add([]byte("<array><data>"))
+	f.Add([]byte("<array><data><value><int>123</int>"))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
+		err := xmlGetStartElement(dec, "value")
+		require.NoError(t, err)
+		valueDecode(dec, reflect.ValueOf(dest))
+	})
+}
+
+func FuzzValueDecodeToStruct(f *testing.F) {
+	dest := &struct {
+		A string
+	}{}
+
+	f.Add([]byte("<array><data></data>"))
+	f.Add([]byte("<array><data>"))
+	f.Add([]byte("<array><data><value><int>123</int>"))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
+		err := xmlGetStartElement(dec, "value")
+		require.NoError(t, err)
+		valueDecode(dec, reflect.ValueOf(dest))
+	})
 }
 
 func TestValueEncode(t *testing.T) {

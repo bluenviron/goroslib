@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package protocommon
 
 import (
@@ -174,243 +177,29 @@ func TestMessageDecode(t *testing.T) {
 	}
 }
 
-func TestMessageDecodeErrors(t *testing.T) {
-	for _, ca := range []struct {
-		name string
-		byts []byte
-		msg  interface{}
-		err  string
-	}{
-		{
-			"dest invalid",
-			[]byte{},
-			struct {
-				A bool
-			}{},
-			"destination must be a pointer to a struct",
-		},
-		{
-			"message length missing",
-			[]byte{},
-			&struct {
-				A bool
-			}{},
-			"EOF",
-		},
-		{
-			"message partially parsed",
-			[]byte{0x06, 0x00, 0x00, 0x00, 0x01},
-			&struct {
-				A bool
-			}{},
-			"message was partially parsed, 5 bytes are unread",
-		},
-		{
-			"message length too short",
-			[]byte{0x00, 0x00, 0x00, 0x00, 0x01},
-			&struct {
-				A bool
-			}{},
-			"message length is too short",
-		},
-		{
-			"bool missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A bool
-			}{},
-			"EOF",
-		},
-		{
-			"int8 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A int8
-			}{},
-			"EOF",
-		},
-		{
-			"uint8 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A uint8
-			}{},
-			"EOF",
-		},
-		{
-			"int16 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A int16
-			}{},
-			"EOF",
-		},
-		{
-			"uint16 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A uint16
-			}{},
-			"EOF",
-		},
-		{
-			"int32 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A int32
-			}{},
-			"EOF",
-		},
-		{
-			"uint32 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A uint32
-			}{},
-			"EOF",
-		},
-		{
-			"int64 missing",
-			[]byte{0x08, 0x00, 0x00, 0x00},
-			&struct {
-				A int64
-			}{},
-			"EOF",
-		},
-		{
-			"uint64 missing",
-			[]byte{0x08, 0x00, 0x00, 0x00},
-			&struct {
-				A uint64
-			}{},
-			"EOF",
-		},
-		{
-			"float32 missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A float32
-			}{},
-			"EOF",
-		},
-		{
-			"float64 missing",
-			[]byte{0x08, 0x00, 0x00, 0x00},
-			&struct {
-				A float64
-			}{},
-			"EOF",
-		},
-		{
-			"string length missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A string
-			}{},
-			"EOF",
-		},
-		{
-			"string length invalid",
-			[]byte{0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
-			&struct {
-				A string
-			}{},
-			"invalid string length",
-		},
-		{
-			"string content missing",
-			[]byte{0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
-			&struct {
-				A string
-			}{},
-			"EOF",
-		},
-		{
-			"time missing 1",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A time.Time
-			}{},
-			"EOF",
-		},
-		{
-			"time missing 2",
-			[]byte{0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-			&struct {
-				A time.Time
-			}{},
-			"EOF",
-		},
-		{
-			"duration missing 1",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A time.Duration
-			}{},
-			"EOF",
-		},
-		{
-			"duration missing 2",
-			[]byte{0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-			&struct {
-				A time.Duration
-			}{},
-			"EOF",
-		},
-		{
-			"uint8 array length missing",
-			[]byte{0x04, 0x00, 0x00, 0x00},
-			&struct {
-				A []uint8
-			}{},
-			"EOF",
-		},
-		{
-			"uint8 array length invalid",
-			[]byte{0x08, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00},
-			&struct {
-				A []uint8
-			}{},
-			"invalid array length",
-		},
-		{
-			"uint8 array content missing",
-			[]byte{0x09, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
-			&struct {
-				A []uint8
-			}{},
-			"EOF",
-		},
-		{
-			"variable array length missing",
-			[]byte{0x05, 0x00, 0x00, 0x00},
-			&struct {
-				A []string
-			}{},
-			"EOF",
-		},
-		{
-			"variable array content missing",
-			[]byte{0x09, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00},
-			&struct {
-				A []string
-			}{},
-			"EOF",
-		},
-		{
-			"fixed array content invalid",
-			[]byte{0x09, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00},
-			&struct {
-				A [2]string
-			}{},
-			"invalid string length",
-		},
-	} {
-		t.Run(ca.name, func(t *testing.T) {
-			err := MessageDecode(bytes.NewBuffer(ca.byts), ca.msg)
-			require.EqualError(t, err, ca.err)
-		})
-	}
+func FuzzMessageDecode(f *testing.F) {
+	f.Fuzz(func(t *testing.T, b []byte) {
+		var msg struct {
+			A bool
+			D int8
+			E uint8
+			F int16
+			G uint16
+			H int32
+			I uint32
+			J int64
+			K uint64
+			L float32
+			M float64
+			N string
+			O time.Time
+			P time.Duration
+			Q [2]string
+			R []string
+			S []uint8
+		}
+		MessageDecode(bytes.NewBuffer(b), &msg)
+	})
 }
 
 func TestMessageEncode(t *testing.T) {

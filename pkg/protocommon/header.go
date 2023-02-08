@@ -10,6 +10,10 @@ import (
 	"unicode"
 )
 
+const (
+	maxHeaderLength = 16 * 1024 * 1024
+)
+
 func camelToSnake(in string) string {
 	tmp := []rune(in)
 	tmp[0] = unicode.ToLower(tmp[0])
@@ -25,7 +29,7 @@ func camelToSnake(in string) string {
 func snakeToCamel(in string) string {
 	tmp := []rune(in)
 	tmp[0] = unicode.ToUpper(tmp[0])
-	for i := 0; i < len(tmp); i++ {
+	for i := 0; i < len(tmp)-1; i++ {
 		if tmp[i] == '_' {
 			tmp[i+1] = unicode.ToUpper(tmp[i+1])
 			tmp = append(tmp[:i], tmp[i+1:]...)
@@ -50,9 +54,14 @@ func HeaderRawDecode(r io.Reader) (HeaderRaw, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	hlen := int64(binary.LittleEndian.Uint32(buf))
 	if hlen == 0 {
 		return nil, fmt.Errorf("invalid header length")
+	}
+
+	if hlen > maxHeaderLength {
+		return nil, fmt.Errorf("maximum header length exceeded")
 	}
 
 	for hlen > 0 {
@@ -61,6 +70,7 @@ func HeaderRawDecode(r io.Reader) (HeaderRaw, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		flen := int64(binary.LittleEndian.Uint32(buf))
 		if flen == 0 || flen > hlen {
 			return nil, fmt.Errorf("invalid field length")
@@ -98,6 +108,10 @@ func HeaderDecode(raw HeaderRaw, dest Header) error {
 	}
 
 	for key, val := range raw {
+		if len(key) == 0 {
+			continue
+		}
+
 		key = snakeToCamel(key)
 
 		rf := rv.Elem().FieldByName(key)

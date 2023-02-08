@@ -13,6 +13,10 @@ import (
 	"github.com/aler9/goroslib/pkg/msg"
 )
 
+const (
+	maxMessageLength = 16 * 1024 * 1024
+)
+
 func readLimited(r io.Reader, buf []byte, mlen *int64) error {
 	lb := int64(len(buf))
 
@@ -303,6 +307,10 @@ func MessageDecode(r io.Reader, dest interface{}) error {
 		return err
 	}
 	mlen := int64(binary.LittleEndian.Uint32(buf))
+
+	if mlen > maxMessageLength {
+		return fmt.Errorf("maximum message length exceeded")
+	}
 
 	// message
 	err = binaryDecodeValue(r, rv, &mlen, buf)
