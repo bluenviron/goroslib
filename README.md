@@ -37,6 +37,7 @@ Features:
   * [Import existing messages, services and actions](#import-existing-messages-services-and-actions)
   * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
   * [Edit the library](#edit-the-library)
+* [Standards](#standards)
 * [Links](#links)
 
 ## Installation
@@ -279,23 +280,7 @@ If you want to hack the library and test the results, unit tests can be launched
 make test
 ```
 
-## Links
-
-Other Go libraries
-
-* v1 https://github.com/akio/rosgo
-* v2 https://github.com/juaruipav/rclgo
-
-Other non-Go libraries
-
-* v1, C++ https://github.com/ros/ros_comm/tree/noetic-devel/clients/roscpp/src/libros - https://docs.ros.org/noetic/api/roscpp/html/classros_1_1NodeHandle.html
-* v1, Python https://docs.ros.org/noetic/api/rosnode/html/
-* v1, C https://github.com/ros-industrial/cros
-* v1, TypeScript https://github.com/foxglove/ros1
-* v2, misc https://fkromer.github.io/awesome-ros2/
-* v2, TypeScript https://github.com/foxglove/ros2
-
-Standards
+## Standards
 
 * ROS v1
   * General
@@ -315,3 +300,19 @@ Standards
     * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
 
 * Golang project layout https://github.com/golang-standards/project-layout
+
+## Links
+
+Other Go libraries
+
+* v1 https://github.com/akio/rosgo
+* v2 https://github.com/juaruipav/rclgo
+
+Other non-Go libraries
+
+* v1, C++ https://github.com/ros/ros_comm/tree/noetic-devel/clients/roscpp/src/libros - https://docs.ros.org/noetic/api/roscpp/html/classros_1_1NodeHandle.html
+* v1, Python https://docs.ros.org/noetic/api/rosnode/html/
+* v1, C https://github.com/ros-industrial/cros
+* v1, TypeScript https://github.com/foxglove/ros1
+* v2, misc https://fkromer.github.io/awesome-ros2/
+* v2, TypeScript https://github.com/foxglove/ros2
