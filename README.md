@@ -104,7 +104,7 @@ This library provides most of the standard messages, services and actions in the
 |control_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/control_msgs)|[link](https://github.com/ros-controls/control_msgs)|
 |diagnostic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/diagnostic_msgs)|[link](https://github.com/ros/common_msgs)|
 |geometry_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geometry_msgs)|[link](https://github.com/ros/common_msgs)|
-|geographic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geographic_msgss)|[link](https://github.com/ros-geographic-info/geographic_info)|
+|geographic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geographic_msgs)|[link](https://github.com/ros-geographic-info/geographic_info)|
 |mavros_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/mavros_msgs)|[link](https://github.com/mavlink/mavros)|
 |nav_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/nav_msgs)|[link](https://github.com/ros/common_msgs)|
 |rosgraph_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs)|[link](https://github.com/ros/ros_comm_msgs)|
