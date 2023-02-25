@@ -25,6 +25,12 @@ Features:
 * compile or cross-compile for all Go supported OSs (Linux, Windows, Mac OS X) and architectures
 * examples provided for every feature, comprehensive test suite, continuous integration
 
+## Important announcement
+
+my main open source projects are being transferred to the [bluenviron organization](https://github.com/bluenviron), in order to allow the community to maintain and evolve the code regardless of my personal availability.
+
+In the next months, the repository name will be changed accordingly.
+
 ## Table of contents
 
 * [Installation](#installation)
