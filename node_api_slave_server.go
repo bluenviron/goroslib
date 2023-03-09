@@ -78,6 +78,7 @@ func (n *Node) handleAPISlaveServer(req apislave.Request) apislave.Response {
 		}
 
 	case *apislave.RequestShutdown:
+		n.Log(LogLevelInfo, "got shutdown request from %s: %s", reqt.CallerID, reqt.Reason)
 		n.ctxCancel()
 
 		return apislave.ResponseShutdown{
