@@ -1,7 +1,9 @@
 package apiparam
 
 import (
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -9,7 +11,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	s, err := xmlrpc.NewServer("localhost:9998")
+	s, err := xmlrpc.NewServer("localhost:9998", 5*time.Second)
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -49,7 +51,7 @@ func TestClient(t *testing.T) {
 		return xmlrpc.ErrorRes{}
 	})
 
-	c := NewClient("localhost:9998", "test")
+	c := NewClient("localhost:9998", "test", &http.Client{})
 
 	func() {
 		err := c.DeleteParam("mykey")
@@ -114,7 +116,7 @@ func TestClient(t *testing.T) {
 }
 
 func TestClientError(t *testing.T) {
-	c := NewClient("localhost:9998", "test")
+	c := NewClient("localhost:9998", "test", &http.Client{})
 
 	t.Run("no server", func(t *testing.T) {
 		func() {
@@ -169,7 +171,7 @@ func TestClientError(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		s, err := xmlrpc.NewServer("localhost:9998")
+		s, err := xmlrpc.NewServer("localhost:9998", 5*time.Second)
 		require.NoError(t, err)
 		defer s.Close()
 

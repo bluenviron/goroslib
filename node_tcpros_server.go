@@ -32,7 +32,7 @@ func (n *Node) runTcprosServerConn(wg *sync.WaitGroup, nconn net.Conn) {
 	ok := func() bool {
 		tconn := prototcp.NewConn(nconn)
 
-		nconn.SetReadDeadline(time.Now().Add(readTimeout))
+		nconn.SetReadDeadline(time.Now().Add(n.conf.ReadTimeout))
 		rawHeader, err := tconn.ReadHeaderRaw()
 		if err != nil {
 			return false

@@ -172,13 +172,13 @@ func (sc *ServiceClient) writeMessageReadResponse(ctx context.Context, req inter
 	}()
 	defer close(funcDone)
 
-	sc.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+	sc.nconn.SetWriteDeadline(time.Now().Add(sc.conf.Node.conf.WriteTimeout))
 	err := sc.tconn.WriteMessage(req)
 	if err != nil {
 		return false, err
 	}
 
-	sc.nconn.SetReadDeadline(time.Now().Add(readTimeout))
+	sc.nconn.SetReadDeadline(time.Now().Add(sc.conf.Node.conf.ReadTimeout))
 	return sc.tconn.ReadServiceResponse(res)
 }
 
@@ -194,7 +194,7 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 		return err
 	}
 
-	ctx2, ctx2Cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx2, ctx2Cancel := context.WithTimeout(ctx, sc.conf.Node.conf.ReadTimeout)
 	defer ctx2Cancel()
 
 	nconn, err := (&net.Dialer{}).DialContext(ctx2, "tcp", address)
@@ -208,7 +208,7 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 		nconn.(*net.TCPConn).SetKeepAlivePeriod(60 * time.Second)
 	}
 
-	nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+	nconn.SetWriteDeadline(time.Now().Add(sc.conf.Node.conf.WriteTimeout))
 	err = tconn.WriteHeader(&prototcp.HeaderServiceClient{
 		Callerid:   sc.conf.Node.absoluteName(),
 		Md5sum:     sc.srvMD5,
@@ -220,7 +220,7 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 		return err
 	}
 
-	nconn.SetReadDeadline(time.Now().Add(readTimeout))
+	nconn.SetReadDeadline(time.Now().Add(sc.conf.Node.conf.ReadTimeout))
 	raw, err := tconn.ReadHeaderRaw()
 	if err != nil {
 		nconn.Close()

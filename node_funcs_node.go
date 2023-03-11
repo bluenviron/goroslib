@@ -29,7 +29,7 @@ func (n *Node) NodeGetConns(nodeName string) ([]InfoConnection, error) {
 		return nil, err
 	}
 
-	xcs := apislave.NewClient(address, n.absoluteName())
+	xcs := apislave.NewClient(address, n.absoluteName(), n.httpClient)
 
 	infos, err := xcs.GetBusInfo()
 	if err != nil {
@@ -100,7 +100,7 @@ func (n *Node) NodePing(nodeName string) (time.Duration, error) {
 		return 0, err
 	}
 
-	xcs := apislave.NewClient(address, n.absoluteName())
+	xcs := apislave.NewClient(address, n.absoluteName(), n.httpClient)
 
 	start := time.Now()
 
@@ -124,7 +124,7 @@ func (n *Node) NodeKill(nodeName string) error {
 		return err
 	}
 
-	xcs := apislave.NewClient(address, n.absoluteName())
+	xcs := apislave.NewClient(address, n.absoluteName(), n.httpClient)
 
 	err = xcs.Shutdown("")
 	if err != nil {

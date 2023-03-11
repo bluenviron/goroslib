@@ -1,4 +1,3 @@
-
 # goroslib
 
 [![Test](https://github.com/aler9/goroslib/workflows/test/badge.svg)](https://github.com/aler9/goroslib/actions?query=workflow:test)

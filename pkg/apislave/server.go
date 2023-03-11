@@ -2,6 +2,7 @@ package apislave
 
 import (
 	"net"
+	"time"
 
 	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
@@ -19,8 +20,8 @@ type Server struct {
 }
 
 // NewServer allocates a Server.
-func NewServer(address string, nodeIP net.IP, nodeZone string) (*Server, error) {
-	xs, err := xmlrpc.NewServer(address)
+func NewServer(address string, nodeIP net.IP, nodeZone string, writeTimeout time.Duration) (*Server, error) {
+	xs, err := xmlrpc.NewServer(address, writeTimeout)
 	if err != nil {
 		return nil, err
 	}

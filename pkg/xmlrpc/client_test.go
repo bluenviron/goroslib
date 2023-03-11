@@ -47,7 +47,7 @@ func TestClient(t *testing.T) {
 
 	go hs.Serve(l)
 
-	c := NewClient("localhost:9903")
+	c := NewClient("localhost:9903", &http.Client{})
 	var res myResponse
 	err = c.Do("mymethod", myRequest{Param: "myparam"}, &res)
 	require.NoError(t, err)
@@ -56,7 +56,7 @@ func TestClient(t *testing.T) {
 
 func TestClientErrors(t *testing.T) {
 	t.Run("invalid request", func(t *testing.T) {
-		c := NewClient("localhost:9903")
+		c := NewClient("localhost:9903", &http.Client{})
 		err := c.Do("mymethod", struct {
 			Param int64
 		}{123}, nil)
@@ -64,7 +64,7 @@ func TestClientErrors(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		c := NewClient("127.0.0.1:9903")
+		c := NewClient("127.0.0.1:9903", &http.Client{})
 		err := c.Do("mymethod", struct {
 			Param int
 		}{123}, nil)
@@ -90,7 +90,7 @@ func TestClientErrors(t *testing.T) {
 
 		go hs.Serve(l)
 
-		c := NewClient("localhost:9903")
+		c := NewClient("localhost:9903", &http.Client{})
 		err = c.Do("mymethod", struct {
 			Param int
 		}{123}, &myResponse{})
@@ -115,7 +115,7 @@ func TestClientErrors(t *testing.T) {
 
 		go hs.Serve(l)
 
-		c := NewClient("localhost:9903")
+		c := NewClient("localhost:9903", &http.Client{})
 		err = c.Do("mymethod", struct {
 			Param int
 		}{123}, &myResponse{})

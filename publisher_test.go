@@ -3,6 +3,7 @@ package goroslib
 import (
 	"bytes"
 	"net"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -175,7 +176,7 @@ func TestPublisherWrite(t *testing.T) {
 				addr, err := urlToAddress(uris[0])
 				require.NoError(t, err)
 
-				xcs := apislave.NewClient(addr, ns.absoluteName())
+				xcs := apislave.NewClient(addr, ns.absoluteName(), &http.Client{})
 
 				proto, err := xcs.RequestTopic(
 					ns.absoluteTopicName("test_topic"),
@@ -318,7 +319,7 @@ func TestPublisherWriteLatch(t *testing.T) {
 				addr, err := urlToAddress(uris[0])
 				require.NoError(t, err)
 
-				xcs := apislave.NewClient(addr, ns.absoluteName())
+				xcs := apislave.NewClient(addr, ns.absoluteName(), &http.Client{})
 
 				proto, err := xcs.RequestTopic(
 					ns.absoluteTopicName("test_topic"),
@@ -430,7 +431,7 @@ func TestPublisherWriteUDP(t *testing.T) {
 				addr, err := urlToAddress(uris[0])
 				require.NoError(t, err)
 
-				xcs := apislave.NewClient(addr, ns.absoluteName())
+				xcs := apislave.NewClient(addr, ns.absoluteName(), &http.Client{})
 
 				msgMd5, err := msgproc.MD5(std_msgs.Int64MultiArray{})
 				require.NoError(t, err)
@@ -607,7 +608,7 @@ func TestPublisherAcceptErrors(t *testing.T) {
 		addr, err := urlToAddress(uris[0])
 		require.NoError(t, err)
 
-		xcs := apislave.NewClient(addr, ns.absoluteName())
+		xcs := apislave.NewClient(addr, ns.absoluteName(), &http.Client{})
 
 		proto, err := xcs.RequestTopic(
 			ns.absoluteTopicName("test_topic"),
@@ -665,7 +666,7 @@ func TestPublisherAcceptErrors(t *testing.T) {
 		addr, err := urlToAddress(uris[0])
 		require.NoError(t, err)
 
-		xcs := apislave.NewClient(addr, ns.absoluteName())
+		xcs := apislave.NewClient(addr, ns.absoluteName(), &http.Client{})
 
 		proto, err := xcs.RequestTopic(
 			ns.absoluteTopicName("test_topic"),

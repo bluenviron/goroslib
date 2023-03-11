@@ -114,7 +114,7 @@ func (ps *publisherSubscriber) runTCP() error {
 			for {
 				select {
 				case msg := <-ps.writeMessage:
-					ps.tcpNConn.SetWriteDeadline(time.Now().Add(writeTimeout))
+					ps.tcpNConn.SetWriteDeadline(time.Now().Add(ps.pub.conf.Node.conf.WriteTimeout))
 					err := ps.tcpTConn.WriteMessage(msg)
 					if err != nil {
 						return err

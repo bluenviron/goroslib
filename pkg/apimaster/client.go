@@ -2,6 +2,7 @@ package apimaster
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/aler9/goroslib/pkg/xmlrpc"
 )
@@ -13,9 +14,9 @@ type Client struct {
 }
 
 // NewClient allocates a Client.
-func NewClient(address string, callerID string) *Client {
+func NewClient(address string, callerID string, httpClient *http.Client) *Client {
 	return &Client{
-		xc:       xmlrpc.NewClient(address),
+		xc:       xmlrpc.NewClient(address, httpClient),
 		callerID: callerID,
 	}
 }

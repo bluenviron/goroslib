@@ -186,7 +186,7 @@ outer:
 						sp.srvMD5, req.header.Md5sum)
 				}
 
-				req.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+				req.nconn.SetWriteDeadline(time.Now().Add(sp.conf.Node.conf.WriteTimeout))
 				return req.tconn.WriteHeader(&prototcp.HeaderServiceProvider{
 					Callerid:     sp.conf.Node.absoluteName(),
 					Md5sum:       sp.srvMD5,
@@ -217,7 +217,7 @@ outer:
 			state := res[1].Interface().(bool)
 			msg := res[0].Interface()
 
-			req.spc.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+			req.spc.nconn.SetWriteDeadline(time.Now().Add(sp.conf.Node.conf.WriteTimeout))
 			err := req.spc.tconn.WriteServiceResponse(state, msg)
 			if err != nil {
 				sp.conf.Node.Log(LogLevelError,

@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-const (
-	serverWriteTimeout = 10 * time.Second
-)
-
 // ErrorRes is a special response that sends status code 400.
 // in case of errors, the C++ implementation replies with
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
@@ -24,6 +20,7 @@ type Server struct {
 	ctxCancel func()
 	wg        sync.WaitGroup
 	ln        net.Listener
+	hs        *http.Server
 	handler   func(*RequestRaw) interface{}
 
 	setHandler chan func(*RequestRaw) interface{}
@@ -31,7 +28,7 @@ type Server struct {
 }
 
 // NewServer allocates a server.
-func NewServer(address string) (*Server, error) {
+func NewServer(address string, writeTimeout time.Duration) (*Server, error) {
 	// net.Listen and http.Server are splitted since the latter
 	// does not allow to use 0 as port
 	ln, err := net.Listen("tcp", address)
@@ -47,6 +44,11 @@ func NewServer(address string) (*Server, error) {
 		ln:         ln,
 		setHandler: make(chan func(*RequestRaw) interface{}),
 		done:       make(chan struct{}),
+	}
+
+	s.hs = &http.Server{
+		Handler:      http.HandlerFunc(s.handleRequest),
+		WriteTimeout: writeTimeout,
 	}
 
 	go s.run()
@@ -85,20 +87,15 @@ func (s *Server) run() {
 		return
 	}
 
-	hs := &http.Server{
-		Handler:      http.HandlerFunc(s.serveHTTP),
-		WriteTimeout: serverWriteTimeout,
-	}
-
-	go hs.Serve(s.ln)
+	go s.hs.Serve(s.ln)
 
 	<-s.ctx.Done()
 
-	hs.Shutdown(context.Background())
+	s.hs.Shutdown(context.Background())
 	s.ln.Close() // in case Shutdown() is called before Serve()
 }
 
-func (s *Server) serveHTTP(w http.ResponseWriter, req *http.Request) {
+func (s *Server) handleRequest(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/RPC2" && req.URL.Path != "/" {
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -16,7 +17,7 @@ func TestServer(t *testing.T) {
 	// we can't reuse TCP connections.
 	http.DefaultTransport.(*http.Transport).DisableKeepAlives = true
 
-	s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
+	s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "", 5*time.Second)
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -52,7 +53,7 @@ func TestServer(t *testing.T) {
 		return ErrorRes{}
 	})
 
-	c := xmlrpc.NewClient("localhost:9906")
+	c := xmlrpc.NewClient("localhost:9906", &http.Client{})
 
 	func() {
 		var res ResponseGetBusInfo
@@ -99,16 +100,16 @@ func TestServer(t *testing.T) {
 
 func TestServerErrors(t *testing.T) {
 	t.Run("double listen", func(t *testing.T) {
-		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "", 5*time.Second)
 		require.NoError(t, err)
 		defer s.Close()
 
-		_, err = NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
+		_, err = NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "", 5*time.Second)
 		require.EqualError(t, err, "listen tcp 127.0.0.1:9906: bind: address already in use")
 	})
 
 	t.Run("invalid method", func(t *testing.T) {
-		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "", 5*time.Second)
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -116,7 +117,7 @@ func TestServerErrors(t *testing.T) {
 			return ErrorRes{}
 		})
 
-		c := xmlrpc.NewClient("localhost:9906")
+		c := xmlrpc.NewClient("localhost:9906", &http.Client{})
 
 		var res ResponseGetBusInfo
 		err = c.Do("invalidMethod", RequestGetBusInfo{CallerID: "mycaller"}, &res)
@@ -124,7 +125,7 @@ func TestServerErrors(t *testing.T) {
 	})
 
 	t.Run("invalid payload 1", func(t *testing.T) {
-		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "", 5*time.Second)
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -141,7 +142,7 @@ func TestServerErrors(t *testing.T) {
 	})
 
 	t.Run("invalid payload 2", func(t *testing.T) {
-		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "")
+		s, err := NewServer("localhost:9906", net.ParseIP("127.0.0.1"), "", 5*time.Second)
 		require.NoError(t, err)
 		defer s.Close()
 
@@ -154,7 +155,7 @@ func TestServerErrors(t *testing.T) {
 			return ErrorRes{}
 		})
 
-		c := xmlrpc.NewClient("localhost:9906")
+		c := xmlrpc.NewClient("localhost:9906", &http.Client{})
 
 		var res ResponseGetBusInfo
 		err = c.Do("shutdown", RequestGetBusInfo{CallerID: "mycaller"}, &res)
