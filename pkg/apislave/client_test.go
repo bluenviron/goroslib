@@ -1,7 +1,9 @@
 package apislave
 
 import (
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -9,7 +11,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	s, err := xmlrpc.NewServer("localhost:9905")
+	s, err := xmlrpc.NewServer("localhost:9905", 5*time.Second)
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -36,7 +38,7 @@ func TestClient(t *testing.T) {
 		return xmlrpc.ErrorRes{}
 	})
 
-	c := NewClient("localhost:9905", "test")
+	c := NewClient("localhost:9905", "test", &http.Client{})
 
 	func() {
 		res, err := c.GetPid()
@@ -74,7 +76,7 @@ func TestClient(t *testing.T) {
 }
 
 func TestClientErrors(t *testing.T) {
-	c := NewClient("localhost:9905", "test")
+	c := NewClient("localhost:9905", "test", &http.Client{})
 
 	t.Run("no server", func(t *testing.T) {
 		func() {
@@ -99,7 +101,7 @@ func TestClientErrors(t *testing.T) {
 	})
 
 	t.Run("server error", func(t *testing.T) {
-		s, err := xmlrpc.NewServer("localhost:9905")
+		s, err := xmlrpc.NewServer("localhost:9905", 5*time.Second)
 		require.NoError(t, err)
 		defer s.Close()
 

@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"strconv"
@@ -26,11 +27,6 @@ import (
 	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
 	"github.com/aler9/goroslib/pkg/prototcp"
 	"github.com/aler9/goroslib/pkg/protoudp"
-)
-
-const (
-	readTimeout  = 5 * time.Second
-	writeTimeout = 5 * time.Second
 )
 
 func urlToAddress(in string) (string, error) {
@@ -195,6 +191,14 @@ type NodeConf struct {
 	// It defaults to nil.
 	OnLog func(LogLevel, string)
 
+	// (optional) read timeout.
+	// It defaults to 10 seconds.
+	ReadTimeout time.Duration
+
+	// (optional) write timeout.
+	// It defaults to 5 seconds.
+	WriteTimeout time.Duration
+
 	args []string
 }
 
@@ -208,6 +212,7 @@ type Node struct {
 
 	ctx                 context.Context
 	ctxCancel           func()
+	httpClient          *http.Client
 	masterAddr          *net.TCPAddr
 	nodeAddr            *net.TCPAddr
 	apiMasterClient     *apimaster.Client
@@ -278,6 +283,8 @@ func NewNode(conf NodeConf) (*Node, error) {
 	if len(conf.MasterAddress) == 0 {
 		conf.MasterAddress = "127.0.0.1:11311"
 	}
+	// support ROS-style master address, in order to increase interoperability
+	conf.MasterAddress = strings.TrimPrefix(conf.MasterAddress, "http://")
 
 	if conf.LogLevel == 0 {
 		conf.LogLevel = LogLevelInfo
@@ -286,12 +293,16 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.LogDestinations = LogDestinationConsole | LogDestinationCallback | LogDestinationRosout
 	}
 
+	if conf.ReadTimeout == 0 {
+		conf.ReadTimeout = 10 * time.Second
+	}
+	if conf.WriteTimeout == 0 {
+		conf.WriteTimeout = 5 * time.Second
+	}
+
 	if conf.args == nil {
 		conf.args = os.Args
 	}
-
-	// support ROS-style master address, in order to increase interoperability
-	conf.MasterAddress = strings.TrimPrefix(conf.MasterAddress, "http://")
 
 	// solve master address once
 	masterAddr, err := net.ResolveTCPAddr("tcp", conf.MasterAddress)
@@ -322,9 +333,12 @@ func NewNode(conf NodeConf) (*Node, error) {
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
 	n := &Node{
-		conf:                   conf,
-		ctx:                    ctx,
-		ctxCancel:              ctxCancel,
+		conf:      conf,
+		ctx:       ctx,
+		ctxCancel: ctxCancel,
+		httpClient: &http.Client{
+			Timeout: conf.ReadTimeout,
+		},
 		masterAddr:             masterAddr,
 		nodeAddr:               nodeAddr,
 		tcprosConns:            make(map[net.Conn]struct{}),
@@ -355,12 +369,12 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n.conf.Name = n.applyCliRemapping(n.conf.Name)
 
-	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName())
+	n.apiMasterClient = apimaster.NewClient(masterAddr.String(), n.absoluteName(), n.httpClient)
 
-	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName())
+	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName(), n.httpClient)
 
 	n.apiSlaveServer, err = apislave.NewServer(nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.ApislavePort), 10),
-		nodeAddr.IP, nodeAddr.Zone)
+		nodeAddr.IP, nodeAddr.Zone, conf.WriteTimeout)
 	if err != nil {
 		return nil, err
 	}

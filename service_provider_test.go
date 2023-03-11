@@ -182,7 +182,6 @@ func TestServiceProviderResponse(t *testing.T) {
 					srvMD5, err := serviceproc.MD5(TestService{})
 					require.NoError(t, err)
 
-					nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
 					err = tconn.WriteHeader(&prototcp.HeaderServiceClient{
 						Callerid:   nsc.absoluteName(),
 						Md5sum:     srvMD5,
@@ -191,7 +190,6 @@ func TestServiceProviderResponse(t *testing.T) {
 					})
 					require.NoError(t, err)
 
-					nconn.SetReadDeadline(time.Now().Add(readTimeout))
 					raw, err := tconn.ReadHeaderRaw()
 					require.NoError(t, err)
 
@@ -203,14 +201,12 @@ func TestServiceProviderResponse(t *testing.T) {
 					require.NoError(t, err)
 					require.Equal(t, srvMD5, outHeader.Md5sum)
 
-					nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
 					err = tconn.WriteMessage(&TestServiceReq{
 						A: 123,
 						B: "456",
 					})
 					require.NoError(t, err)
 
-					nconn.SetReadDeadline(time.Now().Add(readTimeout))
 					var res TestServiceRes
 					state, err := tconn.ReadServiceResponse(&res)
 					require.NoError(t, err)

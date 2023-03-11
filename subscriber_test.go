@@ -3,6 +3,7 @@ package goroslib
 import (
 	"bytes"
 	"net"
+	"net/http"
 	"strconv"
 	"testing"
 	"time"
@@ -71,7 +72,7 @@ func newTestPublisher(t *testing.T, masterIP string,
 		cb(header, tconn)
 	}()
 
-	apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone)
+	apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone, 5*time.Second)
 	require.NoError(t, err)
 
 	go apiSlaveServer.Serve(func(req apislave.Request) apislave.Response {
@@ -92,7 +93,7 @@ func newTestPublisher(t *testing.T, masterIP string,
 		return apislave.ErrorRes{}
 	})
 
-	apiMasterClient := apimaster.NewClient(masterAddr.String(), "myns/goroslib_pub")
+	apiMasterClient := apimaster.NewClient(masterAddr.String(), "myns/goroslib_pub", &http.Client{})
 	_, err = apiMasterClient.RegisterPublisher(
 		"/myns/test_topic",
 		"goroslib/TestMessage",
@@ -435,7 +436,7 @@ func TestSubscriberReadUDP(t *testing.T) {
 				defer udprosListener.Close()
 				uconn := protoudp.NewConn(udprosListener)
 
-				apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone)
+				apiSlaveServer, err := apislave.NewServer(nodeAddr.IP.String()+":9911", nodeAddr.IP, nodeAddr.Zone, 5*time.Second)
 				require.NoError(t, err)
 				defer apiSlaveServer.Close()
 
@@ -483,7 +484,7 @@ func TestSubscriberReadUDP(t *testing.T) {
 					return apislave.ErrorRes{}
 				})
 
-				apiMasterClient := apimaster.NewClient(masterAddr.String(), "myns/goroslib_pub")
+				apiMasterClient := apimaster.NewClient(masterAddr.String(), "myns/goroslib_pub", &http.Client{})
 				_, err = apiMasterClient.RegisterPublisher(
 					"/myns/test_topic",
 					"goroslib/TestMessage",

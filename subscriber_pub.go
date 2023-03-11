@@ -129,7 +129,7 @@ func (sp *subscriberPublisher) runInner() error {
 		sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
 		sp.address)
 
-	xcs := apislave.NewClient(sp.address, sp.sub.conf.Node.absoluteName())
+	xcs := apislave.NewClient(sp.address, sp.sub.conf.Node.absoluteName(), sp.sub.conf.Node.httpClient)
 
 	subDone := make(chan struct{}, 1)
 	var proto []interface{}
@@ -207,7 +207,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 
 	address := net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10))
 
-	ctx2, ctx2Cancel := context.WithTimeout(sp.ctx, 10*time.Second)
+	ctx2, ctx2Cancel := context.WithTimeout(sp.ctx, sp.sub.conf.Node.conf.ReadTimeout)
 	defer ctx2Cancel()
 
 	nconn, err := (&net.Dialer{}).DialContext(ctx2, "tcp", address)
@@ -253,7 +253,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 			return
 		}
 
-		nconn.SetReadDeadline(time.Now().Add(readTimeout))
+		nconn.SetReadDeadline(time.Now().Add(sp.sub.conf.Node.conf.ReadTimeout))
 		var raw protocommon.HeaderRaw
 		raw, err = tconn.ReadHeaderRaw()
 		if err != nil {

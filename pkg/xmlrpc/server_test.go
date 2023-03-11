@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +19,7 @@ func TestServer(t *testing.T) {
 		Param string
 	}
 
-	s, err := NewServer("localhost:9904")
+	s, err := NewServer("localhost:9904", 5*time.Second)
 	require.NoError(t, err)
 	defer s.Close()
 
@@ -85,17 +86,17 @@ func TestServer(t *testing.T) {
 }
 
 func TestServerServeAfterClose(t *testing.T) {
-	s, err := NewServer("localhost:9904")
+	s, err := NewServer("localhost:9904", 5*time.Second)
 	require.NoError(t, err)
 	s.Close()
 	s.Serve(nil)
 }
 
 func TestServerError(t *testing.T) {
-	s, err := NewServer("localhost:9904")
+	s, err := NewServer("localhost:9904", 5*time.Second)
 	require.NoError(t, err)
 	defer s.Close()
 
-	_, err = NewServer("localhost:9904")
+	_, err = NewServer("localhost:9904", 5*time.Second)
 	require.Error(t, err)
 }

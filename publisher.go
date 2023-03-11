@@ -303,7 +303,7 @@ outer:
 						p.msgMd5, req.header.Md5sum)
 				}
 
-				req.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+				req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
 				err := req.tconn.WriteHeader(&prototcp.HeaderPublisher{
 					Callerid: p.conf.Node.absoluteName(),
 					Md5sum:   p.msgMd5,
@@ -346,7 +346,7 @@ outer:
 					req.nconn.RemoteAddr(),
 					err)
 
-				req.nconn.SetWriteDeadline(time.Now().Add(writeTimeout))
+				req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
 				req.tconn.WriteHeader(&prototcp.HeaderError{
 					Error: err.Error(),
 				})
