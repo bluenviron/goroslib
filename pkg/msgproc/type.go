@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	rmsg "github.com/aler9/goroslib/pkg/msg"
+	rmsg "github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
 // Type returns the type of a message.

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/serviceproc"
+	"github.com/bluenviron/goroslib/v2/pkg/prototcp"
+	"github.com/bluenviron/goroslib/v2/pkg/serviceproc"
 )
 
 type serviceProviderClientRequestReq struct {

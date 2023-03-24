@@ -7,10 +7,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/pkg/msgs/std_srvs"
-	"github.com/aler9/goroslib/pkg/protocommon"
-	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/serviceproc"
+	"github.com/bluenviron/goroslib/v2/pkg/msgs/std_srvs"
+	"github.com/bluenviron/goroslib/v2/pkg/protocommon"
+	"github.com/bluenviron/goroslib/v2/pkg/prototcp"
+	"github.com/bluenviron/goroslib/v2/pkg/serviceproc"
 )
 
 func TestServiceProviderRegister(t *testing.T) {

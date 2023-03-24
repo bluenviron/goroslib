@@ -4,7 +4,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/aler9/goroslib/pkg/msgconv"
+	"github.com/bluenviron/goroslib/v2/pkg/msgconv"
 )
 
 var tplMsg = template.Must(template.New("").Parse(

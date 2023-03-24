@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/xmlrpc"
+	"github.com/bluenviron/goroslib/v2/pkg/xmlrpc"
 )
 
 // ErrorRes is the error returned by the server in case of wrong or unhandled

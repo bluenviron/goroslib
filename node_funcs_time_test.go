@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs"
+	"github.com/bluenviron/goroslib/v2/pkg/msgs/rosgraph_msgs"
 )
 
 func enableSimTime(m *containerMaster) error {

@@ -1,10 +1,10 @@
 # goroslib
 
-[![Test](https://github.com/aler9/goroslib/workflows/test/badge.svg)](https://github.com/aler9/goroslib/actions?query=workflow:test)
-[![Lint](https://github.com/aler9/goroslib/workflows/lint/badge.svg)](https://github.com/aler9/goroslib/actions?query=workflow:lint)
-[![Go Report Card](https://goreportcard.com/badge/github.com/aler9/goroslib)](https://goreportcard.com/report/github.com/aler9/goroslib)
-[![CodeCov](https://codecov.io/gh/aler9/goroslib/branch/main/graph/badge.svg)](https://app.codecov.io/gh/aler9/goroslib/branch/main)
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/aler9/goroslib)](https://pkg.go.dev/github.com/aler9/goroslib#pkg-index)
+[![Test](https://github.com/bluenviron/goroslib/workflows/test/badge.svg)](https://github.com/bluenviron/goroslib/actions?query=workflow:test)
+[![Lint](https://github.com/bluenviron/goroslib/workflows/lint/badge.svg)](https://github.com/bluenviron/goroslib/actions?query=workflow:lint)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bluenviron/goroslib)](https://goreportcard.com/report/github.com/bluenviron/goroslib)
+[![CodeCov](https://codecov.io/gh/bluenviron/goroslib/branch/main/graph/badge.svg)](https://app.codecov.io/gh/bluenviron/goroslib/branch/main)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/bluenviron/goroslib/v2)](https://pkg.go.dev/github.com/bluenviron/goroslib/v2#pkg-index)
 
 goroslib is a library in pure Go that allows to build clients (nodes) for the Robot Operating System (ROS).
 
@@ -23,12 +23,6 @@ Features:
 * compilation of `.msg` files is not necessary, message definitions are extracted from code
 * compile or cross-compile for all Go supported OSs (Linux, Windows, Mac OS X) and architectures
 * examples provided for every feature, comprehensive test suite, continuous integration
-
-## Important announcement
-
-my main open source projects are being transferred to the [bluenviron organization](https://github.com/bluenviron), in order to allow the community to maintain and evolve the code regardless of my personal availability.
-
-In the next months, the repository name will be changed accordingly.
 
 ## Table of contents
 
@@ -78,7 +72,7 @@ In the next months, the repository name will be changed accordingly.
 
 ## API Documentation
 
-https://pkg.go.dev/github.com/aler9/goroslib#pkg-index
+https://pkg.go.dev/github.com/bluenviron/goroslib/v2#pkg-index
 
 ## FAQs
 
@@ -102,30 +96,30 @@ This library provides most of the standard messages, services and actions in the
 
 |package|documentation|repository|
 |-------|-------------|----------|
-|ackermann_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/ackermann_msgs)|[link](https://github.com/ros-drivers/ackermann_msgs)|
-|actionlib|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/actionlib)|[link](https://github.com/ros/actionlib)|
-|actionlib_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/actionlib_msgs)|[link](https://github.com/ros/common_msgs)|
-|audio_common_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/audio_common_msgs)|[link](https://github.com/ros-drivers/audio_common)|
-|control_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/control_msgs)|[link](https://github.com/ros-controls/control_msgs)|
-|diagnostic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/diagnostic_msgs)|[link](https://github.com/ros/common_msgs)|
-|geometry_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geometry_msgs)|[link](https://github.com/ros/common_msgs)|
-|geographic_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/geographic_msgs)|[link](https://github.com/ros-geographic-info/geographic_info)|
-|mavros_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/mavros_msgs)|[link](https://github.com/mavlink/mavros)|
-|nav_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/nav_msgs)|[link](https://github.com/ros/common_msgs)|
-|rosgraph_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/rosgraph_msgs)|[link](https://github.com/ros/ros_comm_msgs)|
-|sensor_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/sensor_msgs)|[link](https://github.com/ros/common_msgs)|
-|shape_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/shape_msgs)|[link](https://github.com/ros/common_msgs)|
-|sound_play|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/sound_play)|[link](https://github.com/ros-drivers/audio_common)|
-|std_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/std_msgs)|[link](https://github.com/ros/std_msgs)|
-|std_srvs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/std_srvs)|[link](https://github.com/ros/ros_comm_msgs)|
-|stereo_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/stereo_msgs)|[link](https://github.com/ros/common_msgs)|
-|tf|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/tf)|[link](https://github.com/ros/geometry)|
-|tf2_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/tf2_msgs)|[link](https://github.com/ros/geometry2)|
-|trajectory_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/trajectory_msgs)|[link](https://github.com/ros/common_msgs)|
-|uuid_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/uuid_msgs)|[link](https://github.com/ros-geographic-info/unique_identifier)|
-|velodyne_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
-|vision_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/vision_msgs)|[link](https://github.com/ros-perception/vision_msgs)|
-|visualization_msgs|[link](https://pkg.go.dev/github.com/aler9/goroslib/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
+|ackermann_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/ackermann_msgs)|[link](https://github.com/ros-drivers/ackermann_msgs)|
+|actionlib|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/actionlib)|[link](https://github.com/ros/actionlib)|
+|actionlib_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/actionlib_msgs)|[link](https://github.com/ros/common_msgs)|
+|audio_common_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/audio_common_msgs)|[link](https://github.com/ros-drivers/audio_common)|
+|control_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/control_msgs)|[link](https://github.com/ros-controls/control_msgs)|
+|diagnostic_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/diagnostic_msgs)|[link](https://github.com/ros/common_msgs)|
+|geometry_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/geometry_msgs)|[link](https://github.com/ros/common_msgs)|
+|geographic_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/geographic_msgs)|[link](https://github.com/ros-geographic-info/geographic_info)|
+|mavros_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/mavros_msgs)|[link](https://github.com/mavlink/mavros)|
+|nav_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/nav_msgs)|[link](https://github.com/ros/common_msgs)|
+|rosgraph_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/rosgraph_msgs)|[link](https://github.com/ros/ros_comm_msgs)|
+|sensor_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/sensor_msgs)|[link](https://github.com/ros/common_msgs)|
+|shape_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/shape_msgs)|[link](https://github.com/ros/common_msgs)|
+|sound_play|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/sound_play)|[link](https://github.com/ros-drivers/audio_common)|
+|std_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/std_msgs)|[link](https://github.com/ros/std_msgs)|
+|std_srvs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/std_srvs)|[link](https://github.com/ros/ros_comm_msgs)|
+|stereo_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/stereo_msgs)|[link](https://github.com/ros/common_msgs)|
+|tf|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/tf)|[link](https://github.com/ros/geometry)|
+|tf2_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/tf2_msgs)|[link](https://github.com/ros/geometry2)|
+|trajectory_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/trajectory_msgs)|[link](https://github.com/ros/common_msgs)|
+|uuid_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/uuid_msgs)|[link](https://github.com/ros-geographic-info/unique_identifier)|
+|velodyne_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/velodyne_msgs)|[link](https://github.com/ros-drivers/velodyne)|
+|vision_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/vision_msgs)|[link](https://github.com/ros-perception/vision_msgs)|
+|visualization_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
 
 ### Define custom messages, services and actions
 
@@ -140,7 +134,7 @@ This library doesn't require any `.msg` file, it is enough to write Go structure
 
 ```go
 import (
-    "github.com/aler9/goroslib/pkg/msgs"
+    "github.com/bluenviron/goroslib/v2/pkg/msgs"
 )
 
 type MessageName struct {
@@ -244,28 +238,28 @@ type ActionName struct {
 You can convert existing `.msg` files into their equivalent Go structures by using the `msg-import` tool:
 
 ```
-go get github.com/aler9/goroslib/cmd/msg-import
+go install github.com/bluenviron/goroslib/v2/cmd/msg-import@latest
 msg-import --rospackage=my_package mymessage.msg > mymessage.go
 ```
 
 You can convert existing `.srv` files into their equivalent Go structures by using the `srv-import` tool:
 
 ```
-go get github.com/aler9/goroslib/cmd/srv-import
+go install github.com/bluenviron/goroslib/v2/cmd/srv-import@latest
 srv-import --rospackage=my_package myservice.srv > myservice.go
 ```
 
 You can convert existing `.action` files into their equivalent Go structures by using the `action-import` tool:
 
 ```
-go get github.com/aler9/goroslib/cmd/action-import
+go install github.com/bluenviron/goroslib/v2/cmd/action-import@latest
 action-import --rospackage=my_package myaction.action > myaction.go
 ```
 
 To convert a whole ROS package to Go, you can use the `package-import` tool:
 
 ```
-go get github.com/aler9/goroslib/cmd/package-import
+go install github.com/bluenviron/goroslib/v2/cmd/package-import@latest
 package-import <path-to-ros-package> --rospackage=my_package --gopackage=/pkg/msgs
 ```
 

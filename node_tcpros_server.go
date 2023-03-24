@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/protocommon"
-	"github.com/aler9/goroslib/pkg/prototcp"
+	"github.com/bluenviron/goroslib/v2/pkg/protocommon"
+	"github.com/bluenviron/goroslib/v2/pkg/prototcp"
 )
 
 func (n *Node) runTcprosServer(wg *sync.WaitGroup) {

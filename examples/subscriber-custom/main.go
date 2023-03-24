@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/aler9/goroslib"
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/bluenviron/goroslib/v2"
+	"github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
 // define a custom message.

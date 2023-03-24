@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/aler9/goroslib/pkg/msgconv"
+	"github.com/bluenviron/goroslib/v2/pkg/msgconv"
 )
 
 var tplSrv = template.Must(template.New("").Parse(

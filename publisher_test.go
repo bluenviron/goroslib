@@ -12,12 +12,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/pkg/apislave"
-	"github.com/aler9/goroslib/pkg/msgproc"
-	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
-	"github.com/aler9/goroslib/pkg/protocommon"
-	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/protoudp"
+	"github.com/bluenviron/goroslib/v2/pkg/apislave"
+	"github.com/bluenviron/goroslib/v2/pkg/msgproc"
+	"github.com/bluenviron/goroslib/v2/pkg/msgs/std_msgs"
+	"github.com/bluenviron/goroslib/v2/pkg/protocommon"
+	"github.com/bluenviron/goroslib/v2/pkg/prototcp"
+	"github.com/bluenviron/goroslib/v2/pkg/protoudp"
 )
 
 func TestPublisherOpen(t *testing.T) {

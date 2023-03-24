@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net"
 
-	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/bluenviron/goroslib/v2/pkg/protocommon"
 )
 
 const (
