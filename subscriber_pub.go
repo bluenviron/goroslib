@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aler9/goroslib/pkg/apislave"
-	"github.com/aler9/goroslib/pkg/protocommon"
-	"github.com/aler9/goroslib/pkg/prototcp"
-	"github.com/aler9/goroslib/pkg/protoudp"
+	"github.com/bluenviron/goroslib/v2/pkg/apislave"
+	"github.com/bluenviron/goroslib/v2/pkg/protocommon"
+	"github.com/bluenviron/goroslib/v2/pkg/prototcp"
+	"github.com/bluenviron/goroslib/v2/pkg/protoudp"
 )
 
 const (

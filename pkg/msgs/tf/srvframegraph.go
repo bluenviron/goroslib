@@ -3,7 +3,7 @@
 package tf
 
 import (
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
 type FrameGraphReq struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aler9/goroslib/pkg/xmlrpc"
+	"github.com/bluenviron/goroslib/v2/pkg/xmlrpc"
 )
 
 // Client is a Parameter API client.

@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
 type Parent struct {

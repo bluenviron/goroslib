@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
 // GoalResultFeedback returns the goal, result and feedback of an action.

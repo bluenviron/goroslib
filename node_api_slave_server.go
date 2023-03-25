@@ -4,7 +4,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/aler9/goroslib/pkg/apislave"
+	"github.com/bluenviron/goroslib/v2/pkg/apislave"
 )
 
 func (n *Node) runAPISlaveServer(wg *sync.WaitGroup) {

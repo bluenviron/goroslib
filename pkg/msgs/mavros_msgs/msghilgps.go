@@ -3,9 +3,9 @@
 package mavros_msgs
 
 import (
-	"github.com/aler9/goroslib/pkg/msg"
-	"github.com/aler9/goroslib/pkg/msgs/geographic_msgs"
-	"github.com/aler9/goroslib/pkg/msgs/std_msgs"
+	"github.com/bluenviron/goroslib/v2/pkg/msg"
+	"github.com/bluenviron/goroslib/v2/pkg/msgs/geographic_msgs"
+	"github.com/bluenviron/goroslib/v2/pkg/msgs/std_msgs"
 )
 
 type HilGPS struct {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/alecthomas/kong"
 
-	"github.com/aler9/goroslib/cmd"
+	"github.com/bluenviron/goroslib/v2/cmd"
 )
 
 var cli struct {

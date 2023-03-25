@@ -1,4 +1,4 @@
-module github.com/aler9/goroslib
+module github.com/bluenviron/goroslib/v2
 
 go 1.18
 

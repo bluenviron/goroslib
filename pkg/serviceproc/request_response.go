@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aler9/goroslib/pkg/msg"
+	"github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
 // RequestResponse returns the request and response of a service.

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"io"
 
-	"github.com/aler9/goroslib/pkg/protocommon"
+	"github.com/bluenviron/goroslib/v2/pkg/protocommon"
 )
 
 // Conn is a TCPROS connection.

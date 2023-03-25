@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/aler9/goroslib/pkg/actionproc"
+	"github.com/bluenviron/goroslib/v2/pkg/actionproc"
 )
 
 type goalHandlerPair struct {
