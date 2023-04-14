@@ -283,35 +283,35 @@ make test
 
 * ROS v1
   * General
-    * https://wiki.ros.org/ROS/Technical%20Overview
-    * https://wiki.ros.org/Implementing%20Client%20Libraries
-    * http://wiki.ros.org/Names
-    * http://wiki.ros.org/actionlib
-    * http://wiki.ros.org/actionlib/DetailedDescription
+    * [Technical overview](https://wiki.ros.org/ROS/Technical%20Overview)
+    * [Implementing client libraries](https://wiki.ros.org/Implementing%20Client%20Libraries)
+    * [Names](http://wiki.ros.org/Names)
+    * [Actionlib](http://wiki.ros.org/actionlib)
+    * [Actionlib detailed description](http://wiki.ros.org/actionlib/DetailedDescription)
   * APIs
-    * https://wiki.ros.org/ROS/Master_API
-    * https://wiki.ros.org/ROS/Parameter%20Server%20API
-    * https://wiki.ros.org/ROS/Slave_API
+    * [Master API](https://wiki.ros.org/ROS/Master_API)
+    * [Parameter server API](https://wiki.ros.org/ROS/Parameter%20Server%20API)
+    * [Slave API](https://wiki.ros.org/ROS/Slave_API)
   * Protocols
-    * https://wiki.ros.org/ROS/Connection%20Header
-    * https://wiki.ros.org/ROS/TCPROS
-    * https://wiki.ros.org/ROS/UDPROS
-    * https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c
+    * [Connection header](https://wiki.ros.org/ROS/Connection%20Header)
+    * [TCPROS](https://wiki.ros.org/ROS/TCPROS)
+    * [UDPROS](https://wiki.ros.org/ROS/UDPROS)
+    * [Wireshark dissector](https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c)
 
-* Golang project layout https://github.com/golang-standards/project-layout
+* [Golang project layout](https://github.com/golang-standards/project-layout)
 
 ## Links
 
 Other Go libraries
 
-* v1 https://github.com/akio/rosgo
-* v2 https://github.com/juaruipav/rclgo
+* [rosgo (v1)](https://github.com/akio/rosgo)
+* [rclgo (v2)](https://github.com/juaruipav/rclgo)
 
 Other non-Go libraries
 
-* v1, C++ https://github.com/ros/ros_comm/tree/noetic-devel/clients/roscpp/src/libros - https://docs.ros.org/noetic/api/roscpp/html/classros_1_1NodeHandle.html
-* v1, Python https://docs.ros.org/noetic/api/rosnode/html/
-* v1, C https://github.com/ros-industrial/cros
-* v1, TypeScript https://github.com/foxglove/ros1
-* v2, misc https://fkromer.github.io/awesome-ros2/
-* v2, TypeScript https://github.com/foxglove/ros2
+* [official library (v1) (C++)](https://github.com/ros/ros_comm/tree/noetic-devel/clients/roscpp/src/libros) ([documentation](https://docs.ros.org/noetic/api/roscpp/html/classros_1_1NodeHandle.html))
+* [official library (v1) (Python)](https://docs.ros.org/noetic/api/rosnode/html/)
+* [cros (v1) (C)](https://github.com/ros-industrial/cros)
+* [foxglove/ros1 (v1) (TypeScript)](https://github.com/foxglove/ros1)
+* [awesome ros2 (v2) (misc)](https://fkromer.github.io/awesome-ros2/)
+* [foxglove/ros2 (v2) (TypeScript)](https://github.com/foxglove/ros2)
