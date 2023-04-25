@@ -40,6 +40,14 @@ func TestType(t *testing.T) {
 			}{},
 			"goroslib/Msg",
 		},
+		{
+			"explicit name",
+			struct {
+				msg.Name `ros:"my_name"`
+				A        int
+			}{},
+			"goroslib/my_name",
+		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
 			typ, err := Type(ca.msg)

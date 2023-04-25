@@ -31,8 +31,8 @@ Features:
 * [FAQs](#faqs)
   * [Comparison with other libraries](#comparison-with-other-libraries)
   * [Full list of features](#full-list-of-features)
-  * [Use standard messages, services and actions](#use-standard-messages-services-and-actions)
-  * [Define custom messages, services and actions](#define-custom-messages-services-and-actions)
+  * [Standard messages, services and actions](#standard-messages-services-and-actions)
+  * [Custom messages, services and actions](#custom-messages-services-and-actions)
   * [Import existing messages, services and actions](#import-existing-messages-services-and-actions)
   * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
   * [Edit the library](#edit-the-library)
@@ -90,7 +90,7 @@ rosgo is currently unmaintained; furthermore, it requires compilation of `.msg` 
 
 Current and missing features are [described in the FEATURES document](FEATURES.md).
 
-### Use standard messages, services and actions
+### Standard messages, services and actions
 
 This library provides most of the standard messages, services and actions in the folder `pkg/msgs`:
 
@@ -121,7 +121,7 @@ This library provides most of the standard messages, services and actions in the
 |vision_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/vision_msgs)|[link](https://github.com/ros-perception/vision_msgs)|
 |visualization_msgs|[link](https://pkg.go.dev/github.com/bluenviron/goroslib/v2/pkg/msgs/visualization_msgs)|[link](https://github.com/ros/common_msgs)|
 
-### Define custom messages, services and actions
+### Custom messages, services and actions
 
 To define custom messages, the standard ROS C++/Python libraries require `.msg` files in this format:
 
@@ -144,24 +144,20 @@ type MessageName struct {
 }
 ```
 
+The name of the message is taken from the name of the struct (in this case, `MessageName`), but it can be overridden by adding the `msg.Name` field:
+
+```go
+type MessageName struct {
+    msg.Package `ros:"my_package"`
+    msg.Name `ros:"my_message_name"`
+    Field1 bool
+    Field2 int32
+}
+```
+
 The type of a field can be one of the following:
 
-* one of the primitive field types:
-
-  * `bool`
-  * `int8`
-  * `uint8`
-  * `int16`
-  * `uint16`
-  * `int32`
-  * `uint32`
-  * `int64`
-  * `uint64`
-  * `float32`
-  * `float64`
-  * `string`
-  * `time.Time`
-  * `time.Duration`
+* one of the primitive field types: `bool`, `int8`, `uint8`, `int16`, `uint16`, `int32`, `uint32`, `int64`, `uint64`, `float32`, `float64`, `string`, `time.Time`, `time.Duration`
 
 * another standard or custom message
 

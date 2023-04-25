@@ -52,6 +52,10 @@ func definitionMsg(defsByName map[string]struct{}, defs *[]def, msgt reflect.Typ
 			continue
 		}
 
+		if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Name(0)) {
+			continue
+		}
+
 		if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Definitions(0)) {
 			for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
 				body += def + "\n"
@@ -75,7 +79,7 @@ func definitionMsg(defsByName map[string]struct{}, defs *[]def, msgt reflect.Typ
 		body += text + " " + name + "\n"
 	}
 
-	msgType := typ(msgt)
+	msgType := getType(msgt)
 
 	if _, ok := defsByName[msgType]; !ok {
 		defsByName[msgType] = struct{}{}
@@ -164,7 +168,7 @@ func definitionField(defsByName map[string]struct{}, defs *[]def, fieldt reflect
 			return "", err
 		}
 
-		return typ(fieldt), nil
+		return getType(fieldt), nil
 	}
 
 	return "", fmt.Errorf("unsupported field type '%s'", fieldt.String())

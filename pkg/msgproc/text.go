@@ -51,6 +51,10 @@ func textMsg(msgt reflect.Type) (string, error) {
 			continue
 		}
 
+		if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Name(0)) {
+			continue
+		}
+
 		if ft.Anonymous && ft.Type == reflect.TypeOf(rmsg.Definitions(0)) {
 			for _, def := range strings.Split(ft.Tag.Get("ros"), ",") {
 				ret += def + "\n"
