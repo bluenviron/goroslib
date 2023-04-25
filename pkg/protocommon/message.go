@@ -270,11 +270,15 @@ func binaryDecodeValue(r io.Reader, dest reflect.Value, mlen *int64, buf []byte)
 				f := dest.Elem().Field(i)
 				ft := dest.Elem().Type().Field(i)
 
-				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
+				if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
 					continue
 				}
 
-				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
+				if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Name(0)) {
+					continue
+				}
+
+				if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
 					continue
 				}
 
@@ -445,11 +449,15 @@ func binaryEncodeValue(w *bytes.Buffer, src reflect.Value, dest []byte) {
 			for i := 0; i < nf; i++ {
 				ft := src.Elem().Type().Field(i)
 
-				if ft.Name == "Package" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
+				if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Package(0)) {
 					continue
 				}
 
-				if ft.Name == "Definitions" && ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
+				if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Name(0)) {
+					continue
+				}
+
+				if ft.Anonymous && ft.Type == reflect.TypeOf(msg.Definitions(0)) {
 					continue
 				}
 

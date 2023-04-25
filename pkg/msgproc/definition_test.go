@@ -10,7 +10,8 @@ import (
 )
 
 type Parent2 struct {
-	X int32
+	msg.Name `ros:"parent_2"`
+	X        int32
 }
 
 type Parent1 struct {
@@ -105,10 +106,10 @@ func TestDefinition(t *testing.T) {
 				"================================================================================\n" +
 				"MSG: goroslib/Parent1\n" +
 				"string z\n" +
-				"goroslib/Parent2[] y\n" +
+				"goroslib/parent_2[] y\n" +
 				"\n" +
 				"================================================================================\n" +
-				"MSG: goroslib/Parent2\n" +
+				"MSG: goroslib/parent_2\n" +
 				"int32 x\n" +
 				"\n",
 		},
