@@ -163,7 +163,7 @@ func TestParseMessageDefinition(t *testing.T) {
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
-			def, err := ParseMessageDefinition("gopkg", "rospkg", "msgname", ca.ros)
+			def, err := ParseMessageDefinition("rospkg", "msgname", ca.ros)
 			require.NoError(t, err)
 			golang, err := def.Write()
 			require.NoError(t, err)
@@ -185,7 +185,7 @@ func TestParseMessageDefinitionErrors(t *testing.T) {
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
-			_, err := ParseMessageDefinition("gopkg", "rospkg", "msgname", ca.ros)
+			_, err := ParseMessageDefinition("rospkg", "msgname", ca.ros)
 			require.EqualError(t, err, ca.err)
 		})
 	}

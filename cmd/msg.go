@@ -27,7 +27,7 @@ func ImportMsg(u string, goPkgName string, rosPkgName string, w io.Writer) error
 		return err
 	}
 
-	msgDef, err := msgconv.ParseMessageDefinition(goPkgName, rosPkgName, getName(u, ".msg"), content)
+	msgDef, err := msgconv.ParseMessageDefinition(rosPkgName, getName(u, ".msg"), content)
 	if err != nil {
 		return err
 	}

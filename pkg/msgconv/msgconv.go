@@ -167,7 +167,7 @@ func parseField(rosPkgName string, res *MessageDefinition, typ string, name stri
 	res.Fields = append(res.Fields, f)
 }
 
-func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name string, val string) {
+func parseDefinition(res *MessageDefinition, typ string, name string, val string) {
 	d := Definition{
 		RosType: typ,
 		Name:    name,
@@ -191,7 +191,7 @@ func parseDefinition(rosPkgName string, res *MessageDefinition, typ string, name
 }
 
 // ParseMessageDefinition parses a message definition.
-func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content string) (*MessageDefinition, error) {
+func ParseMessageDefinition(rosPkgName string, name string, content string) (*MessageDefinition, error) {
 	res := &MessageDefinition{
 		RosPkgName: rosPkgName,
 		Name:       firstCharToUpper(name),
@@ -225,7 +225,7 @@ func ParseMessageDefinition(goPkgName string, rosPkgName, name string, content s
 			name, val := line[:i], line[i+1:]
 			name = strings.TrimRight(name, " \t")
 			val = strings.TrimLeft(val, " \t")
-			parseDefinition(rosPkgName, res, typ, name, val)
+			parseDefinition(res, typ, name, val)
 		}
 	}
 
