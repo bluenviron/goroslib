@@ -45,17 +45,17 @@ func ImportAction(u string, goPkgName string, rosPkgName string, w io.Writer) er
 		return fmt.Errorf("definition must contain a goal a result and a feedback")
 	}
 
-	goalDef, err := msgconv.ParseMessageDefinition(goPkgName, goPkgName, name+"ActionGoal", parts[0])
+	goalDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"ActionGoal", parts[0])
 	if err != nil {
 		return err
 	}
 
-	resultDef, err := msgconv.ParseMessageDefinition(goPkgName, goPkgName, name+"ActionResult", parts[1])
+	resultDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"ActionResult", parts[1])
 	if err != nil {
 		return err
 	}
 
-	feedbackDef, err := msgconv.ParseMessageDefinition(goPkgName, goPkgName, name+"ActionFeedback", parts[2])
+	feedbackDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"ActionFeedback", parts[2])
 	if err != nil {
 		return err
 	}
