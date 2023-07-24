@@ -293,14 +293,28 @@ outer:
 			err := func() error {
 				_, ok := p.subscribers[req.header.Callerid]
 				if ok {
-					return fmt.Errorf("topic '%s' is already subscribed by '%s'",
+					err := fmt.Errorf("topic '%s' is already subscribed by '%s'",
 						p.conf.Topic, req.header.Callerid)
+
+					req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
+					req.tconn.WriteHeader(&prototcp.HeaderError{
+						Error: err.Error(),
+					})
+
+					return err
 				}
 
 				// wildcard is used by rostopic hz
 				if req.header.Md5sum != "*" && req.header.Md5sum != p.msgMd5 {
-					return fmt.Errorf("wrong message checksum, expected '%s', got '%s'",
+					err := fmt.Errorf("wrong message checksum, expected '%s', got '%s'",
 						p.msgMd5, req.header.Md5sum)
+
+					req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
+					req.tconn.WriteHeader(&prototcp.HeaderError{
+						Error: err.Error(),
+					})
+
+					return err
 				}
 
 				req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
@@ -318,8 +332,7 @@ outer:
 					MessageDefinition: p.msgDef,
 				})
 				if err != nil {
-					req.nconn.Close()
-					return nil
+					return err
 				}
 
 				if req.header.TcpNodelay == 0 {
@@ -331,27 +344,19 @@ outer:
 				p.subscribers[req.header.Callerid] = ps
 
 				if p.conf.Latch && p.lastMessage != nil {
-					select {
-					case ps.writeMessage <- p.lastMessage:
-					case <-ps.ctx.Done():
-					}
+					ps.writeMessage(p.lastMessage)
 				}
 
 				return nil
 			}()
 			if err != nil {
+				req.nconn.Close()
+
 				p.conf.Node.Log(LogLevelError,
 					"publisher '%s' is unable to accept TCP subscriber '%s': %s",
 					p.conf.Node.absoluteTopicName(p.conf.Topic),
 					req.nconn.RemoteAddr(),
 					err)
-
-				req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
-				req.tconn.WriteHeader(&prototcp.HeaderError{
-					Error: err.Error(),
-				})
-
-				req.nconn.Close()
 				continue
 			}
 
@@ -364,10 +369,7 @@ outer:
 			}
 
 			for _, ps := range p.subscribers {
-				select {
-				case ps.writeMessage <- msg:
-				case <-ps.ctx.Done():
-				}
+				ps.writeMessage(msg)
 			}
 
 		case <-p.ctx.Done():

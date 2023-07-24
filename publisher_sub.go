@@ -20,7 +20,7 @@ type publisherSubscriber struct {
 	ctxCancel func()
 
 	// in
-	writeMessage chan interface{}
+	chWriteMessage chan interface{}
 }
 
 func newPublisherSubscriber(
@@ -33,14 +33,14 @@ func newPublisherSubscriber(
 	ctx, ctxCancel := context.WithCancel(pub.ctx)
 
 	ps := &publisherSubscriber{
-		pub:          pub,
-		callerID:     callerID,
-		tcpNConn:     tcpNConn,
-		tcpTConn:     tcpTConn,
-		udpAddr:      udpAddr,
-		ctx:          ctx,
-		ctxCancel:    ctxCancel,
-		writeMessage: make(chan interface{}),
+		pub:            pub,
+		callerID:       callerID,
+		tcpNConn:       tcpNConn,
+		tcpTConn:       tcpTConn,
+		udpAddr:        udpAddr,
+		ctx:            ctx,
+		ctxCancel:      ctxCancel,
+		chWriteMessage: make(chan interface{}),
 	}
 
 	pub.subscribersWg.Add(1)
@@ -113,7 +113,7 @@ func (ps *publisherSubscriber) runTCP() error {
 		writerErr <- func() error {
 			for {
 				select {
-				case msg := <-ps.writeMessage:
+				case msg := <-ps.chWriteMessage:
 					ps.tcpNConn.SetWriteDeadline(time.Now().Add(ps.pub.conf.Node.conf.WriteTimeout))
 					err := ps.tcpTConn.WriteMessage(msg)
 					if err != nil {
@@ -153,7 +153,7 @@ func (ps *publisherSubscriber) runUDP() error {
 
 	for {
 		select {
-		case msg := <-ps.writeMessage:
+		case msg := <-ps.chWriteMessage:
 			curMessageID++
 
 			err := ps.pub.conf.Node.udprosConn.WriteMessage(
@@ -186,5 +186,12 @@ func (ps *publisherSubscriber) busInfo() []interface{} {
 		proto,
 		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
 		true,
+	}
+}
+
+func (ps *publisherSubscriber) writeMessage(msg interface{}) {
+	select {
+	case ps.chWriteMessage <- msg:
+	case <-ps.ctx.Done():
 	}
 }
