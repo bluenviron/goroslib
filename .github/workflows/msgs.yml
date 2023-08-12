@@ -1,0 +1,30 @@
+name: msgs
+
+on:
+  schedule:
+  - cron: '4 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  msgs:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: "1.20"
+
+    - run: cd / && go install mvdan.cc/gofumpt@v0.3.1
+
+    - run: make msgs-nodocker
+
+    - run: |
+        test -z "$(git status --porcelain)" ||
+        ( make test-nodocker \
+        && git add . \
+        && git config user.name goroslib-bot \
+        && git config user.email bot@goroslib \
+        && git commit -m "(automatic) update messages" \
+        && git push )
