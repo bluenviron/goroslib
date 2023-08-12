@@ -11,7 +11,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 
-	"github.com/bluenviron/goroslib/v2/cmd"
+	"github.com/bluenviron/goroslib/v2/pkg/conversion"
 )
 
 func shellCommand(cmdstr string) error {
@@ -40,7 +40,7 @@ func processRepo(ur string, branch string) error {
 
 	fmt.Fprintf(os.Stderr, "generating for %s, branch %s\n", ur, branch)
 	u, _ := url.Parse(ur)
-	return cmd.ImportPackage(u.Path, dir, filepath.Join("pkg", "msgs"))
+	return conversion.ImportPackageRecursive(u.Path, dir, filepath.Join("pkg", "msgs"))
 }
 
 func run() error {

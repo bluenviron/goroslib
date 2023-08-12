@@ -1,5 +1,4 @@
-// Package cmd contains the support code for commands.
-package cmd
+package conversion
 
 import (
 	"io"
