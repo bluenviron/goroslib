@@ -1,5 +1,4 @@
-// Package msgconv contains functions to convert messages from ROS definitions to Golang.
-package msgconv
+package conversion
 
 import (
 	"bytes"
@@ -87,8 +86,7 @@ func camelToSnake(in string) string {
 	return string(tmp)
 }
 
-// MessageDefinition is a message definition.
-type MessageDefinition struct {
+type messageDefinition struct {
 	RosPkgName     string
 	Name           string
 	Fields         []Field
@@ -97,7 +95,7 @@ type MessageDefinition struct {
 	Imports        map[string]struct{}
 }
 
-func parseField(rosPkgName string, res *MessageDefinition, typ string, name string) {
+func parseField(rosPkgName string, res *messageDefinition, typ string, name string) {
 	f := Field{}
 
 	// use NameOverride if a bidirectional conversion between snake and
@@ -167,7 +165,7 @@ func parseField(rosPkgName string, res *MessageDefinition, typ string, name stri
 	res.Fields = append(res.Fields, f)
 }
 
-func parseDefinition(res *MessageDefinition, typ string, name string, val string) {
+func parseDefinition(res *messageDefinition, typ string, name string, val string) {
 	d := Definition{
 		RosType: typ,
 		Name:    name,
@@ -190,9 +188,8 @@ func parseDefinition(res *MessageDefinition, typ string, name string, val string
 	res.Definitions = append(res.Definitions, d)
 }
 
-// ParseMessageDefinition parses a message definition.
-func ParseMessageDefinition(rosPkgName string, name string, content string) (*MessageDefinition, error) {
-	res := &MessageDefinition{
+func parseMessageDefinition(rosPkgName string, name string, content string) (*messageDefinition, error) {
+	res := &messageDefinition{
 		RosPkgName: rosPkgName,
 		Name:       firstCharToUpper(name),
 	}
@@ -255,8 +252,7 @@ func ParseMessageDefinition(rosPkgName string, name string, content string) (*Me
 	return res, nil
 }
 
-// Write converts a message definition into a Go structure.
-func (res *MessageDefinition) Write() (string, error) {
+func (res *messageDefinition) write() (string, error) {
 	var buf bytes.Buffer
 	tpl.Execute(&buf, res)
 	return buf.String(), nil

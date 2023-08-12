@@ -1,4 +1,4 @@
-package msgconv
+package conversion
 
 import (
 	"testing"
@@ -163,9 +163,9 @@ func TestParseMessageDefinition(t *testing.T) {
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
-			def, err := ParseMessageDefinition("rospkg", "msgname", ca.ros)
+			def, err := parseMessageDefinition("rospkg", "msgname", ca.ros)
 			require.NoError(t, err)
-			golang, err := def.Write()
+			golang, err := def.write()
 			require.NoError(t, err)
 			require.Equal(t, ca.golang, golang)
 		})
@@ -185,7 +185,7 @@ func TestParseMessageDefinitionErrors(t *testing.T) {
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {
-			_, err := ParseMessageDefinition("rospkg", "msgname", ca.ros)
+			_, err := parseMessageDefinition("rospkg", "msgname", ca.ros)
 			require.EqualError(t, err, ca.err)
 		})
 	}

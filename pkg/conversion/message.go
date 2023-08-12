@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/bluenviron/goroslib/v2/pkg/msgconv"
 )
 
 var tplMessage = template.Must(template.New("").Parse(
@@ -33,12 +31,12 @@ func ImportMessage(path string, goPkgName string, rosPkgName string, w io.Writer
 	}
 	content := string(buf)
 
-	msgDef, err := msgconv.ParseMessageDefinition(rosPkgName, name, content)
+	msgDef, err := parseMessageDefinition(rosPkgName, name, content)
 	if err != nil {
 		return err
 	}
 
-	message, err := msgDef.Write()
+	message, err := msgDef.write()
 	if err != nil {
 		return err
 	}

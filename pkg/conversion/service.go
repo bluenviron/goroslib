@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/bluenviron/goroslib/v2/pkg/msgconv"
 )
 
 var tplService = template.Must(template.New("").Parse(
@@ -47,12 +45,12 @@ func ImportService(path string, goPkgName string, rosPkgName string, w io.Writer
 		return fmt.Errorf("definition must contain a request and a response")
 	}
 
-	reqDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"Req", parts[0])
+	reqDef, err := parseMessageDefinition(goPkgName, name+"Req", parts[0])
 	if err != nil {
 		return err
 	}
 
-	resDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"Res", parts[1])
+	resDef, err := parseMessageDefinition(goPkgName, name+"Res", parts[1])
 	if err != nil {
 		return err
 	}
@@ -65,12 +63,12 @@ func ImportService(path string, goPkgName string, rosPkgName string, w io.Writer
 		imports[i] = struct{}{}
 	}
 
-	request, err := reqDef.Write()
+	request, err := reqDef.write()
 	if err != nil {
 		return err
 	}
 
-	response, err := resDef.Write()
+	response, err := resDef.write()
 	if err != nil {
 		return err
 	}
