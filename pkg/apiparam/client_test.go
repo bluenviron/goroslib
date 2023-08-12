@@ -37,6 +37,9 @@ func TestClient(t *testing.T) {
 
 			case "mykey3":
 				return ResponseGetParamString{Code: 1, Res: "mystring"}
+
+			case "mykey4":
+				return ResponseGetParamFloat64{Code: 1, Res: 123.456}
 			}
 
 		case "hasParam":
@@ -80,6 +83,12 @@ func TestClient(t *testing.T) {
 		res, err := c.GetParamString("mykey3")
 		require.NoError(t, err)
 		require.Equal(t, "mystring", res)
+	}()
+
+	func() {
+		res, err := c.GetParamFloat64("mykey4")
+		require.NoError(t, err)
+		require.Equal(t, 123.456, res)
 	}()
 
 	func() {
@@ -145,6 +154,11 @@ func TestClientError(t *testing.T) {
 		}()
 
 		func() {
+			_, err := c.GetParamFloat64("mykey4")
+			require.Error(t, err)
+		}()
+
+		func() {
 			_, err := c.HasParam("mykey")
 			require.Error(t, err)
 		}()
@@ -197,6 +211,9 @@ func TestClientError(t *testing.T) {
 
 				case "mykey3":
 					return ResponseGetParamString{Code: 0, Res: "mystring"}
+
+				case "mykey4":
+					return ResponseGetParamFloat64{Code: 0, Res: 123.456}
 				}
 
 			case "hasParam":
@@ -232,6 +249,9 @@ func TestClientError(t *testing.T) {
 		require.Error(t, err)
 
 		_, err = c.GetParamString("mykey3")
+		require.Error(t, err)
+
+		_, err = c.GetParamFloat64("mykey4")
 		require.Error(t, err)
 
 		_, err = c.HasParam("mykey")
