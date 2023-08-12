@@ -1,7 +1,7 @@
 define DOCKERFILE_MSGS
 FROM $(BASE_IMAGE)
 RUN apk add --no-cache make git
-RUN go install mvdan.cc/gofumpt@v0.3.1
+RUN go install mvdan.cc/gofumpt@v0.5.0
 WORKDIR /s
 COPY go.mod go.sum ./
 RUN go mod download
