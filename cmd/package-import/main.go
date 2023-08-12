@@ -7,7 +7,7 @@ import (
 
 	"github.com/alecthomas/kong"
 
-	"github.com/bluenviron/goroslib/v2/cmd"
+	"github.com/bluenviron/goroslib/v2/pkg/conversion"
 )
 
 var cli struct {
@@ -21,7 +21,7 @@ func run() error {
 		kong.Description("Convert all messages, services and actions definions in a ROS package into Go structs."),
 		kong.UsageOnError())
 
-	return cmd.ImportPackage(cli.RosPackage, cli.URL, cli.GoPackage)
+	return conversion.ImportPackageRecursive(cli.RosPackage, cli.URL, cli.GoPackage)
 }
 
 func main() {

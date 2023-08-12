@@ -1,4 +1,5 @@
-package cmd
+// Package conversion contains functions to import ROS definitions.
+package conversion
 
 import (
 	"os"
@@ -16,8 +17,18 @@ var tplPackage = template.Must(template.New("").Parse(
 package {{ .PkgName }}
 `))
 
-// ImportDir generates Go files for all ROS definitions under the directory.
-func ImportDir(name string, rosDir string, goDir string) error {
+func writeTemplate(fpath string, tpl *template.Template, args map[string]interface{}) error {
+	f, err := os.Create(fpath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return tpl.Execute(f, args)
+}
+
+// ImportPackage generates Go files for all ROS definitions under the directory.
+func ImportPackage(name string, rosDir string, goDir string) error {
 	os.Mkdir(goDir, 0o755)
 	err := writeTemplate(filepath.Join(goDir, "package.go"), tplPackage,
 		map[string]interface{}{"PkgName": name})
@@ -38,7 +49,7 @@ func ImportDir(name string, rosDir string, goDir string) error {
 				return err
 			}
 			defer f.Close()
-			if err := ImportMsg(filePath, name, name, f); err != nil {
+			if err := ImportMessage(filePath, name, name, f); err != nil {
 				os.Remove(outpath)
 				return err
 			}
@@ -50,7 +61,7 @@ func ImportDir(name string, rosDir string, goDir string) error {
 				return err
 			}
 			defer f.Close()
-			if err := ImportSrv(filePath, name, name, f); err != nil {
+			if err := ImportService(filePath, name, name, f); err != nil {
 				os.Remove(outpath)
 				return err
 			}
@@ -72,8 +83,8 @@ func ImportDir(name string, rosDir string, goDir string) error {
 	})
 }
 
-// ImportPackage generates Go files for all ROS definitions under the directory if it's a ROS package.
-func ImportPackage(prefix string, dir string, goDir string) error {
+// ImportPackageRecursive generates Go files for all ROS definitions under the directory if it's a ROS package.
+func ImportPackageRecursive(prefix string, dir string, goDir string) error {
 	// find folders which contain a "msg", "srv" or "action" subfolder
 	paths := make(map[string]struct{})
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -92,20 +103,10 @@ func ImportPackage(prefix string, dir string, goDir string) error {
 	}
 	for path := range paths {
 		name := filepath.Base(filepath.Join(prefix, path[len(dir):]))
-		err := ImportDir(name, path, filepath.Join(goDir, name))
+		err := ImportPackage(name, path, filepath.Join(goDir, name))
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func writeTemplate(fpath string, tpl *template.Template, args map[string]interface{}) error {
-	f, err := os.Create(fpath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	return tpl.Execute(f, args)
 }
