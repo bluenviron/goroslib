@@ -89,7 +89,7 @@ func TestMD5(t *testing.T) {
 			"e8c99bd7177c56d5ef9104809bae67a1",
 		},
 		{
-			"custom name",
+			"custom field name",
 			struct {
 				A string `rosname:"A"`
 			}{},
@@ -104,6 +104,14 @@ func TestMD5(t *testing.T) {
 			"empty struct",
 			struct{}{},
 			"d41d8cd98f00b204e9800998ecf8427e",
+		},
+		{
+			"custom package name",
+			struct {
+				msg.Name `ros:"my_message_name"`
+				A        uint8
+			}{},
+			"295668dab68dba71442664f21173de53",
 		},
 	} {
 		t.Run(ca.name, func(t *testing.T) {

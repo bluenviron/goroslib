@@ -11,13 +11,19 @@ const (
 	bufferSize = 2048
 )
 
+// PacketConn is a subset of net.PacketConn.
+type PacketConn interface {
+	ReadFrom(p []byte) (n int, addr net.Addr, err error)
+	WriteTo(p []byte, addr net.Addr) (n int, err error)
+}
+
 // Conn is a UDPROS connection.
 type Conn struct {
-	pc net.PacketConn
+	pc PacketConn
 }
 
 // NewConn allocates a Conn.
-func NewConn(pc net.PacketConn) *Conn {
+func NewConn(pc PacketConn) *Conn {
 	return &Conn{
 		pc: pc,
 	}
