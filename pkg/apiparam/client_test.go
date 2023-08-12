@@ -182,6 +182,11 @@ func TestClientError(t *testing.T) {
 			err := c.SetParamString("mykey", "myval")
 			require.Error(t, err)
 		}()
+
+		func() {
+			err := c.SetParamFloat64("mykey", 123.456)
+			require.Error(t, err)
+		}()
 	})
 
 	t.Run("server error", func(t *testing.T) {
@@ -270,6 +275,9 @@ func TestClientError(t *testing.T) {
 		require.Error(t, err)
 
 		err = c.SetParamString("mykey", "myval")
+		require.Error(t, err)
+
+		err = c.SetParamFloat64("mykey", 123.456)
 		require.Error(t, err)
 	})
 }
