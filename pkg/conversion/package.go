@@ -44,7 +44,7 @@ func ImportPackage(name string, rosDir string, goDir string) error {
 
 		switch path.Ext(info.Name()) {
 		case ".msg":
-			outpath := strings.ToLower(filepath.Join(goDir, "Msg"+strings.TrimSuffix(info.Name(), ".msg")+".go"))
+			outpath := filepath.Join(goDir, "msg_"+strings.TrimSuffix(strings.ToLower(info.Name()), ".msg")+".go")
 			f, err := os.Create(outpath)
 			if err != nil {
 				return err
@@ -56,7 +56,7 @@ func ImportPackage(name string, rosDir string, goDir string) error {
 			}
 
 		case ".srv":
-			outpath := strings.ToLower(filepath.Join(goDir, "Srv"+strings.TrimSuffix(info.Name(), ".srv")+".go"))
+			outpath := filepath.Join(goDir, "srv_"+strings.TrimSuffix(strings.ToLower(info.Name()), ".srv")+".go")
 			f, err := os.Create(outpath)
 			if err != nil {
 				return err
@@ -68,7 +68,7 @@ func ImportPackage(name string, rosDir string, goDir string) error {
 			}
 
 		case ".action":
-			outpath := strings.ToLower(filepath.Join(goDir, "Action"+strings.TrimSuffix(info.Name(), ".action")+".go"))
+			outpath := filepath.Join(goDir, "action_"+strings.TrimSuffix(strings.ToLower(info.Name()), ".action")+".go")
 			f, err := os.Create(outpath)
 			if err != nil {
 				return err
