@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/bluenviron/goroslib/v2/pkg/msgconv"
 )
 
 var tplAction = template.Must(template.New("").Parse(
@@ -49,17 +47,17 @@ func ImportAction(path string, goPkgName string, rosPkgName string, w io.Writer)
 		return fmt.Errorf("definition must contain a goal a result and a feedback")
 	}
 
-	goalDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"ActionGoal", parts[0])
+	goalDef, err := parseMessageDefinition(goPkgName, name+"ActionGoal", parts[0])
 	if err != nil {
 		return err
 	}
 
-	resultDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"ActionResult", parts[1])
+	resultDef, err := parseMessageDefinition(goPkgName, name+"ActionResult", parts[1])
 	if err != nil {
 		return err
 	}
 
-	feedbackDef, err := msgconv.ParseMessageDefinition(goPkgName, name+"ActionFeedback", parts[2])
+	feedbackDef, err := parseMessageDefinition(goPkgName, name+"ActionFeedback", parts[2])
 	if err != nil {
 		return err
 	}
@@ -75,17 +73,17 @@ func ImportAction(path string, goPkgName string, rosPkgName string, w io.Writer)
 		imports[i] = struct{}{}
 	}
 
-	goal, err := goalDef.Write()
+	goal, err := goalDef.write()
 	if err != nil {
 		return err
 	}
 
-	result, err := resultDef.Write()
+	result, err := resultDef.write()
 	if err != nil {
 		return err
 	}
 
-	feedback, err := feedbackDef.Write()
+	feedback, err := feedbackDef.write()
 	if err != nil {
 		return err
 	}

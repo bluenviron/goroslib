@@ -1,4 +1,4 @@
-// Package conversion contains functions to import ROS definitions.
+// Package conversion contains functions to import ROS definition into Golang.
 package conversion
 
 import (

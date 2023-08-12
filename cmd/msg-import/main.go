@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/alecthomas/kong"
@@ -16,16 +17,24 @@ var cli struct {
 	Path       string `arg:"" help:"path pointing to a ROS message"`
 }
 
-func run() error {
-	kong.Parse(&cli,
+func run(args []string, output io.Writer) error {
+	parser, err := kong.New(&cli,
 		kong.Description("Convert ROS messages into Go structs."),
 		kong.UsageOnError())
+	if err != nil {
+		return err
+	}
 
-	return conversion.ImportMessage(cli.Path, cli.GoPackage, cli.RosPackage, os.Stdout)
+	_, err = parser.Parse(args)
+	if err != nil {
+		return err
+	}
+
+	return conversion.ImportMessage(cli.Path, cli.GoPackage, cli.RosPackage, output)
 }
 
 func main() {
-	err := run()
+	err := run(os.Args[1:], os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERR: %s\n", err)
 		os.Exit(1)
