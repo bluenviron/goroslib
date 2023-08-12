@@ -64,7 +64,7 @@ type Field struct {
 func snakeToCamel(in string) string {
 	tmp := []rune(in)
 	tmp[0] = unicode.ToUpper(tmp[0])
-	for i := 0; i < len(tmp); i++ {
+	for i := 0; i < (len(tmp) - 1); i++ {
 		if tmp[i] == '_' {
 			tmp[i+1] = unicode.ToUpper(tmp[i+1])
 			tmp = append(tmp[:i], tmp[i+1:]...)

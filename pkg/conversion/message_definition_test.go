@@ -123,10 +123,10 @@ func TestParseMessageDefinition(t *testing.T) {
 		},
 		{
 			"name override",
-			"int32 aB",
+			"int32 aB_",
 			"\n\ntype Msgname struct {\n" +
 				"    msg.Package `ros:\"rospkg\"`\n" +
-				"    AB int32`rosname:\"aB\"`\n" +
+				"    AB_ int32`rosname:\"aB_\"`\n" +
 				"}\n",
 		},
 		{
