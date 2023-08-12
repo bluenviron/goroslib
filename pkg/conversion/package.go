@@ -2,6 +2,7 @@
 package conversion
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -84,7 +85,7 @@ func ImportPackage(name string, rosDir string, goDir string) error {
 }
 
 // ImportPackageRecursive generates Go files for all ROS definitions under the directory if it's a ROS package.
-func ImportPackageRecursive(prefix string, dir string, goDir string) error {
+func ImportPackageRecursive(dir string) error {
 	// find folders which contain a "msg", "srv" or "action" subfolder
 	paths := make(map[string]struct{})
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -101,12 +102,19 @@ func ImportPackageRecursive(prefix string, dir string, goDir string) error {
 	if err != nil {
 		return err
 	}
+
+	if len(paths) == 0 {
+		return fmt.Errorf("no ROS packages found in '%s'."+
+			" A ROS package must contain at least a subfolder named 'msg', 'srv' or 'action'.", dir)
+	}
+
 	for path := range paths {
-		name := filepath.Base(filepath.Join(prefix, path[len(dir):]))
-		err := ImportPackage(name, path, filepath.Join(goDir, name))
+		pkgName := filepath.Base(path)
+		err := ImportPackage(pkgName, path, pkgName)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

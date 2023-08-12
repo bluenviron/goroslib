@@ -256,7 +256,7 @@ To convert a whole ROS package to Go, you can use the `package-import` tool:
 
 ```
 go install github.com/bluenviron/goroslib/v2/cmd/package-import@latest
-package-import <path-to-ros-package> --rospackage=my_package --gopackage=/pkg/msgs
+package-import <path-to-ros-package>
 ```
 
 ### Compile a node for another operating system

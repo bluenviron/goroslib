@@ -29,6 +29,11 @@ func processRepo(ur string, branch string) error {
 	}
 	defer os.RemoveAll(dir)
 
+	u, _ := url.Parse(ur)
+	dir = filepath.Join(dir, u.Path)
+
+	os.Mkdir(dir, 0o755)
+
 	_, err = git.PlainClone(dir, false, &git.CloneOptions{
 		URL:           ur,
 		Depth:         1,
@@ -38,9 +43,8 @@ func processRepo(ur string, branch string) error {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "generating for %s, branch %s\n", ur, branch)
-	u, _ := url.Parse(ur)
-	return conversion.ImportPackageRecursive(u.Path, dir, filepath.Join("pkg", "msgs"))
+	fmt.Fprintf(os.Stderr, "importing packages from %s, branch %s\n", ur, branch)
+	return conversion.ImportPackageRecursive(dir)
 }
 
 func run() error {
@@ -48,6 +52,8 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	os.Chdir(filepath.Join("pkg", "msgs"))
 
 	done := make(chan error)
 	count := 0
