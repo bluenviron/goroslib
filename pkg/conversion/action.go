@@ -3,6 +3,8 @@ package conversion
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -33,12 +35,14 @@ type {{ .Name }}Action struct {
 `))
 
 // ImportAction generates Go file from an .action file and writes to the io.Writer.
-func ImportAction(u string, goPkgName string, rosPkgName string, w io.Writer) error {
-	name := getName(u, ".action")
-	content, err := getContent(u)
+func ImportAction(path string, goPkgName string, rosPkgName string, w io.Writer) error {
+	name := strings.TrimSuffix(filepath.Base(path), ".action")
+
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
+	content := string(buf)
 
 	parts := strings.Split(content, "---")
 	if len(parts) != 3 {

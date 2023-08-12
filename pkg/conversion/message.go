@@ -2,6 +2,9 @@ package conversion
 
 import (
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/bluenviron/goroslib/v2/pkg/msgconv"
@@ -21,13 +24,16 @@ import (
 `))
 
 // ImportMessage generates Go file from a .msg file and writes to the io.Writer.
-func ImportMessage(u string, goPkgName string, rosPkgName string, w io.Writer) error {
-	content, err := getContent(u)
+func ImportMessage(path string, goPkgName string, rosPkgName string, w io.Writer) error {
+	name := strings.TrimSuffix(filepath.Base(path), ".msg")
+
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
+	content := string(buf)
 
-	msgDef, err := msgconv.ParseMessageDefinition(rosPkgName, getName(u, ".msg"), content)
+	msgDef, err := msgconv.ParseMessageDefinition(rosPkgName, name, content)
 	if err != nil {
 		return err
 	}

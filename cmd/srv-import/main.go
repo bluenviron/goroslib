@@ -13,7 +13,7 @@ import (
 var cli struct {
 	GoPackage  string `name:"gopackage" help:"Go package name" default:"main"`
 	RosPackage string `name:"rospackage" help:"ROS package name" default:"my_package"`
-	URL        string `arg:"" help:"path or url pointing to a ROS service"`
+	Path       string `arg:"" help:"path pointing to a ROS service"`
 }
 
 func run() error {
@@ -21,7 +21,7 @@ func run() error {
 		kong.Description("Convert ROS services into Go structs."),
 		kong.UsageOnError())
 
-	return conversion.ImportService(cli.URL, cli.GoPackage, cli.RosPackage, os.Stdout)
+	return conversion.ImportService(cli.Path, cli.GoPackage, cli.RosPackage, os.Stdout)
 }
 
 func main() {
