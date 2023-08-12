@@ -3,6 +3,8 @@ package conversion
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -31,12 +33,14 @@ type {{ .Name }} struct {
 `))
 
 // ImportService generates Go file from a .srv file and writes to the io.Writer.
-func ImportService(u string, goPkgName string, rosPkgName string, w io.Writer) error {
-	name := getName(u, ".srv")
-	content, err := getContent(u)
+func ImportService(path string, goPkgName string, rosPkgName string, w io.Writer) error {
+	name := strings.TrimSuffix(filepath.Base(path), ".srv")
+
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
+	content := string(buf)
 
 	parts := strings.Split(content, "---")
 	if len(parts) != 2 {
