@@ -446,12 +446,13 @@ func TestPublisherWriteUDP(t *testing.T) {
 						"UDPROS",
 						func() []byte {
 							var buf bytes.Buffer
-							protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
+							err = protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
 								Callerid: ns.absoluteName(),
 								Md5sum:   msgMd5,
 								Topic:    ns.absoluteTopicName("test_topic"),
 								Type:     "std_msgs/Int64MultiArray",
 							})
+							require.NoError(t, err)
 							return buf.Bytes()[4:]
 						}(),
 						n.nodeAddr.IP.String(),
@@ -622,7 +623,8 @@ func TestPublisherAcceptErrors(t *testing.T) {
 		require.NoError(t, err)
 		defer nconn.Close()
 
-		nconn.Write([]byte{0x01})
+		_, err = nconn.Write([]byte{0x01})
+		require.NoError(t, err)
 
 		buf := make([]byte, 1024)
 		_, err = nconn.Read(buf)
@@ -685,7 +687,8 @@ func TestPublisherAcceptErrors(t *testing.T) {
 			Topic string
 		}
 
-		tconn.WriteHeader(&HeaderInvalid{Topic: "invalid"})
+		err = tconn.WriteHeader(&HeaderInvalid{Topic: "invalid"})
+		require.NoError(t, err)
 
 		buf := make([]byte, 1024)
 		_, err = nconn.Read(buf)

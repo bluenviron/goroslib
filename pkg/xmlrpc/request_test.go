@@ -101,7 +101,7 @@ func FuzzRequestDecode(f *testing.F) {
 	f.Fuzz(func(t *testing.T, b []byte) {
 		raw, err := requestDecodeRaw(bytes.NewReader(b))
 		if err == nil {
-			requestDecode(raw, dest)
+			requestDecode(raw, dest) //nolint:errcheck
 		}
 	})
 }

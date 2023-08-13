@@ -389,13 +389,12 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 }
 
 // Close closes an ActionServer and shuts down all its operations.
-func (as *ActionServer) Close() error {
+func (as *ActionServer) Close() {
 	as.ctxCancel()
 	<-as.done
 
 	as.conf.Node.Log(LogLevelDebug, "action server '%s' destroyed",
 		as.conf.Node.absoluteTopicName(as.conf.Name))
-	return nil
 }
 
 func (as *ActionServer) run() {

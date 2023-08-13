@@ -191,7 +191,7 @@ func FuzzValueDecodeToNil(f *testing.F) {
 		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
 		err := xmlGetStartElement(dec, "value")
 		require.NoError(t, err)
-		valueDecode(dec, reflect.ValueOf(dest))
+		valueDecode(dec, reflect.ValueOf(dest)) //nolint:errcheck
 	})
 }
 
@@ -218,7 +218,7 @@ func FuzzValueDecodeToInterface(f *testing.F) {
 		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
 		err := xmlGetStartElement(dec, "value")
 		require.NoError(t, err)
-		valueDecode(dec, reflect.ValueOf(dest))
+		valueDecode(dec, reflect.ValueOf(dest)) //nolint:errcheck
 	})
 }
 
@@ -235,7 +235,7 @@ func FuzzValueDecodeToString(f *testing.F) {
 		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
 		err := xmlGetStartElement(dec, "value")
 		require.NoError(t, err)
-		valueDecode(dec, reflect.ValueOf(dest))
+		valueDecode(dec, reflect.ValueOf(dest)) //nolint:errcheck
 	})
 }
 
@@ -252,7 +252,7 @@ func FuzzValueDecodeToInteger(f *testing.F) {
 		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
 		err := xmlGetStartElement(dec, "value")
 		require.NoError(t, err)
-		valueDecode(dec, reflect.ValueOf(dest))
+		valueDecode(dec, reflect.ValueOf(dest)) //nolint:errcheck
 	})
 }
 
@@ -266,7 +266,7 @@ func FuzzValueDecodeToSlice(f *testing.F) {
 		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
 		err := xmlGetStartElement(dec, "value")
 		require.NoError(t, err)
-		valueDecode(dec, reflect.ValueOf(dest))
+		valueDecode(dec, reflect.ValueOf(dest)) //nolint:errcheck
 	})
 }
 
@@ -283,7 +283,7 @@ func FuzzValueDecodeToStruct(f *testing.F) {
 		dec := xml.NewDecoder(bytes.NewReader(append([]byte("<value>"), b...)))
 		err := xmlGetStartElement(dec, "value")
 		require.NoError(t, err)
-		valueDecode(dec, reflect.ValueOf(dest))
+		valueDecode(dec, reflect.ValueOf(dest)) //nolint:errcheck
 	})
 }
 

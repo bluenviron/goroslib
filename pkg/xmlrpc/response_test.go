@@ -90,7 +90,7 @@ func FuzzResponseDecode(f *testing.F) {
 	}{}
 
 	f.Fuzz(func(t *testing.T, b []byte) {
-		responseDecode(bytes.NewReader(b), dest)
+		responseDecode(bytes.NewReader(b), dest) //nolint:errcheck
 	})
 }
 

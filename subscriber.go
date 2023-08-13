@@ -159,13 +159,12 @@ func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 }
 
 // Close closes a Subscriber and shuts down all its operations.
-func (s *Subscriber) Close() error {
+func (s *Subscriber) Close() {
 	s.ctxCancel()
 	<-s.done
 
 	s.conf.Node.Log(LogLevelDebug, "subscriber '%s' destroyed",
 		s.conf.Node.absoluteTopicName(s.conf.Topic))
-	return nil
 }
 
 func (s *Subscriber) run() {
@@ -234,7 +233,7 @@ outer:
 
 	s.ctxCancel()
 
-	s.conf.Node.apiMasterClient.UnregisterSubscriber(
+	s.conf.Node.apiMasterClient.UnregisterSubscriber( //nolint:errcheck
 		s.conf.Node.absoluteTopicName(s.conf.Topic),
 		s.conf.Node.apiSlaveServer.URL())
 

@@ -14,6 +14,9 @@ import (
 // <methodResponse><fault><value>..., a structure which would require additional parsing.
 type ErrorRes struct{}
 
+// ServerHandler is the prototype of the function passed to Serve().
+type ServerHandler func(*RequestRaw) interface{}
+
 // Server is a XML-RPC server.
 type Server struct {
 	ctx       context.Context
@@ -21,9 +24,9 @@ type Server struct {
 	wg        sync.WaitGroup
 	ln        net.Listener
 	hs        *http.Server
-	handler   func(*RequestRaw) interface{}
+	handler   ServerHandler
 
-	setHandler chan func(*RequestRaw) interface{}
+	setHandler chan ServerHandler
 	done       chan struct{}
 }
 
@@ -42,7 +45,7 @@ func NewServer(address string, writeTimeout time.Duration) (*Server, error) {
 		ctx:        ctx,
 		ctxCancel:  ctxCancel,
 		ln:         ln,
-		setHandler: make(chan func(*RequestRaw) interface{}),
+		setHandler: make(chan ServerHandler),
 		done:       make(chan struct{}),
 	}
 
@@ -57,10 +60,9 @@ func NewServer(address string, writeTimeout time.Duration) (*Server, error) {
 }
 
 // Close closes all the server resources.
-func (s *Server) Close() error {
+func (s *Server) Close() {
 	s.ctxCancel()
 	<-s.done
-	return nil
 }
 
 // URL returns the server URL.
@@ -119,11 +121,11 @@ func (s *Server) handleRequest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseEncode(w, res)
+	responseEncode(w, res) //nolint:errcheck
 }
 
 // Serve starts serving requests and waits until the server is closed.
-func (s *Server) Serve(handler func(*RequestRaw) interface{}) {
+func (s *Server) Serve(handler ServerHandler) {
 	select {
 	case s.setHandler <- handler:
 	case <-s.ctx.Done():

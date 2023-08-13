@@ -254,6 +254,9 @@ func parseMessageDefinition(rosPkgName string, name string, content string) (*me
 
 func (res *messageDefinition) write() (string, error) {
 	var buf bytes.Buffer
-	tpl.Execute(&buf, res)
+	err := tpl.Execute(&buf, res)
+	if err != nil {
+		return "", err
+	}
 	return buf.String(), nil
 }

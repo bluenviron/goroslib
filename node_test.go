@@ -22,9 +22,9 @@ type containerMaster struct {
 }
 
 func newContainerMaster(t *testing.T) *containerMaster {
-	exec.Command("docker", "kill", "goroslib-test-master").Run()
-	exec.Command("docker", "wait", "goroslib-test-master").Run()
-	exec.Command("docker", "rm", "goroslib-test-master").Run()
+	exec.Command("docker", "kill", "goroslib-test-master").Run() //nolint:errcheck
+	exec.Command("docker", "wait", "goroslib-test-master").Run() //nolint:errcheck
+	exec.Command("docker", "rm", "goroslib-test-master").Run()   //nolint:errcheck
 
 	cmd := []string{"docker", "run", "--rm", "-d", "--name=goroslib-test-master"}
 	cmd = append(cmd, "goroslib-test-master")
@@ -59,8 +59,8 @@ func (m *containerMaster) IP() string {
 }
 
 func (m *containerMaster) close() {
-	exec.Command("docker", "kill", "goroslib-test-master").Run()
-	exec.Command("docker", "wait", "goroslib-test-master").Run()
+	exec.Command("docker", "kill", "goroslib-test-master").Run() //nolint:errcheck
+	exec.Command("docker", "wait", "goroslib-test-master").Run() //nolint:errcheck
 }
 
 type container struct {
@@ -68,9 +68,9 @@ type container struct {
 }
 
 func newContainer(t *testing.T, name string, masterIP string) *container {
-	exec.Command("docker", "kill", "goroslib-test-"+name).Run()
-	exec.Command("docker", "wait", "goroslib-test-"+name).Run()
-	exec.Command("docker", "rm", "goroslib-test-"+name).Run()
+	exec.Command("docker", "kill", "goroslib-test-"+name).Run() //nolint:errcheck
+	exec.Command("docker", "wait", "goroslib-test-"+name).Run() //nolint:errcheck
+	exec.Command("docker", "rm", "goroslib-test-"+name).Run()   //nolint:errcheck
 
 	cmd := []string{"docker", "run", "-d", "--name=goroslib-test-" + name}
 	cmd = append(cmd, "-e", "MASTER_IP="+masterIP)
@@ -87,15 +87,15 @@ func newContainer(t *testing.T, name string, masterIP string) *container {
 }
 
 func (c *container) close() {
-	exec.Command("docker", "kill", "goroslib-test-"+c.name).Run()
-	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run()
-	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()
+	exec.Command("docker", "kill", "goroslib-test-"+c.name).Run() //nolint:errcheck
+	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run() //nolint:errcheck
+	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()   //nolint:errcheck
 }
 
 func (c *container) waitOutput() string {
-	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run()
-	out, _ := exec.Command("docker", "logs", "goroslib-test-"+c.name).Output()
-	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()
+	exec.Command("docker", "wait", "goroslib-test-"+c.name).Run()              //nolint:errcheck
+	out, _ := exec.Command("docker", "logs", "goroslib-test-"+c.name).Output() //nolint:errcheck
+	exec.Command("docker", "rm", "goroslib-test-"+c.name).Run()                //nolint:errcheck
 	return string(out)
 }
 

@@ -69,9 +69,8 @@ func NewSimpleActionClient(conf SimpleActionClientConf) (*SimpleActionClient, er
 }
 
 // Close closes a SimpleActionClient.
-func (sac *SimpleActionClient) Close() error {
+func (sac *SimpleActionClient) Close() {
 	sac.ac.Close()
-	return nil
 }
 
 // WaitForServer waits for the action server to start.

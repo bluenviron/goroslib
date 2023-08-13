@@ -139,7 +139,10 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 			}
 		}
 
-		xmlGetEndElement(dec, true)
+		err := xmlGetEndElement(dec, true)
+		if err != nil {
+			return err
+		}
 
 	case reflect.Slice:
 		typ := val.Elem().Type().Elem()

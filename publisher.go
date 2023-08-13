@@ -138,13 +138,12 @@ func NewPublisher(conf PublisherConf) (*Publisher, error) {
 }
 
 // Close closes a Publisher and shuts down all its operations.
-func (p *Publisher) Close() error {
+func (p *Publisher) Close() {
 	p.ctxCancel()
 	<-p.done
 
 	p.conf.Node.Log(LogLevelDebug, "publisher '%s' destroyed",
 		p.conf.Node.absoluteTopicName(p.conf.Topic))
-	return nil
 }
 
 func (p *Publisher) run() {
@@ -242,8 +241,21 @@ outer:
 
 					udpAddr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10)))
 					if err != nil {
-						return fmt.Errorf("unable to solve udp address)")
+						return fmt.Errorf("unable to solve udp address: %v", err)
 					}
+
+					var buf2 bytes.Buffer
+					err = protocommon.HeaderEncode(&buf2, &protoudp.HeaderPublisher{
+						Callerid:          p.conf.Node.absoluteName(),
+						Md5sum:            p.msgMd5,
+						Topic:             p.conf.Node.absoluteTopicName(p.conf.Topic),
+						Type:              p.msgType,
+						MessageDefinition: p.msgDef,
+					})
+					if err != nil {
+						return err
+					}
+					udpHeader := buf2.Bytes()[4:]
 
 					ps := newPublisherSubscriber(p,
 						header.Callerid, nil, nil, udpAddr)
@@ -256,18 +268,8 @@ outer:
 							p.conf.Node.nodeAddr.IP.String(),
 							p.conf.Node.udprosListener.LocalAddr().(*net.UDPAddr).Port,
 							p.id,
-							1500,
-							func() []byte {
-								var buf bytes.Buffer
-								protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
-									Callerid:          p.conf.Node.absoluteName(),
-									Md5sum:            p.msgMd5,
-									Topic:             p.conf.Node.absoluteTopicName(p.conf.Topic),
-									Type:              p.msgType,
-									MessageDefinition: p.msgDef,
-								})
-								return buf.Bytes()[4:]
-							}(),
+							udpMTU,
+							udpHeader,
 						},
 					}
 
@@ -297,7 +299,7 @@ outer:
 						p.conf.Topic, req.header.Callerid)
 
 					req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
-					req.tconn.WriteHeader(&prototcp.HeaderError{
+					req.tconn.WriteHeader(&prototcp.HeaderError{ //nolint:errcheck
 						Error: err.Error(),
 					})
 
@@ -310,7 +312,7 @@ outer:
 						p.msgMd5, req.header.Md5sum)
 
 					req.nconn.SetWriteDeadline(time.Now().Add(p.conf.Node.conf.WriteTimeout))
-					req.tconn.WriteHeader(&prototcp.HeaderError{
+					req.tconn.WriteHeader(&prototcp.HeaderError{ //nolint:errcheck
 						Error: err.Error(),
 					})
 
@@ -379,7 +381,7 @@ outer:
 
 	p.ctxCancel()
 
-	p.conf.Node.apiMasterClient.UnregisterPublisher(
+	p.conf.Node.apiMasterClient.UnregisterPublisher( //nolint:errcheck
 		p.conf.Node.absoluteTopicName(p.conf.Topic),
 		p.conf.Node.apiSlaveServer.URL())
 
