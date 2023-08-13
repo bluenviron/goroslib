@@ -195,7 +195,7 @@ func FuzzMessageDecode(f *testing.F) {
 			R []string
 			S []uint8
 		}
-		MessageDecode(bytes.NewBuffer(b), &msg)
+		MessageDecode(bytes.NewBuffer(b), &msg) //nolint:errcheck
 	})
 }
 
@@ -283,7 +283,7 @@ func BenchmarkMessageDecode(b *testing.B) {
 			// reuse message in loop to test benefit from preallocated fields
 			msg := reflect.New(reflect.TypeOf(ca.msg).Elem()).Interface()
 			for i := 0; i < b.N; i++ {
-				MessageDecode(bytes.NewBuffer(ca.byts), msg)
+				MessageDecode(bytes.NewBuffer(ca.byts), msg) //nolint:errcheck
 			}
 		})
 	}
@@ -295,7 +295,7 @@ func BenchmarkMessageEncode(b *testing.B) {
 		b.Run(ca.name, func(b *testing.B) {
 			var buf bytes.Buffer
 			for i := 0; i < b.N; i++ {
-				MessageEncode(&buf, ca.msg)
+				MessageEncode(&buf, ca.msg) //nolint:errcheck
 				buf.Reset()
 			}
 		})

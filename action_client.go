@@ -544,7 +544,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 }
 
 // Close closes an ActionClient and shuts down all its operations.
-func (ac *ActionClient) Close() error {
+func (ac *ActionClient) Close() {
 	ac.ctxCancel()
 	ac.cancelPub.Close()
 	ac.goalPub.Close()
@@ -554,7 +554,6 @@ func (ac *ActionClient) Close() error {
 
 	ac.conf.Node.Log(LogLevelDebug, "action client '%s' destroyed",
 		ac.conf.Node.absoluteTopicName(ac.conf.Name))
-	return nil
 }
 
 // WaitForServer waits for the action server to start.

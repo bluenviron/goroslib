@@ -343,7 +343,7 @@ func TestServiceClientReqResType(t *testing.T) {
 	t.Run("req with different structure", func(t *testing.T) {
 		res := &TestServiceRes{}
 		assert.PanicsWithValue(t, "wrong req", func() {
-			sc.Call(&struct {
+			sc.Call(&struct { //nolint:errcheck
 				A float32
 				B string
 			}{A: 123, B: "456"}, res)
@@ -364,7 +364,7 @@ func TestServiceClientReqResType(t *testing.T) {
 			C float32
 		}{}
 		assert.PanicsWithValue(t, "wrong res", func() {
-			sc.Call(&TestServiceReq{A: 123, B: "456"}, res)
+			sc.Call(&TestServiceReq{A: 123, B: "456"}, res) //nolint:errcheck
 		})
 	})
 }

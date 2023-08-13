@@ -131,37 +131,43 @@ func (sp *subscriberPublisher) runInner() error {
 
 	xcs := apislave.NewClient(sp.address, sp.sub.conf.Node.absoluteName(), sp.sub.conf.Node.httpClient)
 
-	subDone := make(chan struct{}, 1)
+	subDone := make(chan struct{})
 	var proto []interface{}
 	var err error
 
 	go func() {
 		defer close(subDone)
 
-		protocols := func() [][]interface{} {
+		proto, err = func() ([]interface{}, error) {
+			var requestedProtos [][]interface{}
 			if sp.sub.conf.Protocol == TCP {
-				return [][]interface{}{{"TCPROS"}}
+				requestedProtos = [][]interface{}{{"TCPROS"}}
+			} else {
+				var buf bytes.Buffer
+				err := protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
+					Callerid:          sp.sub.conf.Node.absoluteName(),
+					Md5sum:            sp.sub.msgMd5,
+					Topic:             sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
+					Type:              sp.sub.msgType,
+					MessageDefinition: sp.sub.msgDef,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				udpHeader := buf.Bytes()[4:]
+
+				requestedProtos = [][]interface{}{{
+					"UDPROS",
+					udpHeader,
+					sp.sub.conf.Node.nodeAddr.IP.String(),
+					sp.sub.conf.Node.udprosListener.LocalAddr().(*net.UDPAddr).Port,
+					udpMTU,
+				}}
 			}
 
-			return [][]interface{}{{
-				"UDPROS",
-				func() []byte {
-					var buf bytes.Buffer
-					protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
-						Callerid:          sp.sub.conf.Node.absoluteName(),
-						Md5sum:            sp.sub.msgMd5,
-						Topic:             sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
-						Type:              sp.sub.msgType,
-						MessageDefinition: sp.sub.msgDef,
-					})
-					return buf.Bytes()[4:]
-				}(),
-				sp.sub.conf.Node.nodeAddr.IP.String(),
-				sp.sub.conf.Node.udprosListener.LocalAddr().(*net.UDPAddr).Port,
-				1500,
-			}}
+			return xcs.RequestTopic(sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic), requestedProtos)
 		}()
-		proto, err = xcs.RequestTopic(sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic), protocols)
 	}()
 
 	select {
@@ -419,7 +425,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 			for {
 				select {
 				case <-t.C:
-					sp.sub.conf.Node.udprosConn.WriteFrame(&protoudp.Frame{
+					sp.sub.conf.Node.udprosConn.WriteFrame(&protoudp.Frame{ //nolint:errcheck
 						ConnectionID: sp.udpID,
 						Opcode:       protoudp.Ping,
 						MessageID:    curMessageID,

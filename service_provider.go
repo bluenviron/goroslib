@@ -163,12 +163,11 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 }
 
 // Close closes a ServiceProvider and shuts down all its operations.
-func (sp *ServiceProvider) Close() error {
+func (sp *ServiceProvider) Close() {
 	sp.ctxCancel()
 	<-sp.done
 
 	sp.conf.Node.Log(LogLevelDebug, "service provider '%s' destroyed", sp.conf.Node.absoluteTopicName(sp.conf.Name))
-	return nil
 }
 
 func (sp *ServiceProvider) run() {
@@ -235,7 +234,7 @@ outer:
 
 	sp.ctxCancel()
 
-	sp.conf.Node.apiMasterClient.UnregisterService(
+	sp.conf.Node.apiMasterClient.UnregisterService( //nolint:errcheck
 		sp.conf.Node.absoluteTopicName(sp.conf.Name),
 		sp.conf.Node.tcprosURL())
 

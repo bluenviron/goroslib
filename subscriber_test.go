@@ -457,7 +457,20 @@ func TestSubscriberReadUDP(t *testing.T) {
 
 						go func() {
 							time.Sleep(1 * time.Second)
-							uconn.WriteMessage(1, 1, &expected, udpAddr)
+							err := uconn.WriteMessage(1, 1, &expected, udpAddr)
+							require.NoError(t, err)
+						}()
+
+						udpHeader := func() []byte {
+							var buf bytes.Buffer
+							err := protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
+								Callerid: "/myns/goroslib_pub",
+								Md5sum:   msgMd5,
+								Topic:    "/myns/test_topic",
+								Type:     "std_msgs/Int64MultiArray",
+							})
+							require.NoError(t, err)
+							return buf.Bytes()[4:]
 						}()
 
 						return apislave.ResponseRequestTopic{
@@ -467,17 +480,8 @@ func TestSubscriberReadUDP(t *testing.T) {
 								nodeAddr.IP.String(),
 								udprosListener.LocalAddr().(*net.UDPAddr).Port,
 								1,
-								1500,
-								func() []byte {
-									var buf bytes.Buffer
-									protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
-										Callerid: "/myns/goroslib_pub",
-										Md5sum:   msgMd5,
-										Topic:    "/myns/test_topic",
-										Type:     "std_msgs/Int64MultiArray",
-									})
-									return buf.Bytes()[4:]
-								}(),
+								udpMTU,
+								udpHeader,
 							},
 						}
 					}
@@ -538,11 +542,11 @@ func TestSubscriberQueue(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		conn.WriteMessage(&std_msgs.Int64{Data: 1})
-		conn.WriteMessage(&std_msgs.Int64{Data: 2})
-		conn.WriteMessage(&std_msgs.Int64{Data: 3})
-		conn.WriteMessage(&std_msgs.Int64{Data: 4})
-		conn.WriteMessage(&std_msgs.Int64{Data: 5})
+		for i := int64(0); i < 5; i++ {
+			err := conn.WriteMessage(&std_msgs.Int64{Data: i + 1})
+			require.NoError(t, err)
+		}
+
 		close(sendDone)
 	})
 	defer tp.close()

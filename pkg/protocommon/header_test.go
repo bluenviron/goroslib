@@ -143,7 +143,7 @@ func FuzzHeaderDecode(f *testing.F) {
 		raw, err := HeaderRawDecode(bytes.NewBuffer(b))
 		if err == nil {
 			var h headerSubscriber
-			HeaderDecode(raw, &h)
+			HeaderDecode(raw, &h) //nolint:errcheck
 		}
 	})
 }

@@ -37,7 +37,8 @@ func TestClient(t *testing.T) {
 			require.Equal(t, "myparam", mreq.Param)
 
 			res := myResponse{Param: "myparam"}
-			responseEncode(w, res)
+			err = responseEncode(w, res)
+			require.NoError(t, err)
 		}),
 	}
 	defer hs.Shutdown(context.Background())

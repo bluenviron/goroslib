@@ -36,8 +36,8 @@ func NewServer(address string, nodeIP net.IP, nodeZone string, writeTimeout time
 }
 
 // Close closes the server.
-func (s *Server) Close() error {
-	return s.xs.Close()
+func (s *Server) Close() {
+	s.xs.Close()
 }
 
 // URL returns the server URL.

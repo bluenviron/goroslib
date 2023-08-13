@@ -88,15 +88,13 @@ func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 }
 
 // Close closes a ServiceClient and shuts down all its operations.
-func (sc *ServiceClient) Close() error {
+func (sc *ServiceClient) Close() {
 	if sc.nconn != nil {
 		sc.nconn.Close()
 	}
 
 	sc.conf.Node.Log(LogLevelDebug, "service client '%s' destroyed",
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
-
-	return nil
 }
 
 // Call sends a request to a service provider and reads a response.

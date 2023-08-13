@@ -119,10 +119,9 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 }
 
 // Close closes a SimpleActionServer.
-func (sas *SimpleActionServer) Close() error {
+func (sas *SimpleActionServer) Close() {
 	sas.ctxCancel()
 	<-sas.done
-	return nil
 }
 
 // IsPreemptRequested checks whether the goal has been canceled.

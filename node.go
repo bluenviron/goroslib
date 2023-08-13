@@ -26,6 +26,10 @@ import (
 	"github.com/bluenviron/goroslib/v2/pkg/protoudp"
 )
 
+const (
+	udpMTU = 1500
+)
+
 func urlToAddress(in string) (string, error) {
 	u, err := url.Parse(in)
 	if err != nil {
@@ -436,11 +440,10 @@ func NewNode(conf NodeConf) (*Node, error) {
 }
 
 // Close closes a Node and all its resources.
-func (n *Node) Close() error {
+func (n *Node) Close() {
 	n.ctxCancel()
 	<-n.done
 	n.Log(LogLevelDebug, "node '%s' destroyed", n.absoluteName())
-	return nil
 }
 
 func (n *Node) absoluteTopicName(topic string) string {
