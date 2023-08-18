@@ -51,26 +51,7 @@ func (spc *serviceProviderClient) run() {
 
 	readErr := make(chan error)
 	go func() {
-		readErr <- func() error {
-			spc.nconn.SetReadDeadline(time.Time{})
-
-			for {
-				req := reflect.New(reflect.TypeOf(spc.sp.srvReq)).Interface()
-				err := spc.tconn.ReadMessage(req)
-				if err != nil {
-					return err
-				}
-
-				select {
-				case spc.sp.clientRequest <- serviceProviderClientRequestReq{
-					spc: spc,
-					req: req,
-				}:
-				case <-spc.sp.ctx.Done():
-					return ErrProviderTerminated
-				}
-			}
-		}()
+		readErr <- spc.runReader()
 	}()
 
 	select {
@@ -87,5 +68,26 @@ func (spc *serviceProviderClient) run() {
 	select {
 	case spc.sp.clientClose <- spc:
 	case <-spc.sp.ctx.Done():
+	}
+}
+
+func (spc *serviceProviderClient) runReader() error {
+	spc.nconn.SetReadDeadline(time.Time{})
+
+	for {
+		req := reflect.New(reflect.TypeOf(spc.sp.srvReq)).Interface()
+		err := spc.tconn.ReadMessage(req)
+		if err != nil {
+			return err
+		}
+
+		select {
+		case spc.sp.clientRequest <- serviceProviderClientRequestReq{
+			spc: spc,
+			req: req,
+		}:
+		case <-spc.sp.ctx.Done():
+			return ErrProviderTerminated
+		}
 	}
 }

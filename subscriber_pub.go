@@ -414,29 +414,7 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 	readerClose := make(chan struct{})
 	readerDone := make(chan struct{})
 	if sp.sub.conf.EnableKeepAlive {
-		go func() {
-			defer close(readerDone)
-
-			curMessageID := uint8(0)
-
-			t := time.NewTicker(60 * time.Second)
-			defer t.Stop()
-
-			for {
-				select {
-				case <-t.C:
-					sp.sub.conf.Node.udprosConn.WriteFrame(&protoudp.Frame{ //nolint:errcheck
-						ConnectionID: sp.udpID,
-						Opcode:       protoudp.Ping,
-						MessageID:    curMessageID,
-					}, sp.udpAddr)
-					curMessageID++
-
-				case <-readerClose:
-					return
-				}
-			}
-		}()
+		go sp.runUDPPing(readerClose, readerDone)
 	}
 
 	var curMsg []byte
@@ -484,6 +462,30 @@ func (sp *subscriberPublisher) runInnerUDP(proto []interface{}) error {
 			}
 
 			return nil
+		}
+	}
+}
+
+func (sp *subscriberPublisher) runUDPPing(readerClose chan struct{}, readerDone chan struct{}) {
+	defer close(readerDone)
+
+	curMessageID := uint8(0)
+
+	t := time.NewTicker(60 * time.Second)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-t.C:
+			sp.sub.conf.Node.udprosConn.WriteFrame(&protoudp.Frame{ //nolint:errcheck
+				ConnectionID: sp.udpID,
+				Opcode:       protoudp.Ping,
+				MessageID:    curMessageID,
+			}, sp.udpAddr)
+			curMessageID++
+
+		case <-readerClose:
+			return
 		}
 	}
 }
