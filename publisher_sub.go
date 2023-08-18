@@ -9,6 +9,10 @@ import (
 	"github.com/bluenviron/goroslib/v2/pkg/prototcp"
 )
 
+const (
+	writeBufferSize = 16
+)
+
 type publisherSubscriber struct {
 	pub      *Publisher
 	callerID string
@@ -40,7 +44,7 @@ func newPublisherSubscriber(
 		udpAddr:        udpAddr,
 		ctx:            ctx,
 		ctxCancel:      ctxCancel,
-		chWriteMessage: make(chan interface{}),
+		chWriteMessage: make(chan interface{}, writeBufferSize),
 	}
 
 	pub.subscribersWg.Add(1)
@@ -197,5 +201,6 @@ func (ps *publisherSubscriber) writeMessage(msg interface{}) {
 	select {
 	case ps.chWriteMessage <- msg:
 	case <-ps.ctx.Done():
+	default: // buffer is full
 	}
 }
