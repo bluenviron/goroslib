@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	writeBufferSize = 16
+	writeBufferSize = 64
 )
 
 type publisherSubscriber struct {
