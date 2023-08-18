@@ -83,7 +83,7 @@ func (ps *publisherSubscriber) run() {
 	}
 
 	ps.pub.conf.Node.Log(LogLevelDebug,
-		"publisher '%s' doesn't have subscriber %s anymore: %s",
+		"publisher '%s' lost subscriber %s: %s",
 		ps.pub.conf.Node.absoluteTopicName(ps.pub.conf.Topic),
 		ps.subscriberLabel(),
 		err)
@@ -95,36 +95,14 @@ func (ps *publisherSubscriber) runTCP() error {
 	readerErr := make(chan error)
 
 	go func() {
-		readerErr <- func() error {
-			buf := make([]byte, 64)
-			for {
-				_, err := ps.tcpNConn.Read(buf)
-				if err != nil {
-					return err
-				}
-			}
-		}()
+		readerErr <- ps.runTCPReader()
 	}()
 
 	writerErr := make(chan error)
 	writerClose := make(chan struct{})
 
 	go func() {
-		writerErr <- func() error {
-			for {
-				select {
-				case msg := <-ps.chWriteMessage:
-					ps.tcpNConn.SetWriteDeadline(time.Now().Add(ps.pub.conf.Node.conf.WriteTimeout))
-					err := ps.tcpTConn.WriteMessage(msg)
-					if err != nil {
-						return err
-					}
-
-				case <-writerClose:
-					return fmt.Errorf("terminated")
-				}
-			}
-		}()
+		writerErr <- ps.runTCPWriter(writerClose)
 	}()
 
 	select {
@@ -145,6 +123,32 @@ func (ps *publisherSubscriber) runTCP() error {
 		close(writerClose)
 		<-writerErr
 		return fmt.Errorf("terminated")
+	}
+}
+
+func (ps *publisherSubscriber) runTCPReader() error {
+	buf := make([]byte, 64)
+	for {
+		_, err := ps.tcpNConn.Read(buf)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func (ps *publisherSubscriber) runTCPWriter(writerClose chan struct{}) error {
+	for {
+		select {
+		case msg := <-ps.chWriteMessage:
+			ps.tcpNConn.SetWriteDeadline(time.Now().Add(ps.pub.conf.Node.conf.WriteTimeout))
+			err := ps.tcpTConn.WriteMessage(msg)
+			if err != nil {
+				return err
+			}
+
+		case <-writerClose:
+			return fmt.Errorf("terminated")
+		}
 	}
 }
 

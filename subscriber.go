@@ -171,21 +171,7 @@ func (s *Subscriber) run() {
 	defer close(s.done)
 
 	dispatcherDone := make(chan struct{})
-	go func() {
-		defer close(dispatcherDone)
-
-		cbv := reflect.ValueOf(s.conf.Callback)
-
-		for {
-			select {
-			case msg := <-s.message:
-				cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
-
-			case <-s.ctx.Done():
-				return
-			}
-		}
-	}()
+	go s.runDispatcher(dispatcherDone)
 
 outer:
 	for {
@@ -244,5 +230,21 @@ outer:
 	select {
 	case s.conf.Node.subscriberClose <- s:
 	case <-s.conf.Node.ctx.Done():
+	}
+}
+
+func (s *Subscriber) runDispatcher(dispatcherDone chan struct{}) {
+	defer close(dispatcherDone)
+
+	cbv := reflect.ValueOf(s.conf.Callback)
+
+	for {
+		select {
+		case msg := <-s.message:
+			cbv.Call([]reflect.Value{reflect.ValueOf(msg)})
+
+		case <-s.ctx.Done():
+			return
+		}
 	}
 }
