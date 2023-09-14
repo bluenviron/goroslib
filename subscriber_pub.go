@@ -111,7 +111,6 @@ outer:
 
 		select {
 		case <-time.After(subscriberPubRestartPause):
-
 		case <-sp.ctx.Done():
 			break outer
 		}

@@ -36,7 +36,7 @@ Features:
   * [Import existing messages, services and actions](#import-existing-messages-services-and-actions)
   * [Compile a node for another operating system](#compile-a-node-for-another-operating-system)
   * [Edit the library](#edit-the-library)
-* [Standards](#standards)
+* [Specifications](#specifications)
 * [Links](#links)
 
 ## Installation
@@ -275,26 +275,23 @@ If you want to hack the library and test the results, unit tests can be launched
 make test
 ```
 
-## Standards
+## Specifications
 
-* ROS v1
-  * General
-    * [Technical overview](https://wiki.ros.org/ROS/Technical%20Overview)
-    * [Implementing client libraries](https://wiki.ros.org/Implementing%20Client%20Libraries)
-    * [Names](http://wiki.ros.org/Names)
-    * [Actionlib](http://wiki.ros.org/actionlib)
-    * [Actionlib detailed description](http://wiki.ros.org/actionlib/DetailedDescription)
-  * APIs
-    * [Master API](https://wiki.ros.org/ROS/Master_API)
-    * [Parameter server API](https://wiki.ros.org/ROS/Parameter%20Server%20API)
-    * [Slave API](https://wiki.ros.org/ROS/Slave_API)
-  * Protocols
-    * [Connection header](https://wiki.ros.org/ROS/Connection%20Header)
-    * [TCPROS](https://wiki.ros.org/ROS/TCPROS)
-    * [UDPROS](https://wiki.ros.org/ROS/UDPROS)
-    * [Wireshark dissector](https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c)
-
-* [Golang project layout](https://github.com/golang-standards/project-layout)
+|name|area|
+|----|----|
+|[Technical overview](https://wiki.ros.org/ROS/Technical%20Overview)|general|
+|[Implementing client libraries](https://wiki.ros.org/Implementing%20Client%20Libraries)|general|
+|[Names](http://wiki.ros.org/Names)|general|
+|[Actionlib](http://wiki.ros.org/actionlib)|action lib|
+|[Actionlib detailed description](http://wiki.ros.org/actionlib/DetailedDescription)|action lib|
+|[Master API](https://wiki.ros.org/ROS/Master_API)|API|
+|[Parameter server API](https://wiki.ros.org/ROS/Parameter%20Server%20API)|API|
+|[Slave API](https://wiki.ros.org/ROS/Slave_API)|API|
+|[Connection header](https://wiki.ros.org/ROS/Connection%20Header)|protocol|
+|[TCPROS](https://wiki.ros.org/ROS/TCPROS)|protocol|
+|[UDPROS](https://wiki.ros.org/ROS/UDPROS)|protocol|
+|[Wireshark dissector](https://fossies.org/linux/wireshark/epan/dissectors/packet-prototcp.c)|protocol|
+|[Golang project layout](https://github.com/golang-standards/project-layout)|project layout|
 
 ## Links
 
