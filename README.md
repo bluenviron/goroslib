@@ -72,7 +72,7 @@ Features:
 
 ## API Documentation
 
-https://pkg.go.dev/github.com/bluenviron/goroslib/v2#pkg-index
+[Click to open the API Documentation](https://pkg.go.dev/github.com/bluenviron/goroslib/v2#pkg-index)
 
 ## FAQs
 
