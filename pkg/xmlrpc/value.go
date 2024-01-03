@@ -3,6 +3,7 @@ package xmlrpc
 import (
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -151,7 +152,7 @@ func decodeArray(dec *xml.Decoder, val reflect.Value) error {
 			err := xmlGetStartElement(dec, "value")
 			if err != nil {
 				// slice is over
-				if err == errEndElement {
+				if errors.Is(err, errEndElement) {
 					break
 				}
 				return err

@@ -286,7 +286,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 	// solve master address once
 	masterAddr, err := net.ResolveTCPAddr("tcp", conf.MasterAddress)
 	if err != nil {
-		return nil, fmt.Errorf("unable to solve master address: %s", err)
+		return nil, fmt.Errorf("unable to solve master address: %w", err)
 	}
 	if masterAddr.Zone != "" {
 		return nil, fmt.Errorf("stateless IPv6 master addresses are not supported")
@@ -303,7 +303,7 @@ func NewNode(conf NodeConf) (*Node, error) {
 	// solve node host once
 	nodeAddr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(conf.Host, "0"))
 	if err != nil {
-		return nil, fmt.Errorf("unable to solve node host: %s", err)
+		return nil, fmt.Errorf("unable to solve node host: %w", err)
 	}
 	if nodeAddr.Zone != "" {
 		return nil, fmt.Errorf("the node IP is a stateless IPv6, which is not supported")

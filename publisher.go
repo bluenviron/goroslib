@@ -241,7 +241,7 @@ outer:
 
 					udpAddr, err := net.ResolveUDPAddr("udp", net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10)))
 					if err != nil {
-						return fmt.Errorf("unable to solve udp address: %v", err)
+						return fmt.Errorf("unable to solve udp address: %w", err)
 					}
 
 					var buf2 bytes.Buffer

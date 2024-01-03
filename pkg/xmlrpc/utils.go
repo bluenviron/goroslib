@@ -2,6 +2,7 @@ package xmlrpc
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -108,7 +109,7 @@ func xmlConsumeUntilEOF(dec *xml.Decoder) error {
 	for {
 		tok, err := dec.Token()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				return nil
 			}
 			return err

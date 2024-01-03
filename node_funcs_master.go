@@ -56,7 +56,7 @@ func (n *Node) MasterGetNodes() (map[string]*InfoNode, error) {
 	for nodeName, info := range ret {
 		ur, err := n.apiMasterClient.LookupNode(nodeName)
 		if err != nil {
-			return nil, fmt.Errorf("lookupNode: %v", err)
+			return nil, fmt.Errorf("lookupNode: %w", err)
 		}
 
 		address, err := urlToAddress(ur)
@@ -103,12 +103,12 @@ type InfoTopic struct {
 func (n *Node) MasterGetTopics() (map[string]*InfoTopic, error) {
 	state, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
-		return nil, fmt.Errorf("getSystemState: %v", err)
+		return nil, fmt.Errorf("getSystemState: %w", err)
 	}
 
 	types, err := n.apiMasterClient.GetTopicTypes()
 	if err != nil {
-		return nil, fmt.Errorf("getTopicTypes: %v", err)
+		return nil, fmt.Errorf("getTopicTypes: %w", err)
 	}
 
 	ret := make(map[string]*InfoTopic)
@@ -152,7 +152,7 @@ type InfoService struct {
 func (n *Node) MasterGetServices() (map[string]*InfoService, error) {
 	state, err := n.apiMasterClient.GetSystemState()
 	if err != nil {
-		return nil, fmt.Errorf("getSystemState: %v", err)
+		return nil, fmt.Errorf("getSystemState: %w", err)
 	}
 
 	ret := make(map[string]*InfoService)
@@ -170,7 +170,7 @@ func (n *Node) MasterGetServices() (map[string]*InfoService, error) {
 
 		ur, err := n.apiMasterClient.LookupService(entry.Name)
 		if err != nil {
-			return nil, fmt.Errorf("lookupService: %v", err)
+			return nil, fmt.Errorf("lookupService: %w", err)
 		}
 
 		address, err := urlToAddress(ur)

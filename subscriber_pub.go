@@ -3,6 +3,7 @@ package goroslib
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -102,7 +103,7 @@ outer:
 			break outer
 		}
 
-		if err != io.EOF {
+		if errors.Is(err, io.EOF) {
 			sp.sub.conf.Node.Log(LogLevelError,
 				"subscriber '%s' got an error: %s",
 				sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
