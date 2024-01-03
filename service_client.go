@@ -184,7 +184,7 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 	ur, err := sc.conf.Node.apiMasterClient.LookupService(
 		sc.conf.Node.absoluteTopicName(sc.conf.Name))
 	if err != nil {
-		return fmt.Errorf("lookupService: %v", err)
+		return fmt.Errorf("lookupService: %w", err)
 	}
 
 	address, err := urlToAddress(ur)
