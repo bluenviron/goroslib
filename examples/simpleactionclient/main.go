@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 
@@ -65,11 +65,11 @@ func main() {
 			Input: 1234312,
 		},
 		OnDone: func(state goroslib.SimpleActionClientGoalState, res *DoSomethingActionResult) {
-			fmt.Println("result:", res)
+			log.Println("result:", res)
 			close(done)
 		},
 		OnFeedback: func(fb *DoSomethingActionFeedback) {
-			fmt.Println("feedback", fb)
+			log.Println("feedback", fb)
 		},
 	})
 	if err != nil {

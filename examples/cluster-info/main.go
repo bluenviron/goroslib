@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/bluenviron/goroslib/v2"
 )
@@ -23,7 +23,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("nodes:", nodes)
+	log.Println("nodes:", nodes)
 
 	// get all machines that are hosting nodes linked to master
 	machines, err := n.MasterGetMachines()
@@ -31,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("machines:", machines)
+	log.Println("machines:", machines)
 
 	// get all topics
 	topics, err := n.MasterGetTopics()
@@ -39,7 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("topics:", topics)
+	log.Println("topics:", topics)
 
 	// get all services
 	services, err := n.MasterGetServices()
@@ -47,5 +47,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("services:", services)
+	log.Println("services:", services)
 }

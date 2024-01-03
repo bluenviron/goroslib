@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 
@@ -10,7 +10,7 @@ import (
 )
 
 func onMessage(msg *sensor_msgs.Imu) {
-	fmt.Printf("Incoming: %+v\n", msg)
+	log.Printf("Incoming: %+v\n", msg)
 }
 
 func main() {

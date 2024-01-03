@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"time"
@@ -54,7 +54,7 @@ func main() {
 				FirstField:  3,
 				SecondField: "test message",
 			}
-			fmt.Printf("Outgoing: %+v\n", msg)
+			log.Printf("Outgoing: %+v\n", msg)
 			pub.Write(msg)
 
 		// handle CTRL-C

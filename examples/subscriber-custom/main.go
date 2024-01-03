@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 
@@ -19,7 +19,7 @@ type TestMessage struct {
 }
 
 func onMessage(msg *TestMessage) {
-	fmt.Printf("Incoming: %+v\n", msg)
+	log.Printf("Incoming: %+v\n", msg)
 }
 
 func main() {
