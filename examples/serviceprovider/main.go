@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 
@@ -28,7 +28,7 @@ type TestService struct {
 }
 
 func onService(req *TestServiceReq) (*TestServiceRes, bool) {
-	fmt.Println("request:", req)
+	log.Println("request:", req)
 	return &TestServiceRes{
 		C: 123,
 	}, true

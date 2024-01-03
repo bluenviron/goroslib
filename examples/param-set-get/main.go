@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/bluenviron/goroslib/v2"
 )
@@ -29,5 +29,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("param:", val)
+	log.Println("param:", val)
 }
