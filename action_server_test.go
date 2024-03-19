@@ -185,7 +185,7 @@ func TestActionServerCancelGoal(t *testing.T) {
 				Node:   ns,
 				Name:   "test_action",
 				Action: &DoSomethingAction{},
-				OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) {
+				OnGoal: func(_ *ActionServerGoalHandler, _ *DoSomethingActionGoal) {
 				},
 				OnCancel: func(gh *ActionServerGoalHandler) {
 					gh.SetCanceled(&DoSomethingActionResult{})
@@ -212,7 +212,7 @@ func TestActionServerCancelGoal(t *testing.T) {
 				Topic: "test_action/result",
 				Callback: reflect.MakeFunc(
 					reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
-					func(in []reflect.Value) []reflect.Value {
+					func(_ []reflect.Value) []reflect.Value {
 						close(resRecv)
 						return nil
 					},
@@ -334,7 +334,7 @@ func TestActionServerErrors(t *testing.T) {
 			Node:   n,
 			Name:   "test_action",
 			Action: &DoSomethingAction{},
-			OnGoal: func(n int) {
+			OnGoal: func(_ int) {
 			},
 		})
 		require.Error(t, err)
@@ -345,7 +345,7 @@ func TestActionServerErrors(t *testing.T) {
 			Node:   n,
 			Name:   "test_action",
 			Action: &DoSomethingAction{},
-			OnGoal: func(gh *ActionServerGoalHandler, n int) {
+			OnGoal: func(_ *ActionServerGoalHandler, _ int) {
 			},
 		})
 		require.Error(t, err)
@@ -356,7 +356,7 @@ func TestActionServerErrors(t *testing.T) {
 			Node:   n,
 			Name:   "test_action",
 			Action: &DoSomethingAction{},
-			OnGoal: func(gh *ActionServerGoalHandler, goal *DoSomethingActionGoal) int {
+			OnGoal: func(_ *ActionServerGoalHandler, _ *DoSomethingActionGoal) int {
 				return 0
 			},
 		})

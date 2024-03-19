@@ -83,7 +83,7 @@ func TestClientErrors(t *testing.T) {
 		defer l.Close()
 
 		hs := &http.Server{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusBadRequest)
 			}),
 		}
@@ -108,7 +108,7 @@ func TestClientErrors(t *testing.T) {
 		defer l.Close()
 
 		hs := &http.Server{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.Write([]byte("invalid"))
 			}),
 		}

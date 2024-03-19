@@ -126,7 +126,7 @@ func TestSubscriberOpen(t *testing.T) {
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:  n,
 		Topic: "test_topic",
-		Callback: func(msg *TestMessage) {
+		Callback: func(_ *TestMessage) {
 		},
 	})
 	require.NoError(t, err)
@@ -529,7 +529,7 @@ func TestSubscriberQueue(t *testing.T) {
 
 	sendDone := make(chan struct{})
 
-	tp := newTestPublisher(t, m.IP(), func(header prototcp.HeaderSubscriber, conn *prototcp.Conn) {
+	tp := newTestPublisher(t, m.IP(), func(_ prototcp.HeaderSubscriber, conn *prototcp.Conn) {
 		msgMd5, err := msgproc.MD5(std_msgs.Int64{})
 		require.NoError(t, err)
 
@@ -565,7 +565,7 @@ func TestSubscriberQueue(t *testing.T) {
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:  n,
 		Topic: "test_topic",
-		Callback: func(msg *std_msgs.Int64) {
+		Callback: func(_ *std_msgs.Int64) {
 			recvCount++
 			<-sendDone
 

@@ -88,7 +88,7 @@ func TestNodeNodeKill(t *testing.T) {
 					Node: n1,
 					Name: "test_srv",
 					Srv:  &TestService{},
-					Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+					Callback: func(_ *TestServiceReq) (*TestServiceRes, bool) {
 						return &TestServiceRes{}, true
 					},
 				})

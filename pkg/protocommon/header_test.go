@@ -139,7 +139,7 @@ func FuzzHeaderDecode(f *testing.F) {
 		0x64, 0x65, 0x6c, 0x61, 0x79, 0x3d, 0x73,
 	})
 
-	f.Fuzz(func(t *testing.T, b []byte) {
+	f.Fuzz(func(_ *testing.T, b []byte) {
 		raw, err := HeaderRawDecode(bytes.NewBuffer(b))
 		if err == nil {
 			var h headerSubscriber
