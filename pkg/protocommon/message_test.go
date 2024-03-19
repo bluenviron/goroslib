@@ -175,7 +175,7 @@ func TestMessageDecode(t *testing.T) {
 }
 
 func FuzzMessageDecode(f *testing.F) {
-	f.Fuzz(func(t *testing.T, b []byte) {
+	f.Fuzz(func(_ *testing.T, b []byte) {
 		var msg struct {
 			A bool
 			D int8

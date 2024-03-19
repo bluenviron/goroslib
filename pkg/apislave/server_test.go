@@ -113,7 +113,7 @@ func TestServerErrors(t *testing.T) {
 		require.NoError(t, err)
 		defer s.Close()
 
-		go s.Serve(func(req Request) Response {
+		go s.Serve(func(_ Request) Response {
 			return ErrorRes{}
 		})
 
@@ -129,7 +129,7 @@ func TestServerErrors(t *testing.T) {
 		require.NoError(t, err)
 		defer s.Close()
 
-		go s.Serve(func(req Request) Response {
+		go s.Serve(func(_ Request) Response {
 			return ErrorRes{}
 		})
 

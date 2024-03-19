@@ -81,7 +81,7 @@ func TestServiceProviderInfo(t *testing.T) {
 		Node: n,
 		Name: "test_srv",
 		Srv:  &std_srvs.SetBool{},
-		Callback: func(req *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
+		Callback: func(_ *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
 			return &std_srvs.SetBoolRes{
 				Success: true,
 				Message: "ok",
@@ -140,7 +140,7 @@ func TestServiceProviderResponse(t *testing.T) {
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &std_srvs.SetBool{},
-					Callback: func(req *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
+					Callback: func(_ *std_srvs.SetBoolReq) (*std_srvs.SetBoolRes, bool) {
 						return &std_srvs.SetBoolRes{
 							Success: true,
 							Message: "ok",

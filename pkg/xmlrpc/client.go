@@ -41,7 +41,7 @@ func (c *Client) Do(method string, paramsReq interface{}, paramsRes interface{})
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
 		io.Copy(io.Discard, res.Body)
 		return fmt.Errorf("bad status code: %d", res.StatusCode)
 	}

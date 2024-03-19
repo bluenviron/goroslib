@@ -176,7 +176,7 @@ func TestNodeNodeGetConns(t *testing.T) {
 					Node:     en2,
 					Topic:    "test_topic",
 					Protocol: UDP,
-					Callback: func(msg *std_msgs.String) {
+					Callback: func(_ *std_msgs.String) {
 					},
 				})
 				require.NoError(t, err)

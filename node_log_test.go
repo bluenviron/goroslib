@@ -76,7 +76,7 @@ func TestNodeLog(t *testing.T) {
 			Name:          "goroslib",
 			MasterAddress: m.IP() + ":11311",
 			LogLevel:      LogLevelDebug,
-			OnLog: func(level LogLevel, msg string) {
+			OnLog: func(level LogLevel, _ string) {
 				switch level {
 				case LogLevelInfo,
 					LogLevelWarn,

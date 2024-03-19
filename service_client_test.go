@@ -228,7 +228,7 @@ func TestServiceClientContext(t *testing.T) {
 		Node: nsp,
 		Name: "test_srv",
 		Srv:  &TestService{},
-		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+		Callback: func(_ *TestServiceReq) (*TestServiceRes, bool) {
 			<-spTerminate
 			return &TestServiceRes{C: 123}, true
 		},
@@ -320,7 +320,7 @@ func TestServiceClientReqResType(t *testing.T) {
 
 	sp, err := NewServiceProvider(ServiceProviderConf{
 		Node: n, Name: "test_srv", Srv: &TestService{},
-		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+		Callback: func(_ *TestServiceReq) (*TestServiceRes, bool) {
 			return &TestServiceRes{}, true
 		},
 	})

@@ -28,7 +28,7 @@ func TestSimpleActionServer(t *testing.T) {
 				Node:   ns,
 				Name:   "test_action",
 				Action: &DoSomethingAction{},
-				OnExecute: func(sas *SimpleActionServer, goal *DoSomethingActionGoal) {
+				OnExecute: func(sas *SimpleActionServer, _ *DoSomethingActionGoal) {
 					time.Sleep(500 * time.Millisecond)
 
 					sas.PublishFeedback(&DoSomethingActionFeedback{PercentComplete: 0.5})
@@ -72,7 +72,7 @@ func TestSimpleActionServer(t *testing.T) {
 
 				err = sac.SendGoal(SimpleActionClientGoalConf{
 					Goal: &DoSomethingActionGoal{Input: 1234312},
-					OnDone: func(state SimpleActionClientGoalState, res *DoSomethingActionResult) {
+					OnDone: func(_ SimpleActionClientGoalState, res *DoSomethingActionResult) {
 						require.Equal(t, &DoSomethingActionResult{Output: 123456}, res)
 						close(doneDone)
 					},

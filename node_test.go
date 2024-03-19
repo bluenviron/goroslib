@@ -254,7 +254,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 	sub, err := NewSubscriber(SubscriberConf{
 		Node:     n,
 		Topic:    "test_sub",
-		Callback: func(msg *std_msgs.Int32) {},
+		Callback: func(_ *std_msgs.Int32) {},
 	})
 	require.NoError(t, err)
 	defer sub.Close()
@@ -263,7 +263,7 @@ func TestNodeRosnodeInfo(t *testing.T) {
 		Node: n,
 		Name: "test_srv",
 		Srv:  &TestService{},
-		Callback: func(req *TestServiceReq) (*TestServiceRes, bool) {
+		Callback: func(_ *TestServiceReq) (*TestServiceRes, bool) {
 			return &TestServiceRes{}, true
 		},
 	})
