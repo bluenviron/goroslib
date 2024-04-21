@@ -352,19 +352,22 @@ func NewNode(conf NodeConf) (*Node, error) {
 
 	n.apiParamClient = apiparam.NewClient(masterAddr.String(), n.absoluteName(), n.httpClient)
 
-	n.apiSlaveServer, err = apislave.NewServer(nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.ApislavePort), 10),
+	n.apiSlaveServer, err = apislave.NewServer(
+		net.JoinHostPort(nodeAddr.IP.String(), strconv.FormatInt(int64(conf.ApislavePort), 10)),
 		nodeAddr.IP, nodeAddr.Zone, conf.WriteTimeout)
 	if err != nil {
 		return nil, err
 	}
 
-	n.tcprosListener, err = net.Listen("tcp", nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.TcprosPort), 10))
+	n.tcprosListener, err = net.Listen("tcp",
+		net.JoinHostPort(nodeAddr.IP.String(), strconv.FormatInt(int64(conf.TcprosPort), 10)))
 	if err != nil {
 		n.apiSlaveServer.Close()
 		return nil, err
 	}
 
-	n.udprosListener, err = net.ListenPacket("udp", nodeAddr.IP.String()+":"+strconv.FormatInt(int64(conf.UdprosPort), 10))
+	n.udprosListener, err = net.ListenPacket("udp",
+		net.JoinHostPort(nodeAddr.IP.String(), strconv.FormatInt(int64(conf.UdprosPort), 10)))
 	if err != nil {
 		n.tcprosListener.Close()
 		n.apiSlaveServer.Close()
