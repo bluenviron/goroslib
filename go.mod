@@ -1,6 +1,6 @@
 module github.com/bluenviron/goroslib/v2
 
-go 1.19
+go 1.20
 
 require (
 	github.com/alecthomas/kong v0.9.0
