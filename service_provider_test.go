@@ -119,7 +119,8 @@ func TestServiceProviderResponse(t *testing.T) {
 
 			switch client {
 			case "cpp", "go":
-				sp, err := NewServiceProvider(ServiceProviderConf{
+				var sp *ServiceProvider
+				sp, err = NewServiceProvider(ServiceProviderConf{
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &TestService{},
@@ -136,7 +137,8 @@ func TestServiceProviderResponse(t *testing.T) {
 				defer sp.Close()
 
 			case "rosservice call":
-				sp, err := NewServiceProvider(ServiceProviderConf{
+				var sp *ServiceProvider
+				sp, err = NewServiceProvider(ServiceProviderConf{
 					Node: nsp,
 					Name: "test_srv",
 					Srv:  &std_srvs.SetBool{},

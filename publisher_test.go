@@ -446,13 +446,13 @@ func TestPublisherWriteUDP(t *testing.T) {
 						"UDPROS",
 						func() []byte {
 							var buf bytes.Buffer
-							err = protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
+							err2 := protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
 								Callerid: ns.absoluteName(),
 								Md5sum:   msgMd5,
 								Topic:    ns.absoluteTopicName("test_topic"),
 								Type:     "std_msgs/Int64MultiArray",
 							})
-							require.NoError(t, err)
+							require.NoError(t, err2)
 							return buf.Bytes()[4:]
 						}(),
 						n.nodeAddr.IP.String(),

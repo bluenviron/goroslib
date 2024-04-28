@@ -223,8 +223,8 @@ func TestActionClient(t *testing.T) {
 					},
 					OnTransition: func(gh *ActionClientGoalHandler, res *DoSomethingActionResult) {
 						if gh.CommState() == ActionClientCommStateDone {
-							ts, err := gh.TerminalState()
-							require.NoError(t, err)
+							ts, err2 := gh.TerminalState()
+							require.NoError(t, err2)
 
 							switch ca {
 							case "rejected":

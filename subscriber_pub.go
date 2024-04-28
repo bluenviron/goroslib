@@ -144,15 +144,15 @@ func (sp *subscriberPublisher) runInner() error {
 				requestedProtos = [][]interface{}{{"TCPROS"}}
 			} else {
 				var buf bytes.Buffer
-				err := protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
+				err2 := protocommon.HeaderEncode(&buf, &protoudp.HeaderSubscriber{
 					Callerid:          sp.sub.conf.Node.absoluteName(),
 					Md5sum:            sp.sub.msgMd5,
 					Topic:             sp.sub.conf.Node.absoluteTopicName(sp.sub.conf.Topic),
 					Type:              sp.sub.msgType,
 					MessageDefinition: sp.sub.msgDef,
 				})
-				if err != nil {
-					return nil, err
+				if err2 != nil {
+					return nil, err2
 				}
 
 				udpHeader := buf.Bytes()[4:]
@@ -230,7 +230,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 	}
 
 	if sp.sub.conf.DisableNoDelay {
-		err := nconn.(*net.TCPConn).SetNoDelay(false)
+		err = nconn.(*net.TCPConn).SetNoDelay(false)
 		if err != nil {
 			return err
 		}

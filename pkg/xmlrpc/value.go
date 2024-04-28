@@ -189,7 +189,8 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 	case xml.StartElement:
 		switch ttok.Name.Local {
 		case "boolean":
-			cnt, err := xmlGetContent(dec)
+			var cnt []byte
+			cnt, err = xmlGetContent(dec)
 			if err != nil {
 				return err
 			}
@@ -200,7 +201,8 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 			}
 
 		case "int", "i4":
-			cnt, err := xmlGetContent(dec)
+			var cnt []byte
+			cnt, err = xmlGetContent(dec)
 			if err != nil {
 				return err
 			}
@@ -211,7 +213,8 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 			}
 
 		case "double":
-			cnt, err := xmlGetContent(dec)
+			var cnt []byte
+			cnt, err = xmlGetContent(dec)
 			if err != nil {
 				return err
 			}
@@ -222,7 +225,8 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 			}
 
 		case "string":
-			cnt, err := xmlGetContent(dec)
+			var cnt []byte
+			cnt, err = xmlGetContent(dec)
 			if err != nil {
 				return err
 			}
@@ -233,7 +237,8 @@ func valueDecode(dec *xml.Decoder, dest reflect.Value) error {
 			}
 
 		case "base64":
-			cnt, err := xmlGetContent(dec)
+			var cnt []byte
+			cnt, err = xmlGetContent(dec)
 			if err != nil {
 				return err
 			}
@@ -296,31 +301,31 @@ func valueEncode(w io.Writer, src reflect.Value) error {
 		if tval {
 			v = "1"
 		}
-		_, err := w.Write([]byte(`<boolean>` + v + `</boolean>`))
+		_, err = w.Write([]byte(`<boolean>` + v + `</boolean>`))
 		if err != nil {
 			return err
 		}
 
 	case int:
-		_, err := w.Write([]byte(`<i4>` + strconv.FormatInt(int64(tval), 10) + `</i4>`))
+		_, err = w.Write([]byte(`<i4>` + strconv.FormatInt(int64(tval), 10) + `</i4>`))
 		if err != nil {
 			return err
 		}
 
 	case float64:
-		_, err := w.Write([]byte(`<double>` + strconv.FormatFloat(tval, 'G', -1, 64) + `</double>`))
+		_, err = w.Write([]byte(`<double>` + strconv.FormatFloat(tval, 'G', -1, 64) + `</double>`))
 		if err != nil {
 			return err
 		}
 
 	case string:
-		_, err := w.Write([]byte(tval))
+		_, err = w.Write([]byte(tval))
 		if err != nil {
 			return err
 		}
 
 	case []byte:
-		_, err := w.Write([]byte(`<base64>` + base64.StdEncoding.EncodeToString(tval) + `</base64>`))
+		_, err = w.Write([]byte(`<base64>` + base64.StdEncoding.EncodeToString(tval) + `</base64>`))
 		if err != nil {
 			return err
 		}
@@ -328,7 +333,7 @@ func valueEncode(w io.Writer, src reflect.Value) error {
 	default:
 		switch src.Kind() {
 		case reflect.Struct:
-			_, err := w.Write([]byte(`<array><data>`))
+			_, err = w.Write([]byte(`<array><data>`))
 			if err != nil {
 				return err
 			}
@@ -337,7 +342,7 @@ func valueEncode(w io.Writer, src reflect.Value) error {
 			for i := 0; i < nf; i++ {
 				field := src.Field(i)
 
-				err := valueEncode(w, field)
+				err = valueEncode(w, field)
 				if err != nil {
 					return err
 				}
@@ -349,7 +354,7 @@ func valueEncode(w io.Writer, src reflect.Value) error {
 			}
 
 		case reflect.Slice:
-			_, err := w.Write([]byte(`<array><data>`))
+			_, err = w.Write([]byte(`<array><data>`))
 			if err != nil {
 				return err
 			}
@@ -358,7 +363,7 @@ func valueEncode(w io.Writer, src reflect.Value) error {
 			for i := 0; i < le; i++ {
 				el := src.Index(i)
 
-				err := valueEncode(w, el)
+				err = valueEncode(w, el)
 				if err != nil {
 					return err
 				}

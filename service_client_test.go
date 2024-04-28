@@ -92,8 +92,8 @@ func TestServiceClientRequestAfterProvider(t *testing.T) {
 						B: "456",
 					}
 					var res TestServiceRes
-					err := sc.Call(&req, &res)
-					require.NoError(t, err)
+					err2 := sc.Call(&req, &res)
+					require.NoError(t, err2)
 
 					expected := TestServiceRes{C: 123}
 					require.Equal(t, expected, res)

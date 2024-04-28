@@ -57,17 +57,17 @@ func newTestPublisher(t *testing.T, masterIP string,
 	require.NoError(t, err)
 
 	go func() {
-		nconn, err := tcprosListener.Accept()
-		require.NoError(t, err)
+		nconn, err2 := tcprosListener.Accept()
+		require.NoError(t, err2)
 		defer nconn.Close()
 		tconn := prototcp.NewConn(nconn)
 
-		rawHeader, err := tconn.ReadHeaderRaw()
-		require.NoError(t, err)
+		rawHeader, err2 := tconn.ReadHeaderRaw()
+		require.NoError(t, err2)
 
 		var header prototcp.HeaderSubscriber
-		err = protocommon.HeaderDecode(rawHeader, &header)
-		require.NoError(t, err)
+		err2 = protocommon.HeaderDecode(rawHeader, &header)
+		require.NoError(t, err2)
 
 		cb(header, tconn)
 	}()
@@ -448,30 +448,30 @@ func TestSubscriberReadUDP(t *testing.T) {
 						protoHost := req2.Protocols[0][2].(string)
 						protoPort := req2.Protocols[0][3].(int)
 
-						msgMd5, err := msgproc.MD5(std_msgs.Int64MultiArray{})
+						var msgMd5 string
+						msgMd5, err = msgproc.MD5(std_msgs.Int64MultiArray{})
 						require.NoError(t, err)
 
-						udpAddr, err := net.ResolveUDPAddr("udp",
+						var udpAddr *net.UDPAddr
+						udpAddr, err = net.ResolveUDPAddr("udp",
 							net.JoinHostPort(protoHost, strconv.FormatInt(int64(protoPort), 10)))
 						require.NoError(t, err)
 
 						go func() {
 							time.Sleep(1 * time.Second)
-							err := uconn.WriteMessage(1, 1, &expected, udpAddr)
-							require.NoError(t, err)
+							err2 := uconn.WriteMessage(1, 1, &expected, udpAddr)
+							require.NoError(t, err2)
 						}()
 
-						udpHeader := func() []byte {
-							var buf bytes.Buffer
-							err := protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
-								Callerid: "/myns/goroslib_pub",
-								Md5sum:   msgMd5,
-								Topic:    "/myns/test_topic",
-								Type:     "std_msgs/Int64MultiArray",
-							})
-							require.NoError(t, err)
-							return buf.Bytes()[4:]
-						}()
+						var buf bytes.Buffer
+						err = protocommon.HeaderEncode(&buf, &protoudp.HeaderPublisher{
+							Callerid: "/myns/goroslib_pub",
+							Md5sum:   msgMd5,
+							Topic:    "/myns/test_topic",
+							Type:     "std_msgs/Int64MultiArray",
+						})
+						require.NoError(t, err)
+						udpHeader := buf.Bytes()[4:]
 
 						return apislave.ResponseRequestTopic{
 							Code: 1,
