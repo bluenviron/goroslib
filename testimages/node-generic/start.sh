@@ -6,4 +6,4 @@ export ROS_NAMESPACE=/myns
 
 source /catkin_ws/install/setup.bash
 
-rosrun nodegen nodegen
+rosrun nodegeneric nodegeneric

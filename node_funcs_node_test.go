@@ -18,13 +18,13 @@ func TestNodeNodePing(t *testing.T) {
 
 			switch node {
 			case "cpp":
-				p := newContainer(t, "node-gen", m.IP())
+				p := newContainer(t, "node-generic", m.IP())
 				defer p.close()
 
 			case "go":
 				n1, err := NewNode(NodeConf{
 					Namespace:     "/myns",
-					Name:          "nodegen",
+					Name:          "nodegeneric",
 					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestNodeNodePing(t *testing.T) {
 			require.NoError(t, err)
 			defer n.Close()
 
-			_, err = n.NodePing("nodegen")
+			_, err = n.NodePing("nodegeneric")
 			require.NoError(t, err)
 		})
 	}
@@ -64,13 +64,13 @@ func TestNodeNodeKill(t *testing.T) {
 
 			switch node {
 			case "cpp":
-				p := newContainer(t, "node-gen", m.IP())
+				p := newContainer(t, "node-generic", m.IP())
 				defer p.close()
 
 			case "go":
 				n1, err := NewNode(NodeConf{
 					Namespace:     "/myns",
-					Name:          "nodegen",
+					Name:          "nodegeneric",
 					MasterAddress: m.IP() + ":11311",
 				})
 				require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestNodeNodeKill(t *testing.T) {
 			require.NoError(t, err)
 			defer n.Close()
 
-			err = n.NodeKill("nodegen")
+			err = n.NodeKill("nodegeneric")
 			require.NoError(t, err)
 
 			time.Sleep(1 * time.Second)

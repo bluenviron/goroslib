@@ -14,7 +14,7 @@ func TestNodeMasterGetNodes(t *testing.T) {
 	m := newContainerMaster(t)
 	defer m.close()
 
-	p := newContainer(t, "node-gen", m.IP())
+	p := newContainer(t, "node-generic", m.IP())
 	defer p.close()
 
 	n1, err := NewNode(NodeConf{
@@ -37,16 +37,16 @@ func TestNodeMasterGetNodes(t *testing.T) {
 
 	require.Equal(t, 4, len(res))
 
-	node, ok := res["/myns/nodegen"]
+	node, ok := res["/myns/nodegeneric"]
 	require.True(t, ok)
 
 	_, ok = node.PublishedTopics["/rosout"]
 	require.True(t, ok)
 
-	_, ok = node.ProvidedServices["/myns/nodegen/set_logger_level"]
+	_, ok = node.ProvidedServices["/myns/nodegeneric/set_logger_level"]
 	require.True(t, ok)
 
-	_, ok = node.ProvidedServices["/myns/nodegen/get_loggers"]
+	_, ok = node.ProvidedServices["/myns/nodegeneric/get_loggers"]
 	require.True(t, ok)
 
 	n2.Close()
@@ -61,7 +61,7 @@ func TestNodeMasterGetMachines(t *testing.T) {
 	m := newContainerMaster(t)
 	defer m.close()
 
-	p := newContainer(t, "node-gen", m.IP())
+	p := newContainer(t, "node-generic", m.IP())
 	defer p.close()
 
 	n, err := NewNode(NodeConf{
