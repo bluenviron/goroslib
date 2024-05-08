@@ -5,7 +5,7 @@ RUN apt update && apt install -y --no-install-recommends \
     make \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /catkin_ws/src/nodegen
+WORKDIR /catkin_ws/src/nodegeneric
 
 COPY CMakeLists.txt main.cpp package.xml ./
 
