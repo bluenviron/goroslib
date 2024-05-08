@@ -204,7 +204,7 @@ func TestClientError(t *testing.T) {
 
 			case "getParam":
 				var req RequestGetParam
-				err := raw.Decode(&req)
+				err = raw.Decode(&req)
 				require.NoError(t, err)
 
 				switch req.Key {
@@ -223,7 +223,7 @@ func TestClientError(t *testing.T) {
 
 			case "hasParam":
 				var req RequestHasParam
-				err := raw.Decode(&req)
+				err = raw.Decode(&req)
 				require.NoError(t, err)
 
 				if req.Key == "mykey" {

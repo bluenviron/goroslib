@@ -210,7 +210,9 @@ func parseMessageDefinition(rosPkgName string, name string, content string) (*me
 		if i < 0 {
 			return nil, fmt.Errorf("unable to parse line (%s)", line)
 		}
-		typ, line := line[:i], line[i+1:]
+
+		var typ string
+		typ, line = line[:i], line[i+1:]
 
 		line = strings.TrimLeft(line, " \t")
 

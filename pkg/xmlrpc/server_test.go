@@ -28,7 +28,7 @@ func TestServer(t *testing.T) {
 	go s.Serve(func(raw *RequestRaw) interface{} {
 		if raw.Method == "mymethod" {
 			var req myRequest
-			err := raw.Decode(&req)
+			err = raw.Decode(&req)
 			require.NoError(t, err)
 			return myResponse{Param: "myresponse"}
 		}
@@ -40,7 +40,8 @@ func TestServer(t *testing.T) {
 		err = requestEncode(&buf, "mymethod", myRequest{Param: "myrequest"})
 		require.NoError(t, err)
 
-		res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
+		var res *http.Response
+		res, err = http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
 		require.NoError(t, err)
 		defer res.Body.Close()
 
@@ -51,14 +52,16 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("wrong path", func(t *testing.T) {
-		res, err := http.Post("http://localhost:9904/wrong", "text/xml", nil)
+		var res *http.Response
+		res, err = http.Post("http://localhost:9904/wrong", "text/xml", nil)
 		require.NoError(t, err)
 		defer res.Body.Close()
 		require.Equal(t, 404, res.StatusCode)
 	})
 
 	t.Run("wrong method", func(t *testing.T) {
-		res, err := http.Get("http://localhost:9904/RPC2")
+		var res *http.Response
+		res, err = http.Get("http://localhost:9904/RPC2")
 		require.NoError(t, err)
 		defer res.Body.Close()
 		require.Equal(t, 404, res.StatusCode)
@@ -67,7 +70,8 @@ func TestServer(t *testing.T) {
 	t.Run("invalid request", func(t *testing.T) {
 		var buf bytes.Buffer
 		buf.WriteString("wrong")
-		res, err := http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
+		var res *http.Response
+		res, err = http.Post("http://localhost:9904/RPC2", "text/xml", &buf)
 		require.NoError(t, err)
 		defer res.Body.Close()
 		require.Equal(t, 400, res.StatusCode)

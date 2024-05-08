@@ -231,7 +231,7 @@ func TestClientErrors(t *testing.T) {
 
 			case "unregisterSubscriber":
 				var req RequestUnregister
-				err := raw.Decode(&req)
+				err = raw.Decode(&req)
 				require.NoError(t, err)
 				if req.Topic == "mytopic" {
 					return ResponseUnregister{Code: 0, NumUnregistered: 1}
@@ -246,7 +246,7 @@ func TestClientErrors(t *testing.T) {
 
 			case "unregisterService":
 				var req RequestUnregisterService
-				err := raw.Decode(&req)
+				err = raw.Decode(&req)
 				require.NoError(t, err)
 				if req.Service == "myservice" {
 					return ResponseServiceUnregister{Code: 0, NumUnregistered: 1}

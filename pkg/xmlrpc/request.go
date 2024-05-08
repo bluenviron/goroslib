@@ -104,7 +104,7 @@ func requestEncode(w io.Writer, method string, params interface{}) error {
 	for i := 0; i < nf; i++ {
 		field := rv.Field(i)
 
-		_, err := w.Write([]byte(`<param>`))
+		_, err = w.Write([]byte(`<param>`))
 		if err != nil {
 			return err
 		}
