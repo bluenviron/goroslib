@@ -3,7 +3,6 @@ package goroslib
 import (
 	"net"
 	"net/http"
-	"os"
 	"os/exec"
 	"regexp"
 	"sort"
@@ -180,8 +179,7 @@ func TestNodeOpenErrors(t *testing.T) {
 
 func TestNodeNamespaceFromEnv(t *testing.T) {
 	t.Run("from environment", func(t *testing.T) {
-		os.Setenv("ROS_NAMESPACE", "/myns")
-		defer os.Unsetenv("ROS_NAMESPACE")
+		t.Setenv("ROS_NAMESPACE", "/myns")
 
 		m := newContainerMaster(t)
 		defer m.close()
@@ -197,8 +195,7 @@ func TestNodeNamespaceFromEnv(t *testing.T) {
 	})
 
 	t.Run("from environment and conf", func(t *testing.T) {
-		os.Setenv("ROS_NAMESPACE", "/myns1")
-		defer os.Unsetenv("ROS_NAMESPACE")
+		t.Setenv("ROS_NAMESPACE", "/myns1")
 
 		m := newContainerMaster(t)
 		defer m.close()
