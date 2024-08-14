@@ -16,7 +16,7 @@ jobs:
 
     - run: go install mvdan.cc/gofumpt@v0.5.0
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - run: make msgs-nodocker
 
