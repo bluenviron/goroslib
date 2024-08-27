@@ -86,9 +86,9 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 			return nil, fmt.Errorf("OnExecute 1st argument must be %s, while is %v",
 				reflect.TypeOf(&SimpleActionServer{}), cbt.In(0))
 		}
-		if cbt.In(1) != reflect.PtrTo(reflect.TypeOf(goal)) {
+		if cbt.In(1) != reflect.PointerTo(reflect.TypeOf(goal)) {
 			return nil, fmt.Errorf("OnExecute 2nd argument must be %s, while is %v",
-				reflect.PtrTo(reflect.TypeOf(goal)), cbt.In(1))
+				reflect.PointerTo(reflect.TypeOf(goal)), cbt.In(1))
 		}
 
 		if cbt.NumOut() != 0 {
@@ -103,7 +103,7 @@ func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, er
 		OnGoal: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{
 				reflect.TypeOf(&ActionServerGoalHandler{}),
-				reflect.PtrTo(reflect.TypeOf(goal)),
+				reflect.PointerTo(reflect.TypeOf(goal)),
 			}, []reflect.Type{}, false),
 			sas.onGoal,
 		).Interface(),

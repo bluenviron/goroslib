@@ -110,9 +110,9 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 			return fmt.Errorf("OnDone 1st argument must be %s, while is %v",
 				reflect.TypeOf(SimpleActionClientGoalState(0)), cbt.In(0))
 		}
-		if cbt.In(1) != reflect.PtrTo(sac.ac.resType) {
+		if cbt.In(1) != reflect.PointerTo(sac.ac.resType) {
 			return fmt.Errorf("OnDone 2nd argument must be %s, while is %v",
-				reflect.PtrTo(sac.ac.resType), cbt.In(1))
+				reflect.PointerTo(sac.ac.resType), cbt.In(1))
 		}
 
 		if cbt.NumOut() != 0 {
@@ -129,9 +129,9 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 		if cbt.NumIn() != 1 {
 			return fmt.Errorf("OnFeedback must accept a single argument")
 		}
-		if cbt.In(0) != reflect.PtrTo(sac.ac.fbType) {
+		if cbt.In(0) != reflect.PointerTo(sac.ac.fbType) {
 			return fmt.Errorf("OnFeedback 1st argument must be %s, while is %v",
-				reflect.PtrTo(sac.ac.fbType), cbt.In(0))
+				reflect.PointerTo(sac.ac.fbType), cbt.In(0))
 		}
 
 		if cbt.NumOut() != 0 {
@@ -153,7 +153,7 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 		OnTransition: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{
 				reflect.TypeOf(&ActionClientGoalHandler{}),
-				reflect.PtrTo(sac.ac.resType),
+				reflect.PointerTo(sac.ac.resType),
 			}, []reflect.Type{}, false),
 			func(in []reflect.Value) []reflect.Value {
 				return sac.onTransition(fixedSGH, in)
@@ -161,7 +161,7 @@ func (sac *SimpleActionClient) SendGoal(conf SimpleActionClientGoalConf) error {
 		).Interface(),
 		OnFeedback: reflect.MakeFunc(
 			reflect.FuncOf([]reflect.Type{
-				reflect.PtrTo(sac.ac.fbType),
+				reflect.PointerTo(sac.ac.fbType),
 			}, []reflect.Type{}, false),
 			func(in []reflect.Value) []reflect.Value {
 				return sac.onFeedback(fixedSGH, in)

@@ -128,7 +128,7 @@ func TestActionClient(t *testing.T) {
 						Node:  ns,
 						Topic: "test_action/goal",
 						Callback: reflect.MakeFunc(
-							reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
+							reflect.FuncOf([]reflect.Type{reflect.PointerTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
 							func(in []reflect.Value) []reflect.Value {
 								go func() {
 									goalID := in[0].Elem().FieldByName("GoalId").
