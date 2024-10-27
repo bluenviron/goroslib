@@ -267,7 +267,7 @@ func (sp *subscriberPublisher) runInnerTCP(proto []interface{}) error {
 		}
 
 		if strErr, ok := raw["error"]; ok {
-			err = fmt.Errorf(strErr)
+			err = errors.New(strErr)
 			return
 		}
 

@@ -460,7 +460,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Node:  conf.Node,
 		Topic: conf.Name + "/feedback",
 		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(ac.fbActionType)}, []reflect.Type{}, false),
+			reflect.FuncOf([]reflect.Type{reflect.PointerTo(ac.fbActionType)}, []reflect.Type{}, false),
 			ac.onFeedback,
 		).Interface(),
 		onPublisher: func() {
@@ -481,7 +481,7 @@ func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 		Node:  conf.Node,
 		Topic: conf.Name + "/result",
 		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(ac.resActionType)}, []reflect.Type{}, false),
+			reflect.FuncOf([]reflect.Type{reflect.PointerTo(ac.resActionType)}, []reflect.Type{}, false),
 			ac.onResult,
 		).Interface(),
 		onPublisher: func() {
@@ -589,9 +589,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 	if conf.Goal == nil {
 		return nil, fmt.Errorf("Goal is empty")
 	}
-	if reflect.TypeOf(conf.Goal) != reflect.PtrTo(ac.goalType) {
+	if reflect.TypeOf(conf.Goal) != reflect.PointerTo(ac.goalType) {
 		return nil, fmt.Errorf("Goal must be %s, while is %v",
-			reflect.PtrTo(ac.goalType), reflect.TypeOf(conf.Goal))
+			reflect.PointerTo(ac.goalType), reflect.TypeOf(conf.Goal))
 	}
 
 	if conf.OnTransition != nil {
@@ -611,9 +611,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 		if cbt.NumOut() != 0 {
 			return nil, fmt.Errorf("OnTransition must not return any value")
 		}
-		if cbt.In(1) != reflect.PtrTo(ac.resType) {
+		if cbt.In(1) != reflect.PointerTo(ac.resType) {
 			return nil, fmt.Errorf("OnTransition 2nd argument must be %s, while is %v",
-				reflect.PtrTo(ac.resType), cbt.In(1))
+				reflect.PointerTo(ac.resType), cbt.In(1))
 		}
 	}
 
@@ -628,9 +628,9 @@ func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHa
 		if cbt.NumOut() != 0 {
 			return nil, fmt.Errorf("OnFeedback must not return any value")
 		}
-		if cbt.In(0) != reflect.PtrTo(ac.fbType) {
+		if cbt.In(0) != reflect.PointerTo(ac.fbType) {
 			return nil, fmt.Errorf("OnFeedback 1st argument must must be %s, while is %v",
-				reflect.PtrTo(ac.fbType), cbt.In(1))
+				reflect.PointerTo(ac.fbType), cbt.In(1))
 		}
 	}
 

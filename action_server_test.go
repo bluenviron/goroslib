@@ -110,7 +110,7 @@ func TestActionServer(t *testing.T) {
 					Node:  nc,
 					Topic: "test_action/feedback",
 					Callback: reflect.MakeFunc(
-						reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(fbAction))}, []reflect.Type{}, false),
+						reflect.FuncOf([]reflect.Type{reflect.PointerTo(reflect.TypeOf(fbAction))}, []reflect.Type{}, false),
 						func(in []reflect.Value) []reflect.Value {
 							require.Equal(t, DoSomethingActionFeedback{0.5}, in[0].Elem().FieldByName("Feedback").Interface())
 							close(fbRecv)
@@ -125,7 +125,7 @@ func TestActionServer(t *testing.T) {
 					Node:  nc,
 					Topic: "test_action/result",
 					Callback: reflect.MakeFunc(
-						reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
+						reflect.FuncOf([]reflect.Type{reflect.PointerTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
 						func(in []reflect.Value) []reflect.Value {
 							require.Equal(t, DoSomethingActionResult{123456}, in[0].Elem().FieldByName("Result").Interface())
 							close(resRecv)
@@ -211,7 +211,7 @@ func TestActionServerCancelGoal(t *testing.T) {
 				Node:  nc,
 				Topic: "test_action/result",
 				Callback: reflect.MakeFunc(
-					reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
+					reflect.FuncOf([]reflect.Type{reflect.PointerTo(reflect.TypeOf(resAction))}, []reflect.Type{}, false),
 					func(_ []reflect.Value) []reflect.Value {
 						close(resRecv)
 						return nil

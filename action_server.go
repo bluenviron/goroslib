@@ -62,9 +62,9 @@ type ActionServerGoalHandler struct {
 
 // PublishFeedback publishes a feedback about the goal,
 func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
-	if reflect.TypeOf(fb) != reflect.PtrTo(gh.as.fbType) {
+	if reflect.TypeOf(fb) != reflect.PointerTo(gh.as.fbType) {
 		panic(fmt.Errorf("argument must be %s, while is %v",
-			reflect.PtrTo(gh.as.fbType), reflect.TypeOf(fb)))
+			reflect.PointerTo(gh.as.fbType), reflect.TypeOf(fb)))
 	}
 
 	gh.as.mutex.Lock()
@@ -90,9 +90,9 @@ func (gh *ActionServerGoalHandler) PublishFeedback(fb interface{}) {
 }
 
 func (gh *ActionServerGoalHandler) publishResult(res interface{}) {
-	if reflect.TypeOf(res) != reflect.PtrTo(gh.as.resType) {
+	if reflect.TypeOf(res) != reflect.PointerTo(gh.as.resType) {
 		panic(fmt.Errorf("argument must be %s, while is %v",
-			reflect.PtrTo(gh.as.resType), reflect.TypeOf(res)))
+			reflect.PointerTo(gh.as.resType), reflect.TypeOf(res)))
 	}
 
 	gh.as.conf.Node.Log(LogLevelDebug, "action server '%s' has finished goal '%s' with state '%s'",
@@ -315,9 +315,9 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 			return nil, fmt.Errorf("OnGoal 1st argument must be %s, while is %v",
 				reflect.TypeOf(&ActionServerGoalHandler{}), cbt.In(0))
 		}
-		if cbt.In(1) != reflect.PtrTo(as.goalType) {
+		if cbt.In(1) != reflect.PointerTo(as.goalType) {
 			return nil, fmt.Errorf("OnGoal 2nd argument must be %s, while is %v",
-				reflect.PtrTo(as.goalType), cbt.In(1))
+				reflect.PointerTo(as.goalType), cbt.In(1))
 		}
 
 		if cbt.NumOut() != 0 {
@@ -359,7 +359,7 @@ func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 		Node:  conf.Node,
 		Topic: conf.Name + "/goal",
 		Callback: reflect.MakeFunc(
-			reflect.FuncOf([]reflect.Type{reflect.PtrTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
+			reflect.FuncOf([]reflect.Type{reflect.PointerTo(reflect.TypeOf(goalAction))}, []reflect.Type{}, false),
 			as.onGoal,
 		).Interface(),
 	})

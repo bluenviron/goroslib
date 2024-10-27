@@ -2,6 +2,7 @@ package goroslib
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"reflect"
@@ -227,7 +228,7 @@ func (sc *ServiceClient) createConn(ctx context.Context) error {
 
 	if strErr, ok := raw["error"]; ok {
 		nconn.Close()
-		return fmt.Errorf(strErr)
+		return errors.New(strErr)
 	}
 
 	var outHeader prototcp.HeaderServiceProvider
