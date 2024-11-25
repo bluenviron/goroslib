@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/kong v1.4.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/gookit/color v1.5.4
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
