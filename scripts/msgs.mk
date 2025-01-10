@@ -11,7 +11,7 @@ export DOCKERFILE_MSGS
 msgs:
 	echo "$$DOCKERFILE_MSGS" | docker build -q . -f - -t temp
 	docker run --rm -it \
-	-v $(PWD):/s \
+	-v $(shell pwd):/s \
 	temp \
 	sh -c "make msgs-nodocker"
 
