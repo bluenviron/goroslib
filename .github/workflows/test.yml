@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go: ["1.21", "1.22", "1.23"]
+        go: ["1.22", "1.23", "1.24"]
 
     steps:
     - uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
 
     - run: make test-nodocker
 
-    - if: matrix.go == '1.23'
+    - if: matrix.go == '1.24'
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
