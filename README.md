@@ -1,7 +1,8 @@
 # goroslib
 
-[![Test](https://github.com/bluenviron/goroslib/workflows/test/badge.svg)](https://github.com/bluenviron/goroslib/actions?query=workflow:test)
-[![Lint](https://github.com/bluenviron/goroslib/workflows/lint/badge.svg)](https://github.com/bluenviron/goroslib/actions?query=workflow:lint)
+[![Test](https://github.com/bluenviron/goroslib/actions/workflows/test.yml/badge.svg)](https://github.com/bluenviron/goroslib/actions/workflows/test.yml)
+[![Lint](https://github.com/bluenviron/goroslib/actions/workflows/lint.yml/badge.svg)](https://github.com/bluenviron/goroslib/actions/workflows/lint.yml)
+[![Msgs](https://github.com/bluenviron/goroslib/actions/workflows/msgs.yml/badge.svg)](https://github.com/bluenviron/goroslib/actions/workflows/msgs.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bluenviron/goroslib)](https://goreportcard.com/report/github.com/bluenviron/goroslib)
 [![CodeCov](https://codecov.io/gh/bluenviron/goroslib/branch/main/graph/badge.svg)](https://app.codecov.io/gh/bluenviron/goroslib/tree/main)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/bluenviron/goroslib/v2)](https://pkg.go.dev/github.com/bluenviron/goroslib/v2#pkg-index)
