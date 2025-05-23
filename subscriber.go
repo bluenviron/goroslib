@@ -78,28 +78,28 @@ type Subscriber struct {
 // NewSubscriber allocates a Subscriber. See SubscriberConf for the options.
 func NewSubscriber(conf SubscriberConf) (*Subscriber, error) {
 	if conf.Node == nil {
-		return nil, fmt.Errorf("Node is empty")
+		return nil, fmt.Errorf("'Node' is empty")
 	}
 
 	if conf.Topic == "" {
-		return nil, fmt.Errorf("Topic is empty")
+		return nil, fmt.Errorf("'Topic' is empty")
 	}
 
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt == nil || cbt.Kind() != reflect.Func {
-		return nil, fmt.Errorf("Callback is not a function")
+		return nil, fmt.Errorf("'Callback' is not a function")
 	}
 
 	if cbt.NumIn() != 1 {
-		return nil, fmt.Errorf("Callback must accept a single argument")
+		return nil, fmt.Errorf("'Callback' must accept a single argument")
 	}
 
 	if cbt.NumOut() != 0 {
-		return nil, fmt.Errorf("Callback must not return any value")
+		return nil, fmt.Errorf("'Callback' must not return any value")
 	}
 
 	if cbt.In(0).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Msg is not a pointer")
+		return nil, fmt.Errorf("'Msg' is not a pointer")
 	}
 
 	msgElem := reflect.New(cbt.In(0).Elem()).Elem().Interface()

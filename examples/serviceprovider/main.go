@@ -1,3 +1,4 @@
+// Package main contains an example.
 package main
 
 import (
@@ -12,16 +13,16 @@ import (
 // define a custom service.
 // unlike the standard library, a .srv file is not needed.
 
-type TestServiceReq struct {
+type TestServiceReq struct { //nolint:revive
 	A float64
 	B string
 }
 
-type TestServiceRes struct {
+type TestServiceRes struct { //nolint:revive
 	C float64
 }
 
-type TestService struct {
+type TestService struct { //nolint:revive
 	msg.Package `ros:"my_package"`
 	TestServiceReq
 	TestServiceRes

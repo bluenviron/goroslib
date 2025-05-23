@@ -46,19 +46,19 @@ type ServiceClient struct {
 // NewServiceClient allocates a ServiceClient. See ServiceClientConf for the options.
 func NewServiceClient(conf ServiceClientConf) (*ServiceClient, error) {
 	if conf.Node == nil {
-		return nil, fmt.Errorf("Node is empty")
+		return nil, fmt.Errorf("'Node' is empty")
 	}
 
 	if conf.Name == "" {
-		return nil, fmt.Errorf("Name is empty")
+		return nil, fmt.Errorf("'Name' is empty")
 	}
 
 	if conf.Srv == nil {
-		return nil, fmt.Errorf("Srv is empty")
+		return nil, fmt.Errorf("'Srv' is empty")
 	}
 
 	if reflect.TypeOf(conf.Srv).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Srv is not a pointer")
+		return nil, fmt.Errorf("'Srv' is not a pointer")
 	}
 
 	srvElem := reflect.ValueOf(conf.Srv).Elem().Interface()

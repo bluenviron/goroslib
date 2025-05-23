@@ -65,19 +65,19 @@ type Publisher struct {
 // NewPublisher allocates a Publisher. See PublisherConf for the options.
 func NewPublisher(conf PublisherConf) (*Publisher, error) {
 	if conf.Node == nil {
-		return nil, fmt.Errorf("Node is empty")
+		return nil, fmt.Errorf("'Node' is empty")
 	}
 
 	if conf.Topic == "" {
-		return nil, fmt.Errorf("Topic is empty")
+		return nil, fmt.Errorf("'Topic' is empty")
 	}
 
 	if conf.Msg == nil {
-		return nil, fmt.Errorf("Msg is empty")
+		return nil, fmt.Errorf("'Msg' is empty")
 	}
 
 	if reflect.TypeOf(conf.Msg).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Msg is not a pointer")
+		return nil, fmt.Errorf("'Msg' is not a pointer")
 	}
 
 	msgElem := reflect.ValueOf(conf.Msg).Elem().Interface()

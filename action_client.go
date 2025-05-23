@@ -389,19 +389,19 @@ type ActionClient struct {
 // NewActionClient allocates an ActionClient. See ActionClientConf for the options.
 func NewActionClient(conf ActionClientConf) (*ActionClient, error) {
 	if conf.Node == nil {
-		return nil, fmt.Errorf("Node is empty")
+		return nil, fmt.Errorf("'Node' is empty")
 	}
 
 	if conf.Name == "" {
-		return nil, fmt.Errorf("Name is empty")
+		return nil, fmt.Errorf("'Name' is empty")
 	}
 
 	if conf.Action == nil {
-		return nil, fmt.Errorf("Action is empty")
+		return nil, fmt.Errorf("'Action' is empty")
 	}
 
 	if reflect.TypeOf(conf.Action).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Action is not a pointer")
+		return nil, fmt.Errorf("'Action' is not a pointer")
 	}
 
 	actionElem := reflect.ValueOf(conf.Action).Elem().Interface()
@@ -587,10 +587,10 @@ func (ac *ActionClient) WaitForServer() {
 // SendGoal sends a goal.
 func (ac *ActionClient) SendGoal(conf ActionClientGoalConf) (*ActionClientGoalHandler, error) {
 	if conf.Goal == nil {
-		return nil, fmt.Errorf("Goal is empty")
+		return nil, fmt.Errorf("'Goal' is empty")
 	}
 	if reflect.TypeOf(conf.Goal) != reflect.PointerTo(ac.goalType) {
-		return nil, fmt.Errorf("Goal must be %s, while is %v",
+		return nil, fmt.Errorf("'Goal' must be %s, while is %v",
 			reflect.PointerTo(ac.goalType), reflect.TypeOf(conf.Goal))
 	}
 

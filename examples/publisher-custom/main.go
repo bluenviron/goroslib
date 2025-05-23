@@ -1,3 +1,4 @@
+// Package main contains an example.
 package main
 
 import (
@@ -10,9 +11,8 @@ import (
 	"github.com/bluenviron/goroslib/v2/pkg/msg"
 )
 
-// define a custom message.
+// TestMessage is a custom message.
 // unlike the standard library, a .msg file is not needed.
-// a structure definition is enough.
 type TestMessage struct {
 	msg.Package `ros:"my_package"`
 	FirstField  uint32
