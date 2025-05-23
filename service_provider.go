@@ -62,19 +62,19 @@ type ServiceProvider struct {
 // NewServiceProvider allocates a ServiceProvider. See ServiceProviderConf for the options.
 func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	if conf.Node == nil {
-		return nil, fmt.Errorf("Node is empty")
+		return nil, fmt.Errorf("'Node' is empty")
 	}
 
 	if conf.Name == "" {
-		return nil, fmt.Errorf("Name is empty")
+		return nil, fmt.Errorf("'Name' is empty")
 	}
 
 	if conf.Srv == nil {
-		return nil, fmt.Errorf("Srv is empty")
+		return nil, fmt.Errorf("'Srv' is empty")
 	}
 
 	if reflect.TypeOf(conf.Srv).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Srv is not a pointer")
+		return nil, fmt.Errorf("'Srv' is not a pointer")
 	}
 
 	srvElem := reflect.ValueOf(conf.Srv).Elem().Interface()
@@ -98,11 +98,11 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 
 	cbt := reflect.TypeOf(conf.Callback)
 	if cbt.Kind() != reflect.Func {
-		return nil, fmt.Errorf("Callback is not a function")
+		return nil, fmt.Errorf("'Callback' is not a function")
 	}
 
 	if cbt.NumIn() != 1 {
-		return nil, fmt.Errorf("Callback must accept a single argument")
+		return nil, fmt.Errorf("'Callback' must accept a single argument")
 	}
 	vin := cbt.In(0)
 	if vin.Kind() != reflect.Ptr {
@@ -113,7 +113,7 @@ func NewServiceProvider(conf ServiceProviderConf) (*ServiceProvider, error) {
 	}
 
 	if cbt.NumOut() != 2 {
-		return nil, fmt.Errorf("Callback must return 2 values")
+		return nil, fmt.Errorf("'Callback' must return 2 values")
 	}
 	vout := cbt.Out(0)
 	if vout.Kind() != reflect.Ptr {

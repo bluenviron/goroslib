@@ -391,7 +391,7 @@ func binaryEncodeValue(w *bytes.Buffer, src reflect.Value, dest []byte) {
 		// so time.Time{} can be encoded / decoded
 		var nano int64
 		var zero time.Time
-		if cv == zero {
+		if cv == zero { //nolint:staticcheck
 			nano = 0
 		} else {
 			nano = cv.UnixNano()

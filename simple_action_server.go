@@ -52,7 +52,7 @@ type SimpleActionServer struct {
 // NewSimpleActionServer allocates a SimpleActionServer.
 func NewSimpleActionServer(conf SimpleActionServerConf) (*SimpleActionServer, error) {
 	if reflect.TypeOf(conf.Action).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Action is not a pointer")
+		return nil, fmt.Errorf("'Action' is not a pointer")
 	}
 
 	actionElem := reflect.ValueOf(conf.Action).Elem().Interface()

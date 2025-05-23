@@ -1,3 +1,4 @@
+// Package main contains an example.
 package main
 
 import (
@@ -12,19 +13,19 @@ import (
 // define a custom action.
 // unlike the standard library, an .action file is not needed.
 
-type DoSomethingActionGoal struct {
+type DoSomethingActionGoal struct { //nolint:revive
 	Input uint32
 }
 
-type DoSomethingActionResult struct {
+type DoSomethingActionResult struct { //nolint:revive
 	Output uint32
 }
 
-type DoSomethingActionFeedback struct {
+type DoSomethingActionFeedback struct { //nolint:revive
 	PercentComplete float32
 }
 
-type DoSomethingAction struct {
+type DoSomethingAction struct { //nolint:revive
 	msg.Package `ros:"shared_actions"`
 	DoSomethingActionGoal
 	DoSomethingActionResult
@@ -64,7 +65,7 @@ func main() {
 		Goal: &DoSomethingActionGoal{
 			Input: 1234312,
 		},
-		OnDone: func(state goroslib.SimpleActionClientGoalState, res *DoSomethingActionResult) {
+		OnDone: func(_ goroslib.SimpleActionClientGoalState, res *DoSomethingActionResult) {
 			log.Println("result:", res)
 			close(done)
 		},

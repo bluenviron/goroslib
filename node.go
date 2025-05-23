@@ -246,17 +246,17 @@ func NewNode(conf NodeConf) (*Node, error) {
 		conf.Namespace = "/"
 	}
 	if conf.Namespace[0] != '/' {
-		return nil, fmt.Errorf("Namespace must begin with a slash (/)")
+		return nil, fmt.Errorf("'Namespace' must begin with a slash (/)")
 	}
 	if conf.Namespace != "/" && conf.Namespace[len(conf.Namespace)-1] == '/' {
-		return nil, fmt.Errorf("Namespace can't end with a slash (/)")
+		return nil, fmt.Errorf("'Namespace' can't end with a slash (/)")
 	}
 
 	if conf.Name == "" {
-		return nil, fmt.Errorf("Name not provided")
+		return nil, fmt.Errorf("'Name' not provided")
 	}
 	if strings.ContainsRune(conf.Name, '/') {
-		return nil, fmt.Errorf("Name cannot contain slashes (/), use Namespace to set a namespace")
+		return nil, fmt.Errorf("'Name' cannot contain slashes (/), use 'Namespace' to set a namespace")
 	}
 
 	if len(conf.MasterAddress) == 0 {
@@ -626,7 +626,7 @@ outer:
 		case req := <-n.subscriberNew:
 			_, ok := n.subscribers[n.absoluteTopicName(req.sub.conf.Topic)]
 			if ok {
-				req.res <- fmt.Errorf("Topic %s already subscribed", req.sub.conf.Topic)
+				req.res <- fmt.Errorf("topic %s already subscribed", req.sub.conf.Topic)
 				continue
 			}
 
@@ -665,7 +665,7 @@ outer:
 		case req := <-n.publisherNew:
 			_, ok := n.publishers[n.absoluteTopicName(req.pub.conf.Topic)]
 			if ok {
-				req.res <- fmt.Errorf("Topic %s already published", req.pub.conf.Topic)
+				req.res <- fmt.Errorf("topic %s already published", req.pub.conf.Topic)
 				continue
 			}
 
@@ -689,7 +689,7 @@ outer:
 		case req := <-n.serviceProviderNew:
 			_, ok := n.serviceProviders[n.absoluteTopicName(req.sp.conf.Name)]
 			if ok {
-				req.res <- fmt.Errorf("Service %s already provided", req.sp.conf.Name)
+				req.res <- fmt.Errorf("service %s already provided", req.sp.conf.Name)
 				continue
 			}
 

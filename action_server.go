@@ -248,19 +248,19 @@ type ActionServer struct {
 // NewActionServer allocates an ActionServer. See ActionServerConf for the options.
 func NewActionServer(conf ActionServerConf) (*ActionServer, error) {
 	if conf.Node == nil {
-		return nil, fmt.Errorf("Node is empty")
+		return nil, fmt.Errorf("'Node' is empty")
 	}
 
 	if conf.Name == "" {
-		return nil, fmt.Errorf("Name is empty")
+		return nil, fmt.Errorf("'Name' is empty")
 	}
 
 	if conf.Action == nil {
-		return nil, fmt.Errorf("Action is empty")
+		return nil, fmt.Errorf("'Action' is empty")
 	}
 
 	if reflect.TypeOf(conf.Action).Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("Action is not a pointer")
+		return nil, fmt.Errorf("'Action' is not a pointer")
 	}
 
 	if conf.StatusPeriod == 0 {

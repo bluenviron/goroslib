@@ -105,7 +105,7 @@ func ImportPackageRecursive(dir string) error {
 
 	if len(paths) == 0 {
 		return fmt.Errorf("no ROS packages found in '%s'."+
-			" A ROS package must contain at least a subfolder named 'msg', 'srv' or 'action'.", dir)
+			" A ROS package must contain at least a subfolder named 'msg', 'srv' or 'action'", dir)
 	}
 
 	for path := range paths {
