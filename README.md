@@ -1,5 +1,11 @@
 # goroslib
 
+## Deprecation notice
+
+On May 31st 2025, ROS 1, which is the ROS distribution compatible with this library, has reached the end of life. Making this library compatible with ROS 2 would require a significant effort. Therefore, we are forced to archive goroslib.
+
+## Info
+
 [![Test](https://github.com/bluenviron/goroslib/actions/workflows/test.yml/badge.svg)](https://github.com/bluenviron/goroslib/actions/workflows/test.yml)
 [![Lint](https://github.com/bluenviron/goroslib/actions/workflows/lint.yml/badge.svg)](https://github.com/bluenviron/goroslib/actions/workflows/lint.yml)
 [![Msgs](https://github.com/bluenviron/goroslib/actions/workflows/msgs.yml/badge.svg)](https://github.com/bluenviron/goroslib/actions/workflows/msgs.yml)
